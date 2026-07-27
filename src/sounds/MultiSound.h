@@ -25,7 +25,9 @@ class MultiSound : public Sound
     explicit MultiSound(std::vector<std::shared_ptr<Sound>> sounds);
 
     void play() override;
+    void playAt(std::chrono::nanoseconds chartTime) override;
     void stop() override;
+    void stopAt(std::chrono::nanoseconds chartTime) override;
     void setVolume(float volume) override;
     auto isPlaying() const -> bool override;
     auto getVolume() const -> float override;

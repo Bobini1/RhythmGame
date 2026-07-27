@@ -1,11 +1,13 @@
 #include "gameplay_logic/BmsGameReferee.h"
 #include "gameplay_logic/rules/Lr2TimingWindows.h"
+#include "sounds/MultiSound.h"
 #include "sounds/Sound.h"
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <chrono>
 #include <memory>
+#include <stdexcept>
 #include <unordered_map>
 #include <vector>
 
@@ -197,6 +199,26 @@ TEST_CASE("ScheduledSound final update keeps future BGM suppressed",
     CHECK(sound->legacyStopCount == 1);
 }
 
+TEST_CASE("ScheduledSound rejects pre-scheduling after native BGM advancement",
+          "[ScheduledSound]")
+{
+    auto sound = std::make_shared<RecordingSound>();
+    auto referee = makeReferee(
+      { { charts::BmsNotesData::Time{ 100ms, 0.0, 0.0 }, 1 },
+        { charts::BmsNotesData::Time{ 250ms, 0.0, 0.0 }, 1 } },
+      { { 1, sound } });
+
+    referee->update(150ms);
+
+    REQUIRE_THROWS_AS(referee->preScheduleBgm(), std::logic_error);
+    REQUIRE(sound->playTimes ==
+            std::vector<std::chrono::nanoseconds>{ 100ms });
+
+    referee->update(500ms);
+    REQUIRE(sound->playTimes ==
+            std::vector<std::chrono::nanoseconds>{ 100ms, 250ms });
+}
+
 TEST_CASE("ScheduledSound default scheduling preserves immediate native sound",
           "[ScheduledSound]")
 {
@@ -207,6 +229,44 @@ TEST_CASE("ScheduledSound default scheduling preserves immediate native sound",
 
     CHECK(sound.playCount == 1);
     CHECK(sound.stopCount == 1);
+}
+
+TEST_CASE("ScheduledSound composite forwards scheduled timestamps to children",
+          "[ScheduledSound]")
+{
+    auto first = std::make_shared<RecordingSound>();
+    auto second = std::make_shared<RecordingSound>();
+    auto sound = sounds::MultiSound({ first, second });
+
+    sound.playAt(123ms);
+    sound.stopAt(456ms);
+
+    for (const auto& child : { first, second }) {
+        CHECK(child->playTimes ==
+              std::vector<std::chrono::nanoseconds>{ 123ms });
+        CHECK(child->stopTimes ==
+              std::vector<std::chrono::nanoseconds>{ 456ms });
+        CHECK(child->legacyPlayCount == 0);
+        CHECK(child->legacyStopCount == 0);
+    }
+}
+
+TEST_CASE("ScheduledSound composite preserves immediate child operations",
+          "[ScheduledSound]")
+{
+    auto first = std::make_shared<RecordingSound>();
+    auto second = std::make_shared<RecordingSound>();
+    auto sound = sounds::MultiSound({ first, second });
+
+    sound.play();
+    sound.stop();
+
+    for (const auto& child : { first, second }) {
+        CHECK(child->playTimes.empty());
+        CHECK(child->stopTimes.empty());
+        CHECK(child->legacyPlayCount == 1);
+        CHECK(child->legacyStopCount == 1);
+    }
 }
 
 } // namespace

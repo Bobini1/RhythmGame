@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <ranges>
+#include <stdexcept>
 #include "BmsGameReferee.h"
 
 namespace {
@@ -162,6 +163,10 @@ gameplay_logic::BmsGameReferee::preScheduleBgm()
 {
     if (bgmPreScheduled) {
         return;
+    }
+    if (currentBgms.size() != bgms.size()) {
+        throw std::logic_error(
+          "BGM pre-scheduling must happen before gameplay advancement");
     }
     bgmPreScheduled = true;
     for (const auto& bgm : bgms) {

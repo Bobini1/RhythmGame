@@ -88,6 +88,8 @@ class BmsGameReferee
      * @brief Schedule every BGM at its authored chart timestamp.
      * @details This operation is idempotent. Once called, update() continues
      * consuming the BGM cursor without triggering playback a second time.
+     * @throws std::logic_error If native update-driven BGM playback has
+     * already consumed an event.
      */
     void preScheduleBgm();
 

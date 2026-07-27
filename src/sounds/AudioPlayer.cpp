@@ -7,6 +7,7 @@
 #include "AudioEngine.h"
 #include <QFileInfo>
 #include <algorithm>
+#include <spdlog/spdlog.h>
 
 namespace sounds {
 void

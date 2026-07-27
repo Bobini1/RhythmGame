@@ -20,10 +20,26 @@ MultiSound::play()
 }
 
 void
+MultiSound::playAt(std::chrono::nanoseconds chartTime)
+{
+    for (auto& sound : childSounds) {
+        sound->playAt(chartTime);
+    }
+}
+
+void
 MultiSound::stop()
 {
     for (auto& sound : childSounds) {
         sound->stop();
+    }
+}
+
+void
+MultiSound::stopAt(std::chrono::nanoseconds chartTime)
+{
+    for (auto& sound : childSounds) {
+        sound->stopAt(chartTime);
     }
 }
 
