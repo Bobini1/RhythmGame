@@ -53,6 +53,32 @@ scratchAxisDelta(double oldValue, double newValue) -> double
     }
     return analogDiff;
 }
+
+auto
+encodeMidiCode(int channel, int number) -> quint32
+{
+    return static_cast<quint32>((channel << 8) | number);
+}
+
+auto
+midiKey(MidiDevice device,
+        Key::Device type,
+        int channel,
+        int number,
+        Key::Direction direction = Key::Direction::None) -> Key
+{
+    return Key{ QVariant::fromValue(std::move(device)),
+                type,
+                encodeMidiCode(channel, number),
+                direction };
+}
+}
+
+auto
+Key::getMidi() const -> QVariant
+{
+    return gamepad.canConvert<MidiDevice>() ? gamepad
+                                            : QVariant::fromValue(nullptr);
 }
 
 auto
@@ -70,6 +96,20 @@ Key::operator<=>(const Key& key) const -> std::weak_ordering
         return std::strong_ordering::less;
     }
     if (gp2) {
+        return std::strong_ordering::greater;
+    }
+    auto midi1 = gamepad.canConvert<MidiDevice>();
+    auto midi2 = key.gamepad.canConvert<MidiDevice>();
+    if (midi1 && midi2) {
+        auto midi1obj = gamepad.value<MidiDevice>();
+        auto midi2obj = key.gamepad.value<MidiDevice>();
+        return std::tie(midi1obj, device, code, direction) <=>
+               std::tie(midi2obj, key.device, key.code, key.direction);
+    }
+    if (midi1) {
+        return std::strong_ordering::less;
+    }
+    if (midi2) {
         return std::strong_ordering::greater;
     }
     return std::tie(device, code, direction) <=>
@@ -894,6 +934,116 @@ InputTranslator::handleRelease(Gamepad gamepad, Uint8 button, int64_t time)
       QVariant::fromValue(std::move(gamepad)), Key::Device::Button, button });
     if (key != config.end()) {
         releaseButton(*key, time);
+    }
+}
+
+void
+InputTranslator::handleMidiNote(MidiDevice device,
+                                int channel,
+                                int note,
+                                int velocity,
+                                int64_t time)
+{
+    const auto keyLookup =
+      midiKey(std::move(device), Key::Device::MidiNote, channel, note);
+    if (velocity > 0) {
+        if (isConfiguring()) {
+            bindKeyToButton(keyLookup, *configuredButton, time);
+            emit keyConfigModified();
+            setConfiguredButton({});
+        } else if (const auto found = config.find(keyLookup);
+                   found != config.end()) {
+            tickTypes[static_cast<int>(*found)] = ButtonTick;
+            pressButton(*found, time);
+        }
+    } else if (const auto found = config.find(keyLookup);
+               found != config.end()) {
+        releaseButton(*found, time);
+    }
+}
+
+void
+InputTranslator::handleMidiControl(MidiDevice device,
+                                   int channel,
+                                   int control,
+                                   int value,
+                                   int64_t time)
+{
+    const auto keyLookup =
+      midiKey(std::move(device), Key::Device::MidiControl, channel, control);
+    if (value >= 64) {
+        if (isConfiguring()) {
+            bindKeyToButton(keyLookup, *configuredButton, time);
+            emit keyConfigModified();
+            setConfiguredButton({});
+        } else if (const auto found = config.find(keyLookup);
+                   found != config.end()) {
+            tickTypes[static_cast<int>(*found)] = ButtonTick;
+            pressButton(*found, time);
+        }
+    } else if (const auto found = config.find(keyLookup);
+               found != config.end()) {
+        releaseButton(*found, time);
+    }
+}
+
+void
+InputTranslator::handleMidiPitchBend(MidiDevice device,
+                                     int channel,
+                                     int value,
+                                     int64_t time)
+{
+    auto direction = Key::Direction::None;
+    if (value > 8192) {
+        direction = Key::Direction::Up;
+    } else if (value < 8192) {
+        direction = Key::Direction::Down;
+    }
+    auto keyLookup = midiKey(
+      std::move(device), Key::Device::MidiPitchBend, channel, 0, direction);
+    auto oppositeKeyLookup = keyLookup;
+    if (direction == Key::Direction::Up) {
+        oppositeKeyLookup.direction = Key::Direction::Down;
+    } else {
+        oppositeKeyLookup.direction = Key::Direction::Up;
+    }
+    if (const auto found = config.find(oppositeKeyLookup);
+        found != config.end()) {
+        releaseButton(*found, time, ReleaseMode::Immediate);
+    }
+
+    if (direction == Key::Direction::None) {
+        keyLookup.direction = Key::Direction::Up;
+        if (const auto found = config.find(keyLookup); found != config.end()) {
+            releaseButton(*found, time, ReleaseMode::Immediate);
+        }
+        keyLookup.direction = Key::Direction::Down;
+        if (const auto found = config.find(keyLookup); found != config.end()) {
+            releaseButton(*found, time, ReleaseMode::Immediate);
+        }
+        return;
+    }
+
+    if (isConfiguring()) {
+        bindKeyToButton(keyLookup, *configuredButton, time);
+        emit keyConfigModified();
+        setConfiguredButton({});
+    } else if (const auto found = config.find(keyLookup);
+               found != config.end()) {
+        tickTypes[static_cast<int>(*found)] = ButtonTick;
+        pressButton(*found, time);
+    }
+}
+
+void
+InputTranslator::handleMidiDeviceRemoved(MidiDevice device, int64_t time)
+{
+    for (const auto& [key, button] : config.asKeyValueRange()) {
+        if (!key.gamepad.canConvert<MidiDevice>() ||
+            key.gamepad.value<MidiDevice>() != device) {
+            continue;
+        }
+        releaseButton(button, time, ReleaseMode::Immediate);
     }
 }
 

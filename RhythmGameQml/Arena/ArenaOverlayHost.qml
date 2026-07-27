@@ -10,8 +10,8 @@ Item {
     required property string layoutVariant
     property string resultResolvedSkinId: ""
     property var resultThemeVars: null
-    property bool expanded: false
-    property bool resultExpanded: true
+    readonly property bool customizeMode: root.currentItem !== null
+        && root.currentItem.customizeMode === true
 
     readonly property bool ownsArenaRunner: root.currentItem !== null
         && root.currentItem.chart !== undefined
@@ -43,19 +43,29 @@ Item {
         ? String(root.session.liveStandings.roundId || "")
         : (root.ownsArenaResult ? root.currentArenaRoundId : "")
 
-    onOwnsArenaRunnerChanged: {
-        if (!root.ownsArenaRunner) {
-            root.expanded = false;
+    function gameplayPropertyPrefix() {
+        switch (root.layoutVariant) {
+        case "k5": return "arenaOverlayK5";
+        case "k7": return "arenaOverlayK7";
+        case "k10": return "arenaOverlayK10";
+        case "k14": return "arenaOverlayK14";
+        default: return "";
         }
     }
-    onActiveRoundIdChanged: {
-        if (root.session.chatOpen === true) {
-            root.session.setChatOpen(false);
+
+    function rememberChatSelection(chatSelected) {
+        if (root.currentItem
+                && typeof root.currentItem.rememberArenaChatSelection
+                    === "function") {
+            root.currentItem.rememberArenaChatSelection(chatSelected);
+            return;
         }
-    }
-    onLegacyArenaResultChanged: {
-        if (!root.legacyArenaResult) {
-            root.resultExpanded = true;
+        const vars = root.ownsArenaRunner
+            ? root.themeVars : root.resultThemeVars;
+        const prefix = root.ownsArenaRunner
+            ? root.gameplayPropertyPrefix() : "arenaOverlayResult";
+        if (vars && prefix.length > 0) {
+            vars[prefix + "ChatSelected"] = !!chatSelected;
         }
     }
 
@@ -65,7 +75,10 @@ Item {
         enabled: root.arenaShortcutEnabled
         sequence: "F8"
 
-        onActivated: root.session.toggleChat()
+        onActivated: {
+            root.session.toggleChat();
+            root.rememberChatSelection(root.session.chatOpen === true);
+        }
     }
 
     Loader {
@@ -83,21 +96,45 @@ Item {
             id: placementFrame
 
             objectName: "arenaGameplayPlacementFrame"
+            customizationLabel: qsTr("Arena gameplay panel")
+            customizeMode: root.customizeMode
+            defaultExpanded: false
             layoutVariant: root.layoutVariant
             placementKind: "gameplayLeaderboard"
             themeVars: root.themeVars
             viewport: root
             minimumPixelSize: Qt.size(320, 240)
             moveHandle: gameplayOverlay.dragHandle
+            visible: placementFrame.overlayVisible || root.customizeMode
+
+            onOverlayVisibilityCommitted: visible => {
+                if (!visible && root.session.chatOpen === true) {
+                    root.session.setChatOpen(false);
+                }
+            }
+            onPresentationStateReloaded: {
+                if (placementFrame.overlayVisible) {
+                    placementFrame.restoreChatSelection(root.session);
+                }
+            }
 
             ArenaGameplayOverlay {
                 id: gameplayOverlay
 
                 anchors.fill: parent
                 session: root.session
-                expanded: root.expanded
+                expanded: placementFrame.expanded
 
-                onExpandedChanged: root.expanded = gameplayOverlay.expanded
+                onChatSelected: chat => placementFrame.setChatSelected(chat)
+                onExpandedChanged: {
+                    placementFrame.setExpanded(gameplayOverlay.expanded);
+                }
+            }
+
+            Component.onCompleted: {
+                if (placementFrame.overlayVisible) {
+                    placementFrame.restoreChatSelection(root.session);
+                }
             }
         }
     }
@@ -116,11 +153,26 @@ Item {
             id: resultPlacementFrame
 
             objectName: "arenaResultPlacementFrame"
+            customizationLabel: qsTr("Arena result panel")
+            customizeMode: root.customizeMode
+            defaultExpanded: true
             themeVars: root.resultThemeVars
             viewport: root
             placementKind: "resultStandings"
             layoutVariant: "result"
             moveHandle: resultOverlay.dragHandle
+            visible: resultPlacementFrame.overlayVisible || root.customizeMode
+
+            onOverlayVisibilityCommitted: visible => {
+                if (!visible && root.session.chatOpen === true) {
+                    root.session.setChatOpen(false);
+                }
+            }
+            onPresentationStateReloaded: {
+                if (resultPlacementFrame.overlayVisible) {
+                    resultPlacementFrame.restoreChatSelection(root.session);
+                }
+            }
 
             ArenaResultOverlay {
                 id: resultOverlay
@@ -130,9 +182,20 @@ Item {
                 placementKind: "resultStandings"
                 resolvedSkinId: root.resultResolvedSkinId
                 session: root.session
-                expanded: root.resultExpanded
+                expanded: resultPlacementFrame.expanded
 
-                onExpandedChanged: root.resultExpanded = expanded
+                onChatSelected: chat => {
+                    resultPlacementFrame.setChatSelected(chat);
+                }
+                onExpandedChanged: {
+                    resultPlacementFrame.setExpanded(resultOverlay.expanded);
+                }
+            }
+
+            Component.onCompleted: {
+                if (resultPlacementFrame.overlayVisible) {
+                    resultPlacementFrame.restoreChatSelection(root.session);
+                }
             }
         }
     }

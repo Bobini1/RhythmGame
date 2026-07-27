@@ -44,6 +44,8 @@ FocusScope {
         return "";
     }
 
+    signal chatSelected(bool chat)
+
     Accessible.name: root.session
         ? (root.session.roomName || qsTr("Arena room")) : qsTr("Arena room")
     Accessible.role: Accessible.Grouping
@@ -142,6 +144,8 @@ FocusScope {
                 chatAccessibleName: qsTr("Show Arena chat")
                 detailsAccessibleName: qsTr("Show Arena room details")
                 session: root.session
+
+                onTabSelected: chat => root.chatSelected(chat)
             }
 
             HoverHandler {

@@ -21,10 +21,22 @@ FocusScope {
     Accessible.role: Accessible.Pane
 
     ArenaSelectOverlay {
+        customizeMode: root.presentationItem
+            && root.presentationItem.customizeMode === true
         navigationFocusTarget: root.presentationItem
+        presentationActive: root.presentationItem
+            && (root.presentationItem.screenUpdatesActive !== undefined
+                ? root.presentationItem.screenUpdatesActive === true
+                : root.presentationItem.enabled && root.presentationItem.visible)
         session: root.session
         themeVars: root.themeVars
         viewport: root.viewport
+    }
+
+    LegacySkinCustomizeHost {
+        anchors.fill: parent
+        screen: root.presentationItem
+        z: 2000000
     }
 
     TransientInputFocusDismissLayer {}

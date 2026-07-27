@@ -24,7 +24,9 @@ FocusScope {
     readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
     readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
     readonly property bool admissionInFlight: session.admissionPending && !session.loginRequired
-    readonly property bool updateRequired: session.directoryReady && !session.competitionAvailable
+    readonly property int contentMaximumWidth: 1200
+    readonly property int messageMaximumWidth: 720
+    readonly property bool updateRequired: session.state === ArenaSession.Browsing && !admissionInFlight && session.directoryReady && !session.competitionAvailable
     readonly property bool roomActionsEnabled: session.state === ArenaSession.Browsing && !admissionInFlight && !updateRequired
 
     Accessible.name: qsTr("Online Arena")
@@ -133,7 +135,9 @@ FocusScope {
         spacing: 12
 
         RowLayout {
+            Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
+            Layout.maximumWidth: root.contentMaximumWidth
 
             Button {
                 id: exitButton
@@ -161,7 +165,9 @@ FocusScope {
         Frame {
             id: connectionBanner
 
+            Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
+            Layout.maximumWidth: root.messageMaximumWidth
             implicitHeight: bannerRow.implicitHeight + topPadding + bottomPadding
             visible: root.session.errorMessageKey.length > 0 || root.updateRequired || root.session.state === ArenaSession.Disconnected || root.session.state === ArenaSession.ConnectingAuthenticated || root.admissionInFlight
 
@@ -211,7 +217,7 @@ FocusScope {
 
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
-            Layout.maximumWidth: 720
+            Layout.maximumWidth: root.messageMaximumWidth
             active: !root.updateRequired && root.activeProfile.loginState !== Profile.LoggedIn
             sourceComponent: loginPanelComponent
         }
@@ -285,7 +291,7 @@ FocusScope {
                 reuseItems: true
                 keyNavigationEnabled: true
                 spacing: 8
-                width: Math.min(parent.width, 1200)
+                width: Math.min(parent.width, root.contentMaximumWidth)
 
                 function ensureCurrentItem(): void {
                     if (roomList.count === 0) {

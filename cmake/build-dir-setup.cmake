@@ -9,9 +9,6 @@ else ()
 endif ()
 
 if (WIN32)
-    find_program(TOOL_WINDEPLOYQT NAMES windeployqt)
-    find_program(TOOL_WINDEPLOYQT_DEBUG NAMES windeployqt.debug.bat)
-
     add_custom_command(TARGET RhythmGame_exe POST_BUILD
             COMMAND $<IF:$<CONFIG:Debug>,${TOOL_WINDEPLOYQT_DEBUG},${TOOL_WINDEPLOYQT}> $<$<CONFIG:Debug,RelWithDebInfo>:--pdb> --qmldir "${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default" --qmldir "${CMAKE_SOURCE_DIR}/RhythmGameQml"
             $<TARGET_FILE:RhythmGame_exe>

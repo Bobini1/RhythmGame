@@ -1,5 +1,10 @@
 include(cmake/folders.cmake)
 
+if (WIN32)
+    find_program(TOOL_WINDEPLOYQT NAMES windeployqt)
+    find_program(TOOL_WINDEPLOYQT_DEBUG NAMES windeployqt.debug.bat)
+endif ()
+
 include(CTest)
 if (BUILD_TESTING)
     add_subdirectory(test)

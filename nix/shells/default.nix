@@ -16,7 +16,6 @@
   qtmultimedia,
   qtsvg,
   qtkeychain,
-  qtinterfaceframework,
   ned14-llfio,
   lexy,
   mimalloc,
@@ -43,6 +42,7 @@
   libwebp,
   libtiff,
   zlib-ng,
+  libremidi,
 }:
 mkShell {
   buildInputs = [
@@ -64,7 +64,6 @@ mkShell {
     qtmultimedia
     qtsvg
     qtkeychain
-    qtinterfaceframework
     ned14-llfio
     lexy
     mimalloc
@@ -82,6 +81,7 @@ mkShell {
     libwebp
     libtiff
     zlib-ng
+    libremidi
   ];
 
   nativeBuildInputs = [

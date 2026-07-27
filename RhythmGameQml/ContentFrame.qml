@@ -45,7 +45,9 @@ ApplicationWindow {
     }
     Shortcut {
         autoRepeat: false
-        enabled: !arenaOverlayHost.arenaShortcutEnabled && globalRoot.currentScreenSupports("reloadCurrentFolderOrTable")
+        enabled: !arenaOverlayHost.arenaShortcutEnabled
+            && !globalRoot.currentScreenSupports("toggleCustomizeMode")
+            && globalRoot.currentScreenSupports("reloadCurrentFolderOrTable")
         sequence: "F2"
         onActivated: globalRoot.reloadCurrentFolderOrTable()
     }
@@ -747,6 +749,11 @@ ApplicationWindow {
             session: globalRoot.arenaSession
             themeVars: globalRoot.gameplayThemeVars(layoutVariant)
             z: 2000000
+        }
+        LegacySkinCustomizeHost {
+            anchors.fill: parent
+            screen: sceneStack.currentItem
+            z: 2100000
         }
         Loader {
             id: debugLogLoader

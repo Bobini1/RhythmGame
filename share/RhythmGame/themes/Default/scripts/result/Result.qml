@@ -41,6 +41,28 @@ Item {
         return root.arenaRoundId.length > 0;
     }
 
+    function restoreArenaPresentation() {
+        if (!root.arenaResultMatches || root.isBattle) {
+            return;
+        }
+        Qt.callLater(function() {
+            if (root.arenaResultMatches && !root.isBattle) {
+                arenaResultPlacementFrame.restoreChatSelection(
+                            Rg.arenaSession);
+            }
+        });
+    }
+
+    function rememberArenaChatSelection(chatSelected) {
+        arenaResultPlacementFrame.setChatSelected(chatSelected);
+    }
+
+    onArenaResultMatchesChanged: {
+        if (root.arenaResultMatches) {
+            restoreArenaPresentation();
+        }
+    }
+
     Component.onDestruction: {
         const arenaSession = Rg.arenaSession;
         if (root.arenaRoundId.length > 0 && arenaSession) {
@@ -317,6 +339,7 @@ Item {
 
             parent: resultBackground
             enabled: visible
+            defaultExpanded: true
             layoutVariant: "result"
             minimumPixelSize: Qt.size(360, 240)
             moveHandle: arenaResultPanel.dragHandle
@@ -324,7 +347,15 @@ Item {
             themeVars: root.themeVars
             viewport: resultBackground
             visible: root.arenaResultMatches && !root.isBattle
+                && arenaResultPlacementFrame.overlayVisible
             z: 20
+
+            onOverlayVisibilityCommitted: visible => {
+                if (!visible && Rg.arenaSession.chatOpen === true) {
+                    Rg.arenaSession.setChatOpen(false);
+                }
+            }
+            onPresentationStateReloaded: root.restoreArenaPresentation()
 
             ArenaResultPanel {
                 id: arenaResultPanel
@@ -335,9 +366,20 @@ Item {
                 session: Rg.arenaSession
                 statsFontFamily: resultStatsFont.fontFamily
                 textFontFamily: resultTitleFont.fontFamily
+                expanded: arenaResultPlacementFrame.expanded
+
+                onChatSelected: chat => {
+                    arenaResultPlacementFrame.setChatSelected(chat);
+                }
+                onExpandedChanged: {
+                    arenaResultPlacementFrame.setExpanded(
+                                arenaResultPanel.expanded);
+                }
             }
         }
     }
+
+    Component.onCompleted: restoreArenaPresentation()
 
     TransientInputFocusDismissLayer {}
 }

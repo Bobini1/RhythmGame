@@ -12,7 +12,6 @@ Rectangle {
     id: root
 
     property bool customizeMode: false
-    property bool arenaGameplayExpanded: false
     readonly property bool arenaNativeGameplayPresentation: true
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
@@ -40,10 +39,57 @@ Rectangle {
         && root.arenaSession.opponentTarget.available === true
     readonly property bool arenaPointTargetAvailable: !root.arenaGameplayOwned
         || root.arenaOpponentTargetAvailable
+    property var pendingScoreDbReply: null
+
+    function trackScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingScoreDbReply = reply;
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            if (pendingScoreDbReply === reply) {
+                pendingScoreDbReply = null;
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelScoreDbReply() {
+        let reply = pendingScoreDbReply;
+        pendingScoreDbReply = null;
+        if (reply && !reply.resultAvailable) {
+            reply.cancel();
+        }
+    }
+
     function closeActivePopup() {
         if (root.popup !== null) {
             root.popup.close();
             root.popup = null;
+        }
+    }
+
+    function restoreArenaPresentation() {
+        if (!root.arenaGameplayOwned) {
+            return;
+        }
+        Qt.callLater(function() {
+            if (root.arenaGameplayOwned) {
+                arenaGameplayPlacementFrame.restoreChatSelection(
+                            root.arenaSession);
+            }
+        });
+    }
+
+    function rememberArenaChatSelection(chatSelected) {
+        arenaGameplayPlacementFrame.setChatSelected(chatSelected);
+    }
+
+    onArenaGameplayOwnedChanged: {
+        if (root.arenaGameplayOwned) {
+            restoreArenaPresentation();
         }
     }
     function isPlayerScratchRightSide(player) {
@@ -144,6 +190,7 @@ Rectangle {
         }
     }
     StackView.onActivated: {
+        cancelScoreDbReply();
         escapeShortcut.nothingWasHit = true;
         escapeShortcut.used = false;
         if (chart.status === ChartRunner.Finished) {
@@ -160,13 +207,17 @@ Rectangle {
             if (playReadySound.length === 0) {
                 startTimer.start();
             }
-            chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
+            trackScoreDbReply(chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5)).then(scores => {
                 scores1 = scores.scores[chartData.md5] || [];
             });
         }
     }
-    StackView.onDeactivating: closeActivePopup()
+    StackView.onDeactivating: {
+        cancelScoreDbReply();
+        closeActivePopup();
+    }
     Component.onDestruction: {
+        cancelScoreDbReply();
         closeActivePopup();
         const arenaSession = root.arenaSession;
         if (arenaSession && root.arenaManagedRunner && root.chart) {
@@ -803,6 +854,9 @@ Rectangle {
         id: arenaGameplayPlacementFrame
 
         enabled: arenaGameplayPlacementFrame.visible
+        customizationLabel: qsTr("Arena gameplay panel")
+        customizeMode: root.customizeMode
+        defaultExpanded: false
         layoutVariant: root.screen
         minimumPixelSize: Qt.size(320, 240)
         moveHandle: arenaGameplayPanel.dragHandle
@@ -810,16 +864,31 @@ Rectangle {
         themeVars: root.mainProfileVars
         viewport: root
         visible: root.arenaGameplayOwned
+            && (arenaGameplayPlacementFrame.overlayVisible
+                || root.customizeMode)
         z: 2000000
+
+        onOverlayVisibilityCommitted: visible => {
+            if (!visible && root.arenaSession.chatOpen === true) {
+                root.arenaSession.setChatOpen(false);
+            }
+        }
+        onPresentationStateReloaded: root.restoreArenaPresentation()
 
         ArenaGameplayOverlay {
             id: arenaGameplayPanel
 
-            anchors.fill: arenaGameplayPlacementFrame
-            expanded: root.arenaGameplayExpanded
+            anchors.fill: parent
+            expanded: arenaGameplayPlacementFrame.expanded
             session: root.arenaSession
 
-            onExpandedChanged: root.arenaGameplayExpanded = arenaGameplayPanel.expanded
+            onChatSelected: chat => {
+                arenaGameplayPlacementFrame.setChatSelected(chat);
+            }
+            onExpandedChanged: {
+                arenaGameplayPlacementFrame.setExpanded(
+                            arenaGameplayPanel.expanded);
+            }
         }
     }
     AudioPlayer {
@@ -855,13 +924,15 @@ Rectangle {
     }
     Shortcut {
         sequence: "F2"
-        enabled: root.enabled && !root.arenaGameplayOwned
+        enabled: root.enabled
 
         onActivated: {
             root.customizeMode = !root.customizeMode;
             root.closeActivePopup();
         }
     }
+
+    Component.onCompleted: restoreArenaPresentation()
 
     TransientInputFocusDismissLayer {}
 }

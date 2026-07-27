@@ -392,6 +392,7 @@ class ArenaSession final : public QObject
     std::optional<bool> m_requestedReady;
     QString m_selectionRequestId;
     std::optional<SelectionSnapshot> m_requestedSelection;
+    std::optional<SelectionSnapshot> m_queuedSelection;
 
     enum class RoundLoaderOperation
     {
@@ -523,6 +524,7 @@ class ArenaSession final : public QObject
                         qint64 selectionRevision,
                         qint64 availabilityRevision,
                         std::optional<QString> selectedByMemberId);
+    void sendSelection(SelectionSnapshot selection);
     void requestAvailabilityResync();
     void clearRoundTransfers(bool abandonSeat = true,
                              bool preservePreparedRound = false,

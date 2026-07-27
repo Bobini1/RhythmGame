@@ -19,7 +19,6 @@
   qtmultimedia,
   qtsvg,
   qtkeychain,
-  qtinterfaceframework,
   ned14-llfio,
   lexy,
   mimalloc,
@@ -39,6 +38,7 @@
   libwebp,
   libtiff,
   zlib-ng,
+  libremidi,
 }:
 stdenv.mkDerivation rec {
   pname = "RhythmGame";
@@ -69,7 +69,6 @@ stdenv.mkDerivation rec {
     qtmultimedia
     qtsvg
     qtkeychain
-    qtinterfaceframework
     ned14-llfio
     lexy
     mimalloc
@@ -87,6 +86,7 @@ stdenv.mkDerivation rec {
     libwebp
     libtiff
     zlib-ng
+    libremidi
   ];
 
   cmakeFlags = [

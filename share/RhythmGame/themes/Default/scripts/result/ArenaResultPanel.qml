@@ -23,6 +23,8 @@ Rectangle {
     readonly property string roomName: panel.session
         ? String(panel.session.roomName || qsTr("Arena")) : qsTr("Arena")
 
+    signal chatSelected(bool chat)
+
     readonly property string winnerSummary: {
         if (!panel.result || !panel.result.valid || !panel.result.finalized) {
             return qsTr("Waiting for final standings");
@@ -165,6 +167,8 @@ Rectangle {
                 chatAccessibleName: qsTr("Show Arena chat")
                 detailsAccessibleName: qsTr("Show Arena result")
                 session: panel.session
+
+                onTabSelected: chat => panel.chatSelected(chat)
             }
 
             HoverHandler {

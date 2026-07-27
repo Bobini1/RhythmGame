@@ -19,6 +19,7 @@
 #include "resource_managers/DefineDb.h"
 #include "input/GamepadManager.h"
 #include "input/InputTranslator.h"
+#include "input/MidiManager.h"
 #include "qml_components/RootSongFoldersConfig.h"
 #include "qml_components/SongFolderFactory.h"
 #include "support/PathToQString.h"
@@ -281,6 +282,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           qml_components::ProgramSettings{ avatarPath, screenshotsPath };
 
         qRegisterMetaType<input::Gamepad>("input::Gamepad");
+        qRegisterMetaType<input::MidiDevice>("input::MidiDevice");
         qRegisterMetaType<gameplay_logic::BmsPoints>(
           "gameplay_logic::BmsPoints");
 
@@ -296,6 +298,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             throw std::runtime_error("No themes available");
         }
         auto gamepadManager = input::GamepadManager{};
+        auto midiManager = input::MidiManager{};
 
         auto themes = qml_components::Themes{ availableThemes };
 
@@ -332,6 +335,22 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          &input::GamepadManager::buttonReleased,
                          &inputTranslator,
                          &input::InputTranslator::handleRelease);
+        QObject::connect(&midiManager,
+                         &input::MidiManager::noteChanged,
+                         &inputTranslator,
+                         &input::InputTranslator::handleMidiNote);
+        QObject::connect(&midiManager,
+                         &input::MidiManager::controlChanged,
+                         &inputTranslator,
+                         &input::InputTranslator::handleMidiControl);
+        QObject::connect(&midiManager,
+                         &input::MidiManager::pitchBendChanged,
+                         &inputTranslator,
+                         &input::InputTranslator::handleMidiPitchBend);
+        QObject::connect(&midiManager,
+                         &input::MidiManager::deviceRemoved,
+                         &inputTranslator,
+                         &input::InputTranslator::handleMidiDeviceRemoved);
 
         auto audioEngine = sounds::AudioEngine{};
         auto chartFactory =
@@ -535,6 +554,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BgaContainer");
         qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "key");
         qmlRegisterType<input::Gamepad>("RhythmGameQml", 1, 0, "gamepad");
+        qmlRegisterType<input::MidiDevice>(
+          "RhythmGameQml", 1, 0, "midiDevice");
         qmlRegisterType<qml_components::OnlineProfileInfo>(
           "RhythmGameQml", 1, 0, "onlineProfileInfo");
         qmlRegisterUncreatableMetaObject(

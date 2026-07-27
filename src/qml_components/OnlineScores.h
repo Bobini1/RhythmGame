@@ -3,14 +3,18 @@
 
 #include "OnlineRankingModel.h"
 #include "gameplay_logic/BmsScore.h"
+#include "support/PendingReply.h"
 
 #include <QObject>
-#include <QIfPendingReply>
 #include <QThreadPool>
+
+#include <functional>
 
 class QNetworkAccessManager;
 
 namespace qml_components {
+
+class OnlineScoresTestAccess;
 
 class TachiResolveHandle : public QObject
 {
@@ -32,11 +36,11 @@ class OnlineScores : public QObject
   public:
     explicit OnlineScores(QNetworkAccessManager* manager,
                           QObject* parent = nullptr);
+    ~OnlineScores() override;
     auto resolveTachiChartId(const QString& md5) const -> TachiResolveHandle*;
 
-    Q_INVOKABLE QIfPendingReply<gameplay_logic::BmsScore*> getScoreByGuid(
-      const QString& webApiUrl,
-      const QString& guid) const;
+    Q_INVOKABLE support::PendingReply* getScoreByGuid(const QString& webApiUrl,
+                                                      const QString& guid);
     /**
      *
      * @param userId  The user ID to get the ranking entry for.
@@ -47,17 +51,21 @@ class OnlineScores : public QObject
      * for LR2IR.
      * @return RankingEntry or null
      */
-    Q_INVOKABLE QIfPendingReply<QVariant> getRankingEntryAtTimestamp(
+    Q_INVOKABLE support::PendingReply* getRankingEntryAtTimestamp(
       QString webApiUrl,
       qint64 userId,
       QString md5,
       qint64 timestamp = QDateTime::currentSecsSinceEpoch(),
       OnlineRankingModel::Provider provider =
-        OnlineRankingModel::Provider::RhythmGame) const;
+        OnlineRankingModel::Provider::RhythmGame);
 
   private:
+    friend class OnlineScoresTestAccess;
+
     QNetworkAccessManager* networkManager;
-    mutable QThreadPool threadPool;
+    QThreadPool threadPool;
+    std::function<void()> parserDeliveryQueuedHook;
+    bool stopping = false;
 };
 
 } // namespace qml_components
