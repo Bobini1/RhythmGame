@@ -437,27 +437,56 @@ feat: add deterministic single-player gameplay core
 ```cpp
 namespace web_playtest {
 
-enum class AudioCommandType : std::uint8_t { Start, Stop, SetMasterGain };
+using VoiceId = std::uint32_t;
+using ClipId = std::uint32_t;
+
+enum class AudioCommandType : std::uint8_t {
+    ResetSession,
+    Start,
+    Stop,
+    StopAll,
+    SetVoiceGain,
+    SetMasterGain
+};
 
 struct AudioCommand
 {
     AudioCommandType type;
+    std::uint64_t sessionGeneration;
     std::uint64_t sequenceId;
     std::uint64_t sourceInputId;
-    std::uint32_t soundId;
+    VoiceId voiceId;
     std::uint64_t targetFrame;
     std::int64_t sourceEventMonotonicUs;
     std::int64_t publishedMonotonicUs;
     float value;
 };
 
+enum class AudioAckPhase : std::uint8_t {
+    Dequeued,
+    Applied,
+    FirstNonZero,
+    Terminal
+};
+
+enum class AudioAckOutcome : std::uint8_t {
+    Pending,
+    Completed,
+    Canceled,
+    Silent,
+    Rejected
+};
+
 struct AudioAcknowledgement
 {
+    std::uint64_t sessionGeneration;
     std::uint64_t sequenceId;
     std::uint64_t sourceInputId;
-    std::uint64_t dequeuedFrame;
-    std::uint64_t firstNonZeroFrame;
-    std::uint32_t lateByFrames;
+    AudioAckPhase phase;
+    AudioAckOutcome outcome;
+    std::uint64_t observedFrame;
+    std::uint64_t targetFrame;
+    std::uint64_t lateByFrames;
 };
 
 template<typename T, std::size_t Capacity>
@@ -474,9 +503,34 @@ struct PcmClip
     std::uint32_t sampleRate;
 };
 
+struct DecodedPcm
+{
+    std::vector<float> interleaved;
+    std::uint32_t sampleRate;
+    std::uint8_t channelCount;
+};
+
+class PcmSoundBank
+{
+  public:
+    explicit PcmSoundBank(std::uint32_t outputSampleRate);
+    auto addClip(std::string_view canonicalAssetKey, DecodedPcm decoded)
+      -> ClipId;
+    auto addVoice(std::uint64_t chartSoundId, ClipId clipId) -> VoiceId;
+    void freeze();
+    [[nodiscard]] auto frozen() const noexcept -> bool;
+};
+
 class RealtimeMixer
 {
   public:
+    struct Config
+    {
+        std::uint32_t outputSampleRate;
+        std::size_t voiceCapacity;
+        std::size_t scheduledEventCapacity;
+    };
+
     void render(float* left, float* right, std::uint32_t frameCount) noexcept;
     [[nodiscard]] auto renderedFrames() const noexcept -> std::uint64_t;
 };
@@ -484,22 +538,31 @@ class RealtimeMixer
 }
 ```
 
-`ScheduledPcmSound::playAt(chartTime)` converts the chart-relative nanosecond timestamp into a target output frame using a fixed chart-start frame and sample rate, then pushes a `Start` command. `stopAt(chartTime)` pushes a timestamped `Stop` command. A retrigger of the same sound ID stops/restarts that sound's existing voice to match `NormalSound`.
+`PcmSoundBank` assigns separate dense `ClipId` and `VoiceId` values. Chart sound IDs are checked `std::uint64_t` keys: one chart sound ID owns one `VoiceId`, while multiple voices may share one immutable `ClipId` when they resolve to the same asset. Retriggering one `VoiceId` stops/restarts only that voice to match `NormalSound`; two different voice IDs sharing a clip may overlap. The bank is configured with the actual output sample rate, decodes/converts/resamples off the realtime thread, validates finite even interleaved stereo output, then freezes. It performs no per-clip normalization. Mono is duplicated to stereo, stereo is preserved, and each decoder must supply an explicit deterministic channel-order-aware downmix for inputs with more than two channels. The final bus is hard-clamped to `[-1, 1]`. Frozen clip storage and voice-to-clip mappings outlive the worklet, and no insertion, removal, vector growth, or relocation is allowed after rendering begins.
 
-The gameplay-to-worklet command ring and worklet-to-gameplay acknowledgement ring are both preallocated SPSC queues. Every input-derived command carries the originating input ID and monotonic timestamps. The mixer acknowledges command dequeue, first non-zero output frame, and target-frame lateness without logging or allocating; the gameplay worker drains acknowledgements into bounded telemetry records.
+`ScheduledPcmSound::playAt(chartTime)` converts the chart-relative nanosecond timestamp into an absolute target output frame using the current session generation, chart-start frame, and actual output sample rate, then publishes a `Start` command. `stopAt(chartTime)` publishes a timestamped `Stop`. Immediate `play()`/`stop()`, per-voice `setVolume()`/`getVolume()`, and lock-free `isPlaying()` remain truthful implementations of the complete `Sound` contract. Any `std::uint64_t` chart-ID-to-`VoiceId` narrowing is checked at bank construction.
 
-`BmsAssetResolver` takes chart directory entries once, builds a lowercase relative-path index, and resolves in this order: declared path, `.wav`, `.flac`, `.ogg`, `.mp3`, with case-insensitive fallback. Both native `loadBmsSounds.cpp` and the web loader call this shared resolver.
+The gameplay-to-worklet command ring and worklet-to-gameplay acknowledgement ring are both preallocated SPSC queues. The ring is transport, not the future-event scheduler: every render callback drains all available commands. Timed `Start`, `Stop`, and gain commands enter a separate preallocated scheduler ordered stably by `(targetFrame, sequenceId)`, so a far-future BGM never head-of-line-blocks a live keysound. `ResetSession` and `StopAll` bypass that scheduler and execute immediately in FIFO dequeue order on the render thread; for `ResetSession`, `targetFrame` is the new chart-start-frame payload, not its application time. Multiple future starts for the same voice coexist. Before `Ready`, derive the authored BGM count plus bounded live-command headroom, require the compile-time SPSC capacity to be at least that large, and preallocate the scheduler to the validated requirement; Dstorv's 1,629 channel-01 events must fit in one pre-schedule burst. `tryPush()` remains nonblocking, but exhaustion sets an atomic terminal audio error with the rejected sequence/session rather than silently dropping a command; readiness and real-chart qualification fail on any command, scheduler, acknowledgement, or telemetry overflow.
+
+Every input-derived command carries the originating input ID and monotonic timestamps. Acknowledgements are separate phase records: dequeue, application at/after the target, first non-zero contribution from that voice, and terminal completion/cancellation/silence/rejection. Stop/gain commands do not invent a first-nonzero frame; leading-silent clips may report it later, and a zero-gain/silent/canceled voice terminates explicitly. First-nonzero detection is based on that voice's contribution before bus summing, not the summed bus. The mixer emits acknowledgements without logging, waiting, locking, or allocating; a full acknowledgement ring records a terminal overflow atomically. The gameplay worker drains acknowledgements into bounded telemetry records.
+
+Every audio run has a monotonically increasing `sessionGeneration`. `ResetSession` is a render-thread barrier: it clears active voices and pending timed events from older generations, installs the new chart-start frame, and returns an applied acknowledgement. `StopAll` immediately clears active voices and every pending timed event in the current generation. Before either barrier's applied acknowledgement, the mixer emits `Terminal/Canceled` for every correlation record it removes; cancellation-burst capacity is included in acknowledgement-ring sizing and may never be silently truncated. Abort waits for the `StopAll` barrier; retry waits for the new-generation reset acknowledgement before publishing BGM or accepting input. This prevents stale future BGM and an old output-frame anchor from leaking into a retry while keeping heap size fixed.
+
+`BmsAssetResolver` takes chart directory entries once and never probes the ambient filesystem during lookup. Its host-independent lexical normalizer first converts both slash styles to `/`, rejects NUL/empty paths, POSIX absolute paths, drive-rooted paths, UNC paths, and any `..` that escapes the indexed root, and removes `.` plus in-root parent segments. It preserves exact decoded UTF-8 for the first lookup and builds a locale-independent NFC Unicode-case-folded fallback index. Case-fold collisions are deterministic terminal diagnostics listing normalized candidates in sorted order. Candidate precedence is evaluated per candidate: declared exact, declared folded, `.wav` exact, `.wav` folded, `.flac` exact, `.flac` folded, `.ogg` exact, `.ogg` folded, `.mp3` exact, then `.mp3` folded. Both native `loadBmsSounds.cpp` and the web loader call this shared resolver.
 
 - [ ] Add lock-free ring wraparound, full/empty, and producer/consumer ordering tests.
-- [ ] Add sample-accurate mixer tests for future command silence, mid-buffer start, overlapping different sounds, same-sound retrigger, stop, clip end, gain, and rendered-frame monotonicity.
-- [ ] Add acknowledgement tests proving input/command correlation, exact dequeue frame, exact first non-zero frame, and late-frame accounting for commands that arrive after their target.
+- [ ] Add sample-accurate mixer tests for future command silence, a live command arriving behind far-future BGM, repeated future starts for one voice, mid-buffer start, overlapping different voices (including shared clips), same-voice retrigger, stop, clip end, per-voice/master gain, final-bus clamp, and rendered-frame monotonicity.
+- [ ] Add a 1,629-event pre-schedule burst test plus explicit command-ring and scheduler overflow tests; no rejection may be silent.
+- [ ] Add session-generation tests that abort mid-chart, prove `StopAll` cancels pending same-generation events, verify ordered terminal-cancellation acknowledgements precede each applied barrier acknowledgement, apply a reset, retry with a new anchor, and prove there is no stale sound, unresolved old acknowledgement, allocation, or heap growth.
+- [ ] Add PCM-bank tests for 44.1 kHz to 48 kHz timing, mono duplication, stereo preservation, decoder-defined multichannel downmix handoff, malformed/non-finite clips, freeze/lifetime rules, gain, and clipping.
+- [ ] Add acknowledgement tests proving input/command correlation, separate exact dequeue/application/first-nonzero frames, late-frame accounting, leading silence, a silent/zero-gain clip, stop/retrigger before first nonzero, far-future dequeue, and explicit full-ring failure.
 - [ ] Add asset resolver tests using `testOnlyAssets/bmsFallbackExtensions` plus mixed-case temporary fixture names.
 - [ ] Assert a declared `sample.wav` resolves to `sample.ogg` when that is the only shipped asset.
-- [ ] Assert `..`/absolute/root-escaping references are rejected, duplicate case-folded relative names produce a deterministic terminal diagnostic, and CP932-decoded/non-ASCII names resolve through the indexed chart directory.
+- [ ] Assert nested backslashes normalize portably; POSIX absolute, drive-rooted, UNC, NUL, and root-escaping references are rejected; in-root `.`/`..` normalize; duplicate Unicode-case-folded relative names produce a deterministic sorted terminal diagnostic; CP932-decoded/non-ASCII names resolve through the indexed chart directory; and a wrong-case declared-extension candidate beats an exact alternate-extension candidate.
 - [ ] Assert resolution never probes the ambient filesystem outside the pre-indexed chart root.
 - [ ] Run failing focused tests.
 - [ ] Implement the ring with acquire/release atomics and no dynamic allocation in `tryPush`/`tryPop`.
-- [ ] Implement the mixer with all voice storage allocated before render begins.
+- [ ] Implement the mixer with all voice, scheduler, correlation, and acknowledgement storage allocated before render begins; `render()` is `noexcept`, lock-free, wait-free with respect to other threads, and performs no allocation, logging, filesystem access, Qt call, or destruction of heap-owning objects.
 - [ ] Extract native extension/case fallback into `BmsAssetResolver`.
 - [ ] Run:
 
