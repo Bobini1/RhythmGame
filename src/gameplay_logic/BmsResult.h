@@ -9,12 +9,14 @@
 
 #include <magic_enum/magic_enum.hpp>
 #include "Judgement.h"
-#include "db/SqliteCppDb.h"
-#include "resource_managers/Vars.h"
+#include "resource_managers/ChartPlayOptions.h"
 #include "support/Version.h"
 
 #include <QObject>
 #include <QJsonObject>
+namespace db {
+class SqliteCppDb;
+}
 namespace gameplay_logic {
 /**
  * @brief The aggregated info about a score.

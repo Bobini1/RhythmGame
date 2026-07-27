@@ -8,6 +8,9 @@
 #include "BmsGaugeHistory.h"
 #include "BmsResult.h"
 #include "BmsReplayData.h"
+namespace db {
+class SqliteCppDb;
+}
 namespace gameplay_logic {
 /**
  * @brief The result of playing a chart.

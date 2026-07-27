@@ -7,11 +7,13 @@
 
 #include <QQmlEngine>
 #include <QJsonObject>
-#include "db/SqliteCppDb.h"
 #include "gameplay_logic/Judgement.h"
 #include <QHash>
 #include <QPair>
 #include "BmsNotes.h"
+namespace db {
+class SqliteCppDb;
+}
 namespace gameplay_logic {
 
 /**

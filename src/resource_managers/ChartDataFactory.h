@@ -9,6 +9,8 @@
 #include "charts/BmsNotesData.h"
 #include "gameplay_logic/BmsNotes.h"
 
+#include <string_view>
+
 /**
  * @brief Classes and functions related to loading and managing resources such
  * as charts, sounds, images, etc.
@@ -50,6 +52,10 @@ class ChartDataFactory
       -> std::unique_ptr<gameplay_logic::BmsNotes>;
     void handleImplicitSubtitle(QString& title, QString& subtitle) const;
     auto loadChartData(const std::filesystem::path& chartPath,
+                       RandomGenerator randomGenerator,
+                       int64_t directory = 0) const -> ChartComponents;
+    auto loadChartData(std::string_view chartBytes,
+                       const std::filesystem::path& logicalChartPath,
                        RandomGenerator randomGenerator,
                        int64_t directory = 0) const -> ChartComponents;
     auto loadBmsonChartData(const std::filesystem::path& chartPath,

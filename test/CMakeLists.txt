@@ -34,6 +34,7 @@ add_executable(RhythmGame_test
         findTestAssetsFolder.h
         charts/BmsChart.test.cpp
         resource_managers/loadBmsSounds.test.cpp
+        resource_managers/ChartDataFactory.test.cpp
         resource_managers/ChartPlayConfig.test.cpp
         resource_managers/Lr2FontCache.test.cpp
         resource_managers/Languages.test.cpp

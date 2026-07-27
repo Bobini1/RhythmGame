@@ -179,6 +179,7 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/BmsGameReferee.h
         src/gameplay_logic/ChartData.cpp
         src/gameplay_logic/ChartData.h
+        src/gameplay_logic/persistence/ChartDataPersistence.cpp
         src/gameplay_logic/ChartStartGate.h
         src/gameplay_logic/ChartRunner.cpp
         src/gameplay_logic/ChartRunner.h
@@ -186,6 +187,7 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/HitEvent.h
         src/resource_managers/ChartDataFactory.cpp
         src/resource_managers/ChartDataFactory.h
+        src/resource_managers/ChartPlayOptions.h
         src/resource_managers/ChartPlayConfig.h
         src/resource_managers/ChartFolderModel.cpp
         src/resource_managers/ChartFolderModel.h
@@ -233,14 +235,17 @@ qt_add_library(RhythmGame_lib OBJECT
         src/resource_managers/Profile.h
         src/gameplay_logic/BmsResult.cpp
         src/gameplay_logic/BmsResult.h
+        src/gameplay_logic/persistence/BmsResultPersistence.cpp
         src/gameplay_logic/BmsReplayData.cpp
         src/gameplay_logic/BmsReplayData.h
         src/gameplay_logic/BmsGaugeHistory.cpp
         src/gameplay_logic/BmsGaugeHistory.h
+        src/gameplay_logic/persistence/BmsGaugeHistoryPersistence.cpp
         src/support/Compress.cpp
         src/support/Compress.h
         src/gameplay_logic/BmsScore.cpp
         src/gameplay_logic/BmsScore.h
+        src/gameplay_logic/persistence/BmsScorePersistence.cpp
         src/qml_components/ProfileList.cpp
         src/qml_components/ProfileList.h
         src/qml_components/SongDirectoryFilePathFetcher.cpp

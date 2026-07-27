@@ -12,7 +12,7 @@
 #include "BmsReplayData.h"
 #include "BmsScore.h"
 #include "ChartData.h"
-#include "resource_managers/Vars.h"
+#include "resource_managers/ChartPlayOptions.h"
 
 #include <QAbstractListModel>
 #include <QUuid>

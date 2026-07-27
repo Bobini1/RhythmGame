@@ -14,7 +14,7 @@
 #include <ranges>
 #include <span>
 #include <vector>
-#include "resource_managers/Vars.h"
+#include "resource_managers/ChartPlayOptions.h"
 #include "charts/BmsNotesData.h"
 
 namespace support {

@@ -5,9 +5,11 @@
 #ifndef RHYTHMGAME_BMSGAUGEHISTORY_H
 #define RHYTHMGAME_BMSGAUGEHISTORY_H
 
-#include "db/SqliteCppDb.h"
 #include "rules/BmsGauge.h"
 #include <QJsonArray>
+namespace db {
+class SqliteCppDb;
+}
 namespace gameplay_logic {
 
 /**

@@ -5,6 +5,7 @@
 #ifndef RHYTHMGAME_VARS_H
 #define RHYTHMGAME_VARS_H
 
+#include "ChartPlayOptions.h"
 #include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ThemeFamily.h"
 #include "support/CreateQmlPropertyMap.h"
@@ -22,26 +23,6 @@ class ProfileList;
 namespace resource_managers {
 class Profile;
 
-namespace note_order_algorithm {
-Q_NAMESPACE
-enum class NoteOrderAlgorithm
-{
-    Normal,
-    Mirror,
-    Random,
-    SRandom,
-    RRandom,
-    RandomPlus,
-    SRandomPlus,
-    BeatorajaRandom,
-    BeatorajaRandomEx,
-    Lr2Random,
-    Lr2RandomEx,
-};
-Q_ENUM_NS(NoteOrderAlgorithm)
-} // namespace note_order_algorithm
-using namespace note_order_algorithm;
-
 namespace hi_speed_fix {
 Q_NAMESPACE
 enum class HiSpeedFix
@@ -56,19 +37,6 @@ enum class HiSpeedFix
 Q_ENUM_NS(HiSpeedFix)
 } // namespace hi_speed_fix
 using namespace hi_speed_fix;
-
-namespace dp_options {
-Q_NAMESPACE
-enum class DpOptions
-{
-    Off,
-    Flip,
-    Battle,
-    Lr2Flip
-};
-Q_ENUM_NS(DpOptions)
-} // namespace dp_options
-using namespace dp_options;
 
 namespace gauge_mode {
 Q_NAMESPACE

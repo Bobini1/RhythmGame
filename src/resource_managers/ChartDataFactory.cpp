@@ -4,7 +4,9 @@
 
 #include "charts/Base62.h"
 #include "support/Version.h"
-#ifdef _WIN32
+#if defined(__EMSCRIPTEN__)
+#include <QFile>
+#elif defined(_WIN32)
 #include <windows.h>
 #include <wil/resource.h>
 #else
@@ -133,7 +135,15 @@ auto
 withMappedFile(const std::filesystem::path& path, Func&& func)
   -> decltype(func(std::string_view{}))
 {
-#ifndef _WIN32
+#if defined(__EMSCRIPTEN__)
+    auto file = QFile{ support::pathToQString(path) };
+    if (!file.open(QIODevice::ReadOnly)) {
+        throw std::runtime_error("Could not open file");
+    }
+    const auto content = file.readAll();
+    return func(std::string_view{
+      content.constData(), static_cast<std::size_t>(content.size()) });
+#elif !defined(_WIN32)
     auto mfh = llfio::mapped_file({}, path).value();
     auto length = mfh.maximum_extent().value();
     auto content = std::string_view{ reinterpret_cast<char*>(mfh.address()),
@@ -171,26 +181,24 @@ withMappedFile(const std::filesystem::path& path, Func&& func)
 }
 
 auto
-readAndParse(const std::filesystem::path& chartPath,
+readAndParse(std::string_view chart,
              ChartDataFactory::RandomGenerator randomGenerator)
 {
-    return withMappedFile(chartPath, [&](std::string_view chart) {
-        auto sha256 = support::sha256(chart);
-        auto md5 = support::md5(chart);
-        auto randomValues = QList<qint64>{};
-        auto randomGeneratorRecorder =
-          [&randomValues, &randomGenerator](
-            const charts::ParsedBmsChart::RandomRange number) mutable {
-              const auto generated = randomGenerator(number);
-              randomValues.append(generated);
-              return generated;
-          };
-        auto parsedChart = charts::readBmsChart(chart, randomGeneratorRecorder);
-        return std::make_tuple(std::move(parsedChart),
-                               std::move(randomValues),
-                               std::move(sha256),
-                               std::move(md5));
-    });
+    auto sha256 = support::sha256(chart);
+    auto md5 = support::md5(chart);
+    auto randomValues = QList<qint64>{};
+    auto randomGeneratorRecorder =
+      [&randomValues, &randomGenerator](
+        const charts::ParsedBmsChart::RandomRange number) mutable {
+          const auto generated = randomGenerator(number);
+          randomValues.append(generated);
+          return generated;
+      };
+    auto parsedChart = charts::readBmsChart(chart, randomGeneratorRecorder);
+    return std::make_tuple(std::move(parsedChart),
+                           std::move(randomValues),
+                           std::move(sha256),
+                           std::move(md5));
 }
 
 using namespace std::chrono_literals;
@@ -346,8 +354,24 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
                                 RandomGenerator randomGenerator,
                                 int64_t directory) const -> ChartComponents
 {
+    return withMappedFile(
+      chartPath, [&](std::string_view chartBytes) -> ChartComponents {
+          return loadChartData(chartBytes,
+                               chartPath,
+                               std::move(randomGenerator),
+                               directory);
+      });
+}
+
+auto
+ChartDataFactory::loadChartData(
+  std::string_view chartBytes,
+  const std::filesystem::path& logicalChartPath,
+  RandomGenerator randomGenerator,
+  int64_t directory) const -> ChartComponents
+{
     auto [parsedChart, randomValues, sha256, md5] =
-      readAndParse(chartPath, randomGenerator);
+      readAndParse(chartBytes, std::move(randomGenerator));
 
     auto title = QString::fromUtf8(parsedChart.tags.title.value_or(""));
     auto subtitle = QString::fromUtf8(parsedChart.tags.subTitle.value_or(""));
@@ -402,7 +426,7 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
                                 std::move(metadata),
                                 std::move(wavs),
                                 std::move(bmps),
-                                chartPath,
+                                logicalChartPath,
                                 directory,
                                 false);
 }

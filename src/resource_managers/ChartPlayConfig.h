@@ -1,7 +1,7 @@
 #ifndef RHYTHMGAME_CHARTPLAYCONFIG_H
 #define RHYTHMGAME_CHARTPLAYCONFIG_H
 
-#include "Vars.h"
+#include "ChartPlayOptions.h"
 
 #include <QList>
 

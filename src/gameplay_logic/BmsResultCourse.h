@@ -9,7 +9,7 @@
 #include "ChartData.h"
 #include "resource_managers/Tables.h"
 #include "support/Version.h"
-#include "resource_managers/Vars.h"
+#include "resource_managers/ChartPlayOptions.h"
 
 #include <QObject>
 #include <magic_enum/magic_enum.hpp>
