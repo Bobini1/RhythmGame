@@ -1219,6 +1219,70 @@ class ToolchainScriptTest(unittest.TestCase):
                 ),
             )
 
+    def test_qualified_build_root_and_stale_configuration_fail_closed(
+        self,
+    ) -> None:
+        configure_command = (
+            "pwsh -NoProfile -File "
+            "tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 -- "
+            "cmake --preset wasm-release -S tools/wasm-probe"
+        )
+        result = subprocess.run(
+            [
+                self.pwsh,
+                "-NoProfile",
+                "-NonInteractive",
+                "-File",
+                str(WRAPPER),
+                "--",
+                "cmake",
+                "--build",
+                "tools/wasm-probe/build/not-qualified",
+            ],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(
+            result.returncode,
+            0,
+            result.stdout + result.stderr,
+        )
+        self.assertIn(
+            "currently accepts only "
+            "tools/wasm-probe/build/wasm-release",
+            result.stdout + result.stderr,
+        )
+        for fragment in configure_command.split(" ", maxsplit=4)[:4] + [
+            "tools/wasm-probe/scripts/Invoke-WithToolchains.ps1",
+            "-- cmake --preset wasm-release -S tools/wasm-probe",
+        ]:
+            with self.subTest(fragment=fragment):
+                self.assertIn(
+                    fragment,
+                    result.stdout + result.stderr,
+                )
+
+        wrapper_text = WRAPPER.read_text("utf-8")
+        settled_call = wrapper_text.rindex(
+            "Assert-QualificationConfigureSettled `"
+        )
+        closure_call = wrapper_text.index(
+            "$qualificationClosure = Open-QualificationClosure"
+        )
+        self.assertLess(settled_call, closure_call)
+        for marker in (
+            "'CMakeFiles\\VerifyGlobs.cmake'",
+            "'CMakeFiles\\cmake.verify_globs'",
+            "'query'",
+            "'build.ninja'",
+            "LastWriteTimeUtc",
+            "Qualified build configuration is stale or unverified.",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, wrapper_text)
+
     def test_source_tree_and_archive_drift_fail_before_tool_execution(
         self,
     ) -> None:

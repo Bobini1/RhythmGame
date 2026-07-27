@@ -4,7 +4,8 @@ const canonicalResponsePolicy = Object.freeze({
     "Cross-Origin-Resource-Policy": "same-origin",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
-    "Permissions-Policy": "fullscreen=(self), gamepad=(self), hid=(self)",
+    "Permissions-Policy":
+        "fullscreen=(self), gamepad=(self), hid=(self), unload=()",
 });
 
 export const responsePolicy = Object.freeze(
@@ -26,6 +27,8 @@ export const negativeModes = Object.freeze([
     "corrupt-main-js",
     "corrupt-wasm",
     "corrupt-qtloader",
+    "native-depth-limit",
+    "native-suspension-trap",
 ]);
 
 const negativeModeSet = new Set(negativeModes);

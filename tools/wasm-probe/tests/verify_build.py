@@ -113,6 +113,31 @@ QUALIFICATION_MUTABLE_AUTOGEN_STATE_PATHS = (
         "ParseCache.txt"
     ),
 )
+APPLICATION_POST_BUILD_CONTROLLER = (
+    r"CMakeFiles\RhythmGameWasmProbe.dir\post-build.bat"
+)
+APPLICATION_LINK_OUTPUTS = (
+    "RhythmGameWasmProbe.js",
+    "runtime-packaging-inputs",
+    "runtime-packaging-inputs/RhythmGameWasmProbe.js",
+    "runtime-packaging-inputs/RhythmGameWasmProbe.wasm",
+    "runtime-packaging-inputs/RhythmGameWasmProbe.aw.js",
+    "runtime-packaging-inputs/RhythmGameWasmProbe.ww.js",
+    "runtime-packaging-inputs/RhythmGameWasmProbe.html.in",
+    "runtime-packaging-inputs/probe.css",
+    "runtime-packaging-inputs/bootstrap.mjs",
+    "runtime-packaging-inputs/preflight-worker.mjs",
+    "runtime-packaging-inputs/qtloader.js",
+    "runtime-packaging-inputs/probe.webm",
+    "runtime",
+    "runtime/runtime-artifacts.json",
+    "runtime/RhythmGameWasmProbe.html",
+)
+APPLICATION_LINK_IMPLICIT_OUTPUTS = tuple(
+    f"${{cmake_ninja_workdir}}{output}"
+    for output in APPLICATION_LINK_OUTPUTS[1:]
+)
+CMD_SHELL_METACHARACTERS = re.compile(r"[\r\n&|<>^%!()]")
 EXPECTED_EMSDK_PYTHON = (
     ".toolchains/emsdk-4.0.7/python/3.9.2-nuget_64bit/python.exe"
 )
@@ -544,18 +569,227 @@ TARGET_BUILD_SUFFIX = f"{TARGET_TRIPLET}-"
 
 EXPECTED_QTBASE_TREE = "29a7f9f115d568b271a3b99fabeac886ec248f9f"
 EXPECTED_QTDECLARATIVE_TREE = "846c872082b8bf0c50d13dc8ead681ae6fc6280a"
+EXPECTED_QTMULTIMEDIA_TREE = "4c4a5f2b0cf7465199e347bb9a2a62cb4b768576"
+EXPECTED_QTMULTIMEDIA_SOURCE_SHA256 = (
+    "390f8e52ddee3aca5c4de7eead900c84c4fa61ff6d1f0ebea9c7543365c09b0a"
+)
+EXPECTED_QTMULTIMEDIA_VCPKG_SHA512 = (
+    "accd9534b96df8ff464c219bf579c3da43e30b33efb35fc7e311c9e133cb5725"
+    "2f433422ca917f83b738e67cf925b19e0847ffcfaa92fe0e3d21b603dd580cd5"
+)
+EXPECTED_QTMULTIMEDIA_UPSTREAM_COMMITS = (
+    "7f71286a9f22ae69936a21b561570c4ea1af2431",
+    "35b0ea686685cb591d598d503bfa110daf6c69e2",
+    "6cedb5d96f36c5d406d1bb58352dc05523c62fa4",
+    "9018988e854ce6b7689e716b4afe93d6173a135c",
+    "191cda01b86bc6b28e663426bb7a3eef6b2d39cc",
+    "4e61fa7da7e7db730e6e4762839de24f99e7803c",
+    "8a2093d1dda70eae63a0522537c93605f8932041",
+    "d6f64920e9024de8cf0d8761f304fc8999700783",
+)
+QTMULTIMEDIA_BINARY_PAYLOAD_ALGORITHM = (
+    "sha256-path-null-bytes-null-digest-lf-v1"
+)
+QTMULTIMEDIA_DETERMINISTIC_PAYLOAD_EXCLUSIONS = (
+    "sbom/qtmultimedia-6.11.1.spdx",
+    "share/qtmultimedia/vcpkg.spdx.json",
+    "share/qtmultimedia/vcpkg_abi_info.txt",
+)
+QTMULTIMEDIA_CORE_ARCHIVE = "lib/libQt6Multimedia.a"
+QTMULTIMEDIA_PATH_MAP_TARGETS = {
+    "build": "/qt/qtmultimedia/build",
+    "source": "/qt/qtmultimedia/source",
+}
+QTMULTIMEDIA_COMPILE_COMMAND_ALGORITHM = (
+    "sha256-canonical-qtmultimedia-compile-commands-json-v2"
+)
+QTMULTIMEDIA_REPRODUCIBILITY_ALGORITHM = (
+    "qtmultimedia-unequal-root-byte-equality-v1"
+)
+QTMULTIMEDIA_SECONDARY_RELATIVE_ROOT = (
+    ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification"
+)
+TARGET_STATIC_LINK_INPUT_IDENTITY_FIELDS = (
+    "algorithm",
+    "fileCount",
+    "totalBytes",
+    "inventorySha256",
+    "aggregateSha256",
+)
+EXPECTED_TARGET_STATIC_LINK_INPUT_IDENTITY = {
+    "algorithm": "sha256-path-null-digest-lf-v1",
+    "fileCount": 385,
+    "totalBytes": 192344397,
+    "inventorySha256": (
+        "9b477434a32545379aafd3374623791afeb3f8d832a69f1a03e125eb427ab4e2"
+    ),
+    "aggregateSha256": (
+        "c40460508e292f56c91331e655b9cf34023f0cbccfad1054a35ac8bc16641bff"
+    ),
+}
+EXPECTED_QTMULTIMEDIA_COMPILE_COMMAND_IDENTITY = {
+    "algorithm": QTMULTIMEDIA_COMPILE_COMMAND_ALGORITHM,
+    "aggregateSha256": (
+        "c9df99b9b791da08920d68effd6211e6d475cea789b7d687b2164b51eafad955"
+    ),
+    "cCommandCount": 1,
+    "commandCount": 222,
+    "cxxCommandCount": 221,
+    "installedObjectAggregateSha256": (
+        "f46f0c066ef3d89cddafbe16aef173e63c1c00032fce229dcaf7e6e623e3b588"
+    ),
+    "installedObjectOccurrenceCount": 217,
+    "ninjaParity": True,
+    "objectOutputCount": 217,
+    "outputInventorySha256": (
+        "00e1be2961daa565ac5b60b9698c6c94e9c3f54005d8bb4ab64fff7863839d53"
+    ),
+    "pathMapTargets": dict(QTMULTIMEDIA_PATH_MAP_TARGETS),
+    "perEdgeObjectDigestCount": 217,
+    "pchByteIdentity": "excluded-noninstallable-root-dependent-v1",
+    "pchOutputCount": 5,
+}
+EXPECTED_QTMULTIMEDIA_BINARY_PACKAGE_IDENTITY = {
+    "abi": (
+        "0924ac18c8d388a9cf2afa92b38769923d8247723a80f4fcf3ea8074951835e5"
+    ),
+    "algorithm": QTMULTIMEDIA_BINARY_PAYLOAD_ALGORITHM,
+    "aggregateSha256": (
+        "d7506317434f6dc68cb982d44aea5580e6c0d9af3c8e53ab186674a7aee4080f"
+    ),
+    "memberCount": 16,
+    "totalBytes": 6226879,
+    "installableFileCount": 367,
+    "installableInventorySha256": (
+        "ea46ca437ebedc06660734b4fd79d65c476939c2e746b0717b695d9907f00b55"
+    ),
+    "deterministicPayload": {
+        "algorithm": QTMULTIMEDIA_BINARY_PAYLOAD_ALGORITHM,
+        "aggregateSha256": (
+            "f098a4a2a69a3e749fa0063c930a12d92a243cc9ad79b9963c3bb3a57083501b"
+        ),
+        "excluded": list(QTMULTIMEDIA_DETERMINISTIC_PAYLOAD_EXCLUSIONS),
+        "fileCount": 348,
+        "inventorySha256": (
+            "75971082c1d551da81bbd8bf47ff26285eb6b6cd2f78becbca6d9b0d99a7aa23"
+        ),
+        "totalBytes": 1347197,
+    },
+}
+EXPECTED_QTMULTIMEDIA_REPRODUCIBILITY_IDENTITY = {
+    "abi": (
+        "0924ac18c8d388a9cf2afa92b38769923d8247723a80f4fcf3ea8074951835e5"
+    ),
+    "algorithm": QTMULTIMEDIA_REPRODUCIBILITY_ALGORITHM,
+    "allCompileCommandsCanonicalIdentical": True,
+    "allInstallableFilesContractVerified": True,
+    "allStaticMembersByteIdentical": True,
+    "buildRootLengthDelta": 72,
+    "compileAggregateSha256": (
+        "c9df99b9b791da08920d68effd6211e6d475cea789b7d687b2164b51eafad955"
+    ),
+    "compileCommandCount": 222,
+    "deterministicPayloadAggregateSha256": (
+        "f098a4a2a69a3e749fa0063c930a12d92a243cc9ad79b9963c3bb3a57083501b"
+    ),
+    "installableFileCount": 367,
+    "manifestDerivation": "primary-minus-builtin-baseline-v1",
+    "primaryBuiltinBaseline": EXPECTED_VCPKG_COMMIT,
+    "primaryManifestSha256": (
+        "1dfd73a53d9c59e2b680bde6ebcb514515e8a698459d62b9faedae30ceceaabf"
+    ),
+    "secondaryAbiInfoFile": (
+        ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/"
+        "buildtrees/qtmultimedia/"
+        "wasm32-emscripten-rg.vcpkg_abi_info.txt"
+    ),
+    "secondaryBinaryCacheFile": (
+        ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/"
+        "binary-cache/09/"
+        "0924ac18c8d388a9cf2afa92b38769923d8247723a80f4fcf3ea8074951835e5"
+        ".zip"
+    ),
+    "secondaryBinaryCacheRoot": (
+        ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/"
+        "binary-cache"
+    ),
+    "secondaryBinarySourcePolicy": [
+        "clear",
+        (
+            "files,.wb/qtmultimedia-repro-unequal-workspace-path-root-"
+            "qualification/binary-cache,readwrite"
+        ),
+    ],
+    "secondaryBuildRoot": (
+        ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/"
+        "buildtrees/qtmultimedia/wasm32-emscripten-rg-rel"
+    ),
+    "secondaryBuildtreesRoot": (
+        ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/"
+        "buildtrees"
+    ),
+    "secondaryDownloadsRoot": ".wasm-vcpkg/downloads",
+    "secondaryFeatureFlags": "-versions",
+    "secondaryInstalledRoot": (
+        ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/"
+        "installed"
+    ),
+    "secondaryManifestFile": (
+        ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/"
+        "manifest/vcpkg.json"
+    ),
+    "secondaryManifestSha256": (
+        "a1504a8105cbd64ea42fa54943c4cb2abc1fb35186ea40c239df9f5c24627667"
+    ),
+    "secondaryOuterCMakeFile": (
+        ".toolchains/cmake-4.2.3-windows-x86_64/bin/cmake.exe"
+    ),
+    "secondaryOverlayPorts": [
+        "vcpkgOverlayPorts",
+        "vcpkgOverlayPortsWasm",
+    ],
+    "secondaryOverlayTriplets": "vcpkgTriplets",
+    "secondaryPackagesRoot": (
+        ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/"
+        "packages"
+    ),
+    "secondaryPortInstallPrefix": (
+        ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/"
+        "packages/qtmultimedia_wasm32-emscripten-rg"
+    ),
+    "secondaryProbeBuildRoot": (
+        ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/"
+        "probe-configure"
+    ),
+    "secondaryTargetTriplet": TARGET_TRIPLET,
+    "secondaryHostTriplet": HOST_TRIPLET,
+    "secondaryToolchainFile": (
+        ".toolchains/vcpkg-a0400024/scripts/buildsystems/vcpkg.cmake"
+    ),
+    "secondaryChainloadToolchainFile": (
+        "cmake/toolchains/vcpkg-emscripten.cmake"
+    ),
+    "sourceRootLengthDelta": 72,
+    "staticAggregateSha256": (
+        "d7506317434f6dc68cb982d44aea5580e6c0d9af3c8e53ab186674a7aee4080f"
+    ),
+    "staticMemberCount": 16,
+}
 EXPECTED_INSTALLED_WASM_HELPER_SHA256 = (
     "eb6af811ddb6a4315ef9eb6a819e4e8c09c76bb5d202391b78a636480cdb34d1"
 )
 EXPECTED_OVERLAY_SHA256 = {
     "qtbase/portfile.cmake": (
-        "dde572451242adc43c23ce22e6539c111cbb538a0e0e9a18b73a1cab3d49c7a9"
+        "d01718b8ba8c3248647ed70417ed5821529cccb5f8a3d3ecdf30732390d994d0"
     ),
     "qtbase/vcpkg.json": (
-        "2e347149af40d74e171fa5f2f8c21d48828bc855bc3e24cf75fa1e120aafc405"
+        "a8b69f20b62bd412a4b8846f686f1844afb57b2b162cd77b8342b729f7d3822e"
     ),
     "qtbase/restore-wasm-version-check.patch": (
         "8aa3ed93e30f16c3c9691b35dee1f27c9608bcf424fc4b0e86009ce64709c786"
+    ),
+    "qtbase/preserve-wasm-event-composed-path.patch": (
+        "f67e8e1eda7dc7abd208d113b3bc4057bbff7d45d79fdebd133c3fde3c0466ec"
     ),
     "qtdeclarative/portfile.cmake": (
         "582a11da34542aa0288c51027979d49b0b29f1fc508ee9d266f5678de811f58a"
@@ -568,6 +802,89 @@ EXPECTED_OVERLAY_SHA256 = {
     ),
     "qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch": (
         "2a015242af462be117a2924d4d8db2c753b29891921e714c23bf1ab4355c4c50"
+    ),
+    "qtmultimedia/defer-wasm-media-device-notifications.patch": (
+        "6237459c2301f2e629d686d974feeb759cf392c0ef653363f18f767f639aaa24"
+    ),
+    "qtmultimedia/canonicalize-wasm-build-paths.patch": (
+        "31f3610dcae306e6c0e49169077aaa7b5a7e704562aaa0f07ba78fe37d726630"
+    ),
+    "qtmultimedia/correct-wasm-media-lifecycle.patch": (
+        "7459fdd7a1982099fba9b84cdeb69833a5b0a820ec1d146bcdecc892241bd182"
+    ),
+    "qtmultimedia/port.data.cmake": (
+        "f4c5291c73869c9fdb7bbde95e59e6e28a39656e1e2e5f50e4c816996071513c"
+    ),
+    "qtmultimedia/portfile.cmake": (
+        "d020c8733755dc3550b37b5312467b21f2e46db818f73ca9237c0f90ee65cf67"
+    ),
+    "qtmultimedia/vcpkg.json": (
+        "99e80a9f5de609a2673a8f70aa31bc73b5711a37bb2e308ff7be1512fe4662b2"
+    ),
+}
+EXPECTED_OVERLAY_INVENTORY = {
+    "qtbase": (
+        "GLIB2-static.patch",
+        "QTBUG-145703.patch",
+        "allow_outside_prefix.patch",
+        "clang-cl_QGADGET_fix.diff",
+        "clang-cl_source_location.patch",
+        "cmake/qt_install_copyright.cmake",
+        "cmake/qt_install_submodule.cmake",
+        "cmake/qt_port_details.cmake",
+        "config_install.patch",
+        "dont_force_cmakecache_latest.patch",
+        "env.patch",
+        "fix-host-aliasing.patch",
+        "fix-ioring-32bit.patch",
+        "fix-libresolv-test.patch",
+        "fix-liburing-config-test.patch",
+        "fix-link-lib-discovery.patch",
+        "fix_cmake_build.patch",
+        "fix_deploy_windows.patch",
+        "fix_egl.patch",
+        "fix_egl_2.patch",
+        "harfbuzz.patch",
+        "installed_dir.patch",
+        "macdeployqt-symlinks.patch",
+        "moltenvk.patch",
+        "port.data.cmake",
+        "portfile.cmake",
+        "preserve-wasm-event-composed-path.patch",
+        "qmake.debug.bat",
+        "qt.conf.in",
+        "qtpaths.debug.bat",
+        "restore-wasm-version-check.patch",
+        "silence-winrtbase-coroutine-warnings.diff",
+        "use-shared-mime-info.patch",
+        "use_inotify_on_freebsd.patch",
+        "vcpkg.json",
+        "windeployqt.debug.bat",
+    ),
+    "qtdeclarative": (
+        "24205cd-qquickwindow-child-window-stacking.patch",
+        "port.data.cmake",
+        "portfile.cmake",
+        "vcpkg.json",
+    ),
+    "qtmultimedia": (
+        "canonicalize-wasm-build-paths.patch",
+        "correct-wasm-media-lifecycle.patch",
+        "defer-wasm-media-device-notifications.patch",
+        "port.data.cmake",
+        "portfile.cmake",
+        "vcpkg.json",
+    ),
+}
+EXPECTED_OVERLAY_AGGREGATE_SHA256 = {
+    "qtbase": (
+        "773114c93e22d01b1c39e0f1c8b3eca9c421b06964666619fd9cd0cafeb9b3f4"
+    ),
+    "qtdeclarative": (
+        "979c7916e031af468a1a183a61e8bdc85412f591a39bbe8111a1f4152bfa2091"
+    ),
+    "qtmultimedia": (
+        "3856d90ae3adce3a3e8bde52ae7fb5b12474978f8b1b33322e43281e15b6e425"
     ),
 }
 
@@ -2507,6 +2824,21 @@ def target_compile_databases(
         / "compile_commands.json"
         for port in expected_ports
     ]
+    secondary_relative = Path(QTMULTIMEDIA_SECONDARY_RELATIVE_ROOT)
+    require(
+        not secondary_relative.is_absolute()
+        and len(secondary_relative.parts) == 2
+        and secondary_relative.parts[0] == ".wb"
+        and secondary_relative.parts[1] not in ("", ".", ".."),
+        "qtmultimedia secondary qualification root contract drifted",
+    )
+    secondary_database = (
+        buildtrees.joinpath(*secondary_relative.parts[1:])
+        / "buildtrees"
+        / "qtmultimedia"
+        / f"{TARGET_TRIPLET}-rel"
+        / "compile_commands.json"
+    )
     discovered = [
         database
         for database in buildtrees.rglob("compile_commands.json")
@@ -2514,6 +2846,7 @@ def target_compile_databases(
             part.startswith(TARGET_BUILD_SUFFIX)
             for part in database.relative_to(buildtrees).parts
         )
+        and path_key(database) != path_key(secondary_database)
     ]
     expected_keys = {path_key(path) for path in expected}
     discovered_keys = {path_key(path) for path in discovered}
@@ -2625,6 +2958,1528 @@ def require_archive_member_matches_file(
         f"extracted file does not match authenticated archive member {member}",
     )
     return extracted_digest
+
+
+def _path_payload_identity(
+    payloads: Mapping[str, bytes],
+) -> dict[str, Any]:
+    inventory = hashlib.sha256()
+    aggregate = hashlib.sha256()
+    total_bytes = 0
+    for relative in sorted(payloads):
+        data = payloads[relative]
+        digest = hashlib.sha256(data).hexdigest()
+        inventory.update(f"{relative}\n".encode("utf-8"))
+        aggregate.update(relative.encode("utf-8"))
+        aggregate.update(b"\0")
+        aggregate.update(str(len(data)).encode("ascii"))
+        aggregate.update(b"\0")
+        aggregate.update(digest.encode("ascii"))
+        aggregate.update(b"\n")
+        total_bytes += len(data)
+    return {
+        "algorithm": QTMULTIMEDIA_BINARY_PAYLOAD_ALGORITHM,
+        "aggregateSha256": aggregate.hexdigest(),
+        "fileCount": len(payloads),
+        "inventorySha256": inventory.hexdigest(),
+        "totalBytes": total_bytes,
+    }
+
+
+def verify_target_static_package_ownership(installed: Path) -> int:
+    target = installed / TARGET_TRIPLET
+    info_root = installed / "vcpkg" / "info"
+    require(
+        target.is_dir() and info_root.is_dir(),
+        "target installation/package-info roots are missing",
+    )
+    actual: dict[str, Path] = {}
+    for candidate in target.rglob("*"):
+        require(
+            not _is_reparse_or_symlink(candidate),
+            f"target installed reparse point is forbidden: {candidate}",
+        )
+        if (
+            candidate.is_file()
+            and candidate.suffix in {".a", ".o"}
+        ):
+            relative = candidate.relative_to(target).as_posix()
+            folded = relative.casefold()
+            require(
+                folded not in actual,
+                "target static-link-input path collision: "
+                f"{relative}",
+            )
+            actual[folded] = candidate
+
+    owners: dict[str, list[str]] = {}
+    list_files = sorted(
+        info_root.glob(f"*_{TARGET_TRIPLET}.list"),
+        key=lambda path: (path.name.casefold(), path.name),
+    )
+    require(list_files, "target package-list inventory is empty")
+    prefix = f"{TARGET_TRIPLET}/"
+    for raw_list_file in list_files:
+        list_file = require_no_reparse_chain(
+            raw_list_file,
+            "target installed package list",
+        )
+        require(
+            list_file.is_file() and not _is_reparse_or_symlink(list_file),
+            f"target package list is not a regular file: {list_file}",
+        )
+        per_list: set[str] = set()
+        for line in list_file.read_text("utf-8").splitlines():
+            if not line.endswith((".a", ".o")):
+                continue
+            require(
+                line.startswith(prefix),
+                f"target package-list member has wrong triplet: {line}",
+            )
+            relative = _safe_contract_relative_path(
+                line[len(prefix):],
+                "target package-list static member",
+            )
+            folded = relative.casefold()
+            require(
+                folded not in per_list,
+                "target package list repeats a static member: "
+                f"{relative}",
+            )
+            per_list.add(folded)
+            owners.setdefault(folded, []).append(list_file.name)
+
+    require(
+        set(actual) == set(owners),
+        "target static package ownership inventory drifted",
+    )
+    for folded, owner_names in owners.items():
+        require(
+            len(owner_names) == 1,
+            "target static package member has zero or multiple owners: "
+            f"{actual[folded].relative_to(target).as_posix()}",
+        )
+    return len(actual)
+
+
+def verify_qtmultimedia_compile_path_maps(
+    repo: Path,
+    *,
+    installed: Path | None = None,
+    build: Path | None = None,
+    source_parent: Path | None = None,
+    ninja: Path | None = None,
+    packages_root: Path | None = None,
+) -> dict[str, Any]:
+    installed = installed or repo / ".wasm-vcpkg" / "installed"
+    build = build or (
+        repo
+        / ".wb"
+        / "qtmultimedia"
+        / f"{TARGET_TRIPLET}-rel"
+    )
+    source_parent = source_parent or (
+        repo / ".wb" / "qtmultimedia" / "src"
+    )
+    ninja = ninja or (
+        repo
+        / ".toolchains"
+        / EXPECTED_NINJA_LOCK_ENTRY["directory"]
+        / "ninja.exe"
+    )
+    installed = require_no_reparse_chain(
+        installed,
+        "qtmultimedia vcpkg installation",
+    )
+    build = require_no_reparse_chain(
+        build,
+        "qtmultimedia target build",
+    )
+    ninja = require_no_reparse_chain(
+        ninja,
+        "qtmultimedia Ninja executable",
+    )
+    require(
+        installed.is_dir()
+        and build.is_dir()
+        and ninja.is_file()
+        and not _is_reparse_or_symlink(ninja),
+        "qtmultimedia compile-audit roots are missing",
+    )
+    cache = parse_cmake_cache(build / "CMakeCache.txt")
+    source_value = cache.get("CMAKE_HOME_DIRECTORY", "")
+    require(
+        bool(source_value) and Path(source_value).is_absolute(),
+        "qtmultimedia CMAKE_HOME_DIRECTORY is missing or not absolute",
+    )
+    source = require_no_reparse_chain(
+        Path(source_value),
+        "qtmultimedia source root",
+    )
+    expected_source_parent = require_no_reparse_chain(
+        source_parent,
+        "qtmultimedia source parent",
+    )
+    require(
+        source.is_dir()
+        and source.is_relative_to(expected_source_parent),
+        "qtmultimedia source root escaped its authenticated buildtree",
+    )
+    require_same_path(
+        cache.get("VCPKG_INSTALLED_DIR", ""),
+        installed,
+        "qtmultimedia VCPKG_INSTALLED_DIR",
+    )
+    if packages_root is not None:
+        packages_root = require_no_reparse_chain(
+            packages_root,
+            "qtmultimedia packages root",
+        )
+        expected_port_cmake = (
+            repo
+            / ".wasm-vcpkg"
+            / "downloads"
+            / "tools"
+            / EXPECTED_VCPKG_PORT_CMAKE_LOCK_ENTRY[
+                "installationDirectory"
+            ]
+            / EXPECTED_VCPKG_PORT_CMAKE_LOCK_ENTRY["executable"]
+        )
+        require_cache_cmake_command(
+            cache,
+            expected_port_cmake,
+            "qtmultimedia target build",
+        )
+        require_same_path(
+            cache.get("CMAKE_TOOLCHAIN_FILE", ""),
+            (
+                repo
+                / ".toolchains"
+                / f"vcpkg-{EXPECTED_VCPKG_COMMIT[:8]}"
+                / "scripts"
+                / "buildsystems"
+                / "vcpkg.cmake"
+            ),
+            "qtmultimedia CMAKE_TOOLCHAIN_FILE",
+        )
+        require_same_path(
+            cache.get("VCPKG_CHAINLOAD_TOOLCHAIN_FILE", ""),
+            (
+                repo
+                / "cmake"
+                / "toolchains"
+                / "vcpkg-emscripten.cmake"
+            ),
+            "qtmultimedia VCPKG_CHAINLOAD_TOOLCHAIN_FILE",
+        )
+        require_exact_cache_values(
+            cache,
+            {
+                "CMAKE_GENERATOR": "Ninja",
+                "VCPKG_TARGET_TRIPLET": TARGET_TRIPLET,
+            },
+            "qtmultimedia target build",
+        )
+    install_prefix_value = cache.get("CMAKE_INSTALL_PREFIX", "")
+    require(
+        bool(install_prefix_value)
+        and Path(install_prefix_value).is_absolute(),
+        "qtmultimedia CMAKE_INSTALL_PREFIX is missing or not absolute",
+    )
+    install_prefix = require_no_reparse_chain(
+        Path(install_prefix_value),
+        "qtmultimedia package install prefix",
+    )
+    require(
+        install_prefix.is_dir(),
+        "qtmultimedia package install prefix is missing",
+    )
+    if packages_root is not None:
+        require_same_path(
+            install_prefix,
+            packages_root / f"qtmultimedia_{TARGET_TRIPLET}",
+            "qtmultimedia CMAKE_INSTALL_PREFIX",
+        )
+
+    database = require_no_reparse_chain(
+        build / "compile_commands.json",
+        "qtmultimedia compile database",
+    )
+    require(
+        database.is_file() and not _is_reparse_or_symlink(database),
+        "qtmultimedia compile database is missing",
+    )
+    entries = json.loads(database.read_text("utf-8"))
+    require(
+        isinstance(entries, list) and bool(entries),
+        "qtmultimedia compile database is empty",
+    )
+    expected_path_maps = {
+        path_key(source): QTMULTIMEDIA_PATH_MAP_TARGETS["source"],
+        path_key(build): QTMULTIMEDIA_PATH_MAP_TARGETS["build"],
+    }
+    require(
+        len(expected_path_maps) == 2,
+        "qtmultimedia source and build roots must be distinct",
+    )
+
+    expected_compilers = {
+        path_key(
+            repo
+            / ".toolchains"
+            / f"emsdk-{EXPECTED_EMSCRIPTEN}"
+            / "upstream"
+            / "emscripten"
+            / "emcc.bat"
+        ): "c",
+        path_key(
+            repo
+            / ".toolchains"
+            / f"emsdk-{EXPECTED_EMSCRIPTEN}"
+            / "upstream"
+            / "emscripten"
+            / "em++.bat"
+        ): "cxx",
+    }
+
+    def resolve_entry_path(
+        value: Any,
+        directory: Path,
+        label: str,
+    ) -> Path:
+        require(
+            isinstance(value, str) and bool(value),
+            f"{label} is missing",
+        )
+        candidate = Path(value)
+        if not candidate.is_absolute():
+            candidate = directory / candidate
+        return require_no_reparse_chain(candidate, label)
+
+    def require_path_maps(
+        arguments: Sequence[str],
+        label: str,
+    ) -> None:
+        for option in ("-ffile-prefix-map", "-fmacro-prefix-map"):
+            prefix = f"{option}="
+            raw_maps = [
+                argument[len(prefix):]
+                for argument in arguments
+                if argument.startswith(prefix)
+            ]
+            require(
+                len(raw_maps) == 2,
+                "qtmultimedia compile command must contain exactly two "
+                f"{option} arguments: {label}",
+            )
+            actual: dict[str, str] = {}
+            for raw_map in raw_maps:
+                mapped_path, separator, target = raw_map.rpartition("=")
+                require(
+                    separator == "="
+                    and bool(mapped_path)
+                    and Path(mapped_path).is_absolute()
+                    and target in QTMULTIMEDIA_PATH_MAP_TARGETS.values(),
+                    "qtmultimedia compile path map is malformed: "
+                    f"{option}={raw_map}",
+                )
+                folded = path_key(Path(mapped_path))
+                require(
+                    folded not in actual,
+                    "qtmultimedia compile path map repeats a source root: "
+                    f"{option}={raw_map}",
+                )
+                actual[folded] = target
+            require(
+                actual == expected_path_maps,
+                "qtmultimedia compile path maps do not canonicalize the "
+                f"actual source/build roots: {label}",
+            )
+
+    def collect(
+        raw_entries: Any,
+        *,
+        label: str,
+        allow_non_compilers: bool,
+    ) -> dict[str, dict[str, Any]]:
+        require(
+            isinstance(raw_entries, list) and bool(raw_entries),
+            f"{label} is empty",
+        )
+        records: dict[str, dict[str, Any]] = {}
+        for index, entry in enumerate(raw_entries):
+            require(
+                isinstance(entry, Mapping),
+                f"{label}[{index}] is not a mapping",
+            )
+            raw_command = entry.get("command")
+            raw_arguments = entry.get("arguments")
+            if (
+                raw_arguments is None
+                and (
+                    not isinstance(raw_command, str)
+                    or not raw_command.strip()
+                )
+            ):
+                require(
+                    allow_non_compilers,
+                    f"{label}[{index}] has no compiler command",
+                )
+                continue
+            arguments = compile_entry_arguments(entry)
+            language = expected_compilers.get(path_key(Path(arguments[0])))
+            if language is None:
+                require(
+                    allow_non_compilers,
+                    f"{label}[{index}] uses a non-pinned compiler: "
+                    f"{arguments[0]}",
+                )
+                continue
+            directory = resolve_entry_path(
+                entry.get("directory"),
+                build,
+                f"{label}[{index}] directory",
+            )
+            require_same_path(
+                directory,
+                build,
+                f"{label}[{index}] compile directory",
+            )
+            source_path = resolve_entry_path(
+                entry.get("file"),
+                directory,
+                f"{label}[{index}] source",
+            )
+            output = resolve_entry_path(
+                entry.get("output"),
+                directory,
+                f"{label}[{index}] output",
+            )
+            require(
+                source_path.is_file()
+                and not _is_reparse_or_symlink(source_path)
+                and (
+                    source_path.is_relative_to(source)
+                    or source_path.is_relative_to(build)
+                ),
+                f"{label}[{index}] source is missing or outside "
+                "qtmultimedia source/build roots",
+            )
+            require(
+                output.is_file()
+                and not _is_reparse_or_symlink(output)
+                and output.is_relative_to(build)
+                and output.suffix in {".o", ".pch"},
+                f"{label}[{index}] output is missing or outside the "
+                "qtmultimedia target build",
+            )
+            magic = output.read_bytes()[:8]
+            require(
+                (
+                    output.suffix == ".o"
+                    and magic == b"\0asm\1\0\0\0"
+                )
+                or (
+                    output.suffix == ".pch"
+                    and magic[:4] == b"CPCH"
+                ),
+                f"{label}[{index}] output format drifted: {output}",
+            )
+            require(
+                arguments.count("-c") == 1
+                and arguments.index("-c") + 1 < len(arguments),
+                f"{label}[{index}] must contain one -c source operand",
+            )
+            command_source = resolve_entry_path(
+                arguments[arguments.index("-c") + 1],
+                directory,
+                f"{label}[{index}] command source",
+            )
+            require_same_path(
+                command_source,
+                source_path,
+                f"{label}[{index}] command source",
+            )
+            require(
+                arguments.count("-o") == 1
+                and arguments.index("-o") + 1 < len(arguments),
+                f"{label}[{index}] must contain one -o output operand",
+            )
+            command_output = resolve_entry_path(
+                arguments[arguments.index("-o") + 1],
+                directory,
+                f"{label}[{index}] command output",
+            )
+            require_same_path(
+                command_output,
+                output,
+                f"{label}[{index}] command output",
+            )
+            require_path_maps(
+                arguments,
+                f"{label}[{index}] {source_path}",
+            )
+            require_wasm_compile_contract(
+                arguments,
+                language=language,
+                context=f"{label}[{index}] {source_path}",
+            )
+            output_key = path_key(output)
+            require(
+                output_key not in records,
+                f"{label} repeats compile output: {output}",
+            )
+            records[output_key] = {
+                "arguments": arguments,
+                "language": language,
+                "output": output,
+                "source": source_path,
+            }
+        require(records, f"{label} contains no pinned compiler commands")
+        return records
+
+    checked = collect(
+        entries,
+        label="qtmultimedia compile database",
+        allow_non_compilers=False,
+    )
+    expanded_entries = json.loads(
+        run_text(ninja, "-C", build, "-t", "compdb", "-x")
+    )
+    expanded = collect(
+        expanded_entries,
+        label="qtmultimedia expanded Ninja compdb",
+        allow_non_compilers=True,
+    )
+    require(
+        set(checked) == set(expanded),
+        "qtmultimedia compile database outputs differ from expanded Ninja",
+    )
+
+    canonical_roots = (
+        (source, "${QTMULTIMEDIA_SOURCE}"),
+        (build, "${QTMULTIMEDIA_BUILD}"),
+        (installed, "${VCPKG_INSTALLED}"),
+        (install_prefix, "${QTMULTIMEDIA_INSTALL}"),
+    )
+
+    def canonical_value(value: str) -> str:
+        result = value
+        variants: list[tuple[str, str]] = []
+        for root, replacement in canonical_roots:
+            variants.extend((
+                (str(root.resolve()), replacement),
+                (str(root.resolve()).replace("\\", "/"), replacement),
+            ))
+        for raw_root, replacement in sorted(
+            variants,
+            key=lambda item: len(item[0]),
+            reverse=True,
+        ):
+            result = re.sub(
+                re.escape(raw_root),
+                replacement,
+                result,
+                flags=re.I,
+            )
+        return canonical_command(repo, result)
+
+    canonical_records: list[dict[str, Any]] = []
+    canonical_outputs: list[tuple[str, str, str]] = []
+    language_counts = {"c": 0, "cxx": 0}
+    compiled_objects: dict[tuple[str, str], int] = {}
+    per_edge_object_digest_count = 0
+    pch_count = 0
+    for output_key in sorted(checked):
+        record = checked[output_key]
+        actual_arguments = require_compile_argv_parity(
+            record["arguments"],
+            expanded[output_key]["arguments"],
+            f"qtmultimedia Ninja parity {record['source']}",
+        )
+        require(
+            expanded[output_key]["language"] == record["language"]
+            and path_key(expanded[output_key]["source"])
+            == path_key(record["source"]),
+            "qtmultimedia expanded Ninja source/language drifted",
+        )
+        require_path_maps(
+            actual_arguments,
+            f"expanded Ninja {record['source']}",
+        )
+        language_counts[record["language"]] += 1
+        output_digest: str | None = None
+        if record["output"].suffix == ".o":
+            output_digest = sha256(record["output"])
+            object_key = (
+                record["output"].name,
+                output_digest,
+            )
+            compiled_objects[object_key] = (
+                compiled_objects.get(object_key, 0) + 1
+            )
+            per_edge_object_digest_count += 1
+        else:
+            pch_count += 1
+        canonical_arguments = [
+            canonical_value(argument)
+            for argument in record["arguments"]
+        ]
+        canonical_arguments[canonical_arguments.index("-o") + 1] = (
+            "${QTMULTIMEDIA_OUTPUT}"
+        )
+        canonical_source = canonical_value(str(record["source"]))
+        output_kind = record["output"].suffix.removeprefix(".")
+        output_name = record["output"].name
+        canonical_outputs.append(
+            (canonical_source, output_kind, output_name)
+        )
+        canonical_output = {
+            "kind": output_kind,
+            "name": output_name,
+        }
+        if output_digest is not None:
+            canonical_output["sha256"] = output_digest
+        canonical_records.append({
+            "arguments": canonical_arguments,
+            "language": record["language"],
+            "output": canonical_output,
+            "source": canonical_source,
+        })
+
+    list_file = (
+        installed
+        / "vcpkg"
+        / "info"
+        / f"qtmultimedia_{EXPECTED_QT}_{TARGET_TRIPLET}.list"
+    )
+    list_file = require_no_reparse_chain(
+        list_file,
+        "qtmultimedia compile-coverage package list",
+    )
+    require(
+        list_file.is_file() and not _is_reparse_or_symlink(list_file),
+        "qtmultimedia compile-coverage package list is missing",
+    )
+    installed_objects: dict[tuple[str, str], int] = {}
+    prefix = f"{TARGET_TRIPLET}/"
+    for line in list_file.read_text("utf-8").splitlines():
+        if not line.endswith((".a", ".o")):
+            continue
+        require(
+            line.startswith(prefix),
+            f"qtmultimedia compile-coverage member has wrong triplet: {line}",
+        )
+        static_input = require_no_reparse_chain(
+            installed / line,
+            f"qtmultimedia compile-coverage member {line}",
+        )
+        require(
+            static_input.is_file()
+            and not _is_reparse_or_symlink(static_input),
+            f"qtmultimedia compile-coverage member is missing: {line}",
+        )
+        if static_input.suffix == ".a":
+            object_members = _archive_wasm_members(
+                static_input.read_bytes()
+            )
+        else:
+            object_members = [
+                (static_input.name, sha256(static_input))
+            ]
+        for object_key in object_members:
+            installed_objects[object_key] = (
+                installed_objects.get(object_key, 0) + 1
+            )
+    require(
+        compiled_objects == installed_objects
+        and sum(compiled_objects.values()) > 0,
+        "qtmultimedia compile outputs do not exactly cover installed "
+        "archive/object members",
+    )
+    installed_object_aggregate = hashlib.sha256()
+    for (name, digest), count in sorted(installed_objects.items()):
+        installed_object_aggregate.update(
+            f"{name}\0{digest}\0{count}\n".encode("utf-8")
+        )
+
+    canonical_records.sort(
+        key=lambda record: json.dumps(
+            record,
+            ensure_ascii=True,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+    )
+    output_inventory = hashlib.sha256()
+    for source_name, output_kind, output_name in sorted(canonical_outputs):
+        output_inventory.update(
+            (
+                f"{source_name}\0{output_kind}\0{output_name}\n"
+            ).encode("utf-8")
+        )
+    encoded = (
+        json.dumps(
+            canonical_records,
+            ensure_ascii=True,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        + "\n"
+    ).encode("utf-8")
+    return {
+        "algorithm": QTMULTIMEDIA_COMPILE_COMMAND_ALGORITHM,
+        "aggregateSha256": hashlib.sha256(encoded).hexdigest(),
+        "cCommandCount": language_counts["c"],
+        "commandCount": len(canonical_records),
+        "cxxCommandCount": language_counts["cxx"],
+        "installedObjectAggregateSha256":
+            installed_object_aggregate.hexdigest(),
+        "installedObjectOccurrenceCount":
+            sum(installed_objects.values()),
+        "ninjaParity": True,
+        "objectOutputCount": sum(compiled_objects.values()),
+        "outputInventorySha256": output_inventory.hexdigest(),
+        "pathMapTargets": dict(QTMULTIMEDIA_PATH_MAP_TARGETS),
+        "perEdgeObjectDigestCount": per_edge_object_digest_count,
+        "pchByteIdentity": "excluded-noninstallable-root-dependent-v1",
+        "pchOutputCount": pch_count,
+    }
+
+
+def verify_qtmultimedia_binary_package(
+    repo: Path,
+    installed: Path,
+    abi_info: Path,
+    abi: str,
+    contract: Mapping[str, Any],
+    *,
+    binary_cache: Path | None = None,
+) -> dict[str, Any]:
+    require_exact_keys(
+        contract,
+        {
+            "abi",
+            "algorithm",
+            "aggregateSha256",
+            "deterministicPayload",
+            "installableFileCount",
+            "installableInventorySha256",
+            "memberCount",
+            "members",
+            "totalBytes",
+        },
+        "qtmultimedia binary package contract",
+    )
+    require(
+        contract["abi"] == abi
+        and re.fullmatch(r"[0-9a-f]{64}", abi) is not None,
+        "qtmultimedia binary package ABI drifted",
+    )
+    require(
+        contract["algorithm"] == QTMULTIMEDIA_BINARY_PAYLOAD_ALGORITHM,
+        "qtmultimedia binary package algorithm drifted",
+    )
+    require_sha256_value(
+        contract["aggregateSha256"],
+        "qtmultimedia binary package aggregateSha256",
+    )
+    require_positive_int(
+        contract["installableFileCount"],
+        "qtmultimedia binary package installableFileCount",
+    )
+    require_sha256_value(
+        contract["installableInventorySha256"],
+        "qtmultimedia binary package installableInventorySha256",
+    )
+    deterministic_contract = require_mapping(
+        contract["deterministicPayload"],
+        "qtmultimedia deterministic package payload",
+    )
+    require_exact_keys(
+        deterministic_contract,
+        {
+            "algorithm",
+            "aggregateSha256",
+            "excluded",
+            "fileCount",
+            "inventorySha256",
+            "totalBytes",
+        },
+        "qtmultimedia deterministic package payload",
+    )
+    require(
+        deterministic_contract["algorithm"]
+        == QTMULTIMEDIA_BINARY_PAYLOAD_ALGORITHM
+        and deterministic_contract["excluded"]
+        == list(QTMULTIMEDIA_DETERMINISTIC_PAYLOAD_EXCLUSIONS),
+        "qtmultimedia deterministic package payload contract drifted",
+    )
+    require_positive_int(
+        deterministic_contract["fileCount"],
+        "qtmultimedia deterministic package payload fileCount",
+    )
+    require_positive_int(
+        deterministic_contract["totalBytes"],
+        "qtmultimedia deterministic package payload totalBytes",
+    )
+    require_sha256_value(
+        deterministic_contract["inventorySha256"],
+        "qtmultimedia deterministic package payload inventorySha256",
+    )
+    require_sha256_value(
+        deterministic_contract["aggregateSha256"],
+        "qtmultimedia deterministic package payload aggregateSha256",
+    )
+    raw_members = contract["members"]
+    require(
+        isinstance(raw_members, list) and bool(raw_members),
+        "qtmultimedia binary package members must be a nonempty list",
+    )
+    members: dict[str, dict[str, Any]] = {}
+    aggregate = hashlib.sha256()
+    total_bytes = 0
+    for index, raw_member in enumerate(raw_members):
+        member = require_mapping(
+            raw_member,
+            f"qtmultimedia binary package members[{index}]",
+        )
+        require_exact_keys(
+            member,
+            {"bytes", "path", "sha256"},
+            f"qtmultimedia binary package members[{index}]",
+        )
+        relative = _safe_contract_relative_path(
+            member["path"],
+            f"qtmultimedia binary package members[{index}].path",
+        )
+        require(
+            relative == member["path"]
+            and relative.endswith((".a", ".o")),
+            f"qtmultimedia binary package member path drifted: {relative}",
+        )
+        require(
+            relative not in members
+            and relative.casefold()
+                not in {path.casefold() for path in members},
+            f"duplicate qtmultimedia binary package member: {relative}",
+        )
+        require_positive_int(
+            member["bytes"],
+            f"qtmultimedia binary package members[{index}].bytes",
+        )
+        require_sha256_value(
+            member["sha256"],
+            f"qtmultimedia binary package members[{index}].sha256",
+        )
+        members[relative] = dict(member)
+    require(
+        list(members) == sorted(members),
+        "qtmultimedia binary package members are not path-sorted",
+    )
+    for relative, member in members.items():
+        aggregate.update(relative.encode("utf-8"))
+        aggregate.update(b"\0")
+        aggregate.update(str(member["bytes"]).encode("ascii"))
+        aggregate.update(b"\0")
+        aggregate.update(member["sha256"].encode("ascii"))
+        aggregate.update(b"\n")
+        total_bytes += member["bytes"]
+    require(
+        contract["memberCount"] == len(members)
+        and contract["totalBytes"] == total_bytes
+        and contract["aggregateSha256"] == aggregate.hexdigest(),
+        "qtmultimedia binary package aggregate drifted",
+    )
+    core_member = members.get(QTMULTIMEDIA_CORE_ARCHIVE)
+    require(
+        core_member is not None,
+        "qtmultimedia binary package omits the canonical core archive",
+    )
+
+    abi_info = require_no_reparse_chain(
+        abi_info,
+        "qtmultimedia ABI input record",
+    )
+    require(
+        abi_info.is_file()
+        and not _is_reparse_or_symlink(abi_info)
+        and sha256(abi_info) == abi,
+        "qtmultimedia ABI input record does not match the binary package ABI",
+    )
+    list_file = (
+        installed
+        / "vcpkg"
+        / "info"
+        / f"qtmultimedia_{EXPECTED_QT}_{TARGET_TRIPLET}.list"
+    )
+    list_file = require_no_reparse_chain(
+        list_file,
+        "qtmultimedia installed package list",
+    )
+    require(
+        list_file.is_file() and not _is_reparse_or_symlink(list_file),
+        "qtmultimedia installed package list is missing",
+    )
+    list_prefix = f"{TARGET_TRIPLET}/"
+    listed_files: list[str] = []
+    for line in list_file.read_text("utf-8").splitlines():
+        if line.endswith("/"):
+            continue
+        require(
+            line.startswith(list_prefix),
+            f"qtmultimedia package list member has wrong triplet: {line}",
+        )
+        relative = _safe_contract_relative_path(
+            line[len(list_prefix):],
+            "qtmultimedia package-list file",
+        )
+        listed_files.append(relative)
+    require(
+        listed_files == sorted(listed_files)
+        and len({path.casefold() for path in listed_files})
+        == len(listed_files),
+        "qtmultimedia installed package-list file inventory is not canonical",
+    )
+    owned_static_count = verify_target_static_package_ownership(installed)
+
+    binary_cache = binary_cache or (
+        repo / ".wasm-vcpkg" / "bincache"
+    )
+    cache = binary_cache / abi[:2] / f"{abi}.zip"
+    cache = require_no_reparse_chain(
+        cache,
+        "qtmultimedia ABI-named binary cache package",
+    )
+    require(
+        cache.is_file() and not _is_reparse_or_symlink(cache),
+        "qtmultimedia ABI-named binary cache package is missing",
+    )
+    abi_info_bytes = abi_info.read_bytes()
+    with cache.open("rb") as cache_stream:
+        cache_digest = hashlib.sha256()
+        for chunk in iter(lambda: cache_stream.read(1024 * 1024), b""):
+            cache_digest.update(chunk)
+        cache_sha256 = cache_digest.hexdigest()
+        cache_stream.seek(0)
+        with zipfile.ZipFile(cache_stream) as package:
+            archive_files: dict[str, zipfile.ZipInfo] = {}
+            archive_paths: set[str] = set()
+            for info in package.infolist():
+                raw = info.filename
+                require(
+                    "\\" not in raw,
+                    f"qtmultimedia binary package backslash path: {raw}",
+                )
+                relative = raw.rstrip("/")
+                if not relative:
+                    require(
+                        info.is_dir(),
+                        "qtmultimedia binary package has an empty file path",
+                    )
+                    continue
+                relative = _safe_contract_relative_path(
+                    relative,
+                    "qtmultimedia binary package archive entry",
+                )
+                folded = relative.casefold()
+                require(
+                    folded not in archive_paths,
+                    f"qtmultimedia binary package path collision: {raw}",
+                )
+                archive_paths.add(folded)
+                unix_type = (info.external_attr >> 16) & 0o170000
+                expected_type = (
+                    stat.S_IFDIR if info.is_dir() else stat.S_IFREG
+                )
+                require(
+                    unix_type in (0, expected_type)
+                    and not (
+                        info.external_attr
+                        & getattr(
+                            stat,
+                            "FILE_ATTRIBUTE_REPARSE_POINT",
+                            0x400,
+                        )
+                    ),
+                    f"qtmultimedia binary package link/type mismatch: {raw}",
+                )
+                if not info.is_dir():
+                    archive_files[relative] = info
+
+            control_info = archive_files.get("CONTROL")
+            embedded_abi_info = archive_files.get(
+                "share/qtmultimedia/vcpkg_abi_info.txt"
+            )
+            require(
+                control_info is not None and embedded_abi_info is not None,
+                "qtmultimedia binary package metadata is missing",
+            )
+            require(
+                package.read(embedded_abi_info) == abi_info_bytes,
+                "qtmultimedia binary package ABI input record drifted",
+            )
+            installable_paths = sorted(
+                path
+                for path in archive_files
+                if path not in {"BUILD_INFO", "CONTROL"}
+            )
+            installable_inventory = hashlib.sha256()
+            for relative in installable_paths:
+                installable_inventory.update(
+                    f"{relative}\n".encode("utf-8")
+                )
+            require(
+                installable_paths == listed_files
+                and contract["installableFileCount"]
+                == len(installable_paths)
+                and contract["installableInventorySha256"]
+                == installable_inventory.hexdigest(),
+                "qtmultimedia installable package inventory drifted",
+            )
+            static_paths = [
+                path
+                for path in installable_paths
+                if path.endswith((".a", ".o"))
+            ]
+            require(
+                static_paths == sorted(members),
+                "qtmultimedia installed .a/.o inventory drifted",
+            )
+            excluded = set(QTMULTIMEDIA_DETERMINISTIC_PAYLOAD_EXCLUSIONS)
+            require(
+                excluded.issubset(installable_paths)
+                and not any(
+                    path.endswith((".a", ".o"))
+                    for path in excluded
+                ),
+                "qtmultimedia deterministic exclusion inventory drifted",
+            )
+            deterministic_payloads: dict[str, bytes] = {}
+            for relative in installable_paths:
+                info = archive_files[relative]
+                cache_bytes = package.read(info)
+                installed_file = require_no_reparse_chain(
+                    installed / TARGET_TRIPLET / relative,
+                    f"installed qtmultimedia package file {relative}",
+                )
+                require(
+                    installed_file.is_file()
+                    and not _is_reparse_or_symlink(installed_file)
+                    and installed_file.stat().st_size == len(cache_bytes)
+                    and sha256(installed_file)
+                    == hashlib.sha256(cache_bytes).hexdigest(),
+                    "installed qtmultimedia package file drifted: "
+                    f"{relative}",
+                )
+                if (
+                    relative not in excluded
+                    and not relative.endswith((".a", ".o"))
+                ):
+                    deterministic_payloads[relative] = cache_bytes
+            deterministic_identity = _path_payload_identity(
+                deterministic_payloads
+            )
+            deterministic_identity["excluded"] = list(
+                QTMULTIMEDIA_DETERMINISTIC_PAYLOAD_EXCLUSIONS
+            )
+            require(
+                deterministic_identity == dict(deterministic_contract),
+                "qtmultimedia deterministic package payload drifted",
+            )
+            control_records: list[dict[str, str]] = []
+            for paragraph in re.split(
+                r"(?:\r?\n){2,}",
+                package.read(control_info).decode("utf-8"),
+            ):
+                if not paragraph.strip():
+                    continue
+                record: dict[str, str] = {}
+                for line in paragraph.splitlines():
+                    if line.startswith((" ", "\t")):
+                        continue
+                    key, separator, value = line.partition(":")
+                    if separator:
+                        record[key] = value.strip()
+                control_records.append(record)
+            core_records = [
+                record
+                for record in control_records
+                if record.get("Package") == "qtmultimedia"
+                and "Feature" not in record
+            ]
+            require(
+                len(core_records) == 1
+                and core_records[0].get("Version") == EXPECTED_QT
+                and core_records[0].get("Port-Version") == "2"
+                and core_records[0].get("Architecture") == TARGET_TRIPLET
+                and core_records[0].get("Abi") == abi,
+                "qtmultimedia binary package CONTROL identity drifted",
+            )
+            for relative, member in members.items():
+                info = archive_files.get(relative)
+                require(
+                    info is not None
+                    and info.file_size == member["bytes"],
+                    f"qtmultimedia binary package member missing: {relative}",
+                )
+                package_digest = hashlib.sha256()
+                with package.open(info) as stream:
+                    for chunk in iter(
+                        lambda: stream.read(1024 * 1024),
+                        b"",
+                    ):
+                        package_digest.update(chunk)
+                require(
+                    package_digest.hexdigest() == member["sha256"],
+                    "qtmultimedia binary package member SHA-256 drifted: "
+                    f"{relative}",
+                )
+                installed_member = require_no_reparse_chain(
+                    installed / TARGET_TRIPLET / relative,
+                    f"installed qtmultimedia package member {relative}",
+                )
+                require(
+                    installed_member.is_file()
+                    and not _is_reparse_or_symlink(installed_member)
+                    and installed_member.stat().st_size == member["bytes"]
+                    and sha256(installed_member) == member["sha256"],
+                    "installed qtmultimedia package member drifted: "
+                    f"{relative}",
+                )
+    return {
+        "BinaryPackageCacheBytes": cache.stat().st_size,
+        "BinaryPackageCacheFile": relative_path(repo, cache),
+        "BinaryPackageCacheSha256": cache_sha256,
+        "BinaryPayloadAggregateSha256": contract["aggregateSha256"],
+        "BinaryPayloadAlgorithm": contract["algorithm"],
+        "BinaryPayloadCoreBytes": core_member["bytes"],
+        "BinaryPayloadCorePath": QTMULTIMEDIA_CORE_ARCHIVE,
+        "BinaryPayloadCoreSha256": core_member["sha256"],
+        "BinaryDeterministicPayloadAggregateSha256":
+            deterministic_contract["aggregateSha256"],
+        "BinaryDeterministicPayloadAlgorithm":
+            deterministic_contract["algorithm"],
+        "BinaryDeterministicPayloadFileCount":
+            deterministic_contract["fileCount"],
+        "BinaryDeterministicPayloadInventorySha256":
+            deterministic_contract["inventorySha256"],
+        "BinaryDeterministicPayloadTotalBytes":
+            deterministic_contract["totalBytes"],
+        "BinaryInstallableFileCount": contract["installableFileCount"],
+        "BinaryInstallableInventorySha256":
+            contract["installableInventorySha256"],
+        "BinaryPayloadMemberCount": contract["memberCount"],
+        "BinaryPayloadTotalBytes": contract["totalBytes"],
+        "TargetStaticOwnedFileCount": owned_static_count,
+    }
+
+
+def verify_qtmultimedia_reproducibility(
+    repo: Path,
+    *,
+    primary_abi: str,
+    binary_contract: Mapping[str, Any],
+    primary_compile_identity: Mapping[str, Any],
+) -> dict[str, Any]:
+    secondary_root = require_no_reparse_chain(
+        repo / QTMULTIMEDIA_SECONDARY_RELATIVE_ROOT,
+        "qtmultimedia secondary qualification root",
+    )
+    primary_manifest = require_no_reparse_chain(
+        repo / "tools" / "wasm-probe" / "vcpkg.json",
+        "qtmultimedia primary qualification manifest",
+    )
+    secondary_manifest = require_no_reparse_chain(
+        secondary_root / "manifest" / "vcpkg.json",
+        "qtmultimedia secondary qualification manifest",
+    )
+    require(
+        primary_manifest.is_file()
+        and secondary_manifest.is_file()
+        and not _is_reparse_or_symlink(primary_manifest)
+        and not _is_reparse_or_symlink(secondary_manifest),
+        "qtmultimedia reproducibility manifests are incomplete",
+    )
+    primary_manifest_payload = json.loads(
+        primary_manifest.read_text("utf-8")
+    )
+    secondary_manifest_payload = json.loads(
+        secondary_manifest.read_text("utf-8")
+    )
+    require(
+        isinstance(primary_manifest_payload, dict)
+        and isinstance(secondary_manifest_payload, dict),
+        "qtmultimedia reproducibility manifests must be JSON objects",
+    )
+    primary_builtin_baseline = primary_manifest_payload.get(
+        "builtin-baseline"
+    )
+    require(
+        primary_builtin_baseline == EXPECTED_VCPKG_COMMIT,
+        "qtmultimedia primary manifest baseline drifted",
+    )
+    expected_secondary_manifest = dict(primary_manifest_payload)
+    removed_baseline = expected_secondary_manifest.pop(
+        "builtin-baseline",
+        None,
+    )
+    require(
+        removed_baseline == EXPECTED_VCPKG_COMMIT
+        and secondary_manifest_payload == expected_secondary_manifest,
+        "qtmultimedia secondary manifest must differ only by removing "
+        "builtin-baseline",
+    )
+
+    secondary_buildtrees = secondary_root / "buildtrees"
+    secondary_build = require_no_reparse_chain(
+        secondary_buildtrees
+        / "qtmultimedia"
+        / f"{TARGET_TRIPLET}-rel",
+        "qtmultimedia secondary target build",
+    )
+    secondary_installed = require_no_reparse_chain(
+        secondary_root / "installed",
+        "qtmultimedia secondary vcpkg installation",
+    )
+    secondary_binary_cache = require_no_reparse_chain(
+        secondary_root / "binary-cache",
+        "qtmultimedia secondary binary cache",
+    )
+    secondary_packages = require_no_reparse_chain(
+        secondary_root / "packages",
+        "qtmultimedia secondary packages root",
+    )
+    secondary_probe_build = require_no_reparse_chain(
+        secondary_root / "probe-configure",
+        "qtmultimedia secondary probe configure root",
+    )
+    secondary_abi_info = require_no_reparse_chain(
+        secondary_buildtrees
+        / "qtmultimedia"
+        / f"{TARGET_TRIPLET}.vcpkg_abi_info.txt",
+        "qtmultimedia secondary ABI input record",
+    )
+    require(
+        secondary_root.is_dir()
+        and secondary_build.is_dir()
+        and secondary_installed.is_dir()
+        and secondary_binary_cache.is_dir()
+        and secondary_packages.is_dir()
+        and secondary_probe_build.is_dir()
+        and secondary_abi_info.is_file(),
+        "qtmultimedia secondary qualification artifacts are incomplete",
+    )
+    secondary_probe_cache = parse_cmake_cache(
+        secondary_probe_build / "CMakeCache.txt"
+    )
+    expected_outer_cmake = (
+        repo
+        / ".toolchains"
+        / EXPECTED_OUTER_CMAKE_LOCK_ENTRY["directory"]
+        / "bin"
+        / "cmake.exe"
+    )
+    expected_vcpkg_toolchain = (
+        repo
+        / ".toolchains"
+        / f"vcpkg-{EXPECTED_VCPKG_COMMIT[:8]}"
+        / "scripts"
+        / "buildsystems"
+        / "vcpkg.cmake"
+    )
+    expected_chainload_toolchain = (
+        repo / "cmake" / "toolchains" / "vcpkg-emscripten.cmake"
+    )
+    expected_overlay_ports = (
+        repo / "vcpkgOverlayPorts",
+        repo / "vcpkgOverlayPortsWasm",
+    )
+    expected_overlay_triplets = repo / "vcpkgTriplets"
+    require_cache_cmake_command(
+        secondary_probe_cache,
+        expected_outer_cmake,
+        "qtmultimedia secondary probe",
+    )
+    require_same_path(
+        secondary_probe_cache.get("CMAKE_HOME_DIRECTORY", ""),
+        repo / "tools" / "wasm-probe",
+        "qtmultimedia secondary probe source root",
+    )
+    require_same_path(
+        secondary_probe_cache.get("CMAKE_TOOLCHAIN_FILE", ""),
+        expected_vcpkg_toolchain,
+        "qtmultimedia secondary probe CMAKE_TOOLCHAIN_FILE",
+    )
+    require_same_path(
+        secondary_probe_cache.get("VCPKG_CHAINLOAD_TOOLCHAIN_FILE", ""),
+        expected_chainload_toolchain,
+        "qtmultimedia secondary probe VCPKG_CHAINLOAD_TOOLCHAIN_FILE",
+    )
+    require_same_path(
+        secondary_probe_cache.get("VCPKG_MANIFEST_DIR", ""),
+        secondary_manifest.parent,
+        "qtmultimedia secondary probe manifest root",
+    )
+    require_same_path(
+        secondary_probe_cache.get("VCPKG_INSTALLED_DIR", ""),
+        secondary_installed,
+        "qtmultimedia secondary probe installed root",
+    )
+    require_same_path(
+        secondary_probe_cache.get("VCPKG_OVERLAY_TRIPLETS", ""),
+        expected_overlay_triplets,
+        "qtmultimedia secondary probe overlay triplets",
+    )
+    require_same_path(
+        secondary_probe_cache.get("CMAKE_INSTALL_PREFIX", ""),
+        (
+            repo
+            / ".toolchains"
+            / f"emscripten-cache-{EXPECTED_EMSCRIPTEN}"
+            / "sysroot"
+        ),
+        "qtmultimedia secondary probe CMAKE_INSTALL_PREFIX",
+    )
+    actual_overlay_ports = secondary_probe_cache.get(
+        "VCPKG_OVERLAY_PORTS",
+        "",
+    ).split(";")
+    require(
+        len(actual_overlay_ports) == len(expected_overlay_ports)
+        and all(actual_overlay_ports),
+        "qtmultimedia secondary probe overlay-port count drifted",
+    )
+    for index, (actual, expected) in enumerate(
+        zip(actual_overlay_ports, expected_overlay_ports)
+    ):
+        require_same_path(
+            actual,
+            expected,
+            f"qtmultimedia secondary probe overlay port {index}",
+        )
+    require_exact_cache_values(
+        secondary_probe_cache,
+        {
+            "CMAKE_GENERATOR": "Ninja",
+            "VCPKG_HOST_TRIPLET": HOST_TRIPLET,
+            "VCPKG_TARGET_TRIPLET": TARGET_TRIPLET,
+        },
+        "qtmultimedia secondary probe",
+    )
+    require(
+        secondary_probe_cache.get("VCPKG_FEATURE_FLAGS") == "-versions",
+        "qtmultimedia secondary probe must disable vcpkg versions",
+    )
+    install_options = secondary_probe_cache.get(
+        "VCPKG_INSTALL_OPTIONS",
+        "",
+    ).split(";")
+    expected_install_options = (
+        ("--x-buildtrees-root=", secondary_buildtrees),
+        ("--x-packages-root=", secondary_packages),
+        ("--downloads-root=", repo / ".wasm-vcpkg" / "downloads"),
+    )
+    require(
+        len(install_options) == len(expected_install_options) + 2,
+        "qtmultimedia secondary probe install-option count drifted",
+    )
+    for actual, (prefix, expected_path) in zip(
+        install_options[:len(expected_install_options)],
+        expected_install_options,
+    ):
+        require(
+            actual.startswith(prefix) and len(actual) > len(prefix),
+            "qtmultimedia secondary probe install option drifted: "
+            f"{actual!r}",
+        )
+        require_same_path(
+            actual[len(prefix):],
+            expected_path,
+            f"qtmultimedia secondary probe {prefix[:-1]}",
+        )
+    require(
+        install_options[-2] == "--binarysource=clear",
+        "qtmultimedia secondary probe binary sources are not cleared",
+    )
+    binary_source_prefix = "--binarysource=files,"
+    binary_source_suffix = ",readwrite"
+    binary_source = install_options[-1]
+    require(
+        binary_source.startswith(binary_source_prefix)
+        and binary_source.endswith(binary_source_suffix)
+        and len(binary_source)
+        > len(binary_source_prefix) + len(binary_source_suffix),
+        "qtmultimedia secondary probe binary-cache policy drifted",
+    )
+    require_same_path(
+        binary_source[
+            len(binary_source_prefix):-len(binary_source_suffix)
+        ],
+        secondary_binary_cache,
+        "qtmultimedia secondary probe binary-cache root",
+    )
+
+    secondary_abi = sha256(secondary_abi_info)
+    require(
+        secondary_abi == primary_abi == binary_contract["abi"],
+        "qtmultimedia secondary ABI differs from the primary package",
+    )
+
+    primary_build = require_no_reparse_chain(
+        repo
+        / ".wb"
+        / "qtmultimedia"
+        / f"{TARGET_TRIPLET}-rel",
+        "qtmultimedia primary target build",
+    )
+    primary_cache = parse_cmake_cache(primary_build / "CMakeCache.txt")
+    secondary_cache = parse_cmake_cache(
+        secondary_build / "CMakeCache.txt"
+    )
+    primary_source_value = primary_cache.get("CMAKE_HOME_DIRECTORY", "")
+    secondary_source_value = secondary_cache.get(
+        "CMAKE_HOME_DIRECTORY",
+        "",
+    )
+    require(
+        bool(primary_source_value)
+        and Path(primary_source_value).is_absolute()
+        and bool(secondary_source_value)
+        and Path(secondary_source_value).is_absolute(),
+        "qtmultimedia reproducibility source roots are missing or relative",
+    )
+    primary_source = require_no_reparse_chain(
+        Path(primary_source_value),
+        "qtmultimedia primary source root",
+    )
+    secondary_source = require_no_reparse_chain(
+        Path(secondary_source_value),
+        "qtmultimedia secondary source root",
+    )
+    build_root_length_delta = (
+        len(str(secondary_build)) - len(str(primary_build))
+    )
+    source_root_length_delta = (
+        len(str(secondary_source)) - len(str(primary_source))
+    )
+    require(
+        path_key(primary_build) != path_key(secondary_build)
+        and path_key(primary_source) != path_key(secondary_source)
+        and build_root_length_delta != 0
+        and source_root_length_delta != 0,
+        "qtmultimedia reproducibility roots are not distinct and "
+        "unequal-length",
+    )
+
+    secondary_binary_identity = verify_qtmultimedia_binary_package(
+        repo,
+        secondary_installed,
+        secondary_abi_info,
+        secondary_abi,
+        binary_contract,
+        binary_cache=secondary_binary_cache,
+    )
+    secondary_compile_identity = (
+        verify_qtmultimedia_compile_path_maps(
+            repo,
+            installed=secondary_installed,
+            build=secondary_build,
+            source_parent=secondary_buildtrees / "qtmultimedia" / "src",
+            packages_root=secondary_packages,
+        )
+    )
+    require(
+        dict(primary_compile_identity)
+        == secondary_compile_identity
+        == EXPECTED_QTMULTIMEDIA_COMPILE_COMMAND_IDENTITY,
+        "qtmultimedia canonical compile-command identity differs "
+        "between qualification roots",
+    )
+    require(
+        secondary_binary_identity["BinaryPayloadAggregateSha256"]
+        == binary_contract["aggregateSha256"]
+        and secondary_binary_identity["BinaryPayloadMemberCount"]
+        == binary_contract["memberCount"]
+        and secondary_binary_identity["BinaryPayloadTotalBytes"]
+        == binary_contract["totalBytes"],
+        "qtmultimedia static package members differ between "
+        "qualification roots",
+    )
+
+    return {
+        "abi": secondary_abi,
+        "algorithm": QTMULTIMEDIA_REPRODUCIBILITY_ALGORITHM,
+        "allCompileCommandsCanonicalIdentical": True,
+        "allInstallableFilesContractVerified": True,
+        "allStaticMembersByteIdentical": True,
+        "buildRootLengthDelta": build_root_length_delta,
+        "compileAggregateSha256":
+            secondary_compile_identity["aggregateSha256"],
+        "compileCommandCount":
+            secondary_compile_identity["commandCount"],
+        "deterministicPayloadAggregateSha256":
+            secondary_binary_identity[
+                "BinaryDeterministicPayloadAggregateSha256"
+            ],
+        "installableFileCount":
+            secondary_binary_identity["BinaryInstallableFileCount"],
+        "manifestDerivation": "primary-minus-builtin-baseline-v1",
+        "primaryBuiltinBaseline": primary_builtin_baseline,
+        "primaryManifestSha256": sha256(primary_manifest),
+        "secondaryAbiInfoFile":
+            relative_path(repo, secondary_abi_info),
+        "secondaryBinaryCacheFile":
+            secondary_binary_identity["BinaryPackageCacheFile"],
+        "secondaryBinaryCacheRoot":
+            relative_path(repo, secondary_binary_cache),
+        "secondaryBinarySourcePolicy": [
+            "clear",
+            (
+                "files,"
+                f"{relative_path(repo, secondary_binary_cache)},"
+                "readwrite"
+            ),
+        ],
+        "secondaryBuildRoot": relative_path(repo, secondary_build),
+        "secondaryBuildtreesRoot":
+            relative_path(repo, secondary_buildtrees),
+        "secondaryDownloadsRoot":
+            relative_path(repo, repo / ".wasm-vcpkg" / "downloads"),
+        "secondaryFeatureFlags": "-versions",
+        "secondaryInstalledRoot":
+            relative_path(repo, secondary_installed),
+        "secondaryManifestFile":
+            relative_path(repo, secondary_manifest),
+        "secondaryManifestSha256": sha256(secondary_manifest),
+        "secondaryOuterCMakeFile":
+            relative_path(repo, expected_outer_cmake),
+        "secondaryOverlayPorts": [
+            relative_path(repo, path)
+            for path in expected_overlay_ports
+        ],
+        "secondaryOverlayTriplets":
+            relative_path(repo, expected_overlay_triplets),
+        "secondaryPackagesRoot":
+            relative_path(repo, secondary_packages),
+        "secondaryPortInstallPrefix": relative_path(
+            repo,
+            secondary_packages / f"qtmultimedia_{TARGET_TRIPLET}",
+        ),
+        "secondaryProbeBuildRoot":
+            relative_path(repo, secondary_probe_build),
+        "secondaryTargetTriplet": TARGET_TRIPLET,
+        "secondaryHostTriplet": HOST_TRIPLET,
+        "secondaryToolchainFile":
+            relative_path(repo, expected_vcpkg_toolchain),
+        "secondaryChainloadToolchainFile":
+            relative_path(repo, expected_chainload_toolchain),
+        "sourceRootLengthDelta": source_root_length_delta,
+        "staticAggregateSha256":
+            secondary_binary_identity["BinaryPayloadAggregateSha256"],
+        "staticMemberCount":
+            secondary_binary_identity["BinaryPayloadMemberCount"],
+    }
 
 
 def require_cache_cmake_command(
@@ -3280,27 +5135,92 @@ def verify_build_freshness(
     }
 
 
+def require_native_cmd_wrapper(
+    outer: Sequence[str],
+    context: str,
+) -> None:
+    require(
+        len(outer) == 3
+        and outer[1].casefold() == "/c",
+        f"{context}: unexpected command wrapper: {outer[:2]}",
+    )
+    system_directory = Path(os.environ.get("SystemRoot", "")) / "System32"
+    native_cmd = system_directory / "cmd.exe"
+    require(
+        system_directory.is_absolute()
+        and system_directory.is_dir()
+        and native_cmd.is_file()
+        and not _is_reparse_or_symlink(native_cmd),
+        f"{context}: native Windows command interpreter is invalid",
+    )
+    command_interpreter = require_no_reparse_chain(
+        Path(outer[0]),
+        f"{context} command interpreter",
+    )
+    require_same_path(
+        command_interpreter,
+        native_cmd,
+        f"{context} command interpreter",
+    )
+
+
+def require_cmd_shell_body_safe(value: str, context: str) -> None:
+    match = CMD_SHELL_METACHARACTERS.search(value)
+    require(
+        match is None,
+        f"{context}: forbidden command-shell metacharacter "
+        f"{match.group(0)!r}" if match is not None else "",
+    )
+
+
 def parse_application_link_arguments(
     command: str,
     repo: Path,
+    build: Path,
     expected_emxx: Path,
 ) -> list[str]:
     outer = split_windows_command_line(command)
-    require(
-        len(outer) == 3
-        and Path(outer[0]).name.casefold() == "cmd.exe"
-        and outer[1].casefold() == "/c",
-        f"unexpected application link wrapper: {outer[:2]}",
+    require_native_cmd_wrapper(
+        outer,
+        "application link",
     )
     body = outer[2].strip()
     prefix = "cd . && "
-    suffix = " && cd ."
+    post_build_separator = (
+        f" && {APPLICATION_POST_BUILD_CONTROLLER} "
+    )
     require(
-        body.startswith(prefix) and body.endswith(suffix),
+        body.startswith(prefix)
+        and body.count(post_build_separator) == 1,
         f"unexpected application link shell body: {body}",
     )
+    compiler_body, post_build_token = body[len(prefix) :].split(
+        post_build_separator,
+        maxsplit=1,
+    )
+    require(
+        re.fullmatch(r"[0-9a-f]{16}", post_build_token) is not None,
+        "application link post-build token is not exact lowercase hex",
+    )
+    post_build_controller = (
+        build
+        / Path(APPLICATION_POST_BUILD_CONTROLLER.replace("\\", "/"))
+    )
+    post_build_controller = require_no_reparse_chain(
+        post_build_controller,
+        "application post-build controller",
+    )
+    require(
+        post_build_controller.is_file(),
+        "application post-build controller is missing",
+    )
+    require(
+        sha256(post_build_controller)[:16] == post_build_token,
+        "application link post-build token does not authenticate controller",
+    )
+    require_cmd_shell_body_safe(compiler_body, "application link")
     arguments = split_windows_command_line(
-        body[len(prefix) : -len(suffix)].strip()
+        compiler_body.strip()
     )
     require(arguments, "application link parsed to no arguments")
     compiler_arguments = authenticated_adapter_compiler_arguments(
@@ -3329,11 +5249,9 @@ def parse_adapter_link_arguments(
     context: str,
 ) -> list[str]:
     outer = split_windows_command_line(command)
-    require(
-        len(outer) == 3
-        and Path(outer[0]).name.casefold() == "cmd.exe"
-        and outer[1].casefold() == "/c",
-        f"{context}: unexpected link wrapper: {outer[:2]}",
+    require_native_cmd_wrapper(
+        outer,
+        f"{context} link",
     )
     body = outer[2].strip()
     prefix = "cd . && "
@@ -3342,9 +5260,9 @@ def parse_adapter_link_arguments(
         body.startswith(prefix) and body.endswith(suffix),
         f"{context}: unexpected shell body: {body}",
     )
-    arguments = split_windows_command_line(
-        body[len(prefix) : -len(suffix)].strip()
-    )
+    compiler_body = body[len(prefix) : -len(suffix)].strip()
+    require_cmd_shell_body_safe(compiler_body, f"{context} link")
+    arguments = split_windows_command_line(compiler_body)
     compiler_arguments = authenticated_adapter_compiler_arguments(
         arguments,
         repo,
@@ -3398,6 +5316,42 @@ def split_ninja_arguments(value: str) -> list[str]:
     return arguments
 
 
+def split_ninja_build_edge_header(
+    line: str,
+) -> tuple[list[str], list[str]]:
+    require(line.startswith("build "), f"not a Ninja build edge: {line}")
+    separator = None
+    index = len("build ")
+    while index < len(line):
+        if line[index] == ":" and line[index - 1] != "$":
+            separator = index
+            break
+        index += 1
+    require(separator is not None, f"Ninja build edge has no colon: {line}")
+    output_tokens = split_ninja_arguments(
+        line[len("build ") : separator]
+    )
+    input_tokens = split_ninja_arguments(line[separator + 1 :].strip())
+    require(output_tokens, f"Ninja build edge has no outputs: {line}")
+    require(input_tokens, f"Ninja build edge has no rule: {line}")
+    return output_tokens, input_tokens
+
+
+def canonical_ninja_output_identity(build: Path, value: str) -> str:
+    normalized = value.replace("\\", "/")
+    workdir_prefix = "${cmake_ninja_workdir}"
+    if normalized.startswith(workdir_prefix):
+        normalized = normalized[len(workdir_prefix) :]
+    require(
+        "$" not in normalized,
+        f"unresolved Ninja output variable: {value}",
+    )
+    candidate = Path(normalized)
+    if not candidate.is_absolute():
+        candidate = build / candidate
+    return path_key(Path(os.path.abspath(candidate)))
+
+
 def ninja_build_edges(
     build: Path,
     build_ninja: str,
@@ -3407,19 +5361,7 @@ def ninja_build_edges(
     for line in ninja_logical_lines(build_ninja):
         if not line.startswith("build "):
             continue
-        separator = None
-        index = len("build ")
-        while index < len(line):
-            if line[index] == ":" and line[index - 1] != "$":
-                separator = index
-                break
-            index += 1
-        require(separator is not None, f"Ninja build edge has no colon: {line}")
-        output_tokens = split_ninja_arguments(
-            line[len("build ") : separator]
-        )
-        input_tokens = split_ninja_arguments(line[separator + 1 :].strip())
-        require(input_tokens, f"Ninja build edge has no rule: {line}")
+        output_tokens, input_tokens = split_ninja_build_edge_header(line)
         outputs = [
             token
             for token in output_tokens
@@ -3622,26 +5564,59 @@ def require_selected_compile_output_correlation(
     )
 
 
-def selected_application_link_edge(build_ninja: str) -> dict[str, Any]:
+def selected_application_link_edge(
+    build: Path,
+    build_ninja: str,
+) -> dict[str, Any]:
     lines = ninja_logical_lines(build_ninja)
-    starts = [
-        index
-        for index, line in enumerate(lines)
-        if line.startswith("build RhythmGameWasmProbe.js:")
-    ]
+    target = "RhythmGameWasmProbe.js"
+    target_identity = canonical_ninja_output_identity(build, target)
+    candidates: list[tuple[int, list[str], list[str], str]] = []
+    for index, line in enumerate(lines):
+        if not line.startswith("build "):
+            continue
+        output_tokens, input_tokens = split_ninja_build_edge_header(line)
+        for token in output_tokens:
+            if (
+                token != "|"
+                and canonical_ninja_output_identity(build, token)
+                == target_identity
+            ):
+                candidates.append(
+                    (index, output_tokens, input_tokens, token)
+                )
     require(
-        len(starts) == 1,
+        len(candidates) == 1,
         "expected exactly one RhythmGameWasmProbe.js Ninja edge",
     )
-    header = lines[starts[0]]
-    tokens = split_ninja_arguments(header.partition(":")[2].strip())
-    require(tokens, "selected application link edge has no rule")
-    rule = tokens[0]
+    start, output_tokens, input_tokens, raw_target = candidates[0]
+    require(
+        raw_target == target and output_tokens[0] == target,
+        "selected application link primary output is not exact",
+    )
+    explicit_outputs: list[str] = []
+    implicit_outputs: list[str] = []
+    destination = explicit_outputs
+    for token in output_tokens:
+        if token == "|":
+            require(
+                destination is explicit_outputs,
+                "selected application link edge repeats implicit-output marker",
+            )
+            destination = implicit_outputs
+        else:
+            destination.append(token)
+    require(
+        tuple(explicit_outputs) == APPLICATION_LINK_OUTPUTS
+        and tuple(implicit_outputs) == APPLICATION_LINK_IMPLICIT_OUTPUTS,
+        "selected application link declared outputs drifted",
+    )
+    rule = input_tokens[0]
     explicit_inputs: list[str] = []
     implicit_inputs: list[str] = []
     order_only_inputs: list[str] = []
     destination = explicit_inputs
-    for token in tokens[1:]:
+    for token in input_tokens[1:]:
         if token == "|":
             destination = implicit_inputs
         elif token == "||":
@@ -3650,7 +5625,7 @@ def selected_application_link_edge(build_ninja: str) -> dict[str, Any]:
             destination.append(token)
 
     bindings: dict[str, str] = {}
-    for line in lines[starts[0] + 1 :]:
+    for line in lines[start + 1 :]:
         if not line.startswith("  "):
             break
         key, separator, value = line.strip().partition(" = ")
@@ -3700,10 +5675,11 @@ def selected_ninja_rule(
 
 
 def application_response_arguments(
+    build: Path,
     build_ninja: str,
     rules_ninja: str,
 ) -> tuple[list[str], dict[str, Any], dict[str, str]]:
-    edge = selected_application_link_edge(build_ninja)
+    edge = selected_application_link_edge(build, build_ninja)
     bindings = edge["bindings"]
     rule = selected_ninja_rule(rules_ninja, edge["rule"])
     require(
@@ -3734,10 +5710,12 @@ def application_response_arguments(
 
 
 def require_final_link_archive(
+    build: Path,
     build_ninja: str,
     rules_ninja: str,
 ) -> str:
     response, _, _ = application_response_arguments(
+        build,
         build_ninja,
         rules_ninja,
     )
@@ -3753,12 +5731,19 @@ def require_final_link_archive(
 def verify_application_link_argument_stream(
     command: str,
     repo: Path,
+    build: Path,
     expected_emxx: Path,
     build_ninja: str,
     rules_ninja: str,
 ) -> dict[str, Any]:
-    outer = parse_application_link_arguments(command, repo, expected_emxx)
+    outer = parse_application_link_arguments(
+        command,
+        repo,
+        build,
+        expected_emxx,
+    )
     response, edge, rule = application_response_arguments(
+        build,
         build_ninja,
         rules_ninja,
     )
@@ -4510,6 +6495,8 @@ def verify_dependency_archive_binding(
     repo: Path,
     build: Path,
     effective_arguments: Sequence[str],
+    *,
+    expected_static_identity: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     probe = repo / "tools" / "wasm-probe"
     contract_path = probe / "dependency-archive-contract.json"
@@ -4550,6 +6537,19 @@ def verify_dependency_archive_binding(
     require(
         manifest == superset,
         "generated dependency archive manifest does not match current bytes",
+    )
+    superset_identity = {
+        key: superset[key]
+        for key in TARGET_STATIC_LINK_INPUT_IDENTITY_FIELDS
+    }
+    expected_static_identity = (
+        expected_static_identity
+        if expected_static_identity is not None
+        else EXPECTED_TARGET_STATIC_LINK_INPUT_IDENTITY
+    )
+    require(
+        superset_identity == dict(expected_static_identity),
+        "dependency archive superset differs from the source lock",
     )
     by_path = {entry["path"]: entry for entry in superset["files"]}
 
@@ -5109,6 +7109,78 @@ def verify_toolchains(
             "qtbase/restore-wasm-version-check.patch"
         ],
         "QtBase Wasm helper patch lock drift",
+    )
+    require(
+        lock["qt"]["qtbaseWasmEventPathPatchSha256"].casefold()
+        == EXPECTED_OVERLAY_SHA256[
+            "qtbase/preserve-wasm-event-composed-path.patch"
+        ],
+        "QtBase Wasm event-path patch lock drift",
+    )
+    require(
+        lock["qt"]["qtmultimediaSourceSha256"].casefold()
+        == EXPECTED_QTMULTIMEDIA_SOURCE_SHA256,
+        "Qt Multimedia source lock drift",
+    )
+    require(
+        lock["qt"]["qtmultimediaVcpkgSha512"].casefold()
+        == EXPECTED_QTMULTIMEDIA_VCPKG_SHA512,
+        "Qt Multimedia vcpkg archive lock drift",
+    )
+    require(
+        lock["qt"]["qtmultimediaWasmPatchSha256"].casefold()
+        == EXPECTED_OVERLAY_SHA256[
+            "qtmultimedia/defer-wasm-media-device-notifications.patch"
+        ],
+        "Qt Multimedia Wasm patch lock drift",
+    )
+    require(
+        lock["qt"]["qtmultimediaWasmPathMapPatchSha256"].casefold()
+        == EXPECTED_OVERLAY_SHA256[
+            "qtmultimedia/canonicalize-wasm-build-paths.patch"
+        ],
+        "Qt Multimedia Wasm path-map patch lock drift",
+    )
+    require(
+        lock["qt"][
+            "qtmultimediaWasmMediaLifecyclePatchSha256"
+        ].casefold()
+        == EXPECTED_OVERLAY_SHA256[
+            "qtmultimedia/correct-wasm-media-lifecycle.patch"
+        ],
+        "Qt Multimedia Wasm media-lifecycle patch lock drift",
+    )
+    require(
+        tuple(lock["qt"]["qtmultimediaWasmUpstreamCommits"])
+        == EXPECTED_QTMULTIMEDIA_UPSTREAM_COMMITS,
+        "Qt Multimedia upstream reference lock drift",
+    )
+    multimedia_binary_package = require_mapping(
+        lock["qt"].get("qtmultimediaBinaryPackage"),
+        "qt.qtmultimediaBinaryPackage",
+    )
+    require_exact_keys(
+        multimedia_binary_package,
+        {
+            "abi",
+            "algorithm",
+            "aggregateSha256",
+            "deterministicPayload",
+            "installableFileCount",
+            "installableInventorySha256",
+            "memberCount",
+            "members",
+            "totalBytes",
+        },
+        "qt.qtmultimediaBinaryPackage",
+    )
+    require(
+        {
+            key: multimedia_binary_package[key]
+            for key in EXPECTED_QTMULTIMEDIA_BINARY_PACKAGE_IDENTITY
+        }
+        == EXPECTED_QTMULTIMEDIA_BINARY_PACKAGE_IDENTITY,
+        "Qt Multimedia binary package lock drift",
     )
     require(
         lock["emscripten"] == EXPECTED_EMSCRIPTEN_LOCK_ENTRY,
@@ -5691,11 +7763,16 @@ def verify_qt_installation(
             for key in ("Version", "Port-Version", "Abi")
             if key in record
         }
-    require_port_version(target_packages["qtbase"], "2", "qtbase")
+    require_port_version(target_packages["qtbase"], "4", "qtbase")
     require_port_version(
         target_packages["qtdeclarative"],
         "1",
         "qtdeclarative",
+    )
+    require_port_version(
+        target_packages["qtmultimedia"],
+        "2",
+        "qtmultimedia",
     )
     require_status_record(
         status_records,
@@ -5703,7 +7780,164 @@ def verify_qt_installation(
         TARGET_TRIPLET,
         feature="qml",
     )
-    require_status_record(status_records, "qtbase", HOST_TRIPLET)
+    multimedia_abi_info = (
+        repo
+        / ".wb"
+        / "qtmultimedia"
+        / f"{TARGET_TRIPLET}.vcpkg_abi_info.txt"
+    )
+    require(
+        multimedia_abi_info.is_file(),
+        "qtmultimedia vcpkg ABI input record is missing",
+    )
+    multimedia_abi_sha256 = sha256(multimedia_abi_info)
+    require(
+        target_packages["qtmultimedia"].get("Abi")
+        == multimedia_abi_sha256,
+        "qtmultimedia installed status ABI is stale or unbound",
+    )
+    multimedia_abi_inputs: dict[str, str] = {}
+    for line in multimedia_abi_info.read_text("utf-8").splitlines():
+        key, separator, value = line.partition(" ")
+        require(
+            bool(key) and separator == " " and bool(value)
+            and key not in multimedia_abi_inputs,
+            f"qtmultimedia ABI input record is malformed: {line!r}",
+        )
+        multimedia_abi_inputs[key] = value
+    expected_multimedia_abi_inputs = {
+        "canonicalize-wasm-build-paths.patch":
+            EXPECTED_OVERLAY_SHA256[
+                "qtmultimedia/canonicalize-wasm-build-paths.patch"
+            ],
+        "correct-wasm-media-lifecycle.patch":
+            EXPECTED_OVERLAY_SHA256[
+                "qtmultimedia/correct-wasm-media-lifecycle.patch"
+            ],
+        "defer-wasm-media-device-notifications.patch":
+            EXPECTED_OVERLAY_SHA256[
+                "qtmultimedia/defer-wasm-media-device-notifications.patch"
+            ],
+        "features": "core;qml",
+        "port.data.cmake": EXPECTED_OVERLAY_SHA256[
+            "qtmultimedia/port.data.cmake"
+        ],
+        "portfile.cmake": EXPECTED_OVERLAY_SHA256[
+            "qtmultimedia/portfile.cmake"
+        ],
+        "triplet": TARGET_TRIPLET,
+        "vcpkg.json": EXPECTED_OVERLAY_SHA256[
+            "qtmultimedia/vcpkg.json"
+        ],
+    }
+    for key, expected in expected_multimedia_abi_inputs.items():
+        require(
+            multimedia_abi_inputs.get(key) == expected,
+            f"qtmultimedia ABI input {key} is stale",
+        )
+    toolchain_lock = json.loads(
+        (
+            repo / "tools" / "wasm-probe" / "toolchain-lock.json"
+        ).read_text("utf-8")
+    )
+    multimedia_binary_contract = require_mapping(
+        toolchain_lock.get("qt", {}).get("qtmultimediaBinaryPackage"),
+        "qt.qtmultimediaBinaryPackage",
+    )
+    require(
+        {
+            key: multimedia_binary_contract.get(key)
+            for key in EXPECTED_QTMULTIMEDIA_BINARY_PACKAGE_IDENTITY
+        }
+        == EXPECTED_QTMULTIMEDIA_BINARY_PACKAGE_IDENTITY,
+        "qtmultimedia binary package identity lock drifted",
+    )
+    multimedia_binary_identity = verify_qtmultimedia_binary_package(
+        repo,
+        installed,
+        multimedia_abi_info,
+        multimedia_abi_sha256,
+        multimedia_binary_contract,
+    )
+    multimedia_compile_contract = require_mapping(
+        toolchain_lock.get("qt", {}).get(
+            "qtmultimediaCompileCommands"
+        ),
+        "qt.qtmultimediaCompileCommands",
+    )
+    require(
+        dict(multimedia_compile_contract)
+        == EXPECTED_QTMULTIMEDIA_COMPILE_COMMAND_IDENTITY,
+        "qtmultimedia compile-command identity lock drifted",
+    )
+    multimedia_compile_identity = (
+        verify_qtmultimedia_compile_path_maps(
+            repo,
+            installed=installed,
+            packages_root=repo / ".wasm-vcpkg" / "packages",
+        )
+    )
+    require(
+        multimedia_compile_identity
+        == dict(multimedia_compile_contract),
+        "qtmultimedia compile commands do not match the source lock",
+    )
+    multimedia_reproducibility_contract = require_mapping(
+        toolchain_lock.get("qt", {}).get(
+            "qtmultimediaReproducibility"
+        ),
+        "qt.qtmultimediaReproducibility",
+    )
+    require(
+        dict(multimedia_reproducibility_contract)
+        == EXPECTED_QTMULTIMEDIA_REPRODUCIBILITY_IDENTITY,
+        "qtmultimedia reproducibility identity lock drifted",
+    )
+    multimedia_reproducibility_identity = (
+        verify_qtmultimedia_reproducibility(
+            repo,
+            primary_abi=multimedia_abi_sha256,
+            binary_contract=multimedia_binary_contract,
+            primary_compile_identity=multimedia_compile_identity,
+        )
+    )
+    require(
+        multimedia_reproducibility_identity
+        == dict(multimedia_reproducibility_contract),
+        "qtmultimedia secondary build does not match the source lock",
+    )
+    target_static_contract = require_mapping(
+        toolchain_lock.get("qt", {}).get("targetStaticLinkInputs"),
+        "qt.targetStaticLinkInputs",
+    )
+    require(
+        dict(target_static_contract)
+        == EXPECTED_TARGET_STATIC_LINK_INPUT_IDENTITY,
+        "target static-link-input identity lock drifted",
+    )
+    target_static_superset = _static_link_input_superset(target)
+    target_static_identity = {
+        key: target_static_superset[key]
+        for key in TARGET_STATIC_LINK_INPUT_IDENTITY_FIELDS
+    }
+    require(
+        target_static_identity == dict(target_static_contract),
+        "target static-link-input bytes differ from the source lock",
+    )
+    target_packages["qtmultimedia"].update({
+        "AbiInfoFile": relative_path(repo, multimedia_abi_info),
+        "AbiInfoSha256": multimedia_abi_sha256,
+        "CompileCommandIdentity": multimedia_compile_identity,
+        "ReproducibilityIdentity":
+            multimedia_reproducibility_identity,
+        **multimedia_binary_identity,
+    })
+    host_qtbase = require_status_record(
+        status_records,
+        "qtbase",
+        HOST_TRIPLET,
+    )
+    require_port_version(host_qtbase, "4", "host qtbase")
     host_qtdeclarative = require_status_record(
         status_records,
         "qtdeclarative",
@@ -5832,6 +8066,7 @@ def verify_qt_installation(
             "version": target_version,
             "linkage": "static",
             "staticArchiveCount": len(target_archives),
+            "staticLinkInputIdentity": target_static_identity,
             "sharedLibraryCount": 0,
             "requiredPorts": target_packages,
             "requiredModules": module_configs,
@@ -5840,6 +8075,7 @@ def verify_qt_installation(
             "triplet": HOST_TRIPLET,
             "version": host_version,
             "linkage": "dynamic",
+            "qtBasePortVersion": "4",
             "qtDeclarativePortVersion": "1",
             "qtCoreDllCount": len(host_core_dlls),
             "tools": host_tools,
@@ -6583,6 +8819,7 @@ def verify_application_link(
     stream = verify_application_link_argument_stream(
         application_link,
         repo,
+        build,
         expected_emxx,
         build_ninja,
         rules_ninja,
@@ -7266,22 +9503,34 @@ def verify_overlay_structure(
     modified: set[str],
     additions: set[str],
     normalized_baseline: set[str],
+    removed_baseline: set[str],
     expected_tree: str,
 ) -> dict[str, Any]:
     blobs, tree = baseline_blobs(vcpkg, port)
     require(tree == expected_tree, f"{port} baseline tree drift: {tree}")
+    require(
+        removed_baseline <= set(blobs)
+        and removed_baseline.isdisjoint(modified)
+        and removed_baseline.isdisjoint(normalized_baseline)
+        and removed_baseline.isdisjoint(additions),
+        f"{port}: invalid reviewed baseline-removal set",
+    )
     actual = {
         path.relative_to(overlay).as_posix()
         for path in overlay.rglob("*")
         if path.is_file()
     }
-    expected = set(blobs) | additions
+    expected = (set(blobs) - removed_baseline) | additions
     require(
         actual == expected,
         f"{port}: unexpected overlay files: {sorted(actual ^ expected)}",
     )
     for relative, expected_blob in blobs.items():
-        if relative in modified or relative in normalized_baseline:
+        if (
+            relative in modified
+            or relative in normalized_baseline
+            or relative in removed_baseline
+        ):
             continue
         actual_blob = git_object_id(
             "blob",
@@ -7312,6 +9561,7 @@ def verify_overlay_structure(
         "fileCount": len(actual),
         "modifiedBaselineFiles": sorted(modified),
         "lineEndingOnlyBaselineFiles": sorted(normalized_baseline),
+        "removedBaselineFiles": sorted(removed_baseline),
         "addedFiles": sorted(additions),
         "fileSha256": hashes,
         "aggregateSha256": aggregate.hexdigest(),
@@ -7321,13 +9571,18 @@ def verify_overlay_structure(
 def verify_overlays(repo: Path, vcpkg: Path) -> dict[str, Any]:
     qtbase = repo / "vcpkgOverlayPortsWasm" / "qtbase"
     declarative = repo / "vcpkgOverlayPorts" / "qtdeclarative"
+    multimedia = repo / "vcpkgOverlayPortsWasm" / "qtmultimedia"
     qtbase_result = verify_overlay_structure(
         repo,
         vcpkg,
         "qtbase",
         qtbase,
         {"portfile.cmake", "vcpkg.json"},
-        {"restore-wasm-version-check.patch"},
+        {
+            "preserve-wasm-event-composed-path.patch",
+            "restore-wasm-version-check.patch",
+        },
+        set(),
         set(),
         EXPECTED_QTBASE_TREE,
     )
@@ -7339,7 +9594,29 @@ def verify_overlays(repo: Path, vcpkg: Path) -> dict[str, Any]:
         {"portfile.cmake", "vcpkg.json"},
         {"24205cd-qquickwindow-child-window-stacking.patch"},
         {"port.data.cmake"},
+        set(),
         EXPECTED_QTDECLARATIVE_TREE,
+    )
+    multimedia_result = verify_overlay_structure(
+        repo,
+        vcpkg,
+        "qtmultimedia",
+        multimedia,
+        {"portfile.cmake", "vcpkg.json"},
+        {
+            "canonicalize-wasm-build-paths.patch",
+            "correct-wasm-media-lifecycle.patch",
+            "defer-wasm-media-device-notifications.patch",
+        },
+        set(),
+        {
+            "ffmpeg-devendor-signalsmith-stretch.patch",
+            "ffmpeg.patch",
+            "fix-msvc-x86-propvariant.patch",
+            "remove-static-ssl-stub.patch",
+            "static_find_modules.patch",
+        },
+        EXPECTED_QTMULTIMEDIA_TREE,
     )
 
     checked_files = {
@@ -7348,12 +9625,27 @@ def verify_overlays(repo: Path, vcpkg: Path) -> dict[str, Any]:
         "qtbase/restore-wasm-version-check.patch": (
             qtbase / "restore-wasm-version-check.patch"
         ),
+        "qtbase/preserve-wasm-event-composed-path.patch": (
+            qtbase / "preserve-wasm-event-composed-path.patch"
+        ),
         "qtdeclarative/portfile.cmake": declarative / "portfile.cmake",
         "qtdeclarative/port.data.cmake": declarative / "port.data.cmake",
         "qtdeclarative/vcpkg.json": declarative / "vcpkg.json",
         "qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch": (
             declarative
             / "24205cd-qquickwindow-child-window-stacking.patch"
+        ),
+        "qtmultimedia/portfile.cmake": multimedia / "portfile.cmake",
+        "qtmultimedia/port.data.cmake": multimedia / "port.data.cmake",
+        "qtmultimedia/vcpkg.json": multimedia / "vcpkg.json",
+        "qtmultimedia/canonicalize-wasm-build-paths.patch": (
+            multimedia / "canonicalize-wasm-build-paths.patch"
+        ),
+        "qtmultimedia/correct-wasm-media-lifecycle.patch": (
+            multimedia / "correct-wasm-media-lifecycle.patch"
+        ),
+        "qtmultimedia/defer-wasm-media-device-notifications.patch": (
+            multimedia / "defer-wasm-media-device-notifications.patch"
         ),
     }
     for label, path in checked_files.items():
@@ -7373,6 +9665,38 @@ def verify_overlays(repo: Path, vcpkg: Path) -> dict[str, Any]:
             fragment in qtbase_patch,
             f"QtBase Wasm helper patch lost path branch: {fragment}",
         )
+    qtbase_event_path_patch = normalized_text(
+        qtbase / "preserve-wasm-event-composed-path.patch"
+    )
+    for fragment in (
+        "const composedPath = Object.freeze(Array.from(obj.composedPath()));",
+        "objCopy['composedPath'] = () => composedPath;",
+        "Event.composedPath() becomes empty after native dispatch",
+        "bool qtSendPendingEvents()",
+        "bool qtSendPendingApplicationEvents()",
+        'control["exclusiveEventHandler"].as<int>() > 0',
+        "return false;",
+        "eventDeliveryDepth -= deliveryDepthIncrement",
+        "m_currentEvents.erase(currentEventContext)",
+        "it->second(*currentEventContext)",
+        'emscripten::function("qtSendPendingEvents", qtSendPendingEvents);',
+        'emscripten::function("qtSendPendingApplicationEvents",',
+        "qtSendPendingApplicationEvents QT_WASM_EMSCRIPTEN_ASYNC);",
+    ):
+        require(
+            fragment in qtbase_event_path_patch,
+            f"QtBase Wasm event-path patch lost contract: {fragment}",
+        )
+    require(
+        "friend bool qtSendPendingEvents();"
+        not in qtbase_event_path_patch,
+        "QtBase Wasm event-path patch restored stale private friendship",
+    )
+    require(
+        qtbase_event_path_patch.count("QT_WASM_EMSCRIPTEN_ASYNC") == 2,
+        "QtBase Wasm patch must remove async native binding and retain "
+        "one async application binding",
+    )
 
     baseline_qtbase = normalized_text(vcpkg / "ports" / "qtbase" / "portfile.cmake")
     expected_qtbase = baseline_qtbase.replace(
@@ -7381,6 +9705,19 @@ def verify_overlays(repo: Path, vcpkg: Path) -> dict[str, Any]:
         "        QTBUG-145703.patch # https://github.com/qt/qtbase/commit/"
         "239c54452fa60157c90901c8be8685048a65ad0a\n"
         "        restore-wasm-version-check.patch\n",
+        1,
+    )
+    expected_qtbase = expected_qtbase.replace(
+        "        restore-wasm-version-check.patch\n"
+        ")\n\n"
+        "if(VCPKG_TARGET_IS_WINDOWS",
+        "        restore-wasm-version-check.patch\n"
+        ")\n\n"
+        "if(VCPKG_TARGET_IS_EMSCRIPTEN)\n"
+        "    list(APPEND ${PORT}_PATCHES "
+        "preserve-wasm-event-composed-path.patch)\n"
+        "endif()\n\n"
+        "if(VCPKG_TARGET_IS_WINDOWS",
         1,
     )
     qtbase_feature_block = """if(VCPKG_TARGET_IS_EMSCRIPTEN)
@@ -7423,11 +9760,11 @@ endif()
     baseline_qtbase_json = json.loads(
         (vcpkg / "ports" / "qtbase" / "vcpkg.json").read_text("utf-8")
     )
-    baseline_qtbase_json["port-version"] = 2
+    baseline_qtbase_json["port-version"] = 4
     require(
         json.loads((qtbase / "vcpkg.json").read_text("utf-8"))
         == baseline_qtbase_json,
-        "qtbase vcpkg.json differs beyond port-version 2",
+        "qtbase vcpkg.json differs beyond port-version 4",
     )
 
     baseline_declarative = normalized_text(
@@ -7486,12 +9823,221 @@ endif()
         == baseline_declarative_json,
         "qtdeclarative vcpkg.json differs beyond port-version 1",
     )
+
+    baseline_multimedia = normalized_text(
+        vcpkg / "ports" / "qtmultimedia" / "portfile.cmake"
+    )
+    baseline_multimedia_patch_block = """set(${PORT}_PATCHES
+    static_find_modules.patch
+    remove-static-ssl-stub.patch
+    fix-msvc-x86-propvariant.patch
+    ffmpeg-devendor-signalsmith-stretch.patch
+    ffmpeg.patch
+)
+"""
+    multimedia_patch_block = """set(${PORT}_PATCHES)
+
+if(VCPKG_TARGET_IS_EMSCRIPTEN)
+    # Adapt Qt's current device reconciliation and backport the JSPI
+    # singleton/devicechange/queued-notification fixes. Qt 6.11 still uses
+    # OpenAL device names, so those fallback keys remain the sole defaults.
+    list(APPEND ${PORT}_PATCHES
+        defer-wasm-media-device-notifications.patch
+        correct-wasm-media-lifecycle.patch
+        canonicalize-wasm-build-paths.patch
+    )
+endif()
+"""
+    require(
+        baseline_multimedia_patch_block in baseline_multimedia,
+        "qtmultimedia baseline patch block changed unexpectedly",
+    )
+    expected_multimedia = baseline_multimedia.replace(
+        baseline_multimedia_patch_block,
+        multimedia_patch_block,
+        1,
+    )
+    require(
+        normalized_text(multimedia / "portfile.cmake")
+        == expected_multimedia,
+        "qtmultimedia portfile differs outside the reviewed Wasm delta",
+    )
+    baseline_multimedia_json = json.loads(
+        (vcpkg / "ports" / "qtmultimedia" / "vcpkg.json").read_text(
+            "utf-8"
+        )
+    )
+    baseline_multimedia_json["port-version"] = 2
+    require(
+        json.loads((multimedia / "vcpkg.json").read_text("utf-8"))
+        == baseline_multimedia_json,
+        "qtmultimedia vcpkg.json differs beyond port-version 2",
+    )
+    multimedia_patch = normalized_text(
+        multimedia / "defer-wasm-media-device-notifications.patch"
+    )
+    for fragment in (
+        "s_mediaDevicesInstance->initDevices();",
+        "audioOutputsToRemove.removeOne(m_openALAudioOutputId);",
+        "audioInputsToRemove.removeOne(m_openALAudioInputId);",
+        'm_jsMediaDevicesInterface, "devicechange",',
+        "void QWasmMediaDevices::requestMediaDevicesEnumeration()",
+        "void QWasmMediaDevices::finishMediaDevicesEnumeration()",
+        "if (m_mediaDevicesEnumerationInFlight)",
+        "m_mediaDevicesEnumerationDirty = true;",
+        "m_mediaDevicesEnumerationDirty = false;",
+        "Qt::QueuedConnection",
+    ):
+        require(
+            fragment in multimedia_patch,
+            f"qtmultimedia Wasm patch lost contract: {fragment}",
+        )
+    require(
+        multimedia_patch.count("QMetaObject::invokeMethod(") == 5
+        and "\n+    m_firstInit" not in multimedia_patch
+        and "\n+        m_firstInit" not in multimedia_patch,
+        "qtmultimedia Wasm patch notification/reconciliation delta drifted",
+    )
+    multimedia_lifecycle_patch = normalized_text(
+        multimedia / "correct-wasm-media-lifecycle.patch"
+    )
+    lifecycle_patched_view = "\n".join(
+        line[1:]
+        for line in multimedia_lifecycle_patch.splitlines()
+        if line.startswith(("+", " ")) and not line.startswith("+++")
+    )
+    lifecycle_removed_lines = "\n".join(
+        line[1:]
+        for line in multimedia_lifecycle_patch.splitlines()
+        if line.startswith("-") and not line.startswith("---")
+    )
+    ended_start = lifecycle_patched_view.find("auto endedCallback")
+    ended_end = lifecycle_patched_view.find(
+        "m_endedEvent.reset",
+        ended_start,
+    )
+    emptied_start = lifecycle_patched_view.find("auto emptiedCallback")
+    emptied_end = lifecycle_patched_view.find(
+        "m_emptiedChangeEvent.reset",
+        emptied_start,
+    )
+    stop_start = lifecycle_patched_view.find(
+        "void QWasmVideoOutput::stop()"
+    )
+    stop_end = lifecycle_patched_view.find(
+        "void QWasmVideoOutput::pause()",
+        stop_start,
+    )
+    ended_view = lifecycle_patched_view[ended_start:ended_end]
+    emptied_view = lifecycle_patched_view[emptied_start:emptied_end]
+    stop_view = lifecycle_patched_view[stop_start:stop_end]
+    destructor_start = lifecycle_patched_view.find(
+        "QWasmVideoOutput::~QWasmVideoOutput()"
+    )
+    destructor_end = lifecycle_patched_view.find(
+        "void QWasmVideoOutput::setVideoSize",
+        destructor_start,
+    )
+    destructor_view = lifecycle_patched_view[
+        destructor_start:destructor_end
+    ]
+    player_destructor_start = lifecycle_patched_view.find(
+        "QWasmMediaPlayer::~QWasmMediaPlayer()"
+    )
+    player_destructor_view = lifecycle_patched_view[
+        player_destructor_start:
+    ]
+    require(
+        "4e61fa7da7e7db730e6e4762839de24f99e7803c"
+        in multimedia_lifecycle_patch
+        and "8a2093d1dda70eae63a0522537c93605f8932041"
+        in multimedia_lifecycle_patch
+        and "d6f64920e9024de8cf0d8761f304fc8999700783"
+        in multimedia_lifecycle_patch
+        and ended_start >= 0
+        and ended_end > ended_start
+        and emptied_start >= 0
+        and emptied_end > emptied_start
+        and stop_start >= 0
+        and stop_end > stop_start
+        and "MediaStatus::EndOfMedia" in ended_view
+        and "emit statusChanged" in ended_view
+        and "stop();" not in ended_view
+        and "m_shouldStop" not in ended_view
+        and "emit readyChanged(false);" in emptied_view
+        and "m_currentMediaStatus = MediaStatus::EndOfMedia;"
+        not in emptied_view
+        and lifecycle_removed_lines.count(
+            "m_currentMediaStatus = MediaStatus::EndOfMedia;"
+        ) == 1
+        and "qWarning() << Q_FUNC_INFO << __LINE__;"
+        in lifecycle_removed_lines
+        and "qWarning() << Q_FUNC_INFO << __LINE__;"
+        not in lifecycle_patched_view
+        and stop_view.find("if (m_shouldStop)")
+        < stop_view.find("qCDebug")
+        and (
+            "m_mediaInputStream && m_mediaInputStream->isActive()"
+            in stop_view
+        )
+        and "JsMediaInputStream *m_mediaInputStream = nullptr;"
+        in lifecycle_patched_view
+        and destructor_start >= 0
+        and destructor_end > destructor_start
+        and destructor_view.find("m_shouldStop = true;")
+        < destructor_view.find(
+            'removeAttribute", std::string("src")'
+        )
+        < destructor_view.find(
+            'm_video.set("srcObject", emscripten::val::null())'
+        )
+        < destructor_view.find('m_video.call<void>("load")')
+        < destructor_view.find('m_video.call<void>("remove")')
+        and destructor_view.count(
+            "m_currentVideoMode == QWasmVideoOutput::VideoDisplay"
+        ) == 2
+        and "!srcObject.isUndefined() && !srcObject.isNull()"
+        in destructor_view
+        and "stop();" not in destructor_view
+        and "stopMediaStream" not in destructor_view
+        and player_destructor_start >= 0
+        and player_destructor_view.find(
+            "m_videoOutput->disconnect(this);"
+        )
+        < player_destructor_view.find("delete m_videoOutput;"),
+        "qtmultimedia Wasm media-lifecycle delta drifted",
+    )
+    multimedia_path_map_patch = normalized_text(
+        multimedia / "canonicalize-wasm-build-paths.patch"
+    )
+    for fragment in (
+        "if(EMSCRIPTEN)",
+        "-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}"
+        "=/qt/qtmultimedia/source",
+        "-fmacro-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}"
+        "=/qt/qtmultimedia/source",
+        "-ffile-prefix-map=${CMAKE_CURRENT_BINARY_DIR}"
+        "=/qt/qtmultimedia/build",
+        "-fmacro-prefix-map=${CMAKE_CURRENT_BINARY_DIR}"
+        "=/qt/qtmultimedia/build",
+    ):
+        require(
+            multimedia_path_map_patch.count(fragment) == 1,
+            "qtmultimedia Wasm path-map patch lost contract: "
+            f"{fragment}",
+        )
     return {
         "qtbase": qtbase_result,
         "qtdeclarative": declarative_result,
+        "qtmultimedia": multimedia_result,
         "reviewedDelta": {
             "qtbase": [
                 "restore Emscripten version-helper include and check",
+                "snapshot queued Wasm DOM event composedPath",
+                "export synchronous native and promising full Wasm pumps",
+                "use additive JSPI delivery depth accounting",
+                "erase exact nested current-event context on LIFO unwind",
+                "run posted/native/timer/deferred-delete application cycle",
                 "seed wasm-emscripten target mkspec before project",
                 "thread ON",
                 "wasm_exceptions ON",
@@ -7503,6 +10049,19 @@ endif()
                 "Emscripten AutoGen response threshold 4096",
                 "host-only FluentWinUI3 OFF",
                 "host-only Universal OFF",
+            ],
+            "qtmultimedia": [
+                "canonicalize Wasm compiler and macro source paths",
+                "omit non-Wasm baseline FFmpeg GObject and MSVC patches",
+                "publish singleton before asynchronous device enumeration",
+                "reconcile browser devices while retaining OpenAL defaults",
+                "serialize and keep devicechange enumeration non-suspending",
+                "queue five media-device cache notifications",
+                "reject startup emptied as natural playback end",
+                "silence idempotent Wasm media-player stop",
+                "initialize optional Wasm media input stream pointer",
+                "make Wasm video-output stop re-entry and null safe",
+                "leave natural-end teardown to explicit source cleanup",
             ],
         },
     }
@@ -9083,6 +11642,23 @@ def validate_cmake_role_cross_fields(
         )
 
 
+def validate_qtmultimedia_reproducibility_evidence(value: Any) -> None:
+    reproducibility = require_mapping(
+        value,
+        "qtmultimedia ReproducibilityIdentity",
+    )
+    require_exact_keys(
+        reproducibility,
+        EXPECTED_QTMULTIMEDIA_REPRODUCIBILITY_IDENTITY,
+        "qtmultimedia ReproducibilityIdentity",
+    )
+    require(
+        dict(reproducibility)
+        == EXPECTED_QTMULTIMEDIA_REPRODUCIBILITY_IDENTITY,
+        "qtmultimedia reproducibility evidence is not lock-bound",
+    )
+
+
 def validate_qt_evidence(value: Any) -> None:
     qt = require_mapping(value, "qt")
     require_exact_keys(
@@ -9115,6 +11691,7 @@ def validate_qt_evidence(value: Any) -> None:
             "version",
             "linkage",
             "staticArchiveCount",
+            "staticLinkInputIdentity",
             "sharedLibraryCount",
             "requiredPorts",
             "requiredModules",
@@ -9144,10 +11721,45 @@ def validate_qt_evidence(value: Any) -> None:
             raw_record,
             f"qt.target.requiredPorts.{port}",
         )
+        expected_record_keys = (
+            {
+                "Version",
+                "Port-Version",
+                "Abi",
+                "AbiInfoFile",
+                "AbiInfoSha256",
+                "BinaryPackageCacheBytes",
+                "BinaryPackageCacheFile",
+                "BinaryPackageCacheSha256",
+                "BinaryDeterministicPayloadAggregateSha256",
+                "BinaryDeterministicPayloadAlgorithm",
+                "BinaryDeterministicPayloadFileCount",
+                "BinaryDeterministicPayloadInventorySha256",
+                "BinaryDeterministicPayloadTotalBytes",
+                "BinaryInstallableFileCount",
+                "BinaryInstallableInventorySha256",
+                "BinaryPayloadAggregateSha256",
+                "BinaryPayloadAlgorithm",
+                "BinaryPayloadCoreBytes",
+                "BinaryPayloadCorePath",
+                "BinaryPayloadCoreSha256",
+                "BinaryPayloadMemberCount",
+                "BinaryPayloadTotalBytes",
+                "CompileCommandIdentity",
+                "ReproducibilityIdentity",
+                "TargetStaticOwnedFileCount",
+            }
+            if port == "qtmultimedia"
+            else None
+        )
         require(
-            set(record) in (
-                {"Version", "Abi"},
-                {"Version", "Port-Version", "Abi"},
+            (
+                set(record) == expected_record_keys
+                if expected_record_keys is not None
+                else set(record) in (
+                    {"Version", "Abi"},
+                    {"Version", "Port-Version", "Abi"},
+                )
             ),
             f"qt.target.requiredPorts.{port} keys drifted",
         )
@@ -9157,13 +11769,128 @@ def validate_qt_evidence(value: Any) -> None:
             and bool(record["Abi"]),
             f"qt.target.requiredPorts.{port} identity drifted",
         )
+        if port == "qtmultimedia":
+            require(
+                record["AbiInfoFile"]
+                == (
+                    ".wb/qtmultimedia/"
+                    f"{TARGET_TRIPLET}.vcpkg_abi_info.txt"
+                )
+                and record["AbiInfoSha256"] == record["Abi"],
+                "qtmultimedia ABI input evidence is not status-bound",
+            )
+            require_positive_int(
+                record["BinaryPackageCacheBytes"],
+                "qtmultimedia binary package cache bytes",
+            )
+            require_sha256_value(
+                record["BinaryPackageCacheSha256"],
+                "qtmultimedia binary package cache SHA-256",
+            )
+            for name in (
+                "BinaryDeterministicPayloadFileCount",
+                "BinaryDeterministicPayloadTotalBytes",
+                "BinaryInstallableFileCount",
+                "BinaryPayloadCoreBytes",
+                "BinaryPayloadMemberCount",
+                "BinaryPayloadTotalBytes",
+                "TargetStaticOwnedFileCount",
+            ):
+                require_positive_int(
+                    record[name],
+                    f"qtmultimedia {name}",
+                )
+            for name in (
+                "BinaryDeterministicPayloadAggregateSha256",
+                "BinaryDeterministicPayloadInventorySha256",
+                "BinaryInstallableInventorySha256",
+                "BinaryPayloadAggregateSha256",
+                "BinaryPayloadCoreSha256",
+            ):
+                require_sha256_value(
+                    record[name],
+                    f"qtmultimedia {name}",
+                )
+            compile_identity = require_mapping(
+                record["CompileCommandIdentity"],
+                "qtmultimedia CompileCommandIdentity",
+            )
+            require(
+                dict(compile_identity)
+                == EXPECTED_QTMULTIMEDIA_COMPILE_COMMAND_IDENTITY,
+                "qtmultimedia compile-command evidence is not lock-bound",
+            )
+            validate_qtmultimedia_reproducibility_evidence(
+                record["ReproducibilityIdentity"]
+            )
+            require(
+                record["BinaryPackageCacheFile"]
+                == (
+                    ".wasm-vcpkg/bincache/"
+                    f"{record['Abi'][:2]}/{record['Abi']}.zip"
+                )
+                and record["BinaryPayloadCorePath"]
+                == QTMULTIMEDIA_CORE_ARCHIVE
+                and record["BinaryDeterministicPayloadAlgorithm"]
+                == QTMULTIMEDIA_BINARY_PAYLOAD_ALGORITHM
+                and record["TargetStaticOwnedFileCount"]
+                >= record["BinaryPayloadMemberCount"]
+                and {
+                    "abi": record["Abi"],
+                    "algorithm": record["BinaryPayloadAlgorithm"],
+                    "aggregateSha256":
+                        record["BinaryPayloadAggregateSha256"],
+                    "deterministicPayload": {
+                        "algorithm":
+                            record[
+                                "BinaryDeterministicPayloadAlgorithm"
+                            ],
+                        "aggregateSha256":
+                            record[
+                                "BinaryDeterministicPayloadAggregateSha256"
+                            ],
+                        "excluded": list(
+                            QTMULTIMEDIA_DETERMINISTIC_PAYLOAD_EXCLUSIONS
+                        ),
+                        "fileCount":
+                            record["BinaryDeterministicPayloadFileCount"],
+                        "inventorySha256":
+                            record[
+                                "BinaryDeterministicPayloadInventorySha256"
+                            ],
+                        "totalBytes":
+                            record["BinaryDeterministicPayloadTotalBytes"],
+                    },
+                    "installableFileCount":
+                        record["BinaryInstallableFileCount"],
+                    "installableInventorySha256":
+                        record["BinaryInstallableInventorySha256"],
+                    "memberCount": record["BinaryPayloadMemberCount"],
+                    "totalBytes": record["BinaryPayloadTotalBytes"],
+                }
+                == EXPECTED_QTMULTIMEDIA_BINARY_PACKAGE_IDENTITY,
+                "qtmultimedia binary package evidence is not lock-bound",
+            )
+    static_link_identity = require_mapping(
+        target["staticLinkInputIdentity"],
+        "qt.target.staticLinkInputIdentity",
+    )
     require(
-        ports["qtbase"].get("Port-Version") == "2",
-        "QtBase overlay port-version is not 2",
+        dict(static_link_identity)
+        == EXPECTED_TARGET_STATIC_LINK_INPUT_IDENTITY,
+        "Qt target static-link-input evidence is not lock-bound",
+    )
+    require(
+        ports["qtbase"].get("Port-Version") == "4",
+        "QtBase overlay port-version is not 4",
     )
     require(
         ports["qtdeclarative"].get("Port-Version") == "1",
         "QtDeclarative installed Port-Version is not 1",
+    )
+    require(
+        ports["qtmultimedia"].get("Port-Version") == "2",
+        "Qt Multimedia installed Port-Version is not 2",
     )
     modules = require_mapping(
         target["requiredModules"],
@@ -9186,6 +11913,7 @@ def validate_qt_evidence(value: Any) -> None:
             "triplet",
             "version",
             "linkage",
+            "qtBasePortVersion",
             "qtDeclarativePortVersion",
             "qtCoreDllCount",
             "tools",
@@ -9197,6 +11925,10 @@ def validate_qt_evidence(value: Any) -> None:
         and host["version"] == EXPECTED_QT
         and host["linkage"] == "dynamic",
         "Qt host identity/linkage drift",
+    )
+    require(
+        host["qtBasePortVersion"] == "4",
+        "host QtBase installed Port-Version is not 4",
     )
     require(
         host["qtDeclarativePortVersion"] == "1",
@@ -10034,6 +12766,10 @@ def validate_dependency_archive_evidence(value: Any) -> None:
             superset[name],
             f"applicationLink.dependencyArchives.superset.{name}",
         )
+    require(
+        dict(superset) == EXPECTED_TARGET_STATIC_LINK_INPUT_IDENTITY,
+        "dependency archive superset evidence is not source-locked",
+    )
 
     closure = require_mapping(
         dependency["linkedClosure"],
@@ -10161,7 +12897,7 @@ def validate_overlay_evidence(value: Any) -> None:
     overlays = require_mapping(value, "overlays")
     require_exact_keys(
         overlays,
-        {"qtbase", "qtdeclarative", "reviewedDelta"},
+        {"qtbase", "qtdeclarative", "qtmultimedia", "reviewedDelta"},
         "overlays",
     )
     expected = {
@@ -10169,14 +12905,36 @@ def validate_overlay_evidence(value: Any) -> None:
             "baselineTree": EXPECTED_QTBASE_TREE,
             "modifiedBaselineFiles": ["portfile.cmake", "vcpkg.json"],
             "lineEndingOnlyBaselineFiles": [],
-            "addedFiles": ["restore-wasm-version-check.patch"],
+            "removedBaselineFiles": [],
+            "addedFiles": [
+                "preserve-wasm-event-composed-path.patch",
+                "restore-wasm-version-check.patch",
+            ],
         },
         "qtdeclarative": {
             "baselineTree": EXPECTED_QTDECLARATIVE_TREE,
             "modifiedBaselineFiles": ["portfile.cmake", "vcpkg.json"],
             "lineEndingOnlyBaselineFiles": ["port.data.cmake"],
+            "removedBaselineFiles": [],
             "addedFiles": [
                 "24205cd-qquickwindow-child-window-stacking.patch"
+            ],
+        },
+        "qtmultimedia": {
+            "baselineTree": EXPECTED_QTMULTIMEDIA_TREE,
+            "modifiedBaselineFiles": ["portfile.cmake", "vcpkg.json"],
+            "lineEndingOnlyBaselineFiles": [],
+            "removedBaselineFiles": [
+                "ffmpeg-devendor-signalsmith-stretch.patch",
+                "ffmpeg.patch",
+                "fix-msvc-x86-propvariant.patch",
+                "remove-static-ssl-stub.patch",
+                "static_find_modules.patch",
+            ],
+            "addedFiles": [
+                "canonicalize-wasm-build-paths.patch",
+                "correct-wasm-media-lifecycle.patch",
+                "defer-wasm-media-device-notifications.patch"
             ],
         },
     }
@@ -10189,6 +12947,7 @@ def validate_overlay_evidence(value: Any) -> None:
                 "fileCount",
                 "modifiedBaselineFiles",
                 "lineEndingOnlyBaselineFiles",
+                "removedBaselineFiles",
                 "addedFiles",
                 "fileSha256",
                 "aggregateSha256",
@@ -10200,14 +12959,18 @@ def validate_overlay_evidence(value: Any) -> None:
                 result[key] == expected_value,
                 f"overlays.{port}.{key} drifted",
             )
-        require_positive_int(result["fileCount"], f"overlays.{port}.fileCount")
+        expected_inventory = EXPECTED_OVERLAY_INVENTORY[port]
+        require(
+            result["fileCount"] == len(expected_inventory),
+            f"overlays.{port}.fileCount drifted",
+        )
         file_hashes = require_mapping(
             result["fileSha256"],
             f"overlays.{port}.fileSha256",
         )
         require(
-            len(file_hashes) == result["fileCount"],
-            f"overlays.{port} file hash count drifted",
+            tuple(sorted(file_hashes)) == expected_inventory,
+            f"overlays.{port} file inventory drifted",
         )
         for relative, digest in file_hashes.items():
             require(
@@ -10218,9 +12981,17 @@ def validate_overlay_evidence(value: Any) -> None:
                 digest,
                 f"overlays.{port}.fileSha256.{relative}",
             )
-        require_sha256_value(
-            result["aggregateSha256"],
-            f"overlays.{port}.aggregateSha256",
+        aggregate = hashlib.sha256()
+        for relative in expected_inventory:
+            aggregate.update(relative.encode("utf-8") + b"\0")
+            aggregate.update(
+                file_hashes[relative].encode("ascii") + b"\n"
+            )
+        expected_aggregate = EXPECTED_OVERLAY_AGGREGATE_SHA256[port]
+        require(
+            aggregate.hexdigest() == expected_aggregate
+            and result["aggregateSha256"] == expected_aggregate,
+            f"overlays.{port}.aggregateSha256 drifted",
         )
     for label, digest in EXPECTED_OVERLAY_SHA256.items():
         port, relative = label.split("/", 1)
@@ -10233,6 +13004,11 @@ def validate_overlay_evidence(value: Any) -> None:
         == {
             "qtbase": [
                 "restore Emscripten version-helper include and check",
+                "snapshot queued Wasm DOM event composedPath",
+                "export synchronous native and promising full Wasm pumps",
+                "use additive JSPI delivery depth accounting",
+                "erase exact nested current-event context on LIFO unwind",
+                "run posted/native/timer/deferred-delete application cycle",
                 "seed wasm-emscripten target mkspec before project",
                 "thread ON",
                 "wasm_exceptions ON",
@@ -10244,6 +13020,19 @@ def validate_overlay_evidence(value: Any) -> None:
                 "Emscripten AutoGen response threshold 4096",
                 "host-only FluentWinUI3 OFF",
                 "host-only Universal OFF",
+            ],
+            "qtmultimedia": [
+                "canonicalize Wasm compiler and macro source paths",
+                "omit non-Wasm baseline FFmpeg GObject and MSVC patches",
+                "publish singleton before asynchronous device enumeration",
+                "reconcile browser devices while retaining OpenAL defaults",
+                "serialize and keep devicechange enumeration non-suspending",
+                "queue five media-device cache notifications",
+                "reject startup emptied as natural playback end",
+                "silence idempotent Wasm media-player stop",
+                "initialize optional Wasm media input stream pointer",
+                "make Wasm video-output stop re-entry and null safe",
+                "leave natural-end teardown to explicit source cleanup",
             ],
         },
         "reviewed overlay delta evidence drifted",
@@ -10510,6 +13299,82 @@ def validate_qualification_build_evidence(value: Any) -> None:
     )
 
 
+def validate_qtmultimedia_application_link_binding(
+    qt: Any,
+    application_link: Any,
+) -> None:
+    qt_mapping = require_mapping(qt, "qt")
+    target = require_mapping(qt_mapping["target"], "qt.target")
+    ports = require_mapping(
+        target["requiredPorts"],
+        "qt.target.requiredPorts",
+    )
+    multimedia = require_mapping(
+        ports["qtmultimedia"],
+        "qt.target.requiredPorts.qtmultimedia",
+    )
+    link = require_mapping(application_link, "applicationLink")
+    dependency = require_mapping(
+        link["dependencyArchives"],
+        "applicationLink.dependencyArchives",
+    )
+    closure = require_mapping(
+        dependency["linkedClosure"],
+        "applicationLink.dependencyArchives.linkedClosure",
+    )
+    archives = closure["archives"]
+    require(
+        isinstance(archives, list),
+        "linked dependency archives must be a list",
+    )
+    core_occurrences = [
+        require_mapping(
+            archive,
+            "linked qtmultimedia core archive",
+        )
+        for archive in archives
+        if isinstance(archive, Mapping)
+        and archive.get("path") == multimedia["BinaryPayloadCorePath"]
+    ]
+    require(
+        len(core_occurrences) == 1
+        and core_occurrences[0].get("kind") == "archive"
+        and core_occurrences[0].get("bytes")
+        == multimedia["BinaryPayloadCoreBytes"]
+        and core_occurrences[0].get("sha256")
+        == multimedia["BinaryPayloadCoreSha256"],
+        "application link is not bound to the canonical qtmultimedia core",
+    )
+
+
+def validate_target_static_link_input_binding(
+    qt: Any,
+    application_link: Any,
+) -> None:
+    qt_mapping = require_mapping(qt, "qt")
+    target = require_mapping(qt_mapping["target"], "qt.target")
+    static_identity = require_mapping(
+        target["staticLinkInputIdentity"],
+        "qt.target.staticLinkInputIdentity",
+    )
+    link = require_mapping(application_link, "applicationLink")
+    dependency = require_mapping(
+        link["dependencyArchives"],
+        "applicationLink.dependencyArchives",
+    )
+    superset = require_mapping(
+        dependency["superset"],
+        "applicationLink.dependencyArchives.superset",
+    )
+    require(
+        dict(static_identity)
+        == dict(superset)
+        == EXPECTED_TARGET_STATIC_LINK_INPUT_IDENTITY,
+        "Qt target static-link-input source lock and application-link "
+        "superset disagree",
+    )
+
+
 def validate_evidence_for_write(evidence: Mapping[str, Any]) -> None:
     require(isinstance(evidence, Mapping), "evidence must be a mapping")
     require_no_absolute_path_strings(evidence)
@@ -10572,6 +13437,14 @@ def validate_evidence_for_write(evidence: Mapping[str, Any]) -> None:
     validate_features_evidence(evidence["featuresAndAutogen"])
     validate_compile_evidence(evidence["compileCommands"])
     validate_application_link_evidence(evidence["applicationLink"])
+    validate_qtmultimedia_application_link_binding(
+        evidence["qt"],
+        evidence["applicationLink"],
+    )
+    validate_target_static_link_input_binding(
+        evidence["qt"],
+        evidence["applicationLink"],
+    )
     qualification = require_mapping(
         evidence["qualificationClosure"],
         "qualificationClosure",

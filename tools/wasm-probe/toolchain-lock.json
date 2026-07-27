@@ -6,6 +6,196 @@
     "qtbaseVcpkgSha512": "b5608b6cefd483ecdc5e4fa3536acfc31116c8dfb698257f945180a8e412ee444dc670d754d4f6145649170f7d55637a70820188337a6c6b79193fbfbcd6a3fc",
     "qtbaseVcpkgTree": "29a7f9f115d568b271a3b99fabeac886ec248f9f",
     "qtbaseWasmPatchSha256": "8aa3ed93e30f16c3c9691b35dee1f27c9608bcf424fc4b0e86009ce64709c786",
+    "qtbaseWasmEventPathPatchSha256": "f67e8e1eda7dc7abd208d113b3bc4057bbff7d45d79fdebd133c3fde3c0466ec",
+    "qtmultimediaSourceSha256": "390f8e52ddee3aca5c4de7eead900c84c4fa61ff6d1f0ebea9c7543365c09b0a",
+    "qtmultimediaVcpkgSha512": "accd9534b96df8ff464c219bf579c3da43e30b33efb35fc7e311c9e133cb57252f433422ca917f83b738e67cf925b19e0847ffcfaa92fe0e3d21b603dd580cd5",
+    "qtmultimediaWasmPatchSha256": "6237459c2301f2e629d686d974feeb759cf392c0ef653363f18f767f639aaa24",
+    "qtmultimediaWasmPathMapPatchSha256": "31f3610dcae306e6c0e49169077aaa7b5a7e704562aaa0f07ba78fe37d726630",
+    "qtmultimediaWasmMediaLifecyclePatchSha256": "7459fdd7a1982099fba9b84cdeb69833a5b0a820ec1d146bcdecc892241bd182",
+    "qtmultimediaWasmUpstreamCommits": [
+      "7f71286a9f22ae69936a21b561570c4ea1af2431",
+      "35b0ea686685cb591d598d503bfa110daf6c69e2",
+      "6cedb5d96f36c5d406d1bb58352dc05523c62fa4",
+      "9018988e854ce6b7689e716b4afe93d6173a135c",
+      "191cda01b86bc6b28e663426bb7a3eef6b2d39cc",
+      "4e61fa7da7e7db730e6e4762839de24f99e7803c",
+      "8a2093d1dda70eae63a0522537c93605f8932041",
+      "d6f64920e9024de8cf0d8761f304fc8999700783"
+    ],
+    "qtmultimediaBinaryPackage": {
+      "abi": "0924ac18c8d388a9cf2afa92b38769923d8247723a80f4fcf3ea8074951835e5",
+      "algorithm": "sha256-path-null-bytes-null-digest-lf-v1",
+      "aggregateSha256": "d7506317434f6dc68cb982d44aea5580e6c0d9af3c8e53ab186674a7aee4080f",
+      "deterministicPayload": {
+        "algorithm": "sha256-path-null-bytes-null-digest-lf-v1",
+        "aggregateSha256": "f098a4a2a69a3e749fa0063c930a12d92a243cc9ad79b9963c3bb3a57083501b",
+        "excluded": [
+          "sbom/qtmultimedia-6.11.1.spdx",
+          "share/qtmultimedia/vcpkg.spdx.json",
+          "share/qtmultimedia/vcpkg_abi_info.txt"
+        ],
+        "fileCount": 348,
+        "inventorySha256": "75971082c1d551da81bbd8bf47ff26285eb6b6cd2f78becbca6d9b0d99a7aa23",
+        "totalBytes": 1347197
+      },
+      "installableFileCount": 367,
+      "installableInventorySha256": "ea46ca437ebedc06660734b4fd79d65c476939c2e746b0717b695d9907f00b55",
+      "memberCount": 16,
+      "members": [
+        {
+          "bytes": 662076,
+          "path": "Qt6/plugins/multimedia/libwasmmediaplugin.a",
+          "sha256": "3df31fb6abc9bdc8f1a8a5c5e611963af8bda49e91b5cf1533ba5aea1cdda071"
+        },
+        {
+          "bytes": 744,
+          "path": "Qt6/plugins/multimedia/objects-Release/QWasmMediaPlugin_init/QWasmMediaPlugin_init.cpp.o",
+          "sha256": "b0c73e47eef106ec1a96088a40038019b65c9ab03a14d1f741e080c7e7d7527e"
+        },
+        {
+          "bytes": 9468,
+          "path": "Qt6/qml/QtMultimedia/libquickmultimediaplugin.a",
+          "sha256": "0e569cab7d1e2a025abdbb666e3a28050a1038f24b43fc5941b49c7ca51297f1"
+        },
+        {
+          "bytes": 678,
+          "path": "Qt6/qml/QtMultimedia/objects-Release/MultimediaQuickPrivate_resources_1/.qt/rcc/qrc_qmake_QtMultimedia_init.cpp.o",
+          "sha256": "773fb12cbf93c33546b919b913b1dbc3cdabf48e6e74fe5db9235f431cfdf096"
+        },
+        {
+          "bytes": 720,
+          "path": "Qt6/qml/QtMultimedia/objects-Release/MultimediaQuickPrivate_resources_2/.qt/rcc/qrc_MultimediaQuickPrivate_raw_qml_0_init.cpp.o",
+          "sha256": "a9680b5df8a32c9989f158b2beaf3e2151e73f95e33f15e41eda8716236fdab3"
+        },
+        {
+          "bytes": 749,
+          "path": "Qt6/qml/QtMultimedia/objects-Release/quickmultimedia_init/quickmultimedia_init.cpp.o",
+          "sha256": "e87301bfe1e072e358fc8eb51a1f70fd173e13eb898c556942870206acb71efe"
+        },
+        {
+          "bytes": 1236058,
+          "path": "lib/libQt6BundledResonanceAudio.a",
+          "sha256": "e87b23d9e602e1935b5ec221ec21256de73d35e620173f7ad0fb3917cb287dcd"
+        },
+        {
+          "bytes": 8482,
+          "path": "lib/libQt6BundledTLSF.a",
+          "sha256": "27e8b2e079e5f4124a9a194fdd17bb69535791ddbad00dd53ac18bdf2121ea92"
+        },
+        {
+          "bytes": 3025442,
+          "path": "lib/libQt6Multimedia.a",
+          "sha256": "40ea9f62c037a8fc75e8470ae9f90f9c455c5b2d5fef4d60dbeeb5ca8812bea3"
+        },
+        {
+          "bytes": 1044878,
+          "path": "lib/libQt6MultimediaQuick.a",
+          "sha256": "05c99e1de3a8dca280579d0264bba45d5662979ddb1e1b57bd326c5306488edb"
+        },
+        {
+          "bytes": 75200,
+          "path": "lib/libQt6MultimediaTestLib.a",
+          "sha256": "9ccb6a70ed8cb689532de77d9ed948f11d906fe2e32e485948ebe91b4be05f28"
+        },
+        {
+          "bytes": 159552,
+          "path": "lib/libQt6SpatialAudio.a",
+          "sha256": "c5cb6fa554476aee7c1c66a618af959a0751dcbdd0cd1d1d32a2ff8466edb124"
+        },
+        {
+          "bytes": 684,
+          "path": "lib/objects-Release/Multimedia_resources_1/.qt/rcc/qrc_qtmultimedia_shaders_init.cpp.o",
+          "sha256": "e8f092e7ff6c00d5e822c180bfd9a2e394708fa552459da9e3052a02c8b084b7"
+        },
+        {
+          "bytes": 705,
+          "path": "lib/objects-Release/Multimedia_resources_2/.qt/rcc/qrc_qtmultimedia_shaders_linear_init.cpp.o",
+          "sha256": "3a78505d5c9734ef252f53950854a5938bef518bd47bc3f9cdfc2c664d1e0a55"
+        },
+        {
+          "bytes": 711,
+          "path": "lib/objects-Release/Multimedia_resources_3/.qt/rcc/qrc_qtmultimedia_shaders_gl_macos_init.cpp.o",
+          "sha256": "fa6a20b81ed84a0bfe29ead7ef03306c4b47133cba152eb48a2a228a7c549e26"
+        },
+        {
+          "bytes": 732,
+          "path": "lib/objects-Release/Multimedia_resources_4/.qt/rcc/qrc_qtmultimedia_shaders_gl_macos_linear_init.cpp.o",
+          "sha256": "95669803b0fbbba7f11d698569a04bfd9cec4af846c98e558d8eb6e62efb1973"
+        }
+      ],
+      "totalBytes": 6226879
+    },
+    "qtmultimediaCompileCommands": {
+      "aggregateSha256": "c9df99b9b791da08920d68effd6211e6d475cea789b7d687b2164b51eafad955",
+      "algorithm": "sha256-canonical-qtmultimedia-compile-commands-json-v2",
+      "cCommandCount": 1,
+      "commandCount": 222,
+      "cxxCommandCount": 221,
+      "installedObjectAggregateSha256": "f46f0c066ef3d89cddafbe16aef173e63c1c00032fce229dcaf7e6e623e3b588",
+      "installedObjectOccurrenceCount": 217,
+      "ninjaParity": true,
+      "objectOutputCount": 217,
+      "outputInventorySha256": "00e1be2961daa565ac5b60b9698c6c94e9c3f54005d8bb4ab64fff7863839d53",
+      "pathMapTargets": {
+        "build": "/qt/qtmultimedia/build",
+        "source": "/qt/qtmultimedia/source"
+      },
+      "perEdgeObjectDigestCount": 217,
+      "pchByteIdentity": "excluded-noninstallable-root-dependent-v1",
+      "pchOutputCount": 5
+    },
+    "qtmultimediaReproducibility": {
+      "abi": "0924ac18c8d388a9cf2afa92b38769923d8247723a80f4fcf3ea8074951835e5",
+      "algorithm": "qtmultimedia-unequal-root-byte-equality-v1",
+      "allCompileCommandsCanonicalIdentical": true,
+      "allInstallableFilesContractVerified": true,
+      "allStaticMembersByteIdentical": true,
+      "buildRootLengthDelta": 72,
+      "compileAggregateSha256": "c9df99b9b791da08920d68effd6211e6d475cea789b7d687b2164b51eafad955",
+      "compileCommandCount": 222,
+      "deterministicPayloadAggregateSha256": "f098a4a2a69a3e749fa0063c930a12d92a243cc9ad79b9963c3bb3a57083501b",
+      "installableFileCount": 367,
+      "manifestDerivation": "primary-minus-builtin-baseline-v1",
+      "primaryBuiltinBaseline": "a0400024711b283056538ac19ced80b91a83c24c",
+      "primaryManifestSha256": "1dfd73a53d9c59e2b680bde6ebcb514515e8a698459d62b9faedae30ceceaabf",
+      "secondaryAbiInfoFile": ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/buildtrees/qtmultimedia/wasm32-emscripten-rg.vcpkg_abi_info.txt",
+      "secondaryBinaryCacheFile": ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/binary-cache/09/0924ac18c8d388a9cf2afa92b38769923d8247723a80f4fcf3ea8074951835e5.zip",
+      "secondaryBinaryCacheRoot": ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/binary-cache",
+      "secondaryBinarySourcePolicy": [
+        "clear",
+        "files,.wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/binary-cache,readwrite"
+      ],
+      "secondaryBuildRoot": ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/buildtrees/qtmultimedia/wasm32-emscripten-rg-rel",
+      "secondaryBuildtreesRoot": ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/buildtrees",
+      "secondaryDownloadsRoot": ".wasm-vcpkg/downloads",
+      "secondaryFeatureFlags": "-versions",
+      "secondaryInstalledRoot": ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/installed",
+      "secondaryManifestFile": ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/manifest/vcpkg.json",
+      "secondaryManifestSha256": "a1504a8105cbd64ea42fa54943c4cb2abc1fb35186ea40c239df9f5c24627667",
+      "secondaryOuterCMakeFile": ".toolchains/cmake-4.2.3-windows-x86_64/bin/cmake.exe",
+      "secondaryOverlayPorts": [
+        "vcpkgOverlayPorts",
+        "vcpkgOverlayPortsWasm"
+      ],
+      "secondaryOverlayTriplets": "vcpkgTriplets",
+      "secondaryPackagesRoot": ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/packages",
+      "secondaryPortInstallPrefix": ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/packages/qtmultimedia_wasm32-emscripten-rg",
+      "secondaryProbeBuildRoot": ".wb/qtmultimedia-repro-unequal-workspace-path-root-qualification/probe-configure",
+      "secondaryTargetTriplet": "wasm32-emscripten-rg",
+      "secondaryHostTriplet": "x64-windows-rg-host-release",
+      "secondaryToolchainFile": ".toolchains/vcpkg-a0400024/scripts/buildsystems/vcpkg.cmake",
+      "secondaryChainloadToolchainFile": "cmake/toolchains/vcpkg-emscripten.cmake",
+      "sourceRootLengthDelta": 72,
+      "staticAggregateSha256": "d7506317434f6dc68cb982d44aea5580e6c0d9af3c8e53ab186674a7aee4080f",
+      "staticMemberCount": 16
+    },
+    "targetStaticLinkInputs": {
+      "aggregateSha256": "c40460508e292f56c91331e655b9cf34023f0cbccfad1054a35ac8bc16641bff",
+      "algorithm": "sha256-path-null-digest-lf-v1",
+      "fileCount": 385,
+      "inventorySha256": "9b477434a32545379aafd3374623791afeb3f8d832a69f1a03e125eb427ab4e2",
+      "totalBytes": 192344397
+    },
     "qtdeclarativePatchSha256": "2A015242AF462BE117A2924D4D8DB2C753B29891921E714C23BF1AB4355C4C50"
   },
   "gateTools": {

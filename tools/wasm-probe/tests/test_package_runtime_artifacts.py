@@ -442,6 +442,9 @@ class RuntimePackagerTest(unittest.TestCase):
             'const p = "/root";\n',
             'const p = "/home/web_user/cache";\n',
             'const p = "/dev/shm/tmp/x";\n',
+            'const p = "/fixtures/other.webm";\n',
+            'const p = "/fixtures/private/probe.webm";\n',
+            'const p = "/fixtures/probe.webm/child";\n',
             'const p = "//root/private/source.cpp";\n',
             'const p = "///root/private/source.cpp";\n',
             'const p = "////root";\n',
@@ -614,6 +617,7 @@ class RuntimePackagerTest(unittest.TestCase):
             "/dev/stdout",
             "/dev/tty",
             "/dev/tty1",
+            "/fixtures/probe.webm",
             "/home",
             "/home/web_user",
             "/proc",
@@ -639,6 +643,10 @@ class RuntimePackagerTest(unittest.TestCase):
             + "\n"
             + "const ratio = left / right / 2;\n"
             + "const dynamicPath = `${mount}/${path}`;\n"
+            + (
+                "const mediaRoute = "
+                "`/fixtures/probe.webm?nonce=${runNonce}`;\n"
+            )
             + (
                 "const located = `${config.qt.qtdir}/lib/"
                 "${originalLocatedFilename}`;\n"

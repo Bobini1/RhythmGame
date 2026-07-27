@@ -1,0 +1,333 @@
+Backport Qt Multimedia's Wasm media-device re-entrancy and reconciliation
+fixes to 6.11.1.
+
+Upstream references (selected changes, not full-commit cherry-picks):
+- 7f71286a9f22ae69936a21b561570c4ea1af2431
+- 35b0ea686685cb591d598d503bfa110daf6c69e2
+- 6cedb5d96f36c5d406d1bb58352dc05523c62fa4
+- 9018988e854ce6b7689e716b4afe93d6173a135c
+- 191cda01b86bc6b28e663426bb7a3eef6b2d39cc
+
+The device reconciliation shape is adapted from 7f71286, but Qt 6.11 still
+routes audio through OpenAL and must retain its device names as the default
+source and sink. Reconcile browser devices on every enumeration while
+excluding the two OpenAL fallback keys from stale removal. Extend the upstream
+queued-notification fix to the two OpenAL callbacks and correct the
+capture/playback cache-key typos.
+
+Always enumerate through Promise callbacks, including JSPI builds. A
+devicechange notification can be drained by a synchronous native input export,
+where awaiting the JavaScript Promise would attempt to suspend through a
+non-promising boundary. Serialize and coalesce enumeration requests so each
+request owns a fresh callback bundle, repeated events never reuse a moved-from
+callback, and an older result cannot arrive after and overwrite newer state.
+
+diff --git a/src/multimedia/wasm/qwasmmediadevices.cpp b/src/multimedia/wasm/qwasmmediadevices.cpp
+index df91346..f158c77 100644
+--- a/src/multimedia/wasm/qwasmmediadevices.cpp
++++ b/src/multimedia/wasm/qwasmmediadevices.cpp
+@@ -19,7 +19,8 @@ QT_BEGIN_NAMESPACE
+ 
+ Q_LOGGING_CATEGORY(qWasmMediaDevices, "qt.multimedia.wasm.mediadevices")
+ 
+-Q_GLOBAL_STATIC(QWasmMediaDevices, s_wasmMediaDevicesInstance);
++static QWasmMediaDevices *s_mediaDevicesInstance = nullptr;
++static bool s_constructingInstance = false;
+ 
+ QWasmCameraDevices::QWasmCameraDevices(QPlatformMediaIntegration *integration)
+     : QPlatformVideoDevices(integration)
+@@ -71,12 +72,19 @@ void QWasmAudioDevices::connectNotify(const QMetaMethod &signal)
+ 
+ QWasmMediaDevices::QWasmMediaDevices()
+ {
+-    initDevices();
+ }
+ 
+ QWasmMediaDevices *QWasmMediaDevices::instance()
+ {
+-    return s_wasmMediaDevicesInstance();
++    if (s_mediaDevicesInstance)
++        return s_mediaDevicesInstance;
++    if (s_constructingInstance)
++        return nullptr;
++    s_constructingInstance = true;
++    s_mediaDevicesInstance = new QWasmMediaDevices();
++    s_constructingInstance = false;
++    s_mediaDevicesInstance->initDevices();
++    return s_mediaDevicesInstance;
+ }
+ 
+ void QWasmMediaDevices::initDevices()
+@@ -112,24 +120,26 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
+     }
+ 
+     QList<std::string> cameraDevicesToRemove = m_cameraDevices.keys();
+-    QList<std::string> audioOutputsToRemove;
+-    QList<std::string> audioInputsToRemove;
+-
+-    if (m_firstInit) {
+-        m_firstInit = false;
+-        qWarning() << "m_audioInputs count" << m_audioInputs.count();
+-
+-    } else {
+-        audioOutputsToRemove = m_audioOutputs.keys();
+-        audioInputsToRemove = m_audioInputs.keys();
+-        m_audioInputsAdded = false;
+-        m_audioOutputsAdded = false;
+-    }
++    QList<std::string> audioOutputsToRemove = m_audioOutputs.keys();
++    QList<std::string> audioInputsToRemove = m_audioInputs.keys();
++    audioOutputsToRemove.removeOne(m_openALAudioOutputId);
++    audioInputsToRemove.removeOne(m_openALAudioInputId);
++    m_audioInputsAdded = false;
++    m_audioOutputsAdded = false;
+     m_videoInputsAdded = false;
+ 
+     bool m_videoInputsRemoved = false;
+     bool m_audioInputsRemoved = false;
+     bool m_audioOutputsRemoved = false;
++    const auto hasDefaultDevice = [](const auto &deviceMap) {
++        for (auto it = deviceMap.cbegin(); it != deviceMap.cend(); ++it) {
++            if (it.value().isDefault())
++                return true;
++        }
++        return false;
++    };
++    bool audioInputDefaultAssigned = hasDefaultDevice(m_audioInputs);
++    bool audioOutputDefaultAssigned = hasDefaultDevice(m_audioOutputs);
+ 
+     for (int i = 0; i < devices["length"].as<int>(); i++) {
+ 
+@@ -164,18 +174,19 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
+             cameraDevicesToRemove.removeOne(deviceId);
+         } else if (deviceKind == std::string("audioinput")) {
+             if (!m_audioInputs.contains(deviceId)) {
+-                isDefault = !m_audioInputsAdded;
++                isDefault = !audioInputDefaultAssigned;
+                 m_audioInputs.insert(
+                         deviceId,
+                         QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
+                                 deviceId.c_str(), label.c_str(), isDefault, QAudioDevice::Input)));
+ 
+                 m_audioInputsAdded = true;
++                audioInputDefaultAssigned = true;
+             }
+             audioInputsToRemove.removeOne(deviceId);
+         } else if (deviceKind == std::string("audiooutput")) {
+             if (!m_audioOutputs.contains(deviceId)) {
+-                isDefault = !m_audioOutputsAdded;
++                isDefault = !audioOutputDefaultAssigned;
+                 m_audioOutputs.insert(
+                         deviceId,
+                         QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
+@@ -183,15 +194,13 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
+                 ;
+ 
+                 m_audioOutputsAdded = true;
++                audioOutputDefaultAssigned = true;
+             }
+             audioOutputsToRemove.removeOne(deviceId);
+         }
+         // if permissions are given label will hold the actual
+         // camera name, such as "Live! Cam Sync 1080p (041e:409d)"
+     }
+-    if (!m_firstInit)
+-        getOpenALAudioDevices();
+-
+            // any left here were removed
+     int j = 0;
+     for (; j < cameraDevicesToRemove.count(); j++) {
+@@ -211,19 +220,19 @@ void QWasmMediaDevices::parseDevices(emscripten::val devices)
+ 
+     if (m_videoInputsAdded || m_videoInputsRemoved) {
+         auto videoDevices = static_cast<QWasmCameraDevices*>(QPlatformMediaIntegration::instance()->videoDevices());
+-        videoDevices->onVideoInputsChanged();
++        QMetaObject::invokeMethod(videoDevices, &QWasmCameraDevices::onVideoInputsChanged,
++                                  Qt::QueuedConnection);
+     }
+     if (m_audioInputsAdded || m_audioInputsRemoved) {
+         auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
+-        audioDevices->onAudioInputsChanged();
++        QMetaObject::invokeMethod(audioDevices, &QWasmAudioDevices::onAudioInputsChanged,
++                                  Qt::QueuedConnection);
+     }
+     if (m_audioOutputsAdded || m_audioOutputsRemoved) {
+         auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
+-        audioDevices->onAudioOutputsChanged();
++        QMetaObject::invokeMethod(audioDevices, &QWasmAudioDevices::onAudioOutputsChanged,
++                                  Qt::QueuedConnection);
+     }
+-
+-    m_firstInit = false;
+-
+ }
+ 
+ void QWasmMediaDevices::getMediaDevices()
+@@ -238,43 +247,55 @@ void QWasmMediaDevices::getMediaDevices()
+ 
+-    if (qstdweb::haveAsyncify()) {
+-#ifdef QT_HAVE_EMSCRIPTEN_ASYNCIFY
+-        emscripten::val devicesList = m_jsMediaDevicesInterface.call<emscripten::val>("enumerateDevices").await();
+-        if (devicesList.isNull() || devicesList.isUndefined()) {
+-            qWarning() << "devices list error";
+-            return;
+-        }
+-
+-        parseDevices(devicesList);
+-#endif
+-    } else {
+-        qstdweb::PromiseCallbacks enumerateDevicesCallback{
+-            .thenFunc =
+-            [&](emscripten::val devices) {
+-                parseDevices(devices);
+-            },
+-            .catchFunc =
+-            [this](emscripten::val error) {
+-                qWarning() << "mediadevices enumerateDevices fail"
+-                           << QString::fromStdString(error["name"].as<std::string>())
+-                           << QString::fromStdString(error["message"].as<std::string>());
+-                m_initDone = false;
+-            }
+-        };
+-
+-        qstdweb::Promise::make(m_jsMediaDevicesInterface,
+-                               QStringLiteral("enumerateDevices"),
+-                               std::move(enumerateDevicesCallback));
+-
+-        // setup devicechange monitor
+-        m_deviceChangedCallback = std::make_unique<qstdweb::EventCallback>(
+-                m_jsMediaDevicesInterface, "devicechange",
+-                [this, enumerateDevicesCallback](emscripten::val) {
+-                    qstdweb::Promise::make(m_jsMediaDevicesInterface,
+-                                           QStringLiteral("enumerateDevices"),
+-                                           std::move(enumerateDevicesCallback));
+-                });
+-    }
++    requestMediaDevicesEnumeration();
++
++    // setup devicechange monitor
++    m_deviceChangedCallback = std::make_unique<qstdweb::EventCallback>(
++            m_jsMediaDevicesInterface, "devicechange",
++            [this](emscripten::val) {
++                requestMediaDevicesEnumeration();
++            });
+ 
+ }
+ 
++void QWasmMediaDevices::requestMediaDevicesEnumeration()
++{
++    // devicechange may be delivered while a synchronous native input export
++    // drains pending events, so this path must not suspend. Coalesce changes
++    // while an enumeration is pending so stale results cannot arrive last.
++    if (m_mediaDevicesEnumerationInFlight) {
++        m_mediaDevicesEnumerationDirty = true;
++        return;
++    }
++    m_mediaDevicesEnumerationInFlight = true;
++
++    qstdweb::PromiseCallbacks enumerateDevicesCallbacks{
++        .thenFunc =
++        [this](emscripten::val devices) {
++            parseDevices(devices);
++            finishMediaDevicesEnumeration();
++        },
++        .catchFunc =
++        [this](emscripten::val error) {
++            qWarning() << "mediadevices enumerateDevices fail"
++                       << QString::fromStdString(error["name"].as<std::string>())
++                       << QString::fromStdString(error["message"].as<std::string>());
++            m_initDone = false;
++            finishMediaDevicesEnumeration();
++        }
++    };
++
++    qstdweb::Promise::make(m_jsMediaDevicesInterface,
++                           QStringLiteral("enumerateDevices"),
++                           std::move(enumerateDevicesCallbacks));
++}
++
++void QWasmMediaDevices::finishMediaDevicesEnumeration()
++{
++    m_mediaDevicesEnumerationInFlight = false;
++    if (!m_mediaDevicesEnumerationDirty)
++        return;
++
++    m_mediaDevicesEnumerationDirty = false;
++    requestMediaDevicesEnumeration();
++}
++
+ void QWasmMediaDevices::getOpenALAudioDevices()
+@@ -283,28 +304,34 @@ void QWasmMediaDevices::getOpenALAudioDevices()
+     // It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
+     auto capture = alcGetString(nullptr, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER);
+     // present even if there is no capture device
+-    if (capture && !m_audioOutputs.contains(capture)) {
++    if (capture)
++        m_openALAudioInputId = capture;
++    if (capture && !m_audioInputs.contains(m_openALAudioInputId)) {
+         m_audioInputs.insert(
+-                capture,
++                m_openALAudioInputId,
+                 QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
+                         capture, "WebAssembly audio capture device", true, QAudioDevice::Input)));
+         m_audioInputsAdded = true;
+         auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
+-        audioDevices->onAudioInputsChanged();
++        QMetaObject::invokeMethod(audioDevices, &QWasmAudioDevices::onAudioInputsChanged,
++                                  Qt::QueuedConnection);
+     }
+ 
+     auto playback = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
+     // present even if there is no playback device
+-    if (playback && !m_audioOutputs.contains(capture)) {
++    if (playback)
++        m_openALAudioOutputId = playback;
++    if (playback && !m_audioOutputs.contains(m_openALAudioOutputId)) {
+         m_audioOutputs.insert(
+-                playback,
++                m_openALAudioOutputId,
+                 QAudioDevicePrivate::createQAudioDevice(std::make_unique<QWasmAudioDevice>(
+                         playback, "WebAssembly audio playback device", true,
+                         QAudioDevice::Output)));
+-       auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
+-       audioDevices->onAudioOutputsChanged();
++        m_audioOutputsAdded = true;
++        auto audioDevices = static_cast<QWasmAudioDevices*>(QPlatformMediaIntegration::instance()->audioDevices());
++        QMetaObject::invokeMethod(audioDevices, &QWasmAudioDevices::onAudioOutputsChanged,
++                                  Qt::QueuedConnection);
+     }
+-    m_firstInit = true;
+ }
+ 
+ QT_END_NAMESPACE
+diff --git a/src/multimedia/wasm/qwasmmediadevices_p.h b/src/multimedia/wasm/qwasmmediadevices_p.h
+index 589caaf..804eaa5 100644
+--- a/src/multimedia/wasm/qwasmmediadevices_p.h
++++ b/src/multimedia/wasm/qwasmmediadevices_p.h
+@@ -91,12 +91,16 @@ public:
+ private:
+     void updateCameraDevices();
+     void getMediaDevices();
++    void requestMediaDevicesEnumeration();
++    void finishMediaDevicesEnumeration();
+     void getOpenALAudioDevices();
+     void parseDevices(emscripten::val devices);
+ 
+     QMap <std::string, QAudioDevice> m_audioOutputs;
+     QMap <std::string, QAudioDevice> m_audioInputs;
+     QMap <std::string, QCameraDevice> m_cameraDevices;
++    std::string m_openALAudioInputId;
++    std::string m_openALAudioOutputId;
+ 
+     std::unique_ptr<qstdweb::EventCallback> m_deviceChangedCallback;
+ 
+@@ -105,7 +109,8 @@ private:
+     bool m_audioOutputsAdded = false;
+     emscripten::val m_jsMediaDevicesInterface = emscripten::val::undefined();
+     bool m_initDone = false;
+-    bool m_firstInit = false;
++    bool m_mediaDevicesEnumerationInFlight = false;
++    bool m_mediaDevicesEnumerationDirty = false;
+ };
+ 
+ QT_END_NAMESPACE

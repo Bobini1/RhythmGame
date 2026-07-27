@@ -126,15 +126,58 @@ $Arguments = $childArguments.ToArray()
 $requestedExecutableName = [IO.Path]::GetFileNameWithoutExtension(
     $Executable
 )
-$qualificationRequested = (
+$cmakeBuildRequested = (
     $requestedExecutableName -ieq 'cmake' -and
     $Arguments.Count -gt 0 -and
     $Arguments[0] -ceq '--build'
-) -or (
+)
+$qualificationRequested = $cmakeBuildRequested -or (
     $requestedExecutableName -ieq 'python' -and
     $Arguments.Count -gt 0 -and
     [IO.Path]::GetFileName($Arguments[0]) -ceq 'verify_build.py'
 )
+$qualificationConfigureCommand = (
+    'pwsh -NoProfile -File ' +
+    'tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 -- ' +
+    'cmake --preset wasm-release -S tools/wasm-probe'
+)
+$canonicalQualifiedBuildRoot = [IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot '..\build\wasm-release')
+)
+if ($cmakeBuildRequested) {
+    if (
+        $Arguments.Count -lt 2 -or
+        ([string]::IsNullOrWhiteSpace([string]$Arguments[1])) -or
+        (([string]$Arguments[1]).StartsWith('-'))
+    ) {
+        throw (
+            'Qualified cmake --build requires the canonical build directory. ' +
+            "Configure it first with: $qualificationConfigureCommand"
+        )
+    }
+    $requestedBuildRoot = if (
+        [IO.Path]::IsPathRooted([string]$Arguments[1])
+    ) {
+        [IO.Path]::GetFullPath([string]$Arguments[1])
+    }
+    else {
+        [IO.Path]::GetFullPath(
+            (Join-Path (Get-Location).ProviderPath ([string]$Arguments[1]))
+        )
+    }
+    if (-not [string]::Equals(
+        $requestedBuildRoot,
+        $canonicalQualifiedBuildRoot,
+        [StringComparison]::OrdinalIgnoreCase
+    )) {
+        throw (
+            'Qualified cmake --build currently accepts only ' +
+            'tools/wasm-probe/build/wasm-release because verifier and ' +
+            'runtime paths are fixed to that directory. Configure it ' +
+            "first with: $qualificationConfigureCommand"
+        )
+    }
+}
 Clear-WasmBuildEnvironment
 $env:PYTHONNOUSERSITE = '1'
 
@@ -354,6 +397,108 @@ function Invoke-NativeProcessCapture {
     }
     finally {
         $process.Dispose()
+    }
+}
+
+function Assert-QualificationConfigureSettled {
+    param(
+        [string]$BuildRoot,
+        [string]$Cmake,
+        [string]$Ninja,
+        [Collections.Generic.List[IDisposable]]$Locks,
+        [string]$ConfigureCommand
+    )
+
+    $configureDiagnostic = (
+        'Qualified build configuration is stale or unverified. ' +
+        "Configure it first with: $ConfigureCommand"
+    )
+    $buildNinja = Join-Path $BuildRoot 'build.ninja'
+    $verifyGlobs = Join-Path `
+        $BuildRoot `
+        'CMakeFiles\VerifyGlobs.cmake'
+    $globMarker = Join-Path `
+        $BuildRoot `
+        'CMakeFiles\cmake.verify_globs'
+    foreach ($control in @($buildNinja, $verifyGlobs, $globMarker)) {
+        if (-not (Test-Path -LiteralPath $control -PathType Leaf)) {
+            throw $configureDiagnostic
+        }
+        $Locks.Add((
+            Open-AuthenticatedFileReadLock `
+                -Path $control `
+                -Description 'qualification configure control'
+        ).Stream)
+    }
+
+    $globResult = Invoke-NativeProcessCapture `
+        -FileName $Cmake `
+        -ChildArguments @('-P', $verifyGlobs)
+    if (
+        $globResult.ExitCode -ne 0 -or
+        (-not [string]::IsNullOrWhiteSpace($globResult.Stdout)) -or
+        (-not [string]::IsNullOrWhiteSpace($globResult.Stderr))
+    ) {
+        throw $configureDiagnostic
+    }
+
+    $queryResult = Invoke-NativeProcessCapture `
+        -FileName $Ninja `
+        -ChildArguments @(
+            '-C',
+            $BuildRoot,
+            '-t',
+            'query',
+            'build.ninja'
+    )
+    if (
+        $queryResult.ExitCode -ne 0 -or
+        (-not [string]::IsNullOrWhiteSpace($queryResult.Stderr))
+    ) {
+        throw $configureDiagnostic
+    }
+    $queryLines = @(
+        [Regex]::Split($queryResult.Stdout.TrimEnd(), '\r?\n')
+    )
+    $inputIndex = [Array]::IndexOf(
+        $queryLines,
+        '  input: RERUN_CMAKE'
+    )
+    $outputIndex = [Array]::IndexOf($queryLines, '  outputs:')
+    if (
+        $queryLines.Count -lt 4 -or
+        ($queryLines[0] -cne 'build.ninja:') -or
+        $inputIndex -ne 1 -or
+        $outputIndex -le $inputIndex + 1
+    ) {
+        throw $configureDiagnostic
+    }
+
+    $buildNinjaItem = Get-Item -LiteralPath $buildNinja -Force
+    for (
+        $dependencyIndex = $inputIndex + 1;
+        $dependencyIndex -lt $outputIndex;
+        $dependencyIndex++
+    ) {
+        $dependencyLine = [string]$queryLines[$dependencyIndex]
+        if ($dependencyLine -notmatch '^    (?:(?:\|\|?) )?(.+)$') {
+            throw $configureDiagnostic
+        }
+        $dependency = [string]$Matches[1]
+        $dependencyPath = if ([IO.Path]::IsPathRooted($dependency)) {
+            [IO.Path]::GetFullPath($dependency)
+        }
+        else {
+            [IO.Path]::GetFullPath((Join-Path $BuildRoot $dependency))
+        }
+        if (-not (Test-Path -LiteralPath $dependencyPath -PathType Leaf)) {
+            throw $configureDiagnostic
+        }
+        $dependencyItem = Get-Item -LiteralPath $dependencyPath -Force
+        if ($dependencyItem.LastWriteTimeUtc -gt
+            $buildNinjaItem.LastWriteTimeUtc) {
+            throw $configureDiagnostic
+        }
     }
 }
 
@@ -947,6 +1092,29 @@ if ($qualificationRequested) {
     $repoRoot = Assert-DirectoryNotReparse `
         -Path (Join-Path $PSScriptRoot '..\..\..') `
         -Description 'Qualification repository root'
+    $buildRoot = Get-ProvenanceContainedPath `
+        -Root $repoRoot `
+        -Relative 'tools/wasm-probe/build/wasm-release' `
+        -Description 'qualification probe build root'
+    $buildRoot = Assert-DirectoryNotReparse `
+        -Path $buildRoot `
+        -Description 'qualification probe build root'
+    if (-not [string]::Equals(
+        $buildRoot,
+        $canonicalQualifiedBuildRoot,
+        [StringComparison]::OrdinalIgnoreCase
+    )) {
+        throw (
+            'Canonical qualification build root changed unexpectedly. ' +
+            "Configure it first with: $qualificationConfigureCommand"
+        )
+    }
+    Assert-QualificationConfigureSettled `
+        -BuildRoot $buildRoot `
+        -Cmake $cmakeCommand `
+        -Ninja $ninjaCommand `
+        -Locks $authenticatedInputLocks `
+        -ConfigureCommand $qualificationConfigureCommand
     $installedRoot = Get-StrictDescendantPath `
         -Path (Join-Path $VcpkgStateRoot 'installed') `
         -Root $VcpkgStateRoot `
@@ -1046,13 +1214,6 @@ if ($qualificationRequested) {
         })
     }
 
-    $buildRoot = Get-ProvenanceContainedPath `
-        -Root $repoRoot `
-        -Relative 'tools/wasm-probe/build/wasm-release' `
-        -Description 'qualification probe build root'
-    $buildRoot = Assert-DirectoryNotReparse `
-        -Path $buildRoot `
-        -Description 'qualification probe build root'
     $buildControlManifest = Get-ProvenanceContainedPath `
         -Root $repoRoot `
         -Relative 'tools/wasm-probe/build-control-manifest.txt' `

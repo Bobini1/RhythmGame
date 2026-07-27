@@ -9,6 +9,7 @@ import selfsigned from "selfsigned";
 import { WebSocketServer } from "ws";
 
 import {
+    artifactForRole,
     loadArtifactManifest,
     sha256,
     sha256Sri,
@@ -21,7 +22,13 @@ import {
 const host = "127.0.0.1";
 const immutableCache = "public, max-age=31536000, immutable";
 const noStoreCache = "no-store";
+const revalidateCache = "no-cache";
 const corruption = Buffer.from("\n/* gate-1b-negative-corruption */\n");
+const maximumRunNonce = 0xFFFFFFFE;
+const maximumProbeLogEntries = 4096;
+const maximumRequestLogEntries = 4096;
+const maximumWebSocketMessageBytes = 4096;
+const expectedWebSocketBinary = Buffer.from([1, 2, 3]);
 
 function canonicalJson(value) {
     if (Array.isArray(value)) {
@@ -37,6 +44,73 @@ function canonicalJson(value) {
 
 function jsonBytes(value) {
     return Buffer.from(`${canonicalJson(value)}\n`, "utf8");
+}
+
+function deepFreezeJson(value) {
+    if (value !== null && typeof value === "object") {
+        for (const child of Object.values(value)) {
+            deepFreezeJson(child);
+        }
+        Object.freeze(value);
+    }
+    return value;
+}
+
+function readOnlyAppendLog(maximumEntries) {
+    if (!Number.isSafeInteger(maximumEntries) || maximumEntries <= 0) {
+        throw new TypeError("log entry bound must be a positive integer");
+    }
+    const entries = [];
+    let overflowed = false;
+    const view = new Proxy(entries, {
+        defineProperty() {
+            return false;
+        },
+        deleteProperty() {
+            return false;
+        },
+        get(target, property, receiver) {
+            if (property === "overflowed") {
+                return overflowed;
+            }
+            return Reflect.get(target, property, receiver);
+        },
+        preventExtensions() {
+            return false;
+        },
+        set() {
+            return false;
+        },
+        setPrototypeOf() {
+            return false;
+        },
+    });
+    return {
+        append(entry) {
+            if (entries.length >= maximumEntries) {
+                overflowed = true;
+                return false;
+            }
+            entries.push(deepFreezeJson(entry));
+            return true;
+        },
+        view,
+    };
+}
+
+function parseRunNonce(searchParams) {
+    const values = searchParams.getAll("nonce");
+    if (
+        values.length !== 1
+        || !/^[1-9][0-9]{0,9}$/.test(values[0])
+    ) {
+        return null;
+    }
+    const runNonce = Number(values[0]);
+    return Number.isSafeInteger(runNonce)
+        && runNonce <= maximumRunNonce
+        ? runNonce
+        : null;
 }
 
 function parseRawRoute(rawUrl) {
@@ -103,6 +177,23 @@ async function readContainedFile(root, leaf) {
     return readFile(resolved);
 }
 
+async function readVerifiedArtifact(root, artifact) {
+    const bytes = await readContainedFile(root, artifact.url);
+    const currentDigest = sha256(bytes);
+    if (
+        bytes.length !== artifact.bytes
+        || currentDigest !== artifact.sha256
+        || sha256Sri(bytes) !== artifact.sri
+        || (
+            artifact.url !== "RhythmGameWasmProbe.html"
+            && !artifact.url.includes(`.${currentDigest}.`)
+        )
+    ) {
+        return null;
+    }
+    return bytes;
+}
+
 function parseRange(value, length) {
     if (typeof value !== "string" || value.includes(",")) {
         return null;
@@ -136,12 +227,12 @@ function parseRange(value, length) {
     return { end: Math.min(end, length - 1), start };
 }
 
-function addLog(requestLogs, request, route, statusCode, body, headers) {
-    requestLogs.push(Object.freeze({
+function addLog(requestLog, request, route, statusCode, body, headers) {
+    return requestLog.append({
         bytes: body.length,
         contentType: headers["content-type"],
         method: request.method ?? "",
-        policy: Object.freeze({
+        policy: {
             contentSecurityPolicy: headers["content-security-policy"],
             crossOriginEmbedderPolicy:
                 headers["cross-origin-embedder-policy"],
@@ -149,11 +240,25 @@ function addLog(requestLogs, request, route, statusCode, body, headers) {
                 headers["cross-origin-opener-policy"],
             crossOriginResourcePolicy:
                 headers["cross-origin-resource-policy"],
-        }),
+        },
         route,
         sha256: createHash("sha256").update(body).digest("hex"),
         status: statusCode,
-    }));
+    });
+}
+
+function requestLogCapacityResponse(port) {
+    const body = jsonBytes({ error: "request-log-capacity" });
+    return {
+        body,
+        headers: {
+            ...policyHeaders(port),
+            "cache-control": noStoreCache,
+            connection: "close",
+            "content-length": String(body.length),
+            "content-type": "application/json; charset=utf-8",
+        },
+    };
 }
 
 function rawHeaderValues(request, expectedName) {
@@ -175,7 +280,7 @@ function hasCanonicalHost(request, port) {
     );
 }
 
-function send(requestLogs, request, response, {
+function send(requestLog, request, response, {
     body,
     contentType,
     extraHeaders = {},
@@ -195,13 +300,23 @@ function send(requestLogs, request, response, {
         "content-type": contentType,
         ...extraHeaders,
     };
+    if (!addLog(requestLog, request, route, status, payload, headers)) {
+        const capacity = requestLogCapacityResponse(
+            response.socket.localPort,
+        );
+        response.writeHead(503, capacity.headers);
+        response.end(
+            request.method === "HEAD" ? undefined : capacity.body,
+        );
+        return false;
+    }
     response.writeHead(status, headers);
     response.end(request.method === "HEAD" ? undefined : payload);
-    addLog(requestLogs, request, route, status, payload, headers);
+    return true;
 }
 
 function rejectUpgrade(
-    requestLogs,
+    requestLog,
     request,
     socket,
     port,
@@ -220,10 +335,26 @@ function rejectUpgrade(
         "content-type": "application/json; charset=utf-8",
         connection: "close",
     };
+    const capacity = addLog(
+        requestLog,
+        request,
+        route,
+        status,
+        body,
+        headers,
+    )
+        ? null
+        : requestLogCapacityResponse(port);
+    const responseBody = capacity?.body ?? body;
+    const responseHeaders = capacity?.headers ?? headers;
+    const responseStatus = capacity === null ? status : 503;
+    const responseStatusText = capacity === null
+        ? statusText
+        : "Service Unavailable";
     const header = Buffer.from(
         [
-            `HTTP/1.1 ${status} ${statusText}`,
-            ...Object.entries(headers).map(
+            `HTTP/1.1 ${responseStatus} ${responseStatusText}`,
+            ...Object.entries(responseHeaders).map(
                 ([name, value]) => `${name}: ${value}`,
             ),
             "",
@@ -231,8 +362,7 @@ function rejectUpgrade(
         ].join("\r\n"),
         "utf8",
     );
-    addLog(requestLogs, request, route, status, body, headers);
-    socket.end(Buffer.concat([header, body]));
+    socket.end(Buffer.concat([header, responseBody]));
 }
 
 function validWebSocketHandshake(request) {
@@ -344,9 +474,14 @@ export async function startProbeServer({
         loaded = await loadArtifactManifest(resolvedRuntimeDirectory);
     }
     const tls = await certificateOptions(certificate, privateKey);
-    const requestLogs = [];
+    const requestLogs = readOnlyAppendLog(maximumRequestLogEntries);
+    const probeLog = readOnlyAppendLog(maximumProbeLogEntries);
+    let requestSequence = 0;
+    let connectionSequence = 0;
     let port = 0;
     let origin = "";
+    const nextRequestId = () => `request-${++requestSequence}`;
+    const nextConnectionId = () => `connection-${++connectionSequence}`;
 
     const server = https.createServer({
         ...tls,
@@ -418,14 +553,60 @@ export async function startProbeServer({
                 return;
             }
             if (route === "/probe/qnam") {
-                const nonce = parsed.searchParams.get("nonce") ?? "";
-                send(requestLogs, request, response, {
-                    body: jsonBytes({
-                        nonce,
-                        ok: true,
-                        transport: "https",
-                    }),
+                const runNonce = parseRunNonce(parsed.searchParams);
+                if (runNonce === null) {
+                    send(requestLogs, request, response, {
+                        body: jsonBytes({ error: "invalid-run-nonce" }),
+                        contentType: "application/json; charset=utf-8",
+                        mode,
+                        policyRoute: route,
+                        route: normalizedLogRoute,
+                        status: 400,
+                    });
+                    return;
+                }
+                const requestId = nextRequestId();
+                const body = jsonBytes({
+                    nonce: runNonce,
+                    ok: true,
+                    requestId,
+                    transport: "https",
+                });
+                const sent = send(requestLogs, request, response, {
+                    body,
                     contentType: "application/json; charset=utf-8",
+                    extraHeaders: {
+                        "x-rhythmgame-probe-request-id": requestId,
+                    },
+                    mode,
+                    policyRoute: route,
+                    route: normalizedLogRoute,
+                });
+                if (sent) {
+                    probeLog.append({
+                        bodySha256: sha256(body),
+                        event: "response",
+                        kind: "qnam",
+                        method: request.method,
+                        requestId,
+                        route,
+                        runNonce,
+                        status: 200,
+                    });
+                }
+                return;
+            }
+            if (route === "/probe/bfcache-away") {
+                send(requestLogs, request, response, {
+                    body: (
+                        "<!doctype html><meta charset=\"utf-8\">"
+                        + "<link rel=\"icon\" href=\"data:,\">"
+                        + "<title>Gate 1B BFCache away</title>\n"
+                    ),
+                    contentType: "text/html; charset=utf-8",
+                    extraHeaders: {
+                        "cache-control": revalidateCache,
+                    },
                     mode,
                     policyRoute: route,
                     route: normalizedLogRoute,
@@ -471,6 +652,103 @@ export async function startProbeServer({
                 return;
             }
 
+            if (route === "/fixtures/probe.webm") {
+                const runNonce = parseRunNonce(parsed.searchParams);
+                if (runNonce === null || loaded === null) {
+                    send(requestLogs, request, response, {
+                        body: jsonBytes({
+                            error: runNonce === null
+                                ? "invalid-run-nonce"
+                                : "runtime-manifest-required",
+                        }),
+                        contentType: "application/json; charset=utf-8",
+                        mode,
+                        policyRoute: route,
+                        route: normalizedLogRoute,
+                        status: runNonce === null ? 400 : 503,
+                    });
+                    return;
+                }
+                const artifact = artifactForRole(
+                    loaded.manifest,
+                    "media",
+                );
+                let bytes = await readVerifiedArtifact(
+                    resolvedRuntimeDirectory,
+                    artifact,
+                );
+                if (bytes === null) {
+                    send(requestLogs, request, response, {
+                        body: jsonBytes({
+                            error: "artifact-digest-mismatch",
+                        }),
+                        contentType: "application/json; charset=utf-8",
+                        extraHeaders: {
+                            "cache-control": noStoreCache,
+                        },
+                        mode,
+                        policyRoute: route,
+                        route: normalizedLogRoute,
+                        status: 409,
+                    });
+                    return;
+                }
+
+                const requestId = nextRequestId();
+                const fullLength = bytes.length;
+                const extraHeaders = {
+                    "accept-ranges": "bytes",
+                    "cache-control": noStoreCache,
+                    "x-rhythmgame-probe-request-id": requestId,
+                };
+                let statusCode = 200;
+                if (request.headers.range) {
+                    const range = parseRange(
+                        request.headers.range,
+                        fullLength,
+                    );
+                    if (range === null) {
+                        extraHeaders["content-range"] =
+                            `bytes */${fullLength}`;
+                        bytes = Buffer.alloc(0);
+                        statusCode = 416;
+                    } else {
+                        extraHeaders["content-range"] =
+                            `bytes ${range.start}-${range.end}/${fullLength}`;
+                        bytes = bytes.subarray(
+                            range.start,
+                            range.end + 1,
+                        );
+                        statusCode = 206;
+                    }
+                }
+                send(requestLogs, request, response, {
+                    body: bytes,
+                    contentType: artifact.mime,
+                    extraHeaders,
+                    mode,
+                    policyRoute: route,
+                    route: normalizedLogRoute,
+                    status: statusCode,
+                });
+                probeLog.append({
+                    artifactBytes: artifact.bytes,
+                    artifactSha256: artifact.sha256,
+                    artifactSri: artifact.sri,
+                    event: "response",
+                    kind: "media",
+                    method: request.method,
+                    range: request.headers.range ?? null,
+                    requestId,
+                    responseBytes: bytes.length,
+                    responseSha256: sha256(bytes),
+                    route,
+                    runNonce,
+                    status: statusCode,
+                });
+                return;
+            }
+
             const artifactEntry = loaded
                 ? Object.entries(loaded.manifest.artifacts).find(
                     ([, candidate]) => `/${candidate.url}` === route,
@@ -488,20 +766,11 @@ export async function startProbeServer({
                 return;
             }
             const [role, artifact] = artifactEntry;
-            let bytes = await readContainedFile(
+            let bytes = await readVerifiedArtifact(
                 resolvedRuntimeDirectory,
-                artifact.url,
+                artifact,
             );
-            const currentDigest = sha256(bytes);
-            if (
-                currentDigest !== artifact.sha256
-                || sha256Sri(bytes) !== artifact.sri
-                || bytes.length !== artifact.bytes
-                || (
-                    artifact.url !== "RhythmGameWasmProbe.html"
-                    && !artifact.url.includes(`.${currentDigest}.`)
-                )
-            ) {
+            if (bytes === null) {
                 send(requestLogs, request, response, {
                     body: jsonBytes({ error: "artifact-digest-mismatch" }),
                     contentType: "application/json; charset=utf-8",
@@ -542,9 +811,12 @@ export async function startProbeServer({
 
             const extraHeaders = {
                 "cache-control": mode !== null
-                    || artifact.url === "RhythmGameWasmProbe.html"
                     ? noStoreCache
-                    : immutableCache,
+                    : (
+                        artifact.url === "RhythmGameWasmProbe.html"
+                            ? revalidateCache
+                            : immutableCache
+                    ),
             };
             let statusCode = 200;
             if (artifact.mime === "video/webm" && request.headers.range) {
@@ -583,31 +855,181 @@ export async function startProbeServer({
         }
     });
 
-    const websocketServer = new WebSocketServer({noServer: true});
-    websocketServer.on("headers", (headers) => {
-        headers.push(...websocketPolicyLines(port));
+    const websocketServer = new WebSocketServer({
+        maxPayload: maximumWebSocketMessageBytes,
+        noServer: true,
+        perMessageDeflate: false,
     });
-    websocketServer.on("connection", (socket) => {
+    websocketServer.on("headers", (headers, request) => {
+        headers.push(...websocketPolicyLines(port));
+        if (request.gate1bProbeContext !== undefined) {
+            headers.push(
+                "X-RhythmGame-Probe-Connection-Id: "
+                + request.gate1bProbeContext.connectionId,
+            );
+        }
+    });
+    websocketServer.on("connection", (socket, request) => {
+        const context = request.gate1bProbeContext;
+        if (context === undefined) {
+            socket.close(1011, "probe-context-missing");
+            return;
+        }
+        const append = (event, detail = {}) => (
+            probeLog.append({
+                connectionId: context.connectionId,
+                event,
+                kind: "wss",
+                runNonce: context.runNonce,
+                ...detail,
+            })
+        );
+        let protocolStep = "text-echo";
+        let terminal = false;
+        const closeTerminal = (code, reason, nextStep = "failed") => {
+            if (terminal) {
+                return;
+            }
+            terminal = true;
+            protocolStep = nextStep;
+            socket.close(code, reason);
+        };
+        const closeForPolicyViolation = (reason) => {
+            closeTerminal(1008, reason);
+        };
+        if (!append("opened", {
+            origin: context.origin,
+            route: "/probe/ws",
+        })) {
+            closeTerminal(1013, "probe-log-capacity");
+            return;
+        }
         socket.send(canonicalJson({
+            connectionId: context.connectionId,
+            nonce: context.runNonce,
             type: "server-message",
             value: "connected",
         }));
+        if (!append("server-message")) {
+            closeTerminal(1013, "probe-log-capacity");
+            return;
+        }
+        let receivedMessageCount = 0;
         socket.on("message", (data, isBinary) => {
-            if (isBinary) {
+            if (terminal) {
+                return;
+            }
+            ++receivedMessageCount;
+            if (receivedMessageCount > 4) {
+                closeForPolicyViolation("message-count");
+                return;
+            }
+            if (protocolStep === "text-echo") {
+                if (isBinary) {
+                    closeForPolicyViolation("message-order");
+                    return;
+                }
+                const text = data.toString("utf8");
+                const expectedText = `text-echo:${context.runNonce}`;
+                if (text !== expectedText) {
+                    closeForPolicyViolation("text-echo-mismatch");
+                    return;
+                }
+                if (!append("text-received", { text })) {
+                    closeTerminal(1013, "probe-log-capacity");
+                    return;
+                }
+                socket.send(text);
+                if (!append("text-echoed", { text })) {
+                    closeTerminal(1013, "probe-log-capacity");
+                    return;
+                }
+                protocolStep = "binary-echo";
+                return;
+            }
+            if (protocolStep === "binary-echo") {
+                if (!isBinary) {
+                    closeForPolicyViolation("message-order");
+                    return;
+                }
+                const bytes = Buffer.from(data);
+                if (!bytes.equals(expectedWebSocketBinary)) {
+                    closeForPolicyViolation("binary-echo-mismatch");
+                    return;
+                }
+                if (!append("binary-received", {
+                    bytes: bytes.length,
+                    sha256: sha256(bytes),
+                })) {
+                    closeTerminal(1013, "probe-log-capacity");
+                    return;
+                }
                 socket.send(data, { binary: true });
+                if (!append("binary-echoed", {
+                    bytes: bytes.length,
+                    sha256: sha256(bytes),
+                })) {
+                    closeTerminal(1013, "probe-log-capacity");
+                    return;
+                }
+                protocolStep = "heartbeat";
+                return;
+            }
+            if (protocolStep === "heartbeat") {
+                if (isBinary) {
+                    closeForPolicyViolation("message-order");
+                    return;
+                }
+                const text = data.toString("utf8");
+                if (text !== `heartbeat:${context.runNonce}`) {
+                    closeForPolicyViolation("nonce-mismatch");
+                    return;
+                }
+                if (!append("heartbeat-received", { text })) {
+                    closeTerminal(1013, "probe-log-capacity");
+                    return;
+                }
+                socket.send(canonicalJson({
+                    nonce: context.runNonce,
+                    type: "heartbeat",
+                }));
+                if (!append("heartbeat-sent")) {
+                    closeTerminal(1013, "probe-log-capacity");
+                    return;
+                }
+                protocolStep = "close";
+                return;
+            }
+            if (protocolStep !== "close" || isBinary) {
+                closeForPolicyViolation("message-order");
                 return;
             }
             const text = data.toString("utf8");
-            if (text.startsWith("heartbeat:")) {
-                socket.send(canonicalJson({
-                    nonce: text.slice("heartbeat:".length),
-                    type: "heartbeat",
-                }));
-            } else if (text === "close") {
-                socket.close(1000, "probe-complete");
-            } else {
-                socket.send(text);
+            if (text !== "close") {
+                closeForPolicyViolation("close-mismatch");
+                return;
             }
+            if (!append("close-requested")) {
+                closeTerminal(1013, "probe-log-capacity");
+                return;
+            }
+            closeTerminal(1000, "probe-complete", "complete");
+        });
+        socket.on("error", () => {
+            terminal = true;
+            if (protocolStep !== "complete") {
+                protocolStep = "failed";
+            }
+        });
+        socket.on("close", (code, reason) => {
+            terminal = true;
+            if (protocolStep !== "complete") {
+                protocolStep = "failed";
+            }
+            append("closed", {
+                code,
+                reason: reason.toString("utf8"),
+            });
         });
     });
 
@@ -669,6 +1091,16 @@ export async function startProbeServer({
             });
             return;
         }
+        const runNonce = parseRunNonce(parsed.searchParams);
+        if (runNonce === null) {
+            rejectUpgrade(requestLogs, request, socket, port, {
+                error: "invalid-run-nonce",
+                route: parsed.route,
+                status: 400,
+                statusText: "Bad Request",
+            });
+            return;
+        }
         if (rawHeaderValues(request, "origin").length !== 1) {
             rejectUpgrade(requestLogs, request, socket, port, {
                 error: "malformed-websocket-upgrade",
@@ -696,6 +1128,11 @@ export async function startProbeServer({
             });
             return;
         }
+        request.gate1bProbeContext = Object.freeze({
+            connectionId: nextConnectionId(),
+            origin: request.headers.origin,
+            runNonce,
+        });
         websocketServer.handleUpgrade(request, socket, head, (websocket) => {
             websocketServer.emit("connection", websocket, request);
         });
@@ -723,7 +1160,8 @@ export async function startProbeServer({
         }),
         origin,
         port,
-        requestLogs,
+        probeLogs: probeLog.view,
+        requestLogs: requestLogs.view,
     });
 }
 

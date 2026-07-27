@@ -1,0 +1,23 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1ffde84..0ab01e7 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -18,6 +18,18 @@ find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED COMPONENTS BuildInternals)
+ # defined.
+ qt_internal_project_setup()
+ 
++# Keep Wasm static-package bytes independent of vcpkg's checkout and build
++# locations. Some bundled sources retain __FILE__ in release objects, so both
++# compiler diagnostics and macro expansion must use stable logical roots.
++if(EMSCRIPTEN)
++    add_compile_options(
++        "-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=/qt/qtmultimedia/source"
++        "-fmacro-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=/qt/qtmultimedia/source"
++        "-ffile-prefix-map=${CMAKE_CURRENT_BINARY_DIR}=/qt/qtmultimedia/build"
++        "-fmacro-prefix-map=${CMAKE_CURRENT_BINARY_DIR}=/qt/qtmultimedia/build"
++    )
++endif()
++
+ find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED Core)
+ find_package(Qt6 ${PROJECT_VERSION} QUIET CONFIG
+     OPTIONAL_COMPONENTS

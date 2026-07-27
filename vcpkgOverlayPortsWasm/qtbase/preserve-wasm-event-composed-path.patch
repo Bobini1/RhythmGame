@@ -1,0 +1,262 @@
+diff --git a/src/corelib/kernel/qeventdispatcher_wasm.cpp b/src/corelib/kernel/qeventdispatcher_wasm.cpp
+--- a/src/corelib/kernel/qeventdispatcher_wasm.cpp
++++ b/src/corelib/kernel/qeventdispatcher_wasm.cpp
+@@ -5,6 +5,7 @@
+ #include "qeventdispatcher_wasm_p.h"
+ 
+ #include <QtCore/qcoreapplication.h>
++#include <QtCore/qscopeguard.h>
+ #include <QtCore/qthread.h>
+ #include <QtCore/qscopedvaluerollback.h>
+ #include <QtCore/private/qobject_p.h>
+@@ -22,6 +23,8 @@ using emscripten::val;
+ Q_LOGGING_CATEGORY(lcEventDispatcher, "qt.eventdispatcher");
+ Q_LOGGING_CATEGORY(lcEventDispatcherTimers, "qt.eventdispatcher.timers");
+ 
++static thread_local int eventDeliveryDepth = 0;
++
+ #if QT_CONFIG(thread)
+ #define LOCK_GUARD(M) std::lock_guard<std::mutex> lock(M)
+ #else
+@@ -195,6 +198,12 @@ bool QEventDispatcherWasm::processEvents(QEventLoop::ProcessEventsFlags flags)
+ 
+ bool QEventDispatcherWasm::sendAllEvents(QEventLoop::ProcessEventsFlags flags)
+ {
++    ++eventDeliveryDepth;
++    const auto eventDeliveryDepthGuard = qScopeGuard([] {
++        Q_ASSERT(eventDeliveryDepth > 0);
++        --eventDeliveryDepth;
++    });
++
+     bool didSendEvents = false;
+ 
+     didSendEvents |= sendPostedEvents();
+@@ -212,6 +221,81 @@ bool QEventDispatcherWasm::sendAllEvents(QEventLoop::ProcessEventsFlags flags)
+     return didSendEvents;
+ }
+ 
++bool QEventDispatcherWasm::sendPendingNativeEventsFromBrowser()
++{
++    if (!emscripten_is_main_runtime_thread())
++        return false;
++    Q_ASSERT(emscripten_is_main_runtime_thread());
++
++    QWasmSuspendResumeControl *suspendResumeControl =
++            g_mainThreadSuspendResumeControl;
++    if (!suspendResumeControl)
++        return true;
++
++    const emscripten::val control =
++            QWasmSuspendResumeControl::suspendResumeControlJs();
++    if (control["exclusiveEventHandler"].as<int>() > 0)
++        return false;
++
++    const int deliveryDepthIncrement = useAsyncify() ? 1 : 0;
++    eventDeliveryDepth += deliveryDepthIncrement;
++    const auto eventDeliveryDepthGuard = qScopeGuard([deliveryDepthIncrement] {
++        Q_ASSERT(eventDeliveryDepth >= deliveryDepthIncrement);
++        eventDeliveryDepth -= deliveryDepthIncrement;
++    });
++    suspendResumeControl->sendPendingEvents();
++    return true;
++}
++
++bool QEventDispatcherWasm::sendPendingApplicationEventsFromBrowser()
++{
++    if (!emscripten_is_main_runtime_thread())
++        return false;
++    Q_ASSERT(emscripten_is_main_runtime_thread());
++
++    QEventDispatcherWasm *eventDispatcher = g_mainThreadEventDispatcher;
++    QWasmSuspendResumeControl *suspendResumeControl =
++            g_mainThreadSuspendResumeControl;
++    if (!eventDispatcher || !suspendResumeControl)
++        return true;
++
++    const emscripten::val control =
++            QWasmSuspendResumeControl::suspendResumeControlJs();
++    if (control["exclusiveEventHandler"].as<int>() > 0
++        || eventDeliveryDepth > 0) {
++        return false;
++    }
++
++    // In early-main-return mode there is no exec() stack to resume. Supply one
++    // non-blocking Qt cycle from the retained browser pump, while preventing a
++    // queued wakeup handler from recursively entering the dispatcher.
++    ++eventDeliveryDepth;
++    const auto eventDeliveryDepthGuard = qScopeGuard([] {
++        Q_ASSERT(eventDeliveryDepth > 0);
++        --eventDeliveryDepth;
++    });
++    eventDispatcher->sendPostedEvents();
++    if (!isValidEventDispatcherPointer(eventDispatcher))
++        return true;
++
++    suspendResumeControl->sendPendingEvents();
++    if (!isValidEventDispatcherPointer(eventDispatcher))
++        return true;
++
++    eventDispatcher->sendTimerEvents();
++    if (!isValidEventDispatcherPointer(eventDispatcher))
++        return true;
++
++    // Early-main-return mode has no outer exec() level to admit deferred
++    // deletes. Match Qt's externally pumped event-cycle pattern by
++    // flushing them after the complete posted/native/timer cycle.
++    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
++    if (!isValidEventDispatcherPointer(eventDispatcher))
++        return true;
++
++    return true;
++}
++
+ bool QEventDispatcherWasm::sendNativeEvents(QEventLoop::ProcessEventsFlags flags)
+ {
+     // TODO: support ExcludeUserInputEvents and ExcludeSocketNotifiers
+@@ -485,11 +569,12 @@ void QEventDispatcherWasm::onWakeup()
+     if (!g_mainThreadEventDispatcher)
+         return;
+ 
+-    // In the case where we are suspending from sendNativeEvents() we don't want
+-    // to call processEvents() again, since we are then already in processEvents()
+-    // and are already awake.
+-    if (g_mainThreadEventDispatcher->m_isSendingNativeEvents)
++    // A native send or another event-delivery stack already owns this wakeup.
++    // The retained browser pump explicitly drains posted events on a later cycle.
++    if (g_mainThreadEventDispatcher->m_isSendingNativeEvents
++        || eventDeliveryDepth > 0) {
+         return;
++    }
+ 
+     g_mainThreadEventDispatcher->processEvents(QEventLoop::AllEvents);
+ }
+diff --git a/src/corelib/kernel/qeventdispatcher_wasm_p.h b/src/corelib/kernel/qeventdispatcher_wasm_p.h
+--- a/src/corelib/kernel/qeventdispatcher_wasm_p.h
++++ b/src/corelib/kernel/qeventdispatcher_wasm_p.h
+@@ -65,6 +65,8 @@ public:
+     static void onTimer();
+     static void onWakeup();
+     static void onProcessNativeEventsResume();
++    static bool sendPendingNativeEventsFromBrowser();
++    static bool sendPendingApplicationEventsFromBrowser();
+ protected:
+     virtual bool sendPostedEvents();
+ 
+diff --git a/src/corelib/platform/wasm/qwasmsuspendresumecontrol.cpp b/src/corelib/platform/wasm/qwasmsuspendresumecontrol.cpp
+--- a/src/corelib/platform/wasm/qwasmsuspendresumecontrol.cpp
++++ b/src/corelib/platform/wasm/qwasmsuspendresumecontrol.cpp
+@@ -3,9 +3,11 @@
+ // Qt-Security score:significant reason:default
+ 
+ #include "qwasmsuspendresumecontrol_p.h"
++#include <private/qeventdispatcher_wasm_p.h>
+ #include "qstdweb_p.h"
+ 
+ #include <QtCore/qapplicationstatic.h>
++#include <QtCore/qscopeguard.h>
+ #include <QtCore/qdebug.h>
+ 
+ #include <emscripten.h>
+@@ -86,6 +88,8 @@ void qtRegisterEventHandlerJs(int index) {
+             if (!(obj instanceof Event))
+                 return obj;
+ 
++            const composedPath = Object.freeze(Array.from(obj.composedPath()));
++
+             const objCopy = {};
+             for (const key in obj) {
+                 if (typeof obj[key] === 'function')
+@@ -94,6 +98,10 @@ void qtRegisterEventHandlerJs(int index) {
+                     objCopy[key] = obj[key];
+             }
+ 
++            // Event.composedPath() becomes empty after native dispatch. Keep
++            // the path that was visible when Qt queued this event.
++            objCopy['composedPath'] = () => composedPath;
++
+             objCopy['isInstanceOfEvent'] = true;
+             return objCopy;
+         }
+@@ -232,9 +240,13 @@ int QWasmSuspendResumeControl::sendPendingEvents()
+ 
+             auto it = m_eventHandlers.find(event["index"].as<int>());
+             if (it != m_eventHandlers.end()) {
+-                setCurrentEvent(event["arg"]);
+-                it->second(currentEvent());
+-                setCurrentEvent(emscripten::val::undefined());
++                const auto currentEventContext = m_currentEvents.insert(
++                        m_currentEvents.end(), event["arg"]);
++                const auto currentEventGuard = qScopeGuard(
++                        [this, currentEventContext] {
++                    m_currentEvents.erase(currentEventContext);
++                });
++                it->second(*currentEventContext);
+             }
+             ++count;
+         }
+@@ -247,14 +259,24 @@ int QWasmSuspendResumeControl::sendPendingEvents()
+     return count;
+ }
+ 
+-void qtSendPendingEvents()
++// This Embind entry intentionally stays synchronous. Native DOM delivery may
++// nest only in LIFO order while the promising application export is suspended;
++// a handler that attempts to suspend through this boundary traps the runtime.
++bool qtSendPendingEvents()
++{
++    return QEventDispatcherWasm::sendPendingNativeEventsFromBrowser();
++}
++
++bool qtSendPendingApplicationEvents()
+ {
+-    if (s_suspendResumeControl)
+-        s_suspendResumeControl->sendPendingEvents();
++    return QEventDispatcherWasm::
++            sendPendingApplicationEventsFromBrowser();
+ }
+ 
+ EMSCRIPTEN_BINDINGS(qtSuspendResumeControl) {
+-    emscripten::function("qtSendPendingEvents", qtSendPendingEvents QT_WASM_EMSCRIPTEN_ASYNC);
++    emscripten::function("qtSendPendingEvents", qtSendPendingEvents);
++    emscripten::function("qtSendPendingApplicationEvents",
++                         qtSendPendingApplicationEvents QT_WASM_EMSCRIPTEN_ASYNC);
+ }
+ 
+ //
+diff --git a/src/corelib/platform/wasm/qwasmsuspendresumecontrol_p.h b/src/corelib/platform/wasm/qwasmsuspendresumecontrol_p.h
+--- a/src/corelib/platform/wasm/qwasmsuspendresumecontrol_p.h
++++ b/src/corelib/platform/wasm/qwasmsuspendresumecontrol_p.h
+@@ -8,6 +8,7 @@
+ #include <QtCore/qglobal.h>
+ #include <emscripten/val.h>
+ #include <map>
++#include <list>
+ #include <functional>
+ #include <chrono>
+ 
+@@ -45,17 +46,22 @@ public:
+ 
+     emscripten::val currentEvent() const
+     {
+-        return m_currentEvent;
++        return m_currentEvents.empty()
++                ? m_currentEvent
++                : m_currentEvents.back();
+     }
+     void setCurrentEvent(emscripten::val currentEvent)
+     {
+-        m_currentEvent = currentEvent;
++        if (m_currentEvents.empty())
++            m_currentEvent = currentEvent;
++        else
++            m_currentEvents.back() = currentEvent;
+     }
+ 
+ private:
+-    friend void qtSendPendingEvents();
+ 
+     std::map<int, std::function<void(emscripten::val)>> m_eventHandlers;
+     std::function<bool(int)> m_eventFilter = [](int) { return true; };
++    std::list<emscripten::val> m_currentEvents;
+     emscripten::val m_currentEvent = emscripten::val::undefined();
+ };

@@ -124,6 +124,7 @@ find_package(Qt6 6.11.1 EXACT REQUIRED COMPONENTS
     Network
     Qml
     Quick
+    QuickControls2
     ShaderTools
     WebSockets
 )
@@ -225,11 +226,26 @@ target_link_libraries(WasmProbeExceptionBoundary PUBLIC
 qt_add_executable(RhythmGameWasmProbe
     "${WASM_PROBE_DEPENDENCY_SOURCE}"
     "${WASM_PROBE_GENERATED_DIR}/ProbeInputDigest.cpp"
+    src/BrowserRuntimeBridge.cpp
+    src/BrowserRuntimeBridge.h
+    src/Gate1bReport.cpp
+    src/Gate1bReport.h
+    src/JspiNestedLoopProbe.cpp
+    src/JspiNestedLoopProbe.h
     src/main.cpp
+    src/MediaProbe.cpp
+    src/MediaProbe.h
+    src/NetworkProbe.cpp
+    src/NetworkProbe.h
     src/ProbeState.cpp
     src/ProbeState.h
+    src/RenderProbe.cpp
+    src/RenderProbe.h
 )
 target_compile_features(RhythmGameWasmProbe PRIVATE cxx_std_20)
+target_compile_definitions(RhythmGameWasmProbe PRIVATE
+    _GNU_SOURCE
+)
 set_target_properties(RhythmGameWasmProbe PROPERTIES
     NO_WASM_DEFAULT_FILES TRUE
 )
@@ -252,9 +268,11 @@ qt_add_shaders(RhythmGameWasmProbe "wasm_probe_shaders"
 target_link_libraries(RhythmGameWasmProbe PRIVATE
     WasmProbeExceptionBoundary
     Qt6::Concurrent
+    Qt6::CorePrivate
     Qt6::Multimedia
     Qt6::Network
     Qt6::Quick
+    Qt6::QuickControls2
     Qt6::WebSockets
 )
 

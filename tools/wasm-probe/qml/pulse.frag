@@ -11,6 +11,8 @@ layout(std140, binding = 0) uniform buf {
 
 void main()
 {
-    float glow = 0.2 + 0.15 * sin(phase * 6.28318530718);
-    fragColor = vec4(glow, glow * 1.4, glow * 2.0, 1.0) * qt_Opacity;
+    float red = 0.10 + 0.50 * phase;
+    float green = 0.20 + 0.25 * phase;
+    float blue = 0.80 - 0.50 * phase;
+    fragColor = vec4(red, green, blue, 1.00) * qt_Opacity;
 }

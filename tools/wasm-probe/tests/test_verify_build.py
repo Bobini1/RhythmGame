@@ -14,13 +14,319 @@ import verify_build
 
 class VerifyBuildContractTest(unittest.TestCase):
     @staticmethod
+    def overlay_evidence_fixture() -> dict[str, object]:
+        repo = Path(verify_build.__file__).resolve().parents[3]
+        roots = {
+            "qtbase": repo / "vcpkgOverlayPortsWasm" / "qtbase",
+            "qtdeclarative": (
+                repo / "vcpkgOverlayPorts" / "qtdeclarative"
+            ),
+            "qtmultimedia": (
+                repo / "vcpkgOverlayPortsWasm" / "qtmultimedia"
+            ),
+        }
+        contracts = {
+            "qtbase": {
+                "baselineTree": verify_build.EXPECTED_QTBASE_TREE,
+                "modifiedBaselineFiles": [
+                    "portfile.cmake",
+                    "vcpkg.json",
+                ],
+                "lineEndingOnlyBaselineFiles": [],
+                "removedBaselineFiles": [],
+                "addedFiles": [
+                    "preserve-wasm-event-composed-path.patch",
+                    "restore-wasm-version-check.patch",
+                ],
+            },
+            "qtdeclarative": {
+                "baselineTree": verify_build.EXPECTED_QTDECLARATIVE_TREE,
+                "modifiedBaselineFiles": [
+                    "portfile.cmake",
+                    "vcpkg.json",
+                ],
+                "lineEndingOnlyBaselineFiles": ["port.data.cmake"],
+                "removedBaselineFiles": [],
+                "addedFiles": [
+                    "24205cd-qquickwindow-child-window-stacking.patch"
+                ],
+            },
+            "qtmultimedia": {
+                "baselineTree": verify_build.EXPECTED_QTMULTIMEDIA_TREE,
+                "modifiedBaselineFiles": [
+                    "portfile.cmake",
+                    "vcpkg.json",
+                ],
+                "lineEndingOnlyBaselineFiles": [],
+                "removedBaselineFiles": [
+                    "ffmpeg-devendor-signalsmith-stretch.patch",
+                    "ffmpeg.patch",
+                    "fix-msvc-x86-propvariant.patch",
+                    "remove-static-ssl-stub.patch",
+                    "static_find_modules.patch",
+                ],
+                "addedFiles": [
+                    "canonicalize-wasm-build-paths.patch",
+                    "correct-wasm-media-lifecycle.patch",
+                    "defer-wasm-media-device-notifications.patch"
+                ],
+            },
+        }
+        evidence: dict[str, object] = {}
+        for port, inventory in (
+            verify_build.EXPECTED_OVERLAY_INVENTORY.items()
+        ):
+            hashes = {
+                relative: verify_build.sha256(roots[port] / relative)
+                for relative in inventory
+            }
+            evidence[port] = {
+                **contracts[port],
+                "fileCount": len(inventory),
+                "fileSha256": hashes,
+                "aggregateSha256": (
+                    verify_build.EXPECTED_OVERLAY_AGGREGATE_SHA256[port]
+                ),
+            }
+        evidence["reviewedDelta"] = {
+            "qtbase": [
+                "restore Emscripten version-helper include and check",
+                "snapshot queued Wasm DOM event composedPath",
+                "export synchronous native and promising full Wasm pumps",
+                "use additive JSPI delivery depth accounting",
+                "erase exact nested current-event context on LIFO unwind",
+                "run posted/native/timer/deferred-delete application cycle",
+                "seed wasm-emscripten target mkspec before project",
+                "thread ON",
+                "wasm_exceptions ON",
+                "wasm_jspi ON",
+                "wasm_simd128 OFF",
+            ],
+            "qtdeclarative": [
+                "existing child-window stacking patch",
+                "Emscripten AutoGen response threshold 4096",
+                "host-only FluentWinUI3 OFF",
+                "host-only Universal OFF",
+            ],
+            "qtmultimedia": [
+                "canonicalize Wasm compiler and macro source paths",
+                "omit non-Wasm baseline FFmpeg GObject and MSVC patches",
+                "publish singleton before asynchronous device enumeration",
+                "reconcile browser devices while retaining OpenAL defaults",
+                "serialize and keep devicechange enumeration non-suspending",
+                "queue five media-device cache notifications",
+                "reject startup emptied as natural playback end",
+                "silence idempotent Wasm media-player stop",
+                "initialize optional Wasm media input stream pointer",
+                "make Wasm video-output stop re-entry and null safe",
+                "leave natural-end teardown to explicit source cleanup",
+            ],
+        }
+        return evidence
+
+    @staticmethod
+    def overlay_hash_aggregate(file_hashes: dict[str, str]) -> str:
+        aggregate = hashlib.sha256()
+        for relative, digest in sorted(file_hashes.items()):
+            aggregate.update(relative.encode("utf-8") + b"\0")
+            aggregate.update(digest.encode("ascii") + b"\n")
+        return aggregate.hexdigest()
+
+    @staticmethod
+    def qtmultimedia_reproducibility_fixture(
+        repo: Path,
+    ) -> dict[str, object]:
+        primary_manifest = repo / "tools" / "wasm-probe" / "vcpkg.json"
+        primary_manifest.parent.mkdir(parents=True)
+        primary_manifest_payload = {
+            "name": "reproducibility-fixture",
+            "version-semver": "0.1.0",
+            "builtin-baseline": verify_build.EXPECTED_VCPKG_COMMIT,
+            "dependencies": ["qtmultimedia"],
+        }
+        primary_manifest.write_text(
+            json.dumps(primary_manifest_payload, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        secondary_root = (
+            repo / verify_build.QTMULTIMEDIA_SECONDARY_RELATIVE_ROOT
+        )
+        secondary_manifest = secondary_root / "manifest" / "vcpkg.json"
+        secondary_manifest.parent.mkdir(parents=True)
+        secondary_manifest_payload = dict(primary_manifest_payload)
+        del secondary_manifest_payload["builtin-baseline"]
+        secondary_manifest.write_text(
+            json.dumps(secondary_manifest_payload, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        primary_build = (
+            repo
+            / ".wb"
+            / "qtmultimedia"
+            / f"{verify_build.TARGET_TRIPLET}-rel"
+        )
+        primary_source = (
+            repo / ".wb" / "qtmultimedia" / "src" / "primary.clean"
+        )
+        secondary_buildtrees = secondary_root / "buildtrees"
+        secondary_build = (
+            secondary_buildtrees
+            / "qtmultimedia"
+            / f"{verify_build.TARGET_TRIPLET}-rel"
+        )
+        secondary_source = (
+            secondary_buildtrees
+            / "qtmultimedia"
+            / "src"
+            / "primary.clean"
+        )
+        for path in (
+            primary_build,
+            primary_source,
+            secondary_build,
+            secondary_source,
+            secondary_root / "installed",
+            secondary_root / "binary-cache",
+            secondary_root / "packages",
+            secondary_root / "probe-configure",
+            repo / ".wasm-vcpkg" / "downloads",
+        ):
+            path.mkdir(parents=True, exist_ok=True)
+        expected_outer_cmake = (
+            repo
+            / ".toolchains"
+            / verify_build.EXPECTED_OUTER_CMAKE_LOCK_ENTRY["directory"]
+            / "bin"
+            / "cmake.exe"
+        )
+        expected_vcpkg_toolchain = (
+            repo
+            / ".toolchains"
+            / f"vcpkg-{verify_build.EXPECTED_VCPKG_COMMIT[:8]}"
+            / "scripts"
+            / "buildsystems"
+            / "vcpkg.cmake"
+        )
+        expected_chainload_toolchain = (
+            repo / "cmake" / "toolchains" / "vcpkg-emscripten.cmake"
+        )
+        expected_sysroot = (
+            repo
+            / ".toolchains"
+            / f"emscripten-cache-{verify_build.EXPECTED_EMSCRIPTEN}"
+            / "sysroot"
+        )
+        (primary_build / "CMakeCache.txt").write_text(
+            f"CMAKE_HOME_DIRECTORY:INTERNAL={primary_source.as_posix()}\n",
+            encoding="utf-8",
+        )
+        (secondary_build / "CMakeCache.txt").write_text(
+            f"CMAKE_HOME_DIRECTORY:INTERNAL={secondary_source.as_posix()}\n",
+            encoding="utf-8",
+        )
+        install_options = ";".join((
+            f"--x-buildtrees-root={secondary_buildtrees.as_posix()}",
+            f"--x-packages-root={(secondary_root / 'packages').as_posix()}",
+            (
+                "--downloads-root="
+                f"{(repo / '.wasm-vcpkg' / 'downloads').as_posix()}"
+            ),
+            "--binarysource=clear",
+            (
+                "--binarysource=files,"
+                f"{(secondary_root / 'binary-cache').as_posix()},"
+                "readwrite"
+            ),
+        ))
+        (secondary_root / "probe-configure" / "CMakeCache.txt").write_text(
+            (
+                f"CMAKE_COMMAND:INTERNAL={expected_outer_cmake.as_posix()}\n"
+                "CMAKE_GENERATOR:INTERNAL=Ninja\n"
+                "CMAKE_HOME_DIRECTORY:INTERNAL="
+                f"{(repo / 'tools' / 'wasm-probe').as_posix()}\n"
+                "CMAKE_INSTALL_PREFIX:PATH="
+                f"{expected_sysroot.as_posix()}\n"
+                "CMAKE_TOOLCHAIN_FILE:FILEPATH="
+                f"{expected_vcpkg_toolchain.as_posix()}\n"
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE:FILEPATH="
+                f"{expected_chainload_toolchain.as_posix()}\n"
+                "VCPKG_HOST_TRIPLET:STRING="
+                f"{verify_build.HOST_TRIPLET}\n"
+                "VCPKG_MANIFEST_DIR:PATH="
+                f"{secondary_manifest.parent.as_posix()}\n"
+                "VCPKG_INSTALLED_DIR:PATH="
+                f"{(secondary_root / 'installed').as_posix()}\n"
+                "VCPKG_OVERLAY_PORTS:STRING="
+                f"{(repo / 'vcpkgOverlayPorts').as_posix()};"
+                f"{(repo / 'vcpkgOverlayPortsWasm').as_posix()}\n"
+                "VCPKG_OVERLAY_TRIPLETS:PATH="
+                f"{(repo / 'vcpkgTriplets').as_posix()}\n"
+                "VCPKG_TARGET_TRIPLET:STRING="
+                f"{verify_build.TARGET_TRIPLET}\n"
+                "VCPKG_FEATURE_FLAGS:STRING=-versions\n"
+                f"VCPKG_INSTALL_OPTIONS:STRING={install_options}\n"
+            ),
+            encoding="utf-8",
+        )
+        abi_info = (
+            secondary_buildtrees
+            / "qtmultimedia"
+            / f"{verify_build.TARGET_TRIPLET}.vcpkg_abi_info.txt"
+        )
+        abi_info.write_bytes(b"secondary reproducibility ABI fixture\n")
+        abi = verify_build.sha256(abi_info)
+        binary_contract = {
+            "abi": abi,
+            "aggregateSha256": "a" * 64,
+            "memberCount": 2,
+            "totalBytes": 42,
+        }
+        binary_identity = {
+            "BinaryDeterministicPayloadAggregateSha256": "b" * 64,
+            "BinaryInstallableFileCount": 3,
+            "BinaryPackageCacheFile": (
+                f"{verify_build.QTMULTIMEDIA_SECONDARY_RELATIVE_ROOT}/"
+                f"binary-cache/{abi[:2]}/{abi}.zip"
+            ),
+            "BinaryPayloadAggregateSha256": (
+                binary_contract["aggregateSha256"]
+            ),
+            "BinaryPayloadMemberCount": binary_contract["memberCount"],
+            "BinaryPayloadTotalBytes": binary_contract["totalBytes"],
+        }
+        return {
+            "abi": abi,
+            "abiInfo": abi_info,
+            "binaryContract": binary_contract,
+            "binaryIdentity": binary_identity,
+            "primaryCompileIdentity": copy.deepcopy(
+                verify_build.EXPECTED_QTMULTIMEDIA_COMPILE_COMMAND_IDENTITY
+            ),
+            "primarySource": primary_source,
+            "secondaryBuild": secondary_build,
+            "secondaryCompileIdentity": copy.deepcopy(
+                verify_build.EXPECTED_QTMULTIMEDIA_COMPILE_COMMAND_IDENTITY
+            ),
+            "secondaryProbeCache": (
+                secondary_root / "probe-configure" / "CMakeCache.txt"
+            ),
+            "secondaryRoot": secondary_root,
+            "secondarySource": secondary_source,
+        }
+
     def application_link_fixture(
+        self,
         *response_arguments: str,
-    ) -> tuple[str, Path, Path, str, str]:
+    ) -> tuple[str, Path, Path, Path, str, str]:
         repo = Path(verify_build.__file__).resolve().parents[3]
         emsdk = repo / ".toolchains" / "emsdk-4.0.7"
         expected = emsdk / "upstream" / "emscripten" / "em++.bat"
         em_config = emsdk / ".emscripten"
+        controller_directory = tempfile.TemporaryDirectory()
+        self.addCleanup(controller_directory.cleanup)
+        build = Path(controller_directory.name)
         adapter_arguments = [
             str(repo / verify_build.EXPECTED_EMSDK_PYTHON),
             "-I",
@@ -73,8 +379,27 @@ class VerifyBuildContractTest(unittest.TestCase):
             "RhythmGameWasmProbe.js",
         ]
         body = subprocess.list2cmdline(adapter_arguments)
+        post_build_controller = (
+            build
+            / Path(
+                verify_build.APPLICATION_POST_BUILD_CONTROLLER.replace(
+                    "\\",
+                    "/",
+                )
+            )
+        )
+        post_build_controller.parent.mkdir(parents=True)
+        post_build_controller.write_bytes(b"@echo off\r\nexit /b 0\r\n")
+        post_build_token = verify_build.sha256(post_build_controller)[:16]
+        native_cmd = (
+            Path(os.environ["SystemRoot"])
+            / "System32"
+            / "cmd.exe"
+        )
         command = (
-            f'C:\\Windows\\System32\\cmd.exe /C "cd . && {body} && cd ."'
+            f'{native_cmd} /C "cd . && {body}'
+            f" && {verify_build.APPLICATION_POST_BUILD_CONTROLLER}"
+            f' {post_build_token}"'
         )
         libraries = " ".join(
             (
@@ -82,8 +407,15 @@ class VerifyBuildContractTest(unittest.TestCase):
                 *response_arguments,
             )
         )
+        link_outputs = " ".join(
+            (
+                *verify_build.APPLICATION_LINK_OUTPUTS,
+                "|",
+                *verify_build.APPLICATION_LINK_IMPLICIT_OUTPUTS,
+            )
+        )
         build_ninja = (
-            "build RhythmGameWasmProbe.js: "
+            f"build {link_outputs}: "
             "CXX_EXECUTABLE_LINKER__RhythmGameWasmProbe_Release "
             "object.o\n"
             f"  LINK_LIBRARIES = {libraries}\n"
@@ -95,12 +427,12 @@ class VerifyBuildContractTest(unittest.TestCase):
             "  rspfile = $RSP_FILE\n"
             "  rspfile_content = $in $LINK_PATH $LINK_LIBRARIES\n"
         )
-        return command, repo, expected, build_ninja, rules_ninja
+        return command, repo, build, expected, build_ninja, rules_ninja
 
     @staticmethod
     def dependency_binding_fixture(
         root: Path,
-    ) -> tuple[Path, Path, Path, Path]:
+    ) -> tuple[Path, Path, Path, Path, dict[str, object]]:
         repo = root / "repo"
         probe = repo / "tools" / "wasm-probe"
         build = probe / "build" / "wasm-release"
@@ -181,7 +513,11 @@ class VerifyBuildContractTest(unittest.TestCase):
             + bytes(encoded_length)
             + marker_bytes
         )
-        return repo, build, boundary, installed_archive
+        identity = {
+            key: superset[key]
+            for key in verify_build.TARGET_STATIC_LINK_INPUT_IDENTITY_FIELDS
+        }
+        return repo, build, boundary, installed_archive, identity
 
     def test_windows_command_parser_preserves_quoted_paths_and_flags(
         self,
@@ -786,6 +1122,74 @@ class VerifyBuildContractTest(unittest.TestCase):
                     expected_ports=("qtbase",),
                 )
 
+    def test_target_compile_database_discovery_allows_locked_secondary(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            buildtrees = Path(directory) / ".wb"
+            target = (
+                buildtrees
+                / "qtbase"
+                / "wasm32-emscripten-rg-rel"
+                / "compile_commands.json"
+            )
+            secondary_relative = Path(
+                verify_build.QTMULTIMEDIA_SECONDARY_RELATIVE_ROOT
+            )
+            self.assertEqual(secondary_relative.parts[0], ".wb")
+            secondary = (
+                buildtrees.joinpath(*secondary_relative.parts[1:])
+                / "buildtrees"
+                / "qtmultimedia"
+                / "wasm32-emscripten-rg-rel"
+                / "compile_commands.json"
+            )
+            target.parent.mkdir(parents=True)
+            secondary.parent.mkdir(parents=True)
+            target.write_text("[]", encoding="utf-8")
+            secondary.write_text("[]", encoding="utf-8")
+
+            self.assertEqual(
+                verify_build.target_compile_databases(
+                    buildtrees,
+                    expected_ports=("qtbase",),
+                ),
+                [target],
+            )
+
+    def test_target_compile_database_discovery_rejects_other_repro_roots(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            buildtrees = Path(directory) / ".wb"
+            target = (
+                buildtrees
+                / "qtbase"
+                / "wasm32-emscripten-rg-rel"
+                / "compile_commands.json"
+            )
+            quarantine = (
+                buildtrees
+                / "qtmultimedia-repro-quarantine"
+                / "buildtrees"
+                / "qtmultimedia"
+                / "wasm32-emscripten-rg-rel"
+                / "compile_commands.json"
+            )
+            target.parent.mkdir(parents=True)
+            quarantine.parent.mkdir(parents=True)
+            target.write_text("[]", encoding="utf-8")
+            quarantine.write_text("[]", encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                AssertionError,
+                "target compile database layout",
+            ):
+                verify_build.target_compile_databases(
+                    buildtrees,
+                    expected_ports=("qtbase",),
+                )
+
     def test_evidence_writer_rejects_partial_result_without_touching_output(
         self,
     ) -> None:
@@ -1135,7 +1539,7 @@ class VerifyBuildContractTest(unittest.TestCase):
                 *response_fixture
             )
 
-        command, repo, expected, build_ninja, rules_ninja = (
+        command, repo, build, expected, build_ninja, rules_ninja = (
             self.application_link_fixture()
         )
         direct_fixture = (
@@ -1144,6 +1548,7 @@ class VerifyBuildContractTest(unittest.TestCase):
                 "-pthread -fwasm-exceptions -fexceptions",
             ),
             repo,
+            build,
             expected,
             build_ninja,
             rules_ninja,
@@ -1154,11 +1559,14 @@ class VerifyBuildContractTest(unittest.TestCase):
             )
 
     def test_application_link_parser_requires_exact_compiler(self) -> None:
-        valid, repo, expected, _, _ = self.application_link_fixture()
+        valid, repo, build, expected, _, _ = (
+            self.application_link_fixture()
+        )
         self.assertEqual(
             verify_build.parse_application_link_arguments(
                 valid,
                 repo,
+                build,
                 expected,
             )[0],
             str(expected),
@@ -1172,12 +1580,176 @@ class VerifyBuildContractTest(unittest.TestCase):
             verify_build.parse_application_link_arguments(
                 wrong,
                 repo,
+                build,
                 expected,
             )
 
+    def test_application_link_parser_authenticates_post_build_tail(
+        self,
+    ) -> None:
+        valid, repo, build, expected, _, _ = (
+            self.application_link_fixture()
+        )
+        controller = (
+            build
+            / Path(
+                verify_build.APPLICATION_POST_BUILD_CONTROLLER.replace(
+                    "\\",
+                    "/",
+                )
+            )
+        )
+        token = verify_build.sha256(controller)[:16]
+        controller_tail = (
+            f" && {verify_build.APPLICATION_POST_BUILD_CONTROLLER} {token}"
+        )
+        native_cmd = (
+            Path(os.environ["SystemRoot"])
+            / "System32"
+            / "cmd.exe"
+        )
+        cases = {
+            "missing controller": valid.replace(
+                controller_tail,
+                " && cd .",
+            ),
+            "wrong controller": valid.replace(
+                verify_build.APPLICATION_POST_BUILD_CONTROLLER,
+                r"CMakeFiles\OtherTarget.dir\post-build.bat",
+            ),
+            "wrong token": valid.replace(token, "0" * 16),
+            "uppercase token": valid.replace(token, token.upper()),
+            "command injection": valid.replace(
+                token,
+                f"{token} && whoami",
+            ),
+            "before-tail command injection": valid.replace(
+                controller_tail,
+                f" && whoami{controller_tail}",
+            ),
+            "pipe injection": valid.replace(
+                "RhythmGameWasmProbe.js",
+                "RhythmGameWasmProbe.js | whoami",
+                1,
+            ),
+            "redirection injection": valid.replace(
+                "RhythmGameWasmProbe.js",
+                "RhythmGameWasmProbe.js > injected.txt",
+                1,
+            ),
+            "alternate command interpreter": valid.replace(
+                str(native_cmd),
+                r"C:\attacker\cmd.exe",
+                1,
+            ),
+        }
+        for label, command in cases.items():
+            with self.subTest(label=label):
+                with self.assertRaises(AssertionError):
+                    verify_build.parse_application_link_arguments(
+                        command,
+                        repo,
+                        build,
+                        expected,
+                    )
+        controller.write_bytes(b"changed controller bytes\r\n")
+        with self.assertRaisesRegex(
+            AssertionError,
+            "does not authenticate controller",
+        ):
+            verify_build.parse_application_link_arguments(
+                valid,
+                repo,
+                build,
+                expected,
+            )
+
+    def test_application_link_edge_requires_exact_declared_outputs(
+        self,
+    ) -> None:
+        _, _, build, _, build_ninja, _ = self.application_link_fixture()
+        self.assertEqual(
+            verify_build.selected_application_link_edge(
+                build,
+                build_ninja,
+            )["rule"],
+            "CXX_EXECUTABLE_LINKER__RhythmGameWasmProbe_Release",
+        )
+        final_output = "runtime/RhythmGameWasmProbe.html"
+        final_implicit_output = (
+            f"${{cmake_ninja_workdir}}{final_output}"
+        )
+        absolute_output = (
+            build / "RhythmGameWasmProbe.js"
+        ).resolve().as_posix()
+        escaped_absolute_output = (
+            absolute_output
+            .replace("$", "$$")
+            .replace(" ", "$ ")
+            .replace(":", "$:")
+        )
+        cases = {
+            "missing byproduct": build_ninja.replace(
+                f" {final_output} |",
+                " |",
+                1,
+            ),
+            "missing implicit byproduct alias": build_ninja.replace(
+                f" {final_implicit_output}:",
+                ":",
+                1,
+            ),
+            "extra output": build_ninja.replace(
+                "build RhythmGameWasmProbe.js ",
+                "build RhythmGameWasmProbe.js unexpected-output ",
+                1,
+            ),
+            "implicit primary": build_ninja.replace(
+                "build RhythmGameWasmProbe.js ",
+                "build | RhythmGameWasmProbe.js ",
+                1,
+            ),
+            "duplicate producer": build_ninja + build_ninja,
+            "workdir alias producer": (
+                build_ninja
+                + "\nbuild "
+                + "${cmake_ninja_workdir}RhythmGameWasmProbe.js"
+                + ": phony\n"
+            ),
+            "relative alias producer": (
+                build_ninja
+                + "\nbuild ./RhythmGameWasmProbe.js: phony\n"
+            ),
+            "implicit alias producer": (
+                build_ninja
+                + "\nbuild unrelated | RhythmGameWasmProbe.js: phony\n"
+            ),
+            "absolute alias producer": (
+                build_ninja
+                + f"\nbuild {escaped_absolute_output}: phony\n"
+            ),
+            "variable alias producer": (
+                build_ninja
+                + "\nEMPTY =\n"
+                + "build ${EMPTY}RhythmGameWasmProbe.js: phony\n"
+            ),
+        }
+        for label, value in cases.items():
+            with self.subTest(label=label):
+                with self.assertRaises(AssertionError):
+                    verify_build.selected_application_link_edge(build, value)
+
     def test_final_link_archive_must_be_on_selected_edge(self) -> None:
+        build = Path(tempfile.gettempdir()) / "wasm-probe-link-fixture"
+        link_outputs = " ".join(
+            (
+                *verify_build.APPLICATION_LINK_OUTPUTS,
+                "|",
+                *verify_build.APPLICATION_LINK_IMPLICIT_OUTPUTS,
+            )
+        )
         valid = (
-            "build RhythmGameWasmProbe.js: CXX_EXECUTABLE object.o\n"
+            f"build {link_outputs}: CXX_EXECUTABLE object.o\n"
             "  LINK_LIBRARIES = libQt6Core.a  "
             "libWasmProbeExceptionBoundary.a\n"
             "  RSP_FILE = CMakeFiles\\RhythmGameWasmProbe.rsp\n"
@@ -1186,6 +1758,7 @@ class VerifyBuildContractTest(unittest.TestCase):
         )
         self.assertEqual(
             verify_build.require_final_link_archive(
+                build,
                 valid,
                 (
                     "rule CXX_EXECUTABLE\n"
@@ -1207,6 +1780,7 @@ class VerifyBuildContractTest(unittest.TestCase):
             "selected application link edge",
         ):
             verify_build.require_final_link_archive(
+                build,
                 misplaced,
                 (
                     "rule CXX_EXECUTABLE\n"
@@ -1399,6 +1973,13 @@ class VerifyBuildContractTest(unittest.TestCase):
                         str(archive.resolve()),
                         "-lembind",
                     ],
+                    expected_static_identity={
+                        key: superset[key]
+                        for key in (
+                            verify_build
+                            .TARGET_STATIC_LINK_INPUT_IDENTITY_FIELDS
+                        )
+                    },
                 )
 
     def test_selected_link_substitution_breaks_embedded_build_id(self) -> None:
@@ -1508,7 +2089,7 @@ class VerifyBuildContractTest(unittest.TestCase):
             prefix="rg-renamed-archive-"
         ) as directory:
             root = Path(directory)
-            repo, build, boundary, installed_archive = (
+            repo, build, boundary, installed_archive, static_identity = (
                 self.dependency_binding_fixture(root)
             )
             disguised_archive = installed_archive.with_suffix(".blob")
@@ -1526,6 +2107,7 @@ class VerifyBuildContractTest(unittest.TestCase):
                         str(disguised_archive),
                         str(installed_archive),
                     ],
+                    expected_static_identity=static_identity,
                 )
 
     def test_installed_wasm_object_is_member_and_hash_authenticated(
@@ -1535,7 +2117,7 @@ class VerifyBuildContractTest(unittest.TestCase):
             prefix="rg-installed-wasm-object-"
         ) as directory:
             root = Path(directory)
-            repo, build, boundary, installed_archive = (
+            repo, build, boundary, installed_archive, static_identity = (
                 self.dependency_binding_fixture(root)
             )
             installed_object = (
@@ -1554,6 +2136,7 @@ class VerifyBuildContractTest(unittest.TestCase):
                     str(installed_object),
                     str(installed_archive),
                 ],
+                expected_static_identity=static_identity,
             )
             self.assertEqual(
                 {
@@ -1578,6 +2161,85 @@ class VerifyBuildContractTest(unittest.TestCase):
                         str(installed_object),
                         str(installed_archive),
                     ],
+                    expected_static_identity=static_identity,
+                )
+
+    def test_target_static_source_lock_rejects_forged_owner(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory(
+            prefix="rg-forged-static-owner-"
+        ) as directory:
+            root = Path(directory)
+            (
+                repo,
+                build,
+                boundary,
+                installed_archive,
+                static_identity,
+            ) = self.dependency_binding_fixture(root)
+            installed = repo / ".wasm-vcpkg" / "installed"
+            target = installed / verify_build.TARGET_TRIPLET
+            installed_object = (
+                target
+                / "Qt6"
+                / "plugins"
+                / "objects-Release"
+                / "Plugin_init.cpp.o"
+            )
+            stale = target / "lib" / "libQt6Multimedia-stale.a"
+            stale.write_bytes(b"!<arch>\nstale multimedia archive\n")
+            info = installed / "vcpkg" / "info"
+            info.mkdir(parents=True)
+            (info / f"fixture_{verify_build.TARGET_TRIPLET}.list").write_text(
+                (
+                    f"{verify_build.TARGET_TRIPLET}/"
+                    "lib/libQt6Core.a\n"
+                    f"{verify_build.TARGET_TRIPLET}/"
+                    "Qt6/plugins/objects-Release/Plugin_init.cpp.o\n"
+                ),
+                encoding="utf-8",
+            )
+            (info / f"evil_{verify_build.TARGET_TRIPLET}.list").write_text(
+                (
+                    f"{verify_build.TARGET_TRIPLET}/"
+                    "lib/libQt6Multimedia-stale.a\n"
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                verify_build.verify_target_static_package_ownership(
+                    installed
+                ),
+                3,
+            )
+
+            forged_superset = verify_build._static_link_input_superset(
+                target
+            )
+            (
+                build
+                / "generated"
+                / "dependency-archive-digest.json"
+            ).write_text(
+                json.dumps(forged_superset),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                AssertionError,
+                "differs from the source lock",
+            ):
+                verify_build.verify_dependency_archive_binding(
+                    repo,
+                    build,
+                    [
+                        str(build / "object.o"),
+                        str(boundary),
+                        str(stale),
+                        str(installed_object),
+                        str(installed_archive),
+                    ],
+                    expected_static_identity=static_identity,
                 )
 
     def test_renamed_wasm_object_is_rejected(self) -> None:
@@ -1585,7 +2247,7 @@ class VerifyBuildContractTest(unittest.TestCase):
             prefix="rg-renamed-wasm-object-"
         ) as directory:
             root = Path(directory)
-            repo, build, boundary, installed_archive = (
+            repo, build, boundary, installed_archive, static_identity = (
                 self.dependency_binding_fixture(root)
             )
             disguised_object = installed_archive.parents[1] / "object.blob"
@@ -1606,6 +2268,7 @@ class VerifyBuildContractTest(unittest.TestCase):
                         str(disguised_object),
                         str(installed_archive),
                     ],
+                    expected_static_identity=static_identity,
                 )
 
     def test_non_wasm_installed_object_is_rejected(self) -> None:
@@ -1613,7 +2276,7 @@ class VerifyBuildContractTest(unittest.TestCase):
             prefix="rg-non-wasm-object-"
         ) as directory:
             root = Path(directory)
-            repo, build, boundary, installed_archive = (
+            repo, build, boundary, installed_archive, static_identity = (
                 self.dependency_binding_fixture(root)
             )
             invalid_object = installed_archive.parents[1] / "invalid.o"
@@ -1632,6 +2295,7 @@ class VerifyBuildContractTest(unittest.TestCase):
                         str(invalid_object),
                         str(installed_archive),
                     ],
+                    expected_static_identity=static_identity,
                 )
 
     def test_external_positional_file_is_rejected_from_effective_link_argv(
@@ -1641,7 +2305,7 @@ class VerifyBuildContractTest(unittest.TestCase):
             prefix="rg-external-link-input-"
         ) as directory:
             root = Path(directory)
-            repo, build, boundary, installed_archive = (
+            repo, build, boundary, installed_archive, static_identity = (
                 self.dependency_binding_fixture(root)
             )
             hostile = root / "outside-input.o"
@@ -1661,6 +2325,7 @@ class VerifyBuildContractTest(unittest.TestCase):
                         str(boundary),
                         str(installed_archive),
                     ],
+                    expected_static_identity=static_identity,
                 )
 
     def test_response_file_conflicting_jspi_is_rejected(self) -> None:
@@ -1869,6 +2534,1147 @@ class VerifyBuildContractTest(unittest.TestCase):
                 "1",
                 "qtdeclarative",
             )
+
+    def test_qtmultimedia_installed_port_version_is_exact(self) -> None:
+        with self.assertRaisesRegex(
+            AssertionError,
+            "qtmultimedia.*Port-Version",
+        ):
+            verify_build.require_port_version(
+                {"Version": verify_build.EXPECTED_QT},
+                "2",
+                "qtmultimedia",
+            )
+
+    def test_qtmultimedia_reproducibility_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            empty_repo = Path(directory)
+            with self.assertRaisesRegex(
+                AssertionError,
+                "reproducibility manifests are incomplete",
+            ):
+                verify_build.verify_qtmultimedia_reproducibility(
+                    empty_repo,
+                    primary_abi="a" * 64,
+                    binary_contract={"abi": "a" * 64},
+                    primary_compile_identity={},
+                )
+
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            fixture = self.qtmultimedia_reproducibility_fixture(repo)
+            binary_identity = fixture["binaryIdentity"]
+            compile_identity = fixture["secondaryCompileIdentity"]
+
+            def verify(
+                *,
+                secondary_binary_identity: object = binary_identity,
+                secondary_compile_identity: object = compile_identity,
+            ) -> dict[str, object]:
+                with (
+                    mock.patch.object(
+                        verify_build,
+                        "verify_qtmultimedia_binary_package",
+                        return_value=secondary_binary_identity,
+                    ),
+                    mock.patch.object(
+                        verify_build,
+                        "verify_qtmultimedia_compile_path_maps",
+                        return_value=secondary_compile_identity,
+                    ),
+                ):
+                    return (
+                        verify_build.verify_qtmultimedia_reproducibility(
+                            repo,
+                            primary_abi=fixture["abi"],
+                            binary_contract=fixture["binaryContract"],
+                            primary_compile_identity=fixture[
+                                "primaryCompileIdentity"
+                            ],
+                        )
+                    )
+
+            evidence = verify()
+            self.assertTrue(
+                evidence["allCompileCommandsCanonicalIdentical"]
+            )
+            self.assertTrue(evidence["allStaticMembersByteIdentical"])
+
+            secondary_probe_cache = fixture["secondaryProbeCache"]
+            original_probe_cache = secondary_probe_cache.read_text("utf-8")
+            control_plane_mutations = (
+                (
+                    "toolchain",
+                    (
+                        repo
+                        / ".toolchains"
+                        / (
+                            "vcpkg-"
+                            f"{verify_build.EXPECTED_VCPKG_COMMIT[:8]}"
+                        )
+                        / "scripts"
+                        / "buildsystems"
+                        / "vcpkg.cmake"
+                    ).as_posix(),
+                    (repo / "wrong-vcpkg.cmake").as_posix(),
+                    "CMAKE_TOOLCHAIN_FILE",
+                ),
+                (
+                    "overlay",
+                    (repo / "vcpkgOverlayPorts").as_posix(),
+                    (repo / "wrong-overlay").as_posix(),
+                    "overlay port 0",
+                ),
+                (
+                    "install-prefix",
+                    (
+                        repo
+                        / ".toolchains"
+                        / (
+                            "emscripten-cache-"
+                            f"{verify_build.EXPECTED_EMSCRIPTEN}"
+                        )
+                        / "sysroot"
+                    ).as_posix(),
+                    (repo / "wrong-sysroot").as_posix(),
+                    "CMAKE_INSTALL_PREFIX",
+                ),
+                (
+                    "binary-source",
+                    "--binarysource=clear",
+                    "--binarysource=default",
+                    "binary sources are not cleared",
+                ),
+            )
+            for (
+                label,
+                original_value,
+                drifted_value,
+                expected_message,
+            ) in control_plane_mutations:
+                with self.subTest(control_plane=label):
+                    self.assertIn(original_value, original_probe_cache)
+                    secondary_probe_cache.write_text(
+                        original_probe_cache.replace(
+                            original_value,
+                            drifted_value,
+                            1,
+                        ),
+                        encoding="utf-8",
+                    )
+                    with self.assertRaisesRegex(
+                        AssertionError,
+                        expected_message,
+                    ):
+                        verify()
+            secondary_probe_cache.write_text(
+                original_probe_cache,
+                encoding="utf-8",
+            )
+
+            secondary_cache = (
+                fixture["secondaryBuild"] / "CMakeCache.txt"
+            )
+            original_secondary_cache = secondary_cache.read_text("utf-8")
+            secondary_cache.write_text(
+                (
+                    "CMAKE_HOME_DIRECTORY:INTERNAL="
+                    f"{fixture['primarySource'].as_posix()}\n"
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                AssertionError,
+                "roots are not distinct and unequal-length",
+            ):
+                verify()
+
+            equal_length_source = (
+                fixture["primarySource"].parent / "secondy.clean"
+            )
+            equal_length_source.mkdir()
+            self.assertEqual(
+                len(str(equal_length_source)),
+                len(str(fixture["primarySource"])),
+            )
+            secondary_cache.write_text(
+                (
+                    "CMAKE_HOME_DIRECTORY:INTERNAL="
+                    f"{equal_length_source.as_posix()}\n"
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                AssertionError,
+                "roots are not distinct and unequal-length",
+            ):
+                verify()
+            secondary_cache.write_text(
+                original_secondary_cache,
+                encoding="utf-8",
+            )
+
+            abi_info = fixture["abiInfo"]
+            original_abi_info = abi_info.read_bytes()
+            abi_info.write_bytes(original_abi_info + b"drift")
+            with self.assertRaisesRegex(
+                AssertionError,
+                "secondary ABI differs",
+            ):
+                verify()
+            abi_info.write_bytes(original_abi_info)
+
+            compile_drift = copy.deepcopy(compile_identity)
+            compile_drift["aggregateSha256"] = "c" * 64
+            with self.assertRaisesRegex(
+                AssertionError,
+                "canonical compile-command identity differs",
+            ):
+                verify(secondary_compile_identity=compile_drift)
+
+            static_drift = copy.deepcopy(binary_identity)
+            static_drift["BinaryPayloadAggregateSha256"] = "d" * 64
+            with self.assertRaisesRegex(
+                AssertionError,
+                "static package members differ",
+            ):
+                verify(secondary_binary_identity=static_drift)
+
+            secondary_manifest = (
+                fixture["secondaryRoot"] / "manifest" / "vcpkg.json"
+            )
+            manifest_payload = json.loads(
+                secondary_manifest.read_text("utf-8")
+            )
+            manifest_payload["dependencies"].append("qtwebsockets")
+            secondary_manifest.write_text(
+                json.dumps(manifest_payload, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                AssertionError,
+                "differ only by removing builtin-baseline",
+            ):
+                verify()
+
+    def test_qtmultimedia_reproducibility_is_mandatory_and_lock_bound(
+        self,
+    ) -> None:
+        self.assertIn(
+            "verify_qtmultimedia_reproducibility",
+            verify_build.verify_qt_installation.__code__.co_names,
+        )
+        evidence = copy.deepcopy(
+            verify_build.EXPECTED_QTMULTIMEDIA_REPRODUCIBILITY_IDENTITY
+        )
+        verify_build.validate_qtmultimedia_reproducibility_evidence(
+            evidence
+        )
+
+        omitted = copy.deepcopy(evidence)
+        del omitted["secondaryManifestSha256"]
+        with self.assertRaisesRegex(
+            AssertionError,
+            "keys must be exactly",
+        ):
+            verify_build.validate_qtmultimedia_reproducibility_evidence(
+                omitted
+            )
+
+        falsified = copy.deepcopy(evidence)
+        falsified["staticAggregateSha256"] = "f" * 64
+        with self.assertRaisesRegex(
+            AssertionError,
+            "evidence is not lock-bound",
+        ):
+            verify_build.validate_qtmultimedia_reproducibility_evidence(
+                falsified
+            )
+
+    def test_qtmultimedia_compile_commands_require_both_root_maps(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            build = (
+                repo
+                / ".wb"
+                / "qtmultimedia"
+                / f"{verify_build.TARGET_TRIPLET}-rel"
+            )
+            source = (
+                repo
+                / ".wb"
+                / "qtmultimedia"
+                / "src"
+                / "here-src-test.clean"
+            )
+            installed = repo / ".wasm-vcpkg" / "installed"
+            install_prefix = (
+                repo
+                / ".wasm-vcpkg"
+                / "packages"
+                / f"qtmultimedia_{verify_build.TARGET_TRIPLET}"
+            )
+            packages_root = install_prefix.parent
+            port_cmake = (
+                repo
+                / ".wasm-vcpkg"
+                / "downloads"
+                / "tools"
+                / verify_build.EXPECTED_VCPKG_PORT_CMAKE_LOCK_ENTRY[
+                    "installationDirectory"
+                ]
+                / verify_build.EXPECTED_VCPKG_PORT_CMAKE_LOCK_ENTRY[
+                    "executable"
+                ]
+            )
+            vcpkg_toolchain = (
+                repo
+                / ".toolchains"
+                / f"vcpkg-{verify_build.EXPECTED_VCPKG_COMMIT[:8]}"
+                / "scripts"
+                / "buildsystems"
+                / "vcpkg.cmake"
+            )
+            chainload_toolchain = (
+                repo / "cmake" / "toolchains" / "vcpkg-emscripten.cmake"
+            )
+            compiler = (
+                repo
+                / ".toolchains"
+                / f"emsdk-{verify_build.EXPECTED_EMSCRIPTEN}"
+                / "upstream"
+                / "emscripten"
+                / "em++.bat"
+            )
+            ninja = (
+                repo
+                / ".toolchains"
+                / verify_build.EXPECTED_NINJA_LOCK_ENTRY["directory"]
+                / "ninja.exe"
+            )
+            build.mkdir(parents=True)
+            source.mkdir(parents=True)
+            installed.mkdir(parents=True)
+            install_prefix.mkdir(parents=True)
+            compiler.parent.mkdir(parents=True)
+            compiler.write_bytes(b"pinned compiler fixture")
+            ninja.parent.mkdir(parents=True)
+            ninja.write_bytes(b"pinned Ninja fixture")
+            source_file = source / "probe.cpp"
+            source_file.write_text("// compile fixture\n", encoding="utf-8")
+            output = build / "probe.cpp.o"
+            output_bytes = b"\0asm\1\0\0\0compiled fixture"
+            output.write_bytes(output_bytes)
+            second_source_file = source / "nested" / "probe.cpp"
+            second_source_file.parent.mkdir()
+            second_source_file.write_text(
+                "// second compile fixture\n",
+                encoding="utf-8",
+            )
+            second_output = build / "nested" / "probe.cpp.o"
+            second_output.parent.mkdir()
+            second_output_bytes = (
+                b"\0asm\1\0\0\0second compiled fixture"
+            )
+            second_output.write_bytes(second_output_bytes)
+            pch_source_file = source / "probe.hpp"
+            pch_source_file.write_text(
+                "// PCH compile fixture\n",
+                encoding="utf-8",
+            )
+            pch_output = build / "probe.hpp.pch"
+            pch_output.write_bytes(b"CPCHfixture-root-specific-a")
+            installed_output = (
+                installed
+                / verify_build.TARGET_TRIPLET
+                / "lib"
+                / "probe.cpp.o"
+            )
+            installed_output.parent.mkdir(parents=True)
+            installed_output.write_bytes(output_bytes)
+            second_installed_output = (
+                installed
+                / verify_build.TARGET_TRIPLET
+                / "lib"
+                / "nested"
+                / "probe.cpp.o"
+            )
+            second_installed_output.parent.mkdir(parents=True)
+            second_installed_output.write_bytes(second_output_bytes)
+            package_list = (
+                installed
+                / "vcpkg"
+                / "info"
+                / (
+                    f"qtmultimedia_{verify_build.EXPECTED_QT}_"
+                    f"{verify_build.TARGET_TRIPLET}.list"
+                )
+            )
+            package_list.parent.mkdir(parents=True)
+            package_list.write_text(
+                (
+                    f"{verify_build.TARGET_TRIPLET}/"
+                    "lib/probe.cpp.o\n"
+                    f"{verify_build.TARGET_TRIPLET}/"
+                    "lib/nested/probe.cpp.o\n"
+                ),
+                encoding="utf-8",
+            )
+            cache_file = build / "CMakeCache.txt"
+            cache_file.write_text(
+                (
+                    f"CMAKE_COMMAND:INTERNAL={port_cmake.as_posix()}\n"
+                    "CMAKE_GENERATOR:INTERNAL=Ninja\n"
+                    f"CMAKE_HOME_DIRECTORY:INTERNAL={source.as_posix()}\n"
+                    f"VCPKG_INSTALLED_DIR:PATH={installed.as_posix()}\n"
+                    "CMAKE_TOOLCHAIN_FILE:FILEPATH="
+                    f"{vcpkg_toolchain.as_posix()}\n"
+                    "VCPKG_CHAINLOAD_TOOLCHAIN_FILE:FILEPATH="
+                    f"{chainload_toolchain.as_posix()}\n"
+                    "VCPKG_TARGET_TRIPLET:STRING="
+                    f"{verify_build.TARGET_TRIPLET}\n"
+                    "CMAKE_INSTALL_PREFIX:PATH="
+                    f"{install_prefix.as_posix()}\n"
+                ),
+                encoding="utf-8",
+            )
+            original_cache = cache_file.read_text("utf-8")
+            arguments = [
+                str(compiler),
+                "-pthread",
+                "-fwasm-exceptions",
+                "-sSUPPORT_LONGJMP=wasm",
+                (
+                    f"-ffile-prefix-map={source.as_posix()}="
+                    f"{verify_build.QTMULTIMEDIA_PATH_MAP_TARGETS['source']}"
+                ),
+                (
+                    f"-ffile-prefix-map={build.as_posix()}="
+                    f"{verify_build.QTMULTIMEDIA_PATH_MAP_TARGETS['build']}"
+                ),
+                (
+                    f"-fmacro-prefix-map={source.as_posix()}="
+                    f"{verify_build.QTMULTIMEDIA_PATH_MAP_TARGETS['source']}"
+                ),
+                (
+                    f"-fmacro-prefix-map={build.as_posix()}="
+                    f"{verify_build.QTMULTIMEDIA_PATH_MAP_TARGETS['build']}"
+                ),
+                "-o",
+                output.as_posix(),
+                "-c",
+                source_file.as_posix(),
+            ]
+            database = [
+                {
+                    "arguments": arguments,
+                    "directory": build.as_posix(),
+                    "file": source_file.as_posix(),
+                    "output": output.as_posix(),
+                },
+            ]
+            second_arguments = list(arguments)
+            second_arguments[
+                second_arguments.index(output.as_posix())
+            ] = second_output.as_posix()
+            second_arguments[
+                second_arguments.index(source_file.as_posix())
+            ] = second_source_file.as_posix()
+            database.append(
+                {
+                    "arguments": second_arguments,
+                    "directory": build.as_posix(),
+                    "file": second_source_file.as_posix(),
+                    "output": second_output.as_posix(),
+                }
+            )
+            pch_arguments = list(arguments)
+            pch_arguments[pch_arguments.index(output.as_posix())] = (
+                pch_output.as_posix()
+            )
+            pch_arguments[pch_arguments.index(source_file.as_posix())] = (
+                pch_source_file.as_posix()
+            )
+            database.append(
+                {
+                    "arguments": pch_arguments,
+                    "directory": build.as_posix(),
+                    "file": pch_source_file.as_posix(),
+                    "output": pch_output.as_posix(),
+                }
+            )
+            expanded_arguments = list(arguments)
+            output_index = expanded_arguments.index("-o")
+            expanded_arguments[output_index:output_index] = [
+                "-MD",
+                "-MT",
+                "probe.cpp.o",
+                "-MF",
+                "probe.cpp.o.d",
+            ]
+            expanded = [
+                {
+                    "arguments": expanded_arguments,
+                    "directory": build.as_posix(),
+                    "file": source_file.as_posix(),
+                    "output": "probe.cpp.o",
+                },
+            ]
+            second_expanded_arguments = list(second_arguments)
+            second_output_index = second_expanded_arguments.index("-o")
+            second_expanded_arguments[
+                second_output_index:second_output_index
+            ] = [
+                "-MD",
+                "-MT",
+                "nested/probe.cpp.o",
+                "-MF",
+                "nested/probe.cpp.o.d",
+            ]
+            expanded.append(
+                {
+                    "arguments": second_expanded_arguments,
+                    "directory": build.as_posix(),
+                    "file": second_source_file.as_posix(),
+                    "output": "nested/probe.cpp.o",
+                }
+            )
+            pch_expanded_arguments = list(pch_arguments)
+            pch_output_index = pch_expanded_arguments.index("-o")
+            pch_expanded_arguments[
+                pch_output_index:pch_output_index
+            ] = [
+                "-MD",
+                "-MT",
+                "probe.hpp.pch",
+                "-MF",
+                "probe.hpp.pch.d",
+            ]
+            expanded.append(
+                {
+                    "arguments": pch_expanded_arguments,
+                    "directory": build.as_posix(),
+                    "file": pch_source_file.as_posix(),
+                    "output": "probe.hpp.pch",
+                }
+            )
+            compile_database = build / "compile_commands.json"
+            compile_database.write_text(
+                json.dumps(database),
+                encoding="utf-8",
+            )
+            with mock.patch.object(
+                verify_build,
+                "run_text",
+                return_value=json.dumps(expanded),
+            ):
+                identity = (
+                    verify_build.verify_qtmultimedia_compile_path_maps(
+                        repo,
+                        installed=installed,
+                        build=build,
+                        source_parent=source.parent,
+                        ninja=ninja,
+                        packages_root=packages_root,
+                    )
+                )
+            self.assertEqual(identity["commandCount"], 3)
+            self.assertEqual(identity["objectOutputCount"], 2)
+            self.assertEqual(identity["perEdgeObjectDigestCount"], 2)
+            self.assertEqual(identity["pchOutputCount"], 1)
+            self.assertEqual(
+                identity["pchByteIdentity"],
+                "excluded-noninstallable-root-dependent-v1",
+            )
+            self.assertTrue(identity["ninjaParity"])
+
+            pch_output.write_bytes(b"CPCHfixture-root-specific-b")
+            with mock.patch.object(
+                verify_build,
+                "run_text",
+                return_value=json.dumps(expanded),
+            ):
+                pch_byte_drift_identity = (
+                    verify_build.verify_qtmultimedia_compile_path_maps(
+                        repo,
+                        installed=installed,
+                        build=build,
+                        source_parent=source.parent,
+                        ninja=ninja,
+                        packages_root=packages_root,
+                    )
+                )
+            self.assertEqual(
+                pch_byte_drift_identity["aggregateSha256"],
+                identity["aggregateSha256"],
+            )
+            pch_output.write_bytes(b"CPCHfixture-root-specific-a")
+
+            wrong_install_prefix = packages_root / "wrong-qtmultimedia"
+            wrong_install_prefix.mkdir()
+            cache_file.write_text(
+                original_cache.replace(
+                    install_prefix.as_posix(),
+                    wrong_install_prefix.as_posix(),
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                AssertionError,
+                "CMAKE_INSTALL_PREFIX",
+            ):
+                with mock.patch.object(
+                    verify_build,
+                    "run_text",
+                    return_value=json.dumps(expanded),
+                ):
+                    verify_build.verify_qtmultimedia_compile_path_maps(
+                        repo,
+                        installed=installed,
+                        build=build,
+                        source_parent=source.parent,
+                        ninja=ninja,
+                        packages_root=packages_root,
+                    )
+            cache_file.write_text(original_cache, encoding="utf-8")
+
+            port_control_plane_mutations = (
+                (
+                    "cmake",
+                    port_cmake.as_posix(),
+                    (repo / "wrong-port-cmake.exe").as_posix(),
+                    "CMAKE_COMMAND",
+                ),
+                (
+                    "toolchain",
+                    vcpkg_toolchain.as_posix(),
+                    (repo / "wrong-port-toolchain.cmake").as_posix(),
+                    "CMAKE_TOOLCHAIN_FILE",
+                ),
+                (
+                    "chainload",
+                    chainload_toolchain.as_posix(),
+                    (repo / "wrong-chainload.cmake").as_posix(),
+                    "VCPKG_CHAINLOAD_TOOLCHAIN_FILE",
+                ),
+                (
+                    "triplet",
+                    (
+                        "VCPKG_TARGET_TRIPLET:STRING="
+                        f"{verify_build.TARGET_TRIPLET}"
+                    ),
+                    "VCPKG_TARGET_TRIPLET:STRING=wrong-triplet",
+                    "VCPKG_TARGET_TRIPLET",
+                ),
+            )
+            for (
+                label,
+                original_value,
+                drifted_value,
+                expected_message,
+            ) in port_control_plane_mutations:
+                with self.subTest(port_control_plane=label):
+                    self.assertIn(original_value, original_cache)
+                    cache_file.write_text(
+                        original_cache.replace(
+                            original_value,
+                            drifted_value,
+                            1,
+                        ),
+                        encoding="utf-8",
+                    )
+                    with self.assertRaisesRegex(
+                        AssertionError,
+                        expected_message,
+                    ):
+                        with mock.patch.object(
+                            verify_build,
+                            "run_text",
+                            return_value=json.dumps(expanded),
+                        ):
+                            verify_build.verify_qtmultimedia_compile_path_maps(
+                                repo,
+                                installed=installed,
+                                build=build,
+                                source_parent=source.parent,
+                                ninja=ninja,
+                                packages_root=packages_root,
+                            )
+            cache_file.write_text(original_cache, encoding="utf-8")
+
+            database[0]["arguments"] = [
+                argument
+                for argument in arguments
+                if not argument.startswith("-fmacro-prefix-map=")
+            ]
+            compile_database.write_text(
+                json.dumps(database),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                AssertionError,
+                "exactly two -fmacro-prefix-map",
+            ):
+                with mock.patch.object(
+                    verify_build,
+                    "run_text",
+                    return_value=json.dumps(expanded),
+                ):
+                    verify_build.verify_qtmultimedia_compile_path_maps(
+                        repo,
+                        installed=installed,
+                        build=build,
+                        source_parent=source.parent,
+                        ninja=ninja,
+                        packages_root=packages_root,
+                    )
+
+            database[0]["arguments"] = [
+                "fake-compiler",
+                *arguments[1:],
+            ]
+            compile_database.write_text(
+                json.dumps(database),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                AssertionError,
+                "non-pinned compiler",
+            ):
+                with mock.patch.object(
+                    verify_build,
+                    "run_text",
+                    return_value=json.dumps(expanded),
+                ):
+                    verify_build.verify_qtmultimedia_compile_path_maps(
+                        repo,
+                        installed=installed,
+                        build=build,
+                        source_parent=source.parent,
+                        ninja=ninja,
+                        packages_root=packages_root,
+                    )
+
+            database[0]["arguments"] = arguments
+            compile_database.write_text(
+                json.dumps(database),
+                encoding="utf-8",
+            )
+            drifted_expanded = copy.deepcopy(expanded)
+            drifted_expanded[0]["arguments"].insert(
+                1,
+                "-DQT_REPRO_NINJA_DRIFT=1",
+            )
+            with self.assertRaisesRegex(
+                AssertionError,
+                "expanded Ninja compiler argv differs",
+            ):
+                with mock.patch.object(
+                    verify_build,
+                    "run_text",
+                    return_value=json.dumps(drifted_expanded),
+                ):
+                    verify_build.verify_qtmultimedia_compile_path_maps(
+                        repo,
+                        installed=installed,
+                        build=build,
+                        source_parent=source.parent,
+                        ninja=ninja,
+                        packages_root=packages_root,
+                    )
+
+            output.write_bytes(second_output_bytes)
+            second_output.write_bytes(output_bytes)
+            with mock.patch.object(
+                verify_build,
+                "run_text",
+                return_value=json.dumps(expanded),
+            ):
+                swapped_identity = (
+                    verify_build.verify_qtmultimedia_compile_path_maps(
+                        repo,
+                        installed=installed,
+                        build=build,
+                        source_parent=source.parent,
+                        ninja=ninja,
+                        packages_root=packages_root,
+                    )
+                )
+            self.assertNotEqual(
+                swapped_identity["aggregateSha256"],
+                identity["aggregateSha256"],
+            )
+            self.assertEqual(
+                swapped_identity["installedObjectAggregateSha256"],
+                identity["installedObjectAggregateSha256"],
+            )
+            output.write_bytes(output_bytes)
+            second_output.write_bytes(second_output_bytes)
+
+            installed_output.write_bytes(
+                b"\0asm\1\0\0\0different installed object"
+            )
+            with self.assertRaisesRegex(
+                AssertionError,
+                "do not exactly cover installed",
+            ):
+                with mock.patch.object(
+                    verify_build,
+                    "run_text",
+                    return_value=json.dumps(expanded),
+                ):
+                    verify_build.verify_qtmultimedia_compile_path_maps(
+                        repo,
+                        installed=installed,
+                        build=build,
+                        source_parent=source.parent,
+                        ninja=ninja,
+                        packages_root=packages_root,
+                    )
+
+    def test_qtmultimedia_binary_package_rejects_stale_installed_member(
+        self,
+    ) -> None:
+        abi_info_bytes = b"features core;qml\ntriplet wasm32-emscripten-rg\n"
+        abi = hashlib.sha256(abi_info_bytes).hexdigest()
+        static_payloads = {
+            "Qt6/plugins/multimedia/libwasmmediaplugin.a":
+                b"current wasm media plugin",
+            "lib/libQt6Multimedia.a": b"current multimedia core",
+        }
+        installable_payloads = {
+            **static_payloads,
+            "sbom/qtmultimedia-6.11.1.spdx": b"volatile sbom",
+            (
+                "share/Qt6Multimedia/"
+                "Qt6MultimediaTargets-release.cmake"
+            ): b"set(_qt_multimedia_core lib/libQt6Multimedia.a)\n",
+            "share/qtmultimedia/vcpkg.spdx.json": b"volatile vcpkg sbom",
+            "share/qtmultimedia/vcpkg_abi_info.txt": abi_info_bytes,
+        }
+        members = [
+            {
+                "bytes": len(static_payloads[path]),
+                "path": path,
+                "sha256": hashlib.sha256(
+                    static_payloads[path]
+                ).hexdigest(),
+            }
+            for path in sorted(static_payloads)
+        ]
+        aggregate = hashlib.sha256()
+        for member in members:
+            aggregate.update(member["path"].encode("utf-8"))
+            aggregate.update(b"\0")
+            aggregate.update(str(member["bytes"]).encode("ascii"))
+            aggregate.update(b"\0")
+            aggregate.update(member["sha256"].encode("ascii"))
+            aggregate.update(b"\n")
+        installable_inventory = hashlib.sha256()
+        for relative in sorted(installable_payloads):
+            installable_inventory.update(
+                f"{relative}\n".encode("utf-8")
+            )
+        deterministic_payloads = {
+            path: content
+            for path, content in installable_payloads.items()
+            if (
+                path not in
+                verify_build.QTMULTIMEDIA_DETERMINISTIC_PAYLOAD_EXCLUSIONS
+                and not path.endswith((".a", ".o"))
+            )
+        }
+        deterministic = verify_build._path_payload_identity(
+            deterministic_payloads
+        )
+        deterministic["excluded"] = list(
+            verify_build.QTMULTIMEDIA_DETERMINISTIC_PAYLOAD_EXCLUSIONS
+        )
+        contract = {
+            "abi": abi,
+            "algorithm":
+                verify_build.QTMULTIMEDIA_BINARY_PAYLOAD_ALGORITHM,
+            "aggregateSha256": aggregate.hexdigest(),
+            "deterministicPayload": deterministic,
+            "installableFileCount": len(installable_payloads),
+            "installableInventorySha256":
+                installable_inventory.hexdigest(),
+            "memberCount": len(members),
+            "members": members,
+            "totalBytes": sum(
+                len(value) for value in static_payloads.values()
+            ),
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            installed = repo / ".wasm-vcpkg" / "installed"
+            abi_info = (
+                repo
+                / ".wb"
+                / "qtmultimedia"
+                / (
+                    f"{verify_build.TARGET_TRIPLET}"
+                    ".vcpkg_abi_info.txt"
+                )
+            )
+            abi_info.parent.mkdir(parents=True)
+            abi_info.write_bytes(abi_info_bytes)
+            for relative, content in installable_payloads.items():
+                destination = (
+                    installed
+                    / verify_build.TARGET_TRIPLET
+                    / relative
+                )
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(content)
+            info = (
+                installed
+                / "vcpkg"
+                / "info"
+                / (
+                    "qtmultimedia_"
+                    f"{verify_build.EXPECTED_QT}_"
+                    f"{verify_build.TARGET_TRIPLET}.list"
+                )
+            )
+            info.parent.mkdir(parents=True)
+            info.write_text(
+                "".join(
+                    f"{verify_build.TARGET_TRIPLET}/{path}\n"
+                    for path in sorted(installable_payloads)
+                ),
+                encoding="utf-8",
+            )
+            cache = (
+                repo
+                / ".wasm-vcpkg"
+                / "bincache"
+                / abi[:2]
+                / f"{abi}.zip"
+            )
+            cache.parent.mkdir(parents=True)
+            control = (
+                "Package: qtmultimedia\n"
+                f"Version: {verify_build.EXPECTED_QT}\n"
+                "Port-Version: 2\n"
+                f"Architecture: {verify_build.TARGET_TRIPLET}\n"
+                f"Abi: {abi}\n"
+            )
+            with zipfile.ZipFile(cache, "w") as package:
+                package.writestr("CONTROL", control)
+                for relative, content in installable_payloads.items():
+                    package.writestr(relative, content)
+
+            evidence = (
+                verify_build.verify_qtmultimedia_binary_package(
+                    repo,
+                    installed,
+                    abi_info,
+                    abi,
+                    contract,
+                )
+            )
+            self.assertEqual(
+                evidence["BinaryPayloadAggregateSha256"],
+                contract["aggregateSha256"],
+            )
+            targets_file = (
+                installed
+                / verify_build.TARGET_TRIPLET
+                / "share"
+                / "Qt6Multimedia"
+                / "Qt6MultimediaTargets-release.cmake"
+            )
+            current_targets = targets_file.read_bytes()
+            targets_file.write_bytes(
+                current_targets.replace(
+                    b"libQt6Multimedia.a",
+                    b"libQt6Multimedia-stale.a",
+                )
+            )
+            with self.assertRaisesRegex(
+                AssertionError,
+                "installed qtmultimedia package file drifted",
+            ):
+                verify_build.verify_qtmultimedia_binary_package(
+                    repo,
+                    installed,
+                    abi_info,
+                    abi,
+                    contract,
+                )
+            targets_file.write_bytes(current_targets)
+
+            unowned_core = (
+                installed
+                / verify_build.TARGET_TRIPLET
+                / "lib"
+                / "libQt6Multimedia-stale.a"
+            )
+            unowned_core.write_bytes(b"stale renamed multimedia core")
+            with self.assertRaisesRegex(
+                AssertionError,
+                "target static package ownership inventory drifted",
+            ):
+                verify_build.verify_qtmultimedia_binary_package(
+                    repo,
+                    installed,
+                    abi_info,
+                    abi,
+                    contract,
+                )
+            unowned_core.unlink()
+
+            stale_plugin = (
+                installed
+                / verify_build.TARGET_TRIPLET
+                / "Qt6/plugins/multimedia/libwasmmediaplugin.a"
+            )
+            stale_bytes = bytearray(stale_plugin.read_bytes())
+            stale_bytes[0] ^= 0x01
+            stale_plugin.write_bytes(stale_bytes)
+            with self.assertRaisesRegex(
+                AssertionError,
+                "installed qtmultimedia package file drifted",
+            ):
+                verify_build.verify_qtmultimedia_binary_package(
+                    repo,
+                    installed,
+                    abi_info,
+                    abi,
+                    contract,
+                )
+
+    def test_qtmultimedia_core_is_cross_bound_to_application_link(
+        self,
+    ) -> None:
+        multimedia = {
+            "BinaryPayloadCoreBytes": 123,
+            "BinaryPayloadCorePath":
+                verify_build.QTMULTIMEDIA_CORE_ARCHIVE,
+            "BinaryPayloadCoreSha256": "a" * 64,
+        }
+        qt = {
+            "target": {
+                "requiredPorts": {
+                    "qtmultimedia": multimedia,
+                },
+            },
+        }
+        linked_core = {
+            "bytes": 123,
+            "kind": "archive",
+            "path": verify_build.QTMULTIMEDIA_CORE_ARCHIVE,
+            "sha256": "a" * 64,
+        }
+        application_link = {
+            "dependencyArchives": {
+                "linkedClosure": {
+                    "archives": [linked_core],
+                },
+            },
+        }
+        verify_build.validate_qtmultimedia_application_link_binding(
+            qt,
+            application_link,
+        )
+        linked_core["sha256"] = "b" * 64
+        with self.assertRaisesRegex(
+            AssertionError,
+            "canonical qtmultimedia core",
+        ):
+            verify_build.validate_qtmultimedia_application_link_binding(
+                qt,
+                application_link,
+            )
+
+    def test_target_static_source_lock_is_cross_bound_to_link(
+        self,
+    ) -> None:
+        identity = dict(
+            verify_build.EXPECTED_TARGET_STATIC_LINK_INPUT_IDENTITY
+        )
+        qt = {
+            "target": {
+                "staticLinkInputIdentity": identity,
+            },
+        }
+        application_link = {
+            "dependencyArchives": {
+                "superset": dict(identity),
+            },
+        }
+        verify_build.validate_target_static_link_input_binding(
+            qt,
+            application_link,
+        )
+        application_link["dependencyArchives"]["superset"][
+            "fileCount"
+        ] += 1
+        with self.assertRaisesRegex(
+            AssertionError,
+            "source lock and application-link superset disagree",
+        ):
+            verify_build.validate_target_static_link_input_binding(
+                qt,
+                application_link,
+            )
+
+    def test_current_overlays_pass_real_verifier_when_vcpkg_is_present(
+        self,
+    ) -> None:
+        repo = Path(verify_build.__file__).resolve().parents[3]
+        vcpkg = (
+            repo
+            / ".toolchains"
+            / f"vcpkg-{verify_build.EXPECTED_VCPKG_COMMIT[:8]}"
+        )
+        if not (vcpkg / "ports" / "qtbase" / "portfile.cmake").is_file():
+            self.skipTest("requires the pinned vcpkg source installation")
+        evidence = verify_build.verify_overlays(repo, vcpkg)
+        verify_build.validate_overlay_evidence(evidence)
+
+    def test_overlay_evidence_rejects_forged_aggregate(self) -> None:
+        evidence = self.overlay_evidence_fixture()
+        verify_build.validate_overlay_evidence(evidence)
+        evidence["qtbase"]["aggregateSha256"] = "0" * 64
+        with self.assertRaisesRegex(
+            AssertionError,
+            "qtbase.aggregateSha256",
+        ):
+            verify_build.validate_overlay_evidence(evidence)
+
+    def test_overlay_evidence_rejects_phantom_file(self) -> None:
+        evidence = self.overlay_evidence_fixture()
+        qtbase = evidence["qtbase"]
+        qtbase["fileSha256"]["phantom.patch"] = "0" * 64
+        qtbase["fileCount"] += 1
+        qtbase["aggregateSha256"] = self.overlay_hash_aggregate(
+            qtbase["fileSha256"]
+        )
+        with self.assertRaisesRegex(
+            AssertionError,
+            "qtbase.fileCount|qtbase file inventory",
+        ):
+            verify_build.validate_overlay_evidence(evidence)
+
+    def test_overlay_evidence_rejects_missing_file_hash(self) -> None:
+        evidence = self.overlay_evidence_fixture()
+        qtbase = evidence["qtbase"]
+        qtbase["fileSha256"].pop("port.data.cmake")
+        qtbase["fileCount"] -= 1
+        qtbase["aggregateSha256"] = self.overlay_hash_aggregate(
+            qtbase["fileSha256"]
+        )
+        with self.assertRaisesRegex(
+            AssertionError,
+            "qtbase.fileCount|qtbase file inventory",
+        ):
+            verify_build.validate_overlay_evidence(evidence)
 
     def test_triplet_passthrough_requires_emsdk_and_python(self) -> None:
         triplet = "set(VCPKG_ENV_PASSTHROUGH EMSDK)\n"

@@ -3,6 +3,12 @@ import { createReadStream } from "node:fs";
 import path from "node:path";
 import { chromium } from "@playwright/test";
 
+import {
+    auditLifecycleArguments,
+    browserInspectionArguments,
+    ignoredLifecycleDefaultArguments,
+} from "./chromium-lifecycle-policy.mjs";
+
 export const blockingBrowserLanes = [
     "chromium-cft",
     "chrome-stable",
@@ -154,10 +160,17 @@ export async function resolveBrowserLane(name, options = {}) {
             `Browser launch provenance mismatch for profileMode`,
         );
     }
+    if (hasOwn(options, "ignoreDefaultArgs")) {
+        throw new Error(
+            "Browser lifecycle default arguments are harness-owned",
+        );
+    }
     const callerMetadata = captureLaunchMetadata(options);
     const arguments_ = [...(options.args ?? [])];
-    if (!arguments_.includes("--enable-automation")) {
-        arguments_.push("--enable-automation");
+    for (const argument of browserInspectionArguments) {
+        if (!arguments_.includes(argument)) {
+            arguments_.push(argument);
+        }
     }
     const {
         profileMode: _profileMode,
@@ -167,6 +180,7 @@ export async function resolveBrowserLane(name, options = {}) {
         ...playwrightOptions,
         args: arguments_,
         channel,
+        ignoreDefaultArgs: ignoredLifecycleDefaultArguments(name),
     };
     assertNoAcceptanceBypass(launchOptions);
     try {
@@ -221,6 +235,10 @@ export async function describeBrowser(browser, launchOptions) {
     assertNoAcceptanceBypass({
         args: commandLine.arguments.slice(1),
     });
+    const lifecycleArgumentAudit = auditLifecycleArguments(
+        commandLine.arguments.slice(1),
+        provenance.lane,
+    );
 
     const executable = commandLine.arguments[0];
     const executableSuffix = normalizedExecutableSuffix(executable);
@@ -246,6 +264,7 @@ export async function describeBrowser(browser, launchOptions) {
             executableSuffix,
         ),
         headless: provenance.headless,
+        lifecycleArgumentAudit,
         profileMode: provenance.profileMode,
     };
 }

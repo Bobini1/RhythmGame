@@ -56,6 +56,15 @@ test("browser identity is bound to resolved launch provenance", async (t) => {
                 assert.equal(identity.lane, "chromium-cft");
                 assert.equal(identity.channel, "chromium");
                 assert.equal(identity.headless, true);
+                assert.deepEqual(identity.lifecycleArgumentAudit, {
+                    requiredAbsent: [
+                        "--disable-back-forward-cache",
+                    ],
+                    requiredPresent: [
+                        "--enable-automation",
+                    ],
+                    verifiedVia: "Browser.getBrowserCommandLine",
+                });
                 assert.equal(identity.profileMode, "temporary");
             },
         );
@@ -114,6 +123,45 @@ test("browser identity is bound to resolved launch provenance", async (t) => {
                         },
                     );
                 }
+            },
+        );
+
+        await t.test(
+            "effective CDP arguments reject disabled lifecycle behavior",
+            async () => {
+                mockCommandLine(
+                    browser,
+                    missingExecutable,
+                    "--disable-back-forward-cache",
+                );
+                await assert.rejects(
+                    describeBrowser(browser, requestedOptions),
+                    /lifecycle behavior is disabled/i,
+                );
+            },
+        );
+
+        await t.test(
+            "effective CDP arguments require command-line inspection",
+            async () => {
+                mockCommandLine(browser, missingExecutable);
+                await assert.rejects(
+                    describeBrowser(browser, requestedOptions),
+                    /command-line inspection is unavailable/i,
+                );
+            },
+        );
+
+        await t.test(
+            "callers cannot replace harness lifecycle launch policy",
+            async () => {
+                await assert.rejects(
+                    resolveBrowserLane("chromium-cft", {
+                        headless: true,
+                        ignoreDefaultArgs: [],
+                    }),
+                    /lifecycle default arguments are harness-owned/i,
+                );
             },
         );
     } finally {

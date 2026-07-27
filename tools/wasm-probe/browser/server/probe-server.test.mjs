@@ -131,6 +131,7 @@ function request(origin, route, options = {}) {
     return new Promise((resolve, reject) => {
         const url = new URL(route, origin);
         const request_ = https.request({
+            agent: options.agent,
             hostname: url.hostname,
             path: options.rawPath ?? `${url.pathname}${url.search}`,
             port: url.port,
@@ -233,7 +234,8 @@ test("one random loopback HTTPS port serves exact policy and MIME routes", async
             [`/${artifacts.wasm.url}`, 200, "application/wasm"],
             [`/${artifacts.preflightWorker.url}`, 200, "text/javascript; charset=utf-8"],
             [`/${artifacts.media.url}`, 200, "video/webm"],
-            ["/probe/qnam?nonce=route-matrix", 200, "application/json; charset=utf-8"],
+            ["/probe/bfcache-away", 200, "text/html; charset=utf-8"],
+            ["/probe/qnam?nonce=11", 200, "application/json; charset=utf-8"],
             ["/missing", 404, "application/json; charset=utf-8"],
             ["/probe/error", 500, "application/json; charset=utf-8"],
         ];
@@ -244,14 +246,36 @@ test("one random loopback HTTPS port serves exact policy and MIME routes", async
             assertPolicy(response, origin);
         }
 
-        const qnam = await request(origin, "/probe/qnam?nonce=exact-nonce");
-        assert.deepEqual(
-            JSON.parse(qnam.body.toString("utf8")),
-            { nonce: "exact-nonce", ok: true, transport: "https" },
-        );
+        const qnam = await request(origin, "/probe/qnam?nonce=12");
+        const qnamBody = JSON.parse(qnam.body.toString("utf8"));
+        assert.deepEqual(qnamBody, {
+            nonce: 12,
+            ok: true,
+            requestId: qnam.headers["x-rhythmgame-probe-request-id"],
+            transport: "https",
+        });
         assert.equal(
             qnam.headers["cache-control"],
             "no-store",
+        );
+        const applicationHtml = await request(
+            origin,
+            "/RhythmGameWasmProbe.html",
+        );
+        assert.equal(
+            applicationHtml.headers["cache-control"],
+            "no-cache",
+        );
+        const bfcacheAway = await request(origin, "/probe/bfcache-away");
+        assert.equal(
+            bfcacheAway.headers["cache-control"],
+            "no-cache",
+        );
+        assert.equal(
+            bfcacheAway.body.toString("utf8").match(
+                /<link rel="icon" href="data:,">/g,
+            )?.length,
+            1,
         );
         const immutable = await request(origin, `/${artifacts.mainJs.url}`);
         assert.equal(
@@ -389,6 +413,146 @@ test("media ranges are exact and retain policy on 206 and 416", async () => {
     });
 });
 
+test("fixed media alias revalidates manifest bytes for every range outcome", async () => {
+    await withServer(async ({ artifacts, origin, probeLogs }) => {
+        const contentAddressed = await request(
+            origin,
+            `/${artifacts.media.url}`,
+        );
+        const full = await request(
+            origin,
+            "/fixtures/probe.webm?nonce=101",
+        );
+        assert.equal(full.status, 200);
+        assert.deepEqual(full.body, contentAddressed.body);
+        assert.equal(full.headers["cache-control"], "no-store");
+        assert.equal(full.headers["content-type"], "video/webm");
+        assert.equal(full.headers["accept-ranges"], "bytes");
+        assert.match(
+            full.headers["x-rhythmgame-probe-request-id"],
+            /^request-[1-9][0-9]*$/,
+        );
+
+        const partial = await request(
+            origin,
+            "/fixtures/probe.webm?nonce=101",
+            { headers: { range: "bytes=0-2" } },
+        );
+        assert.equal(partial.status, 206);
+        assert.deepEqual(partial.body, full.body.subarray(0, 3));
+        assert.equal(partial.headers["cache-control"], "no-store");
+        assert.equal(
+            partial.headers["content-range"],
+            `bytes 0-2/${full.body.length}`,
+        );
+
+        const invalid = await request(
+            origin,
+            "/fixtures/probe.webm?nonce=101",
+            { headers: { range: `bytes=${full.body.length}-` } },
+        );
+        assert.equal(invalid.status, 416);
+        assert.equal(invalid.headers["cache-control"], "no-store");
+        assert.equal(
+            invalid.headers["content-range"],
+            `bytes */${full.body.length}`,
+        );
+
+        const mediaLogs = probeLogs.filter(
+            (entry) => entry.kind === "media" && entry.runNonce === 101,
+        );
+        assert.equal(mediaLogs.length, 3);
+        assert.deepEqual(
+            mediaLogs.map((entry) => entry.status),
+            [200, 206, 416],
+        );
+        for (const entry of mediaLogs) {
+            assert.match(entry.requestId, /^request-[1-9][0-9]*$/);
+            assert.equal(entry.artifactBytes, artifacts.media.bytes);
+            assert.equal(entry.artifactSha256, artifacts.media.sha256);
+            assert.equal(entry.artifactSri, artifacts.media.sri);
+            assert.equal(entry.route, "/fixtures/probe.webm");
+        }
+        assert.equal(new Set(
+            mediaLogs.map((entry) => entry.requestId),
+        ).size, 3);
+        assert.throws(() => probeLogs.push({}), TypeError);
+    });
+});
+
+test("fixed media alias fails closed after manifest artifact drift", async () => {
+    await withServer(async ({
+        artifacts,
+        origin,
+        runtimeDirectory,
+    }) => {
+        const artifactPath = path.join(
+            runtimeDirectory,
+            artifacts.media.url,
+        );
+        const original = await readFile(artifactPath);
+        await writeFile(
+            artifactPath,
+            Buffer.concat([original, Buffer.from("drift\n")]),
+        );
+        for (const options of [
+            {},
+            { headers: { range: "bytes=0-2" } },
+            { headers: { range: `bytes=${original.length}-` } },
+        ]) {
+            const response = await request(
+                origin,
+                "/fixtures/probe.webm?nonce=102",
+                options,
+            );
+            assert.equal(response.status, 409);
+            assert.equal(response.headers["cache-control"], "no-store");
+            assert.deepEqual(
+                JSON.parse(response.body.toString("utf8")),
+                { error: "artifact-digest-mismatch" },
+            );
+        }
+    });
+});
+
+test("QNAM response and append-only probe log share nonce and request ID", async () => {
+    await withServer(async ({ origin, probeLogs }) => {
+        const response = await request(
+            origin,
+            "/probe/qnam?nonce=4294967294",
+        );
+        assert.equal(response.status, 200);
+        assert.equal(response.headers["access-control-allow-origin"], undefined);
+        assert.equal(
+            response.headers["content-type"],
+            "application/json; charset=utf-8",
+        );
+        const body = JSON.parse(response.body.toString("utf8"));
+        assert.deepEqual(body, {
+            nonce: 4294967294,
+            ok: true,
+            requestId: response.headers["x-rhythmgame-probe-request-id"],
+            transport: "https",
+        });
+        const matching = probeLogs.filter(
+            (entry) => entry.kind === "qnam"
+                && entry.runNonce === body.nonce
+                && entry.requestId === body.requestId,
+        );
+        assert.equal(matching.length, 1);
+        assert.equal(matching[0].status, 200);
+        assert.equal(matching[0].route, "/probe/qnam");
+
+        for (const nonce of ["", "0", "4294967295", "not-a-number"]) {
+            const invalid = await request(
+                origin,
+                `/probe/qnam?nonce=${nonce}`,
+            );
+            assert.equal(invalid.status, 400);
+        }
+    });
+});
+
 test("normal artifact routes revalidate URL digests against current bytes", async () => {
     await withServer(async ({ artifacts, origin, runtimeDirectory }) => {
         const route = `/${artifacts.mainJs.url}`;
@@ -451,13 +615,16 @@ test("unsafe and unknown routes fail closed without a shell fallback", async () 
     });
 });
 
-test("WSS shares the HTTPS port, rejects foreign Origin, and implements protocol", async () => {
-    await withServer(async ({ origin, port }) => {
+test("WSS shares HTTPS origin and exposes one nonce-correlated probe stream", async () => {
+    await withServer(async ({ origin, port, probeLogs }) => {
         const wrongOriginStatus = await new Promise((resolve, reject) => {
-            const socket = new WebSocket(`wss://127.0.0.1:${port}/probe/ws`, {
+            const socket = new WebSocket(
+                `wss://127.0.0.1:${port}/probe/ws?nonce=7`,
+                {
                 origin: "https://example.invalid",
                 rejectUnauthorized: false,
-            });
+                },
+            );
             const timer = setTimeout(
                 () => reject(new Error("wrong-Origin WSS timeout")),
                 5000,
@@ -474,10 +641,13 @@ test("WSS shares the HTTPS port, rejects foreign Origin, and implements protocol
         assert.equal(wrongOriginStatus.status, 403);
         assertPolicy(wrongOriginStatus, origin);
 
-        const socket = new WebSocket(`wss://127.0.0.1:${port}/probe/ws`, {
-            origin,
-            rejectUnauthorized: false,
-        });
+        const socket = new WebSocket(
+            `wss://127.0.0.1:${port}/probe/ws?nonce=7`,
+            {
+                origin,
+                rejectUnauthorized: false,
+            },
+        );
         const acceptedUpgrade = new Promise((resolve) => {
             socket.once("upgrade", resolve);
         });
@@ -486,11 +656,11 @@ test("WSS shares the HTTPS port, rejects foreign Origin, and implements protocol
             socket.on("message", (data, isBinary) => {
                 messages.push({ data: Buffer.from(data), isBinary });
                 if (messages.length === 1) {
-                    socket.send("text-echo");
+                    socket.send("text-echo:7");
                 } else if (messages.length === 2) {
                     socket.send(Buffer.from([1, 2, 3]));
                 } else if (messages.length === 3) {
-                    socket.send("heartbeat:nonce-7");
+                    socket.send("heartbeat:7");
                 } else if (messages.length === 4) {
                     socket.send("close");
                 }
@@ -503,19 +673,128 @@ test("WSS shares the HTTPS port, rejects foreign Origin, and implements protocol
         });
         const closed = await close;
         assertPolicy(await acceptedUpgrade, origin);
-        assert.deepEqual(
-            JSON.parse(messages[0].data.toString("utf8")),
-            { type: "server-message", value: "connected" },
-        );
-        assert.equal(messages[1].data.toString("utf8"), "text-echo");
+        const connected = JSON.parse(messages[0].data.toString("utf8"));
+        assert.deepEqual(connected, {
+            connectionId: connected.connectionId,
+            nonce: 7,
+            type: "server-message",
+            value: "connected",
+        });
+        assert.match(connected.connectionId, /^connection-[1-9][0-9]*$/);
+        assert.equal(messages[1].data.toString("utf8"), "text-echo:7");
         assert.equal(messages[1].isBinary, false);
         assert.deepEqual(messages[2].data, Buffer.from([1, 2, 3]));
         assert.equal(messages[2].isBinary, true);
         assert.deepEqual(
             JSON.parse(messages[3].data.toString("utf8")),
-            { nonce: "nonce-7", type: "heartbeat" },
+            { nonce: 7, type: "heartbeat" },
         );
         assert.deepEqual(closed, { code: 1000, reason: "probe-complete" });
+
+        const stream = probeLogs.filter(
+            (entry) => entry.kind === "wss"
+                && entry.runNonce === 7
+                && entry.connectionId === connected.connectionId,
+        );
+        assert.deepEqual(
+            stream.map((entry) => entry.event),
+            [
+                "opened",
+                "server-message",
+                "text-received",
+                "text-echoed",
+                "binary-received",
+                "binary-echoed",
+                "heartbeat-received",
+                "heartbeat-sent",
+                "close-requested",
+                "closed",
+            ],
+        );
+        assert.equal(stream[0].origin, origin);
+    });
+});
+
+test("WSS rejects oversized and out-of-order messages without materializing protocol logs", async () => {
+    await withServer(async ({ origin, port, probeLogs }) => {
+        const connect = () => new WebSocket(
+            `wss://127.0.0.1:${port}/probe/ws?nonce=9`,
+            {
+                origin,
+                rejectUnauthorized: false,
+            },
+        );
+        const runViolation = async (sendViolation) => {
+            const socket = connect();
+            const greeting = new Promise((resolve, reject) => {
+                socket.once("message", resolve);
+                socket.once("error", reject);
+            });
+            const closed = new Promise((resolve) => {
+                socket.once("close", (code, reason) => resolve({
+                    code,
+                    reason: reason.toString("utf8"),
+                }));
+            });
+            await greeting;
+            sendViolation(socket);
+            return closed;
+        };
+
+        const orderViolation = await runViolation(
+            (socket) => socket.send(Buffer.from([1, 2, 3])),
+        );
+        assert.deepEqual(orderViolation, {
+            code: 1008,
+            reason: "message-order",
+        });
+
+        const closeFirst = await runViolation(
+            (socket) => socket.send("close"),
+        );
+        assert.deepEqual(closeFirst, {
+            code: 1008,
+            reason: "text-echo-mismatch",
+        });
+
+        const queuedAfterViolation = await runViolation((socket) => {
+            socket.send("close");
+            socket.send("text-echo:9");
+            socket.send(Buffer.from([1, 2, 3]));
+            socket.send("heartbeat:9");
+            socket.send("close");
+        });
+        assert.deepEqual(queuedAfterViolation, {
+            code: 1008,
+            reason: "text-echo-mismatch",
+        });
+
+        const oversized = await runViolation(
+            (socket) => socket.send(Buffer.alloc(4097, 0x41)),
+        );
+        assert.equal(oversized.code, 1009);
+
+        const streams = probeLogs.filter(
+            (entry) => entry.kind === "wss" && entry.runNonce === 9,
+        );
+        assert.equal(
+            streams.some((entry) => (
+                entry.event === "binary-received"
+                || entry.event === "text-received"
+            )),
+            false,
+        );
+        for (const connectionId of new Set(
+            streams.map((entry) => entry.connectionId),
+        )) {
+            assert.deepEqual(
+                streams
+                    .filter((entry) => entry.connectionId === connectionId)
+                    .slice(0, 2)
+                    .map((entry) => entry.event),
+                ["opened", "server-message"],
+            );
+        }
     });
 });
 
@@ -630,6 +909,8 @@ test("negative modes are isolated and alter only their named contract", async ()
                 "missing-coep",
                 "missing-coop",
                 "missing-wasm-unsafe-eval",
+                "native-depth-limit",
+                "native-suspension-trap",
                 "wrong-wasm-mime",
             ],
         );
@@ -737,6 +1018,21 @@ test("negative modes are isolated and alter only their named contract", async ()
         );
         assert.notDeepEqual(corruptBootstrap.body, normalBootstrap.body);
 
+        for (const mode of [
+            "native-depth-limit",
+            "native-suspension-trap",
+        ]) {
+            const adversarialManifest = await request(
+                origin,
+                `/negative/${mode}/runtime-artifacts.json`,
+            );
+            assert.deepEqual(adversarialManifest.body, normalManifest.body);
+            assert.equal(
+                adversarialManifest.headers["content-security-policy"],
+                normalManifest.headers["content-security-policy"],
+            );
+        }
+
         const normalAfterNegative = await request(origin, `/${artifacts.wasm.url}`);
         assert.deepEqual(normalAfterNegative.body, normalWasm.body);
     });
@@ -744,7 +1040,7 @@ test("negative modes are isolated and alter only their named contract", async ()
 
 test("request logs are normalized, cryptographic, and contain no absolute paths", async () => {
     await withServer(async ({ origin, requestLogs, runtimeDirectory }) => {
-        await request(origin, "/probe/qnam?nonce=logged");
+        await request(origin, "/probe/qnam?nonce=13");
         await request(origin, "/missing");
         assert.ok(requestLogs.length >= 2);
         for (const entry of requestLogs) {
@@ -757,6 +1053,133 @@ test("request logs are normalized, cryptographic, and contain no absolute paths"
             assert.equal(typeof entry.policy, "object");
             assert.ok(!JSON.stringify(entry).includes(runtimeDirectory));
             assert.ok(!JSON.stringify(entry).includes(repositoryRoot));
+        }
+    });
+});
+
+test("request logs are bounded and externally append-only", async () => {
+    await withServer(async ({
+        origin,
+        port,
+        probeLogs,
+        requestLogs,
+    }) => {
+        const maximumEntries = 4096;
+        const batchSize = 64;
+        const agent = new https.Agent({
+            keepAlive: true,
+            maxSockets: batchSize,
+            rejectUnauthorized: false,
+        });
+        try {
+            for (
+                let offset = 0;
+                offset < maximumEntries;
+                offset += batchSize
+            ) {
+                const responses = await Promise.all(
+                    Array.from(
+                        {
+                            length: Math.min(
+                                batchSize,
+                                maximumEntries - offset,
+                            ),
+                        },
+                        () => request(origin, "/probe/error", {
+                            agent,
+                            method: "HEAD",
+                        }),
+                    ),
+                );
+                assert.equal(
+                    responses.every((response) => response.status === 500),
+                    true,
+                );
+            }
+
+            assert.equal(requestLogs.length, maximumEntries);
+            const firstEntry = requestLogs[0];
+            const overflow = await request(
+                origin,
+                "/probe/error",
+                { agent },
+            );
+            assert.equal(overflow.status, 503);
+            assertPolicy(overflow, origin);
+            assert.deepEqual(
+                JSON.parse(overflow.body.toString("utf8")),
+                { error: "request-log-capacity" },
+            );
+            assert.equal(requestLogs.length, maximumEntries);
+            assert.equal(requestLogs.overflowed, true);
+
+            const probeLogLength = probeLogs.length;
+            const refusedProbe = await request(
+                origin,
+                "/probe/qnam?nonce=4100",
+                { agent },
+            );
+            assert.equal(refusedProbe.status, 503);
+            assertPolicy(refusedProbe, origin);
+            assert.deepEqual(
+                JSON.parse(refusedProbe.body.toString("utf8")),
+                { error: "request-log-capacity" },
+            );
+            assert.equal(probeLogs.length, probeLogLength);
+            assert.equal(
+                probeLogs.some(
+                    (entry) => (
+                        entry.kind === "qnam"
+                        && entry.runNonce === 4100
+                    ),
+                ),
+                false,
+            );
+
+            assert.equal(Reflect.set(requestLogs, "0", {}), false);
+            assert.equal(Reflect.deleteProperty(requestLogs, "0"), false);
+            assert.equal(
+                Reflect.defineProperty(requestLogs, "0", { value: {} }),
+                false,
+            );
+            assert.throws(() => requestLogs.push({}), TypeError);
+            assert.throws(() => requestLogs.splice(0, 1), TypeError);
+            assert.strictEqual(requestLogs[0], firstEntry);
+            assert.equal(Object.isFrozen(firstEntry), true);
+            assert.equal(Object.isFrozen(firstEntry.policy), true);
+            assert.equal(
+                Reflect.set(
+                    firstEntry.policy,
+                    "contentSecurityPolicy",
+                    "tampered",
+                ),
+                false,
+            );
+
+            const afterOverflow = await request(
+                origin,
+                "/probe/error",
+                { agent, method: "HEAD" },
+            );
+            assert.equal(afterOverflow.status, 503);
+            assert.equal(afterOverflow.body.length, 0);
+            assert.equal(requestLogs.length, maximumEntries);
+
+            const rejectedUpgrade = await rawRequest(origin, [
+                "GET /probe/ws HTTP/1.1",
+                `Host: 127.0.0.1:${port}`,
+                "Connection: Upgrade",
+                "Upgrade: websocket",
+            ]);
+            assert.equal(rejectedUpgrade.status, 503);
+            assertPolicy(rejectedUpgrade, origin);
+            assert.deepEqual(
+                JSON.parse(rejectedUpgrade.body.toString("utf8")),
+                { error: "request-log-capacity" },
+            );
+            assert.equal(requestLogs.length, maximumEntries);
+        } finally {
+            agent.destroy();
         }
     });
 });
@@ -776,12 +1199,14 @@ test("the current Gate 1A output supports a non-runtime server smoke", async (t)
     try {
         const response = await request(
             server.origin,
-            "/probe/qnam?nonce=current-probe-smoke",
+            "/probe/qnam?nonce=14",
         );
         assert.equal(response.status, 200);
-        assert.deepEqual(JSON.parse(response.body.toString("utf8")), {
-            nonce: "current-probe-smoke",
+        const responseBody = JSON.parse(response.body.toString("utf8"));
+        assert.deepEqual(responseBody, {
+            nonce: 14,
             ok: true,
+            requestId: response.headers["x-rhythmgame-probe-request-id"],
             transport: "https",
         });
         assertPolicy(response, server.origin);

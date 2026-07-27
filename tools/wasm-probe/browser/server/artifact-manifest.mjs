@@ -167,6 +167,14 @@ export function validateArtifactManifest(manifest) {
     return manifest;
 }
 
+export function artifactForRole(manifest, role) {
+    validateArtifactManifest(manifest);
+    if (!roleSet.has(role)) {
+        throw new Error(`unknown runtime artifact role: ${String(role)}`);
+    }
+    return manifest.artifacts[role];
+}
+
 export async function loadArtifactManifest(runtimeDirectory) {
     const root = await realpath(runtimeDirectory);
     const manifestPath = path.join(root, "runtime-artifacts.json");

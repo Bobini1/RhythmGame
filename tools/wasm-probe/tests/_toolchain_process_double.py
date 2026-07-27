@@ -65,12 +65,7 @@ def _copy_or_link(source: Path, destination: Path) -> None:
         shutil.copy2(source, destination)
 
 
-def _seed_native_python(repository: Path) -> None:
-    source = Path(sys.executable).resolve()
-    source_root = source.parent
-    python_root = repository / "python"
-    python = python_root / "python.exe"
-    _copy_or_link(source, python)
+def _seed_python_runtime_dlls(source_root: Path, destination_root: Path) -> None:
     version = f"{sys.version_info.major}{sys.version_info.minor}"
     for name in (
         "python3.dll",
@@ -80,7 +75,17 @@ def _seed_native_python(repository: Path) -> None:
     ):
         candidate = source_root / name
         if candidate.is_file():
-            _copy_or_link(candidate, python_root / name)
+            _copy_or_link(candidate, destination_root / name)
+
+
+def _seed_native_python(repository: Path) -> None:
+    source = Path(sys.executable).resolve()
+    source_root = source.parent
+    python_root = repository / "python"
+    python = python_root / "python.exe"
+    _copy_or_link(source, python)
+    version = f"{sys.version_info.major}{sys.version_info.minor}"
+    _seed_python_runtime_dlls(source_root, python_root)
     (python_root / f"python{version}._pth").write_text(
         "\n".join(
             (
@@ -312,6 +317,10 @@ def create_repository_layout(repository: Path, kind: str) -> None:
         _copy_or_link(
             Path(sys.executable).resolve(),
             repository / "node" / "node.exe",
+        )
+        _seed_python_runtime_dlls(
+            Path(sys.executable).resolve().parent,
+            repository / "node",
         )
         (repository / "upstream" / "bin").mkdir(
             parents=True,

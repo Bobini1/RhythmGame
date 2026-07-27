@@ -1,7 +1,14 @@
 import { defineConfig } from "@playwright/test";
 
+import {
+    bfcacheIgnoredDefaultArguments,
+    browserInspectionArguments,
+    headedLifecycleIgnoredDefaultArguments,
+} from "./lib/chromium-lifecycle-policy.mjs";
+
 export default defineConfig({
     testDir: "./tests",
+    testMatch: "**/*.spec.mjs",
     retries: 0,
     workers: 1,
     outputDir: ".traces",
@@ -18,9 +25,14 @@ export default defineConfig({
     projects: [
         {
             name: "chromium-cft",
+            grepInvert: /@headed/,
             use: {
                 channel: "chromium",
                 headless: true,
+                launchOptions: {
+                    args: browserInspectionArguments,
+                    ignoreDefaultArgs: bfcacheIgnoredDefaultArguments,
+                },
             },
         },
         {
@@ -28,6 +40,11 @@ export default defineConfig({
             use: {
                 channel: "chrome",
                 headless: false,
+                launchOptions: {
+                    args: browserInspectionArguments,
+                    ignoreDefaultArgs:
+                        headedLifecycleIgnoredDefaultArguments,
+                },
             },
         },
         {
@@ -35,6 +52,11 @@ export default defineConfig({
             use: {
                 channel: "chrome-beta",
                 headless: false,
+                launchOptions: {
+                    args: browserInspectionArguments,
+                    ignoreDefaultArgs:
+                        headedLifecycleIgnoredDefaultArguments,
+                },
             },
         },
     ],

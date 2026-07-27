@@ -33,6 +33,10 @@ set(${PORT}_PATCHES
         restore-wasm-version-check.patch
 )
 
+if(VCPKG_TARGET_IS_EMSCRIPTEN)
+    list(APPEND ${PORT}_PATCHES preserve-wasm-event-composed-path.patch)
+endif()
+
 if(VCPKG_TARGET_IS_WINDOWS AND NOT VCPKG_TARGET_IS_MINGW)
     list(APPEND ${PORT}_PATCHES env.patch)
 endif()

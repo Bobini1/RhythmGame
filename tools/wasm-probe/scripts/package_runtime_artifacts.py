@@ -126,6 +126,7 @@ ALLOWED_QUOTED_SLASH_LITERALS = frozenset({
     "/dev/stdout",
     "/dev/tty",
     "/dev/tty1",
+    "/fixtures/probe.webm",
     "/home",
     "/home/web_user",
     "/path/to/destination",

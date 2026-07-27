@@ -1,0 +1,149 @@
+Correct Qt Multimedia's Wasm startup media lifecycle for Qt 6.11.1.
+
+HTMLMediaElement.load() resets the media element and queues an "emptied"
+event before the new resource starts loading. That event means readyState
+became HAVE_NOTHING; it is not the natural end of playback. Keep "ended" as
+the sole browser event that maps to QMediaPlayer::EndOfMedia and use
+"emptied" only to revoke readiness. The subsequent "loadstart" event owns
+the transition to LoadingMedia for a nonempty replacement source.
+
+Also backport the QWasmMediaPlayer::stop() part of upstream Qt commit
+4e61fa7da7e7db730e6e4762839de24f99e7803c. QMediaPlayer::setSource()
+idempotently stops an idle backend before installing the new source, so that
+path must not emit a warning.
+
+Backport upstream Qt commit
+8a2093d1dda70eae63a0522537c93605f8932041 as well. Natural "ended"
+notification must update status without recursively tearing down the element;
+explicit source cleanup owns teardown. The stop implementation also has to
+guard re-entry before touching members and must not dereference the optional
+camera/capture media stream for ordinary URL video playback.
+
+The null guard relies on the pointer initialization from upstream Qt commit
+d6f64920e9024de8cf0d8761f304fc8999700783. Without that initializer,
+ordinary URL playback would read an indeterminate pointer while stopping.
+
+Finally, destruction must be the terminal resource boundary. A naturally
+completed QMediaPlayer is already in PlaybackCompleted, so its stop() path
+intentionally does nothing and the default QWasmVideoOutput destructor leaves
+the HTMLMediaElement connected with its resource loaded. Tear down stream and
+DOM ownership in QWasmVideoOutput destruction, after latching terminal state,
+so normal player lifetime alone releases the browser resource without
+stopping a capture stream that another output may share.
+
+diff --git a/src/plugins/multimedia/wasm/common/qwasmvideooutput.cpp b/src/plugins/multimedia/wasm/common/qwasmvideooutput.cpp
+index 94b6987..f40fefc 100644
+--- a/src/plugins/multimedia/wasm/common/qwasmvideooutput.cpp
++++ b/src/plugins/multimedia/wasm/common/qwasmvideooutput.cpp
+@@ -45,7 +45,23 @@ QWasmVideoOutput::QWasmVideoOutput(QObject *parent) : QObject{ parent }
+     m_hasVideoFrame = checkForVideoFrame();
+ }
+ 
+-QWasmVideoOutput::~QWasmVideoOutput() = default;
++QWasmVideoOutput::~QWasmVideoOutput()
++{
++    if (m_video.isUndefined() || m_video.isNull())
++        return;
++
++    m_shouldStop = true;
++    m_toBePaused = false;
++
++    if (m_currentVideoMode == QWasmVideoOutput::VideoDisplay)
++        m_video.call<void>("removeAttribute", std::string("src"));
++    const emscripten::val srcObject = m_video["srcObject"];
++    if (!srcObject.isUndefined() && !srcObject.isNull())
++        m_video.set("srcObject", emscripten::val::null());
++    if (m_currentVideoMode == QWasmVideoOutput::VideoDisplay)
++        m_video.call<void>("load");
++    m_video.call<void>("remove");
++}
+ 
+ void QWasmVideoOutput::setVideoSize(const QSize &newSize)
+ {
+@@ -144,26 +144,24 @@ void QWasmVideoOutput::start()
+ 
+ void QWasmVideoOutput::stop()
+ {
++    if (m_shouldStop)
++        return;
+     qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO;
+-
+     if (m_video.isUndefined() || m_video.isNull()) {
+-        // error
+         emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("Resource error"));
+         return;
+     }
+     m_shouldStop = true;
+     if (!m_toBePaused) {
+-        // we are stopped , need to reset
+-        m_mediaInputStream->stopMediaStream(m_mediaInputStream->getMediaStream());
++        if (m_mediaInputStream && m_mediaInputStream->isActive())
++            m_mediaInputStream->stopMediaStream(m_mediaInputStream->getMediaStream());
+ 
+-         m_video.set("srcObject", emscripten::val::null());
++        m_video.set("srcObject", emscripten::val::null());
+         disconnect(m_connection);
+-
+         m_video.call<void>("remove");
+-
+     } else {
+         m_video.call<void>("pause");
+     }
+ }
+ 
+ void QWasmVideoOutput::pause()
+@@ -489,11 +487,9 @@ void QWasmVideoOutput::doElementCallbacks()
+     // ended
+     auto endedCallback = [=](emscripten::val event) {
+         Q_UNUSED(event)
+         qCDebug(qWasmMediaVideoOutput) << "ended";
+         m_currentMediaStatus = MediaStatus::EndOfMedia;
+         emit statusChanged(m_currentMediaStatus);
+-        m_shouldStop = true;
+-        stop();
+     };
+     m_endedEvent.reset(new QWasmEventHandler(m_video, "ended", endedCallback));
+ 
+@@ -635,9 +631,7 @@ void QWasmVideoOutput::doElementCallbacks()
+     auto emptiedCallback = [=](emscripten::val event) {
+         Q_UNUSED(event)
+         qCDebug(qWasmMediaVideoOutput) << "emptied";
+         emit readyChanged(false);
+-        m_currentMediaStatus = MediaStatus::EndOfMedia;
+-        emit statusChanged(m_currentMediaStatus);
+     };
+     m_emptiedChangeEvent.reset(new QWasmEventHandler(m_video, "emptied", emptiedCallback));
+ 
+diff --git a/src/plugins/multimedia/wasm/common/qwasmvideooutput_p.h b/src/plugins/multimedia/wasm/common/qwasmvideooutput_p.h
+index 2887c02..91525fb 100644
+--- a/src/plugins/multimedia/wasm/common/qwasmvideooutput_p.h
++++ b/src/plugins/multimedia/wasm/common/qwasmvideooutput_p.h
+@@ -159,7 +159,7 @@ private:
+     QWasmVideoOutput::WasmVideoMode m_currentVideoMode = QWasmVideoOutput::VideoDisplay;
+     QMediaPlayer::MediaStatus m_currentMediaStatus;
+     qreal m_currentBufferedValue;
+-    JsMediaInputStream *m_mediaInputStream;
++    JsMediaInputStream *m_mediaInputStream = nullptr;
+ 
+     QScopedPointer<QWasmEventHandler> m_timeUpdateEvent;
+     QScopedPointer<QWasmEventHandler> m_playEvent;
+diff --git a/src/plugins/multimedia/wasm/mediaplayer/qwasmmediaplayer.cpp b/src/plugins/multimedia/wasm/mediaplayer/qwasmmediaplayer.cpp
+index a13b519..8af7d51 100644
+--- a/src/plugins/multimedia/wasm/mediaplayer/qwasmmediaplayer.cpp
++++ b/src/plugins/multimedia/wasm/mediaplayer/qwasmmediaplayer.cpp
+@@ -29,6 +29,7 @@ QWasmMediaPlayer::QWasmMediaPlayer(QMediaPlayer *parent)
+ 
+ QWasmMediaPlayer::~QWasmMediaPlayer()
+ {
++    m_videoOutput->disconnect(this);
+     delete m_videoOutput;
+ }
+ 
+@@ -335,7 +335,6 @@ void QWasmMediaPlayer::stop()
+ 
+     if (m_State == QWasmMediaPlayer::Idle || m_State == QWasmMediaPlayer::PlaybackCompleted
+         || m_State == QWasmMediaPlayer::Stopped) {
+-          qWarning() << Q_FUNC_INFO << __LINE__;
+         return;
+     }
+ 
