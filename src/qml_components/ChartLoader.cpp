@@ -347,25 +347,10 @@ ChartLoader::loadChartWithConfig(
 
     try {
         const auto file = support::qStringToPath(filename);
-        auto exactRandom =
-          resource_managers::ExactRandomSequence(playConfig.randomSequence);
-        auto chartComponents = [&] {
-            if (file.extension() == ".bmson") {
-                if (!playConfig.randomSequence.isEmpty()) {
-                    throw std::invalid_argument(
-                      "bmson cannot consume a BMS random sequence");
-                }
-                return chartDataFactory->loadBmsonChartData(file);
-            }
-            auto randomGenerator =
-              [&exactRandom](charts::ParsedBmsChart::RandomRange range) {
-                  return static_cast<charts::ParsedBmsChart::RandomRange>(
-                    exactRandom.next(static_cast<qint64>(range)));
-              };
-            return chartDataFactory->loadChartData(file,
-                                                   std::move(randomGenerator));
-        }();
-        if (!exactRandom.complete()) {
+        auto chartComponents =
+          chartDataFactory->loadChartDataWithRandomSequence(
+            file, playConfig.randomSequence);
+        if (!chartComponents.has_value()) {
             return nullptr;
         }
         return createChart(player,
@@ -376,7 +361,7 @@ ChartLoader::loadChartWithConfig(
                            false,
                            false,
                            nullptr,
-                           std::move(chartComponents),
+                           std::move(*chartComponents),
                            &playConfig)
           .release();
     } catch (const std::exception&) {

@@ -6,7 +6,10 @@
 #define RHYTHMGAME_BMSNOTES_H
 #include <QObject>
 #include "support/Sha256.h"
-#include "db/SqliteCppDb.h"
+
+namespace db {
+class SqliteCppDb;
+}
 
 namespace gameplay_logic {
 

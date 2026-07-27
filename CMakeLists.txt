@@ -193,6 +193,7 @@ qt_add_library(RhythmGame_lib OBJECT
         src/resource_managers/ChartFolderModel.h
         src/gameplay_logic/BmsNotes.cpp
         src/gameplay_logic/BmsNotes.h
+        src/gameplay_logic/persistence/BmsNotesPersistence.cpp
         src/resource_managers/ChartFactory.cpp
         src/resource_managers/ChartFactory.h
         src/resource_managers/IniImageProvider.cpp
@@ -238,6 +239,7 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/persistence/BmsResultPersistence.cpp
         src/gameplay_logic/BmsReplayData.cpp
         src/gameplay_logic/BmsReplayData.h
+        src/gameplay_logic/persistence/BmsReplayDataPersistence.cpp
         src/gameplay_logic/BmsGaugeHistory.cpp
         src/gameplay_logic/BmsGaugeHistory.h
         src/gameplay_logic/persistence/BmsGaugeHistoryPersistence.cpp

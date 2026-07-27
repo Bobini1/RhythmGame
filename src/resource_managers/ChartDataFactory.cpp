@@ -17,6 +17,7 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 #include "ChartDataFactory.h"
 
 #include "charts/ReadBmsFile.h"
+#include "resource_managers/ChartPlayConfig.h"
 
 #include <utility>
 #include <ranges>
@@ -199,6 +200,24 @@ readAndParse(std::string_view chart,
                            std::move(randomValues),
                            std::move(sha256),
                            std::move(md5));
+}
+
+template<typename Loader>
+auto
+loadWithExactRandomSequence(QList<qint64> randomSequence, Loader&& loader)
+  -> std::optional<ChartDataFactory::ChartComponents>
+{
+    auto exactRandom = ExactRandomSequence(std::move(randomSequence));
+    auto randomGenerator =
+      [&exactRandom](charts::ParsedBmsChart::RandomRange range) {
+          return static_cast<charts::ParsedBmsChart::RandomRange>(
+            exactRandom.next(static_cast<qint64>(range)));
+      };
+    auto components = loader(std::move(randomGenerator));
+    if (!exactRandom.complete()) {
+        return std::nullopt;
+    }
+    return components;
 }
 
 using namespace std::chrono_literals;
@@ -429,6 +448,45 @@ ChartDataFactory::loadChartData(
                                 logicalChartPath,
                                 directory,
                                 false);
+}
+
+auto
+ChartDataFactory::loadChartDataWithRandomSequence(
+  const std::filesystem::path& chartPath,
+  QList<qint64> randomSequence,
+  int64_t directory) const -> std::optional<ChartComponents>
+{
+    if (chartPath.extension() == ".bmson") {
+        if (!randomSequence.isEmpty()) {
+            return std::nullopt;
+        }
+        return loadBmsonChartData(chartPath, directory);
+    }
+    return loadWithExactRandomSequence(
+      std::move(randomSequence), [&](RandomGenerator randomGenerator) {
+          return loadChartData(chartPath,
+                               std::move(randomGenerator),
+                               directory);
+      });
+}
+
+auto
+ChartDataFactory::loadChartDataWithRandomSequence(
+  std::string_view chartBytes,
+  const std::filesystem::path& logicalChartPath,
+  QList<qint64> randomSequence,
+  int64_t directory) const -> std::optional<ChartComponents>
+{
+    if (logicalChartPath.extension() == ".bmson") {
+        return std::nullopt;
+    }
+    return loadWithExactRandomSequence(
+      std::move(randomSequence), [&](RandomGenerator randomGenerator) {
+          return loadChartData(chartBytes,
+                               logicalChartPath,
+                               std::move(randomGenerator),
+                               directory);
+      });
 }
 
 auto

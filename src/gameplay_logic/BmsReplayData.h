@@ -6,12 +6,15 @@
 #define RHYTHMGAME_BMSREPLAYDATA_H
 
 #include "HitEvent.h"
-#include "db/SqliteCppDb.h"
 
+#include <QByteArray>
 #include <QList>
 #include <QObject>
 #include <QString>
 #include <QJsonArray>
+namespace db {
+class SqliteCppDb;
+}
 namespace gameplay_logic {
 
 class BmsReplayData final : public QObject
@@ -37,6 +40,11 @@ class BmsReplayData final : public QObject
     int totalEarly{};
     int totalLate{};
     QString guid;
+
+    static auto serializeReplayData(const QList<HitEvent>& hitEvents)
+      -> QByteArray;
+    static auto deserializeReplayData(const QByteArray& data)
+      -> QList<HitEvent>;
 
   public:
     explicit BmsReplayData(QList<HitEvent> hitEvents,

@@ -113,7 +113,8 @@ void requireSameComponents(const ChartComponents& lhs,
 }
 } // namespace
 
-TEST_CASE("chart byte loading is identical to path loading")
+TEST_CASE("ChartDataFactory: chart byte loading is identical to path loading",
+          "[ChartDataFactory]")
 {
     auto tempDirectory = QTemporaryDir{};
     REQUIRE(tempDirectory.isValid());
@@ -130,8 +131,13 @@ TEST_CASE("chart byte loading is identical to path loading")
       factory.loadChartData(chartPath, fixedRandomGenerator({ 2, 1 }));
     const auto fromBytes = factory.loadChartData(
       fixture, chartPath, fixedRandomGenerator({ 2, 1 }));
+    const auto deterministic =
+      factory.loadChartDataWithRandomSequence(
+        chartPath, QList<qint64>{ 2, 1 });
 
     requireSameComponents(fromPath, fromBytes);
+    REQUIRE(deterministic.has_value());
+    requireSameComponents(fromPath, *deterministic);
     REQUIRE(fromBytes.chartData->getRandomSequence() == QList<qint64>{ 2, 1 });
     REQUIRE(fromBytes.wavs.at(1) ==
             std::filesystem::path{ "sounds/kick.wav" });
@@ -170,38 +176,40 @@ TEST_CASE("chart byte loading is identical to path loading")
     REQUIRE(hasScrollChange);
 }
 
-TEST_CASE("deterministic random validation rejects incomplete and invalid input")
+TEST_CASE("ChartDataFactory: deterministic random loading rejects invalid input",
+          "[ChartDataFactory]")
 {
     const auto chartPath = std::filesystem::path{ "memory/portable.bms" };
     const auto factory = resource_managers::ChartDataFactory{};
 
+    SECTION("valid")
+    {
+        const auto components = factory.loadChartDataWithRandomSequence(
+          fixture, chartPath, QList<qint64>{ 2, 1 });
+        REQUIRE(components.has_value());
+        REQUIRE(components->chartData->getRandomSequence() ==
+                QList<qint64>{ 2, 1 });
+    }
+
     SECTION("incomplete")
     {
-        auto exactRandom =
-          resource_managers::ExactRandomSequence(QList<qint64>{ 2 });
-        const auto components = factory.loadChartData(
-          fixture,
-          chartPath,
-          [&exactRandom](charts::ParsedBmsChart::RandomRange range) {
-              return static_cast<charts::ParsedBmsChart::RandomRange>(
-                exactRandom.next(static_cast<qint64>(range)));
-          });
-        REQUIRE(components.chartData != nullptr);
-        REQUIRE_FALSE(exactRandom.complete());
+        const auto components = factory.loadChartDataWithRandomSequence(
+          fixture, chartPath, QList<qint64>{ 2 });
+        REQUIRE_FALSE(components.has_value());
     }
 
     SECTION("out of range")
     {
-        auto exactRandom =
-          resource_managers::ExactRandomSequence(QList<qint64>{ 3, 1 });
-        const auto components = factory.loadChartData(
-          fixture,
-          chartPath,
-          [&exactRandom](charts::ParsedBmsChart::RandomRange range) {
-              return static_cast<charts::ParsedBmsChart::RandomRange>(
-                exactRandom.next(static_cast<qint64>(range)));
-          });
-        REQUIRE(components.chartData != nullptr);
-        REQUIRE_FALSE(exactRandom.complete());
+        const auto components = factory.loadChartDataWithRandomSequence(
+          fixture, chartPath, QList<qint64>{ 3, 1 });
+        REQUIRE_FALSE(components.has_value());
+    }
+
+    SECTION("bmson rejects a BMS random sequence")
+    {
+        const auto components = factory.loadChartDataWithRandomSequence(
+          std::filesystem::path{ "memory/portable.bmson" },
+          QList<qint64>{ 1 });
+        REQUIRE_FALSE(components.has_value());
     }
 }

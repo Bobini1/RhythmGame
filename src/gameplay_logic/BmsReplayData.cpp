@@ -8,7 +8,6 @@
 #include <QIODevice>
 #include <QJsonArray>
 #include <QJsonObject>
-#include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -145,8 +144,11 @@ totalTimingCount(const QList<int>& counts) -> int
     return total;
 }
 
+} // namespace
+
 auto
-serializeReplayData(const QList<HitEvent>& hitEvents) -> QByteArray
+BmsReplayData::serializeReplayData(const QList<HitEvent>& hitEvents)
+  -> QByteArray
 {
     auto raw = QByteArray{};
     auto stream = QDataStream(&raw, QIODevice::WriteOnly);
@@ -155,7 +157,7 @@ serializeReplayData(const QList<HitEvent>& hitEvents) -> QByteArray
 }
 
 auto
-deserializeReplayData(const QByteArray& data) -> QList<HitEvent>
+BmsReplayData::deserializeReplayData(const QByteArray& data) -> QList<HitEvent>
 {
     auto raw = decompressRaw(data);
     auto stream = QDataStream(&raw, QIODevice::ReadOnly);
@@ -188,8 +190,6 @@ deserializeReplayData(const QByteArray& data) -> QList<HitEvent>
     }
     return hitEvents;
 }
-
-} // namespace
 
 BmsReplayData::BmsReplayData(QList<HitEvent> hitEvents,
                              QString guid,
@@ -231,52 +231,12 @@ BmsReplayData::getGuid() const -> QString
 {
     return guid;
 }
-void
-BmsReplayData::save(db::SqliteCppDb& db) const
-{
-    if (guid.isEmpty()) {
-        return;
-    }
-    auto statement =
-      db.createStatement("INSERT OR REPLACE INTO replay_data (score_guid, "
-                         "replay_data) VALUES (?, ?)");
-    const auto serialized = serializeReplayData(hitEvents);
-    statement.bind(1, guid.toStdString());
-    statement.bind(2, serialized.data(), serialized.size());
-    statement.execute();
-}
 auto
 BmsReplayData::load(const DTO& dto) -> std::unique_ptr<BmsReplayData>
 {
     auto data = QByteArray::fromStdString(dto.hitEvents);
     return std::make_unique<BmsReplayData>(deserializeReplayData(data),
                                            QString::fromStdString(dto.guid));
-}
-
-void
-BmsReplayData::migrateStoredReplayData(db::SqliteCppDb& db)
-{
-    auto statement = db.createStatement(
-      "SELECT id, score_guid, replay_data FROM replay_data;");
-    const auto rows =
-      statement
-        .executeAndGetAll<std::tuple<int64_t, std::string, std::string>>();
-    auto update = db.createStatement(
-      "UPDATE replay_data SET replay_data = ? WHERE id = ?;");
-    for (const auto& [id, guid, replayData] : rows) {
-        try {
-            const auto hitEvents =
-              deserializeReplayData(QByteArray::fromStdString(replayData));
-            const auto serialized = serializeReplayData(hitEvents);
-            update.reset();
-            update.bind(1, serialized.data(), serialized.size());
-            update.bind(2, id);
-            update.execute();
-        } catch (const std::exception& e) {
-            spdlog::warn(
-              "Failed to migrate replay data {}: {}", guid, e.what());
-        }
-    }
 }
 
 auto

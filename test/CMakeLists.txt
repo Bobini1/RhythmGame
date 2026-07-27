@@ -53,6 +53,17 @@ add_executable(RhythmGame_test
         lr2_skin/Lr2SkinParser.test.cpp
         lr2_skin/Lr2SkinRuntimeTypes.test.cpp
 )
+
+add_library(PortableGameplayHeaders_compile OBJECT
+        resource_managers/PortableGameplayHeaders.compile.cpp
+)
+target_include_directories(PortableGameplayHeaders_compile BEFORE PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/portable_header_checks"
+)
+target_link_libraries(PortableGameplayHeaders_compile PRIVATE RhythmGame_lib)
+target_compile_features(PortableGameplayHeaders_compile PRIVATE cxx_std_23)
+add_dependencies(RhythmGame_test PortableGameplayHeaders_compile)
+
 target_link_libraries(
         RhythmGame_test PRIVATE
         RhythmGame_lib

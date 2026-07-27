@@ -9,7 +9,12 @@
 #include "charts/BmsNotesData.h"
 #include "gameplay_logic/BmsNotes.h"
 
+#include <filesystem>
+#include <functional>
+#include <memory>
+#include <optional>
 #include <string_view>
+#include <unordered_map>
 
 /**
  * @brief Classes and functions related to loading and managing resources such
@@ -58,6 +63,15 @@ class ChartDataFactory
                        const std::filesystem::path& logicalChartPath,
                        RandomGenerator randomGenerator,
                        int64_t directory = 0) const -> ChartComponents;
+    auto loadChartDataWithRandomSequence(
+      const std::filesystem::path& chartPath,
+      QList<qint64> randomSequence,
+      int64_t directory = 0) const -> std::optional<ChartComponents>;
+    auto loadChartDataWithRandomSequence(
+      std::string_view chartBytes,
+      const std::filesystem::path& logicalChartPath,
+      QList<qint64> randomSequence,
+      int64_t directory = 0) const -> std::optional<ChartComponents>;
     auto loadBmsonChartData(const std::filesystem::path& chartPath,
                             int64_t directory = 0) const -> ChartComponents;
 
