@@ -44,6 +44,7 @@ class BmsGameReferee
       static_cast<int>(input::BmsKey::Col2sDown) + 1;
     std::array<bool, inputKeyCount> pressedKeys{};
     std::array<int, charts::BmsNotesData::columnNumber> pressedState{};
+    bool bgmPreScheduled = false;
 
   public:
     using Position = double;
@@ -82,6 +83,13 @@ class BmsGameReferee
      */
     void update(std::chrono::nanoseconds offsetFromStart,
                 bool lastUpdate = false);
+
+    /**
+     * @brief Schedule every BGM at its authored chart timestamp.
+     * @details This operation is idempotent. Once called, update() continues
+     * consuming the BGM cursor without triggering playback a second time.
+     */
+    void preScheduleBgm();
 
     auto getBpm(std::chrono::nanoseconds offsetFromStart) const
       -> charts::BmsNotesData::BpmChangeValues;

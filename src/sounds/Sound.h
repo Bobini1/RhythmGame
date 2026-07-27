@@ -4,9 +4,8 @@
 
 #ifndef RHYTHMGAME_SOUND_H
 #define RHYTHMGAME_SOUND_H
-#include <QObject>
-#include <spdlog/spdlog.h>
-#include "MiniaudioBackend.h"
+
+#include <chrono>
 
 /**
  * @brief The namespace for all sound related classes.
@@ -33,10 +32,20 @@ class Sound
      */
     virtual void play() = 0;
     /**
+     * @brief Plays the sound at a chart-relative timestamp.
+     * @details Backends without scheduled playback retain immediate playback.
+     */
+    virtual void playAt(std::chrono::nanoseconds chartTime) { play(); }
+    /**
      * @brief Stops the sound.
      * @details Does not block. The sound can be played again.
      */
     virtual void stop() = 0;
+    /**
+     * @brief Stops the sound at a chart-relative timestamp.
+     * @details Backends without scheduled playback retain immediate stopping.
+     */
+    virtual void stopAt(std::chrono::nanoseconds chartTime) { stop(); }
 
     /**
      * @brief Sets the volume of the sound.

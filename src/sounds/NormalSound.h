@@ -5,6 +5,7 @@
 #ifndef RHYTHMGAME_NORMALSOUND_H
 #define RHYTHMGAME_NORMALSOUND_H
 
+#include "MiniaudioBackend.h"
 #include "Sound.h"
 #include <QObject>
 

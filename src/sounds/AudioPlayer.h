@@ -4,6 +4,7 @@
 
 #ifndef RHYTHMGAME_AUDIOPLAYER_H
 #define RHYTHMGAME_AUDIOPLAYER_H
+#include "MiniaudioBackend.h"
 #include "Sound.h"
 
 #include <QObject>

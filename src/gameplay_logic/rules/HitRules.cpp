@@ -101,7 +101,7 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
         ) {
             note.hit = true;
             if (note.sound != nullptr && !soundDisabled) {
-                note.sound->play();
+                note.sound->playAt(hitOffset);
             }
 
             // Collect multi-bad events: earlier notes that were in the Bad
@@ -235,7 +235,7 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
             if (!soundDisabled && hitEvent.notePosition != -1 &&
                 notes[hitEvent.notePosition].sound != nullptr &&
                 notes[hitEvent.notePosition].type != NoteType::LnEnd) {
-                notes[hitEvent.notePosition].sound->play();
+                notes[hitEvent.notePosition].sound->playAt(hitOffset);
                 break;
             }
         }
@@ -245,7 +245,7 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
         for (auto& note : std::ranges::reverse_view(notesToCheck)) {
             if (note.time <= hitOffset) {
                 if (note.sound != nullptr && !soundDisabled) {
-                    note.sound->play();
+                    note.sound->playAt(hitOffset);
                 }
                 found = true;
                 break;
@@ -254,7 +254,7 @@ gameplay_logic::rules::HitRules::press(std::span<Note> notes,
         if (!found) {
             if (!notes.empty() && notes.front().sound != nullptr &&
                 !soundDisabled) {
-                notes.front().sound->play();
+                notes.front().sound->playAt(hitOffset);
             }
         }
     }
@@ -336,7 +336,7 @@ gameplay_logic::rules::HitRules::processMisses(
         if (iter->type == NoteType::LnBegin) {
             lnPressedKeys[column] = std::nullopt;
             if (iter->sound != nullptr) {
-                iter->sound->stop();
+                iter->sound->stopAt(noteTime + upperBound);
             }
             const auto nextNote = std::next(iter);
             auto nextNoteTime = nextNote->time;
@@ -437,7 +437,7 @@ gameplay_logic::rules::HitRules::processMines(
         currentMineIndex++;
     }
     if (playSound && mineHitSound != nullptr && !soundDisabled) {
-        mineHitSound->play();
+        mineHitSound->playAt(offsetFromStart);
     }
     return mineHits;
 }
