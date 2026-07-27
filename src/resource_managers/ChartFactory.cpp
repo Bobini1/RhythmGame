@@ -6,7 +6,7 @@
 #include <QObject>
 #include "ChartFactory.h"
 
-#include "gameplay_logic/SinglePlayerChartBuilder.h"
+#include "DesktopPlayerChartCoordinator.h"
 #include "loadBmsSounds.h"
 #include "qml_components/ProfileList.h"
 #include "support/QStringToPath.h"
@@ -381,72 +381,32 @@ createAutoplayFromNotes(const gameplay_logic::BmsNotes& notes)
     return events;
 }
 namespace {
-struct DesktopPlayerChart
-{
-    gameplay_logic::PlayerChartBuildResult chart;
-    std::unique_ptr<gameplay_logic::BmsLiveScore> score;
-};
-
 auto
-buildDesktopPlayerChart(const ChartFactory::PlayerSpecificData& player,
-                        const charts::BmsNotesData& notesData,
-                        const gameplay_logic::ChartData& chartData,
-                        const double maxHitValue,
-                        const DpOptions dpOptions) -> DesktopPlayerChart
+makeDesktopPlayerBuildOptions(const ChartFactory::PlayerSpecificData& player)
+  -> DesktopPlayerBuildOptions
 {
-    auto chart = gameplay_logic::buildPlayerChart(
-      notesData,
-      chartData,
-      {
-        .noteOrderP1 = player.noteOrderAlgorithm,
-        .noteOrderP2 = player.noteOrderAlgorithmP2,
-        .dpOptions = dpOptions,
-        .randomSeed = player.randomSeed,
-        .usePre130 = player.usePre130,
-      });
-    auto guid = [&] {
-        if (player.replayedScore) {
-            return player.replayedScore->getResult()->getGuid();
-        }
-        if (player.autoPlay) {
-            return QStringLiteral("");
-        }
-        return QUuid::createUuid().toString();
-    }();
-    auto multiplier = 1;
-    if (chart.effectiveDpOptions == DpOptions::Battle) {
-        multiplier = 2;
+    auto replayIdentity = std::optional<DesktopScoreIdentity>{};
+    if (player.replayedScore != nullptr) {
+        replayIdentity = DesktopScoreIdentity{
+            .savedTimestamp =
+              player.replayedScore->getResult()->getUnixTimestamp(),
+            .guid = player.replayedScore->getResult()->getGuid(),
+            .submissionState = player.replayedScore->getSubmissionState(),
+        };
     }
-    auto score = std::make_unique<gameplay_logic::BmsLiveScore>(
-      chartData.getNormalNoteCount() * multiplier,
-      chartData.getScratchCount() * multiplier,
-      chartData.getLnCount() * multiplier,
-      chartData.getBssCount() * multiplier,
-      chartData.getMineCount() * multiplier,
-      (chartData.getLnCount() + chartData.getNormalNoteCount() +
-       chartData.getBssCount() + chartData.getScratchCount()) *
-        multiplier,
-      maxHitValue,
-      player.gauges,
-      chartData.getRandomSequence(),
-      player.noteOrderAlgorithm,
-      isDp(chart.effectiveKeymode) ? player.noteOrderAlgorithmP2
-                                   : NoteOrderAlgorithm::Normal,
-      chart.effectiveDpOptions,
-      chart.storedPermutation(),
-      chart.storedSeed(),
-      chartData.getLength(),
-      chartData.getSha256(),
-      chartData.getMd5(),
-      chart.effectiveKeymode,
-      player.replayedScore != nullptr
-        ? player.replayedScore->getResult()->getUnixTimestamp()
-        : 0,
-      guid,
-      player.replayedScore != nullptr
-        ? player.replayedScore->getSubmissionState()
-        : gameplay_logic::BmsScore::SubmissionState::NotSubmitted);
-    return { std::move(chart), std::move(score) };
+    return {
+        .chart = { .noteOrderP1 = player.noteOrderAlgorithm,
+                   .noteOrderP2 = player.noteOrderAlgorithmP2,
+                   .dpOptions = player.dpOptions,
+                   .randomSeed = player.randomSeed,
+                   .usePre130 = player.usePre130 },
+        .gauges = player.gauges,
+        .autoPlay = player.autoPlay,
+        .replayIdentity = std::move(replayIdentity),
+        .generatedGuid = player.replayedScore != nullptr || player.autoPlay
+                           ? QString{}
+                           : QUuid::createUuid().toString(),
+    };
 }
 
 auto
@@ -473,12 +433,16 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
 {
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getPath()).parent_path();
-    auto components1 = buildDesktopPlayerChart(
-      player1, notesData, *chartData, maxHitValue, player1.dpOptions);
-    auto components2 = player2.transform([&](auto& player) {
-        return buildDesktopPlayerChart(
-          player, notesData, *chartData, maxHitValue, DpOptions::Off);
-    });
+    auto desktopPlayers = buildDesktopPlayerChartPair(
+      notesData,
+      *chartData,
+      makeDesktopPlayerBuildOptions(player1),
+      player2.transform([](const auto& player) {
+          return makeDesktopPlayerBuildOptions(player);
+      }),
+      maxHitValue);
+    auto components1 = std::move(desktopPlayers.player1);
+    auto components2 = std::move(desktopPlayers.player2);
     auto keymode = chartData->getKeymode();
     if (player1.dpOptions == DpOptions::Battle && !player2) {
         if (keymode == gameplay_logic::ChartData::Keymode::K5) {

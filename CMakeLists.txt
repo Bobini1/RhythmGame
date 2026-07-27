@@ -198,6 +198,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/persistence/BmsNotesPersistence.cpp
         src/resource_managers/ChartFactory.cpp
         src/resource_managers/ChartFactory.h
+        src/resource_managers/DesktopPlayerChartCoordinator.cpp
+        src/resource_managers/DesktopPlayerChartCoordinator.h
         src/resource_managers/IniImageProvider.cpp
         src/resource_managers/IniImageProvider.h
         src/gameplay_logic/rules/Lr2TimingWindows.cpp
