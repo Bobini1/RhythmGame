@@ -183,6 +183,10 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/ChartStartGate.h
         src/gameplay_logic/SinglePlayerChartBuilder.cpp
         src/gameplay_logic/SinglePlayerChartBuilder.h
+        src/gameplay_logic/GameplayTrace.cpp
+        src/gameplay_logic/GameplayTrace.h
+        src/gameplay_logic/SinglePlayerGameplayCore.cpp
+        src/gameplay_logic/SinglePlayerGameplayCore.h
         src/gameplay_logic/ChartRunner.cpp
         src/gameplay_logic/ChartRunner.h
         src/gameplay_logic/HitEvent.cpp
@@ -467,6 +471,26 @@ else ()
     )
 endif ()
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
+
+add_custom_target(WebGameplayCore_source_contract
+        COMMAND ${CMAKE_COMMAND}
+        "-DSOURCE_ROOT=${CMAKE_SOURCE_DIR}"
+        -P "${CMAKE_SOURCE_DIR}/cmake/CheckWebGameplayCore.cmake"
+        VERBATIM
+)
+
+if (NOT EMSCRIPTEN)
+    qt_add_executable(RhythmGame_web_playtest_trace
+            tools/web-playtest-native/TraceRunner.cpp
+    )
+    target_compile_features(RhythmGame_web_playtest_trace PRIVATE cxx_std_23)
+    target_link_libraries(RhythmGame_web_playtest_trace PRIVATE RhythmGame_lib Qt6::Core)
+    add_dependencies(RhythmGame_web_playtest_trace WebGameplayCore_source_contract)
+    set_target_properties(
+            RhythmGame_web_playtest_trace PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
+    )
+endif ()
 
 qt_add_resources(
         RhythmGame_exe

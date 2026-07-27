@@ -159,6 +159,11 @@ BmsLiveScore::getKeymode() const -> ChartData::Keymode
 {
     return keymode;
 }
+auto
+BmsLiveScore::getHitEvents() const -> const QList<HitEvent>&
+{
+    return hits;
+}
 void
 BmsLiveScore::increaseCombo()
 {
@@ -371,7 +376,7 @@ BmsLiveScore::sendVisualOnlyRelease(const HitEvent& release)
 auto
 BmsLiveScore::getMineHits() const -> int
 {
-    return hits.count();
+    return mineHits;
 }
 auto
 BmsLiveScore::getNormalNoteCount() const -> int

@@ -9,3 +9,4 @@ vcpkgOverlayPortsWasm/qtbase/** -text -whitespace
 vcpkgOverlayPortsWasm/qtmultimedia/** -text -whitespace
 docs/superpowers/evidence/emscripten-gate-1a.json text eol=lf
 tools/wasm-probe/input-manifest.txt text eol=lf
+testOnlyAssets/webPlaytest/core-fixture.bms text eol=lf

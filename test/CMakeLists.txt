@@ -30,6 +30,7 @@ add_executable(RhythmGame_test
         gameplay_logic/ChartStartGate.test.cpp
         gameplay_logic/ScheduledSound.test.cpp
         gameplay_logic/SinglePlayerChartBuilder.test.cpp
+        gameplay_logic/SinglePlayerGameplayCore.test.cpp
         charts/BmsChartReader.test.cpp
         db/SqliteCppDb.test.cpp
         sounds/OpenAlSound.test.cpp
@@ -114,6 +115,12 @@ if (WIN32)
 endif ()
 
 catch_discover_tests(RhythmGame_test)
+add_test(
+        NAME WebGameplayCore_source_contract
+        COMMAND ${CMAKE_COMMAND}
+        "-DSOURCE_ROOT=${CMAKE_SOURCE_DIR}"
+        -P "${CMAKE_SOURCE_DIR}/cmake/CheckWebGameplayCore.cmake"
+)
 # ---- End-of-file commands ----
 
 add_folders(Test)

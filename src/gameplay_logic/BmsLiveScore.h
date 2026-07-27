@@ -277,6 +277,7 @@ class BmsLiveScore final : public QObject
     auto getRandomSeed() const -> uint64_t;
     auto getGuid() const -> QString;
     auto getKeymode() const -> ChartData::Keymode;
+    [[nodiscard]] auto getHitEvents() const -> const QList<HitEvent>&;
 
     auto getResult() const -> std::unique_ptr<BmsResult>;
     auto getReplayData() const -> std::unique_ptr<BmsReplayData>;
