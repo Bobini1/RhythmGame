@@ -14,6 +14,7 @@
 #include <limits>
 #include <utility>
 
+// clang-format off
 EM_JS_DEPS(rhythmgameWebAudioDependencies,
            "$emscriptenRegisterAudioObject,"
            "$emscriptenGetAudioObject,"
@@ -57,19 +58,20 @@ EM_JS(int,
                   return 0;
               }
               const stateIndex = Number(stateAddress) >> 2;
-              const revisionIndex =
-                  Number(nonRunningRevisionAddress) >> 2;
-              const publish = () => {
+              const revisionIndex = Number(nonRunningRevisionAddress) >> 2;
+              const publish = () =>
+              {
                   const states = {
-                      'suspended': 0,
-                      'running': 1,
-                      'closed': 2,
-                      'interrupted': 3
+                      'suspended' : 0,
+                      'running' : 1,
+                      'closed' : 2,
+                      'interrupted' : 3
                   };
-                  const code = Object.prototype.hasOwnProperty.call(
-                      states, context.state) ? states[context.state] : -1;
-                  const previous =
-                      Atomics.exchange(HEAP32, stateIndex, code);
+                  const code =
+                    Object.prototype.hasOwnProperty.call(states, context.state)
+                      ? states[context.state]
+                      : -1;
+                  const previous = Atomics.exchange(HEAP32, stateIndex, code);
                   if (code !== 1 && previous !== code) {
                       Atomics.add(HEAP32, revisionIndex, 1);
                   }
@@ -85,8 +87,7 @@ EM_JS(int,
 
 EM_JS(int,
       rhythmgameRequestAudioContextSuspend,
-      (EMSCRIPTEN_WEBAUDIO_T audioContext,
-       std::int32_t* statusAddress),
+      (EMSCRIPTEN_WEBAUDIO_T audioContext, std::int32_t* statusAddress),
       {
           const statusIndex = Number(statusAddress) >> 2;
           Atomics.store(HEAP32, statusIndex, 0);
@@ -96,9 +97,9 @@ EM_JS(int,
                   Atomics.store(HEAP32, statusIndex, -1);
                   return 0;
               }
-              Promise.resolve(context.suspend()).then(
-                  () => Atomics.store(HEAP32, statusIndex, 1),
-                  () => Atomics.store(HEAP32, statusIndex, -1));
+              Promise.resolve(context.suspend())
+                .then(() => Atomics.store(HEAP32, statusIndex, 1),
+                      () => Atomics.store(HEAP32, statusIndex, -1));
               return 1;
           } catch (error) {
               Atomics.store(HEAP32, statusIndex, -1);
@@ -108,21 +109,18 @@ EM_JS(int,
 
 EM_JS(int,
       rhythmgameInstallProcessorFailureMonitor,
-      (EMSCRIPTEN_WEBAUDIO_T audioContext,
-       std::int32_t* failureAddress),
+      (EMSCRIPTEN_WEBAUDIO_T audioContext, std::int32_t* failureAddress),
       {
           const failureIndex = Number(failureAddress) >> 2;
           Atomics.store(HEAP32, failureIndex, 0);
           try {
               const context = emscriptenGetAudioObject(audioContext);
-              const bootstrap =
-                  context && context.audioWorklet &&
-                  context.audioWorklet.bootstrapMessage;
+              const bootstrap = context && context.audioWorklet &&
+                                context.audioWorklet.bootstrapMessage;
               if (!bootstrap || bootstrap.__rhythmgameFailureMonitor) {
                   return 0;
               }
-              const fail = () =>
-                  Atomics.store(HEAP32, failureIndex, -1);
+              const fail = () => Atomics.store(HEAP32, failureIndex, -1);
               bootstrap.addEventListener('processorerror', fail);
               bootstrap.port.addEventListener('messageerror', fail);
               bootstrap.port.start();
@@ -143,13 +141,11 @@ EM_JS(int,
           Atomics.store(HEAP32, failureIndex, 0);
           try {
               const workletNode = emscriptenGetAudioObject(nodeHandle);
-              if (!workletNode ||
-                  workletNode.__rhythmgameFailureMonitor ||
+              if (!workletNode || workletNode.__rhythmgameFailureMonitor ||
                   !workletNode.port) {
                   return 0;
               }
-              const fail = () =>
-                  Atomics.store(HEAP32, failureIndex, -1);
+              const fail = () => Atomics.store(HEAP32, failureIndex, -1);
               workletNode.addEventListener('processorerror', fail);
               workletNode.port.addEventListener('messageerror', fail);
               workletNode.port.start();
@@ -171,11 +167,11 @@ EM_JS(EMSCRIPTEN_AUDIO_WORKLET_NODE_T,
       {
           try {
               return _emscripten_create_wasm_audio_worklet_node(
-                  audioContext,
-                  Number(processorName),
-                  Number(options),
-                  callback,
-                  Number(userData));
+                audioContext,
+                Number(processorName),
+                Number(options),
+                callback,
+                Number(userData));
           } catch (error) {
               return 0;
           }
@@ -187,8 +183,7 @@ EM_JS(int,
        EMSCRIPTEN_WEBAUDIO_T contextHandle),
       {
           try {
-              _emscripten_audio_node_connect(
-                  sourceHandle, contextHandle, 0, 0);
+              _emscripten_audio_node_connect(sourceHandle, contextHandle, 0, 0);
               return 1;
           } catch (error) {
               return 0;
@@ -204,10 +199,7 @@ EM_JS(int,
       {
           try {
               _emscripten_create_wasm_audio_worklet_processor_async(
-                  audioContext,
-                  Number(options),
-                  callback,
-                  Number(userData));
+                audioContext, Number(options), callback, Number(userData));
               return 1;
           } catch (error) {
               return 0;
@@ -256,12 +248,11 @@ EM_JS(int,
           try {
               const context = emscriptenGetAudioObject(audioContext);
               if (!context ||
-                  typeof context.getOutputTimestamp !== 'function') {
+                    typeof context.getOutputTimestamp !== 'function') {
                   return -1;
               }
               const timestamp = context.getOutputTimestamp();
-              if (!timestamp ||
-                  !Number.isFinite(timestamp.contextTime) ||
+              if (!timestamp || !Number.isFinite(timestamp.contextTime) ||
                   !Number.isFinite(timestamp.performanceTime)) {
                   return -1;
               }
@@ -269,27 +260,24 @@ EM_JS(int,
                   timestamp.performanceTime <= 0) {
                   return 0;
               }
-              HEAPF64[Number(contextTimeSeconds) >> 3] =
-                  timestamp.contextTime;
+              HEAPF64[Number(contextTimeSeconds) >> 3] = timestamp.contextTime;
               HEAPF64[Number(performanceTimeMilliseconds) >> 3] =
-                  timestamp.performanceTime;
+                timestamp.performanceTime;
               return 1;
           } catch (error) {
               return -1;
           }
       });
 
-EM_JS(double,
-      rhythmgameRawBrowserPerformanceNowMilliseconds,
-      (),
-      {
-          if (typeof performance !== 'object' ||
-              typeof performance.now !== 'function') {
-              return -1;
-          }
-          const value = performance.now();
-          return Number.isFinite(value) ? value : -1;
-      });
+EM_JS(double, rhythmgameRawBrowserPerformanceNowMilliseconds, (), {
+    if (typeof performance !== 'object' ||
+                                typeof performance.now !== 'function') {
+        return -1;
+    }
+    const value = performance.now();
+    return Number.isFinite(value) ? value : -1;
+});
+// clang-format on
 
 namespace web_playtest {
 namespace {
@@ -309,18 +297,16 @@ silence(float* left, float* right, std::uint32_t frameCount) noexcept
 }
 
 [[nodiscard]] auto
-secondsToNanoseconds(double seconds, std::int64_t& nanoseconds) noexcept
-  -> bool
+secondsToNanoseconds(double seconds, std::int64_t& nanoseconds) noexcept -> bool
 {
     const auto maximumSeconds =
       static_cast<double>((std::numeric_limits<std::int64_t>::max)()) /
       nanosecondsPerSecond;
-    if (!std::isfinite(seconds) || seconds < 0 ||
-        seconds > maximumSeconds) {
+    if (!std::isfinite(seconds) || seconds < 0 || seconds > maximumSeconds) {
         return false;
     }
-    nanoseconds = static_cast<std::int64_t>(
-      std::llround(seconds * nanosecondsPerSecond));
+    nanoseconds =
+      static_cast<std::int64_t>(std::llround(seconds * nanosecondsPerSecond));
     return true;
 }
 
@@ -395,8 +381,8 @@ EmscriptenAudioWorklet::createContextForDecode() noexcept -> bool
     if (rawQuantumFrames <= 0 ||
         static_cast<std::uint64_t>(rawQuantumFrames) >
           (std::numeric_limits<std::uint32_t>::max)() ||
-        !clock.configure(
-          sampleRate, static_cast<std::uint32_t>(rawQuantumFrames))) {
+        !clock.configure(sampleRate,
+                         static_cast<std::uint32_t>(rawQuantumFrames))) {
         failTerminal(AudioWorkletError::InvalidQuantumSize);
         return false;
     }
@@ -446,8 +432,7 @@ EmscriptenAudioWorklet::initializeWorklet(
 
     try {
         ownedSoundBank.emplace(std::move(frozenSoundBank));
-        ownedMixer.emplace(
-          *ownedSoundBank, ownedTransport, mixerConfig);
+        ownedMixer.emplace(*ownedSoundBank, ownedTransport, mixerConfig);
     } catch (...) {
         failTerminal(AudioWorkletError::MixerCreationFailed);
         return false;
@@ -498,11 +483,10 @@ EmscriptenAudioWorklet::sealReadyHeap() noexcept -> bool
     heapIsSealed.store(true, std::memory_order_release);
 
     auto expected = AudioWorkletLifecycleState::GraphReadyUnsealed;
-    if (!state.compare_exchange_strong(
-          expected,
-          AudioWorkletLifecycleState::Ready,
-          std::memory_order_acq_rel,
-          std::memory_order_acquire)) {
+    if (!state.compare_exchange_strong(expected,
+                                       AudioWorkletLifecycleState::Ready,
+                                       std::memory_order_acq_rel,
+                                       std::memory_order_acquire)) {
         heapIsSealed.store(false, std::memory_order_release);
         return false;
     }
@@ -512,8 +496,7 @@ EmscriptenAudioWorklet::sealReadyHeap() noexcept -> bool
 auto
 EmscriptenAudioWorklet::verifySealedHeapOnMainThread() noexcept -> bool
 {
-    return emscripten_is_main_runtime_thread() &&
-           checkSealedHeapStable();
+    return emscripten_is_main_runtime_thread() && checkSealedHeapStable();
 }
 
 auto
@@ -521,8 +504,7 @@ EmscriptenAudioWorklet::resumeFromTrustedGesture(
   std::uint64_t sessionGeneration,
   std::uint64_t countdownFrames) noexcept -> bool
 {
-    if (!emscripten_is_main_runtime_thread() ||
-        !checkSealedHeapStable()) {
+    if (!emscripten_is_main_runtime_thread() || !checkSealedHeapStable()) {
         return false;
     }
     auto current = state.load(std::memory_order_acquire);
@@ -541,18 +523,16 @@ EmscriptenAudioWorklet::resumeFromTrustedGesture(
         failTerminal(AudioWorkletError::InvalidOutputTimestamp);
         return false;
     }
-    const auto armed = clock.arm(sessionGeneration,
-                                 countdownFrames,
-                                 outputTimestampBeforeResume);
+    const auto armed = clock.arm(
+      sessionGeneration, countdownFrames, outputTimestampBeforeResume);
     const auto resumeRequested =
       rhythmgameResumeAudioContextCaught(context) != 0;
     if (!armed || !resumeRequested) {
         clock.invalidate();
     }
-    const auto desired =
-      armed && resumeRequested
-        ? AudioWorkletLifecycleState::ResumeRequested
-        : AudioWorkletLifecycleState::Unanchored;
+    const auto desired = armed && resumeRequested
+                           ? AudioWorkletLifecycleState::ResumeRequested
+                           : AudioWorkletLifecycleState::Unanchored;
     if (!state.compare_exchange_strong(current,
                                        desired,
                                        std::memory_order_acq_rel,
@@ -571,8 +551,7 @@ auto
 EmscriptenAudioWorklet::pollForAnchor(BrowserAudioAnchor& anchor) noexcept
   -> bool
 {
-    if (!emscripten_is_main_runtime_thread() ||
-        !checkSealedHeapStable()) {
+    if (!emscripten_is_main_runtime_thread() || !checkSealedHeapStable()) {
         return false;
     }
     const auto current = state.load(std::memory_order_acquire);
@@ -609,19 +588,16 @@ EmscriptenAudioWorklet::pollForAnchor(BrowserAudioAnchor& anchor) noexcept
         return false;
     }
 
-    if (!clock.tryEstablishAnchor(beforeBrowserSample,
-                                  outputTimestamp,
-                                  afterBrowserSample,
-                                  anchor)) {
+    if (!clock.tryEstablishAnchor(
+          beforeBrowserSample, outputTimestamp, afterBrowserSample, anchor)) {
         return false;
     }
 
     auto expected = AudioWorkletLifecycleState::ResumeRequested;
-    if (!state.compare_exchange_strong(
-          expected,
-          AudioWorkletLifecycleState::Anchored,
-          std::memory_order_acq_rel,
-          std::memory_order_acquire)) {
+    if (!state.compare_exchange_strong(expected,
+                                       AudioWorkletLifecycleState::Anchored,
+                                       std::memory_order_acq_rel,
+                                       std::memory_order_acquire)) {
         if (expected == AudioWorkletLifecycleState::Terminal) {
             clock.markTerminal();
         } else {
@@ -636,14 +612,21 @@ auto
 EmscriptenAudioWorklet::currentAudibleChartTime(
   std::int64_t& chartTimeNanoseconds) noexcept -> bool
 {
-    if (!emscripten_is_main_runtime_thread() ||
-        !checkSealedHeapStable()) {
+    if (!emscripten_is_main_runtime_thread() || !checkSealedHeapStable()) {
         return false;
     }
     auto browserNowNanoseconds = std::int64_t{};
     return browserMonotonicNowNanoseconds(browserNowNanoseconds) &&
-           clock.chartTimeForBrowserMonotonicNs(
-             browserNowNanoseconds, chartTimeNanoseconds);
+           clock.chartTimeForBrowserMonotonicNs(browserNowNanoseconds,
+                                                chartTimeNanoseconds);
+}
+
+void
+EmscriptenAudioWorklet::enterTerminalSilence() noexcept
+{
+    clock.markTerminal();
+    state.store(AudioWorkletLifecycleState::Terminal,
+                std::memory_order_release);
 }
 
 auto
@@ -685,8 +668,7 @@ EmscriptenAudioWorklet::readyForTrustedResume() const noexcept -> bool
 }
 
 auto
-EmscriptenAudioWorklet::audioClock() const noexcept
-  -> const BrowserAudioClock&
+EmscriptenAudioWorklet::audioClock() const noexcept -> const BrowserAudioClock&
 {
     return clock;
 }
@@ -697,10 +679,8 @@ EmscriptenAudioWorklet::telemetry() const noexcept
 {
     return {
         .renderedFrames = renderedFrames.load(std::memory_order_acquire),
-        .observedHeapBytes =
-          observedHeapSize.load(std::memory_order_acquire),
-        .sealedHeapBytes =
-          sealedHeapSize.load(std::memory_order_acquire),
+        .observedHeapBytes = observedHeapSize.load(std::memory_order_acquire),
+        .sealedHeapBytes = sealedHeapSize.load(std::memory_order_acquire),
         .heapSealed = heapIsSealed.load(std::memory_order_acquire),
         .playbackStatsAvailable =
           playbackStatsAvailable.load(std::memory_order_acquire),
@@ -713,10 +693,9 @@ EmscriptenAudioWorklet::telemetry() const noexcept
 }
 
 void
-EmscriptenAudioWorklet::workletThreadStarted(
-  EMSCRIPTEN_WEBAUDIO_T audioContext,
-  bool success,
-  void* userData) noexcept
+EmscriptenAudioWorklet::workletThreadStarted(EMSCRIPTEN_WEBAUDIO_T audioContext,
+                                             bool success,
+                                             void* userData) noexcept
 {
     auto* self = static_cast<EmscriptenAudioWorklet*>(userData);
     if (self != nullptr) {
@@ -725,10 +704,9 @@ EmscriptenAudioWorklet::workletThreadStarted(
 }
 
 void
-EmscriptenAudioWorklet::processorCreated(
-  EMSCRIPTEN_WEBAUDIO_T audioContext,
-  bool success,
-  void* userData) noexcept
+EmscriptenAudioWorklet::processorCreated(EMSCRIPTEN_WEBAUDIO_T audioContext,
+                                         bool success,
+                                         void* userData) noexcept
 {
     auto* self = static_cast<EmscriptenAudioWorklet*>(userData);
     if (self != nullptr) {
@@ -737,27 +715,23 @@ EmscriptenAudioWorklet::processorCreated(
 }
 
 bool
-EmscriptenAudioWorklet::monitorContextSuspension(
-  double,
-  void* userData) noexcept
+EmscriptenAudioWorklet::monitorContextSuspension(double,
+                                                 void* userData) noexcept
 {
     auto* self = static_cast<EmscriptenAudioWorklet*>(userData);
     return self != nullptr && self->pollContextSuspension();
 }
 
 bool
-EmscriptenAudioWorklet::monitorProcessorCreation(
-  double,
-  void* userData) noexcept
+EmscriptenAudioWorklet::monitorProcessorCreation(double,
+                                                 void* userData) noexcept
 {
     auto* self = static_cast<EmscriptenAudioWorklet*>(userData);
     return self != nullptr && self->pollProcessorCreation();
 }
 
 bool
-EmscriptenAudioWorklet::monitorProcessorHealth(
-  double,
-  void* userData) noexcept
+EmscriptenAudioWorklet::monitorProcessorHealth(double, void* userData) noexcept
 {
     auto* self = static_cast<EmscriptenAudioWorklet*>(userData);
     return self != nullptr && self->pollProcessorHealth();
@@ -777,8 +751,8 @@ EmscriptenAudioWorklet::process(int numInputs,
     auto* self = static_cast<EmscriptenAudioWorklet*>(userData);
     if (self == nullptr || numInputs != 0 || numOutputs != 1 ||
         outputs == nullptr || numParams != 0 ||
-        outputs[0].numberOfChannels != 2 ||
-        outputs[0].samplesPerChannel <= 0 || outputs[0].data == nullptr) {
+        outputs[0].numberOfChannels != 2 || outputs[0].samplesPerChannel <= 0 ||
+        outputs[0].data == nullptr) {
         if (self != nullptr) {
             self->failTerminal(AudioWorkletError::InvalidOutputShape);
         }
@@ -795,8 +769,7 @@ EmscriptenAudioWorklet::process(int numInputs,
         return true;
     }
     if (!self->heapIsSealed.load(std::memory_order_acquire) ||
-        !self->checkSealedHeapStable() ||
-        !self->ownedMixer.has_value()) {
+        !self->checkSealedHeapStable() || !self->ownedMixer.has_value()) {
         silence(left, right, frameCount);
         self->failTerminal(AudioWorkletError::InvalidLifecycle);
         return true;
@@ -893,8 +866,8 @@ EmscriptenAudioWorklet::onProcessorCreated(
         return;
     }
 
-    const auto callback = reinterpret_cast<std::uintptr_t>(
-      &EmscriptenAudioWorklet::process);
+    const auto callback =
+      reinterpret_cast<std::uintptr_t>(&EmscriptenAudioWorklet::process);
     auto outputChannelCounts = std::array<int, 1>{ 2 };
     const auto options = EmscriptenAudioWorkletNodeCreateOptions{
         .numberOfInputs = 0,
@@ -902,11 +875,7 @@ EmscriptenAudioWorklet::onProcessorCreated(
         .outputChannelCounts = outputChannelCounts.data(),
     };
     node = rhythmgameCreateAudioWorkletNodeCaught(
-      context,
-      processorName,
-      &options,
-      callback,
-      this);
+      context, processorName, &options, callback, this);
     if (node <= 0) {
         failTerminal(AudioWorkletError::NodeCreationFailed);
         return;
@@ -929,11 +898,9 @@ EmscriptenAudioWorklet::onProcessorCreated(
     }
 
     auto frameZeroContextTimeNs = std::int64_t{};
-    if (!secondsToNanoseconds(
-          rhythmgameAudioContextCurrentTimeSeconds(context),
-          frameZeroContextTimeNs) ||
-        !clock.setMixerFrameZeroContextTimeNs(
-          frameZeroContextTimeNs)) {
+    if (!secondsToNanoseconds(rhythmgameAudioContextCurrentTimeSeconds(context),
+                              frameZeroContextTimeNs) ||
+        !clock.setMixerFrameZeroContextTimeNs(frameZeroContextTimeNs)) {
         failTerminal(AudioWorkletError::InvalidBrowserClockSample);
         return;
     }
@@ -949,10 +916,9 @@ EmscriptenAudioWorklet::onProcessorCreated(
         }
         return;
     }
-    emscripten_set_timeout_loop(
-      &EmscriptenAudioWorklet::monitorProcessorHealth,
-      monitorIntervalMilliseconds,
-      this);
+    emscripten_set_timeout_loop(&EmscriptenAudioWorklet::monitorProcessorHealth,
+                                monitorIntervalMilliseconds,
+                                this);
 }
 
 auto
@@ -1047,10 +1013,8 @@ void
 EmscriptenAudioWorklet::failTerminal(AudioWorkletError failure) noexcept
 {
     auto expected = AudioWorkletError::None;
-    (void)error.compare_exchange_strong(expected,
-                                        failure,
-                                        std::memory_order_acq_rel,
-                                        std::memory_order_acquire);
+    (void)error.compare_exchange_strong(
+      expected, failure, std::memory_order_acq_rel, std::memory_order_acquire);
     clock.markTerminal();
     state.store(AudioWorkletLifecycleState::Terminal,
                 std::memory_order_release);
@@ -1065,8 +1029,7 @@ EmscriptenAudioWorklet::checkSealedHeapStable() noexcept -> bool
     const auto currentBytes =
       static_cast<std::uint64_t>(emscripten_get_heap_size());
     observedHeapSize.store(currentBytes, std::memory_order_release);
-    if (currentBytes ==
-        sealedHeapSize.load(std::memory_order_acquire)) {
+    if (currentBytes == sealedHeapSize.load(std::memory_order_acquire)) {
         return true;
     }
     failTerminal(AudioWorkletError::HeapGrewAfterReady);
@@ -1096,24 +1059,21 @@ EmscriptenAudioWorklet::readOutputTimestamp(
     if (status <= 0) {
         return status;
     }
-    if (!secondsToNanoseconds(
-          contextTimeSeconds, timestamp.contextTimeNs) ||
-        !millisecondsToNanoseconds(
-          performanceTimeMilliseconds, timestamp.performanceTimeNs) ||
-        timestamp.contextTimeNs <= 0 ||
-        timestamp.performanceTimeNs <= 0) {
+    if (!secondsToNanoseconds(contextTimeSeconds, timestamp.contextTimeNs) ||
+        !millisecondsToNanoseconds(performanceTimeMilliseconds,
+                                   timestamp.performanceTimeNs) ||
+        timestamp.contextTimeNs <= 0 || timestamp.performanceTimeNs <= 0) {
         return -1;
     }
     return 1;
 }
 
 auto
-EmscriptenAudioWorklet::mirrorValue(
-  const std::int32_t& value) const noexcept -> std::int32_t
+EmscriptenAudioWorklet::mirrorValue(const std::int32_t& value) const noexcept
+  -> std::int32_t
 {
-    auto mirror = std::atomic_ref<std::int32_t>{
-        const_cast<std::int32_t&>(value)
-    };
+    auto mirror =
+      std::atomic_ref<std::int32_t>{ const_cast<std::int32_t&>(value) };
     return mirror.load(std::memory_order_acquire);
 }
 

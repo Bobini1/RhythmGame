@@ -1,10 +1,10 @@
 #include "WebPlaytestChartInstaller.h"
 #include "WebPlaytestInputDigest.h"
+#include "web_playtest/WebPlaytestRuntime.h"
 
-#include <QDebug>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QTimer>
+#include <QQmlContext>
 #include <QVariantMap>
 
 #include <cstdlib>
@@ -22,10 +22,12 @@ main(int argc, char* argv[])
       buildInput.data(), static_cast<qsizetype>(buildInput.size()));
     application.setProperty("rgWebPlaytestBuildInputSha256", buildInputSha256);
 
+    auto* runtime = web_playtest::WebPlaytestRuntime::createProcessLifetime(
+      installedChartPath, initializationError);
     QQmlApplicationEngine engine;
+    engine.rootContext()->setContextProperty(QStringLiteral("webPlaytest"),
+                                             runtime);
     engine.setInitialProperties(QVariantMap{
-      { QStringLiteral("installedChartPath"), installedChartPath },
-      { QStringLiteral("initializationError"), initializationError },
       { QStringLiteral("buildInputSha256"), buildInputSha256 },
     });
     engine.loadFromModule("RhythmGame.WebPlaytest", "Main");
@@ -33,10 +35,5 @@ main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    if (!initializationError.isEmpty()) {
-        qCritical().noquote() << initializationError;
-        QTimer::singleShot(
-          0, &application, [&application] { application.exit(EXIT_FAILURE); });
-    }
     return application.exec();
 }

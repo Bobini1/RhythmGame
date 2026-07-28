@@ -129,14 +129,18 @@ class EmscriptenAudioWorklet final
     [[nodiscard]] auto currentAudibleChartTime(
       std::int64_t& chartTimeNanoseconds) noexcept -> bool;
 
+    // Permanently silences the callback after a non-audio runtime failure.
+    // This is lock-free and safe to call from the main runtime thread while
+    // the worklet thread is rendering.
+    void enterTerminalSilence() noexcept;
+
     [[nodiscard]] auto lifecycleState() const noexcept
       -> AudioWorkletLifecycleState;
     [[nodiscard]] auto terminalError() const noexcept -> AudioWorkletError;
     [[nodiscard]] auto outputSampleRate() const noexcept -> std::uint32_t;
     [[nodiscard]] auto renderQuantumFrames() const noexcept -> std::uint32_t;
     [[nodiscard]] auto readyForTrustedResume() const noexcept -> bool;
-    [[nodiscard]] auto audioClock() const noexcept
-      -> const BrowserAudioClock&;
+    [[nodiscard]] auto audioClock() const noexcept -> const BrowserAudioClock&;
 
     // Purely atomic and worker-safe. Heap sampling/enforcement is performed by
     // sealReadyHeap(), poll/main verification, and every render callback.
@@ -153,12 +157,9 @@ class EmscriptenAudioWorklet final
     static void processorCreated(EMSCRIPTEN_WEBAUDIO_T audioContext,
                                  bool success,
                                  void* userData) noexcept;
-    static bool monitorContextSuspension(double,
-                                         void* userData) noexcept;
-    static bool monitorProcessorCreation(double,
-                                         void* userData) noexcept;
-    static bool monitorProcessorHealth(double,
-                                       void* userData) noexcept;
+    static bool monitorContextSuspension(double, void* userData) noexcept;
+    static bool monitorProcessorCreation(double, void* userData) noexcept;
+    static bool monitorProcessorHealth(double, void* userData) noexcept;
     static bool process(int numInputs,
                         const AudioSampleFrame* inputs,
                         int numOutputs,
@@ -183,12 +184,10 @@ class EmscriptenAudioWorklet final
     [[nodiscard]] auto mirrorValue(const std::int32_t& value) const noexcept
       -> std::int32_t;
 
-    static constexpr char processorName[] =
-      "rhythmgame-realtime-mixer";
+    static constexpr char processorName[] = "rhythmgame-realtime-mixer";
     static constexpr auto monitorIntervalMilliseconds = double{ 10.0 };
     static constexpr auto maximumContextSuspendPolls = std::uint32_t{ 500 };
-    static constexpr auto maximumProcessorCreationPolls =
-      std::uint32_t{ 500 };
+    static constexpr auto maximumProcessorCreationPolls = std::uint32_t{ 500 };
 
     alignas(16) std::array<std::byte, workletStackBytes> workletStack = {};
     BrowserAudioClock clock;

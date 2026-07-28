@@ -12,6 +12,7 @@
 
 #include <array>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <memory>
@@ -45,6 +46,9 @@ struct GameplaySnapshot
         charts::BmsNotesData::NoteType type;
         std::int64_t chartTimeNs;
         double beatPosition;
+        double scrollPosition;
+        // Present only for a safely matched long-note endpoint.
+        std::optional<double> pairedScrollPosition;
         bool removed;
         bool holding;
 
@@ -95,6 +99,21 @@ class SinglePlayerGameplayCore
                  GameplayKeyAction action,
                  std::chrono::nanoseconds chartTime);
     void preScheduleBgm();
+    /**
+     * Upper bound for visible-note storage required by fillSnapshot().
+     */
+    [[nodiscard]] auto snapshotVisibleNoteCapacity() const noexcept
+      -> std::size_t;
+    /**
+     * Reserves enough visible-note storage for allocation-free fillSnapshot()
+     * calls. Intended for long-lived snapshot buffers.
+     */
+    void reserveSnapshot(GameplaySnapshot& snapshot) const;
+    /**
+     * Replaces snapshot contents, reusing its visible-note storage. This call
+     * does not reallocate after reserveSnapshot() has been called.
+     */
+    void fillSnapshot(GameplaySnapshot& snapshot) const;
     [[nodiscard]] auto snapshot() const -> GameplaySnapshot;
     [[nodiscard]] auto finishTrace() const -> QByteArray;
 };

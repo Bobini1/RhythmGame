@@ -93,6 +93,16 @@ src/web_playtest/audio/RealtimeMixer.h
 src/web_playtest/audio/ScheduledPcmSound.cpp
 src/web_playtest/audio/ScheduledPcmSound.h
 src/web_playtest/audio/SpscRing.h
+src/web_playtest/GameplayWorker.cpp
+src/web_playtest/GameplayWorker.h
+src/web_playtest/InputEvent.cpp
+src/web_playtest/InputEvent.h
+src/web_playtest/OggVorbisDecoder.cpp
+src/web_playtest/OggVorbisDecoder.h
+src/web_playtest/WebPlaytestRuntime.cpp
+src/web_playtest/WebPlaytestRuntime.h
+src/web_playtest/WebPlaytestSnapshot.cpp
+src/web_playtest/WebPlaytestSnapshot.h
 tools/wasm-probe/scripts/audit_emscripten_response_files.py
 tools/wasm-probe/scripts/emscripten_cache_identity.py
 tools/wasm-probe/scripts/Invoke-WithToolchains.ps1

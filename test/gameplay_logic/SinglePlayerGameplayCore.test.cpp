@@ -34,12 +34,18 @@ class RecordingSound final : public sounds::Sound
     std::vector<std::chrono::nanoseconds> stopTimes;
     float volume{ 1.0F };
 
-    void play() override { playTimes.push_back(std::chrono::nanoseconds::min()); }
+    void play() override
+    {
+        playTimes.push_back(std::chrono::nanoseconds::min());
+    }
     void playAt(const std::chrono::nanoseconds time) override
     {
         playTimes.push_back(time);
     }
-    void stop() override { stopTimes.push_back(std::chrono::nanoseconds::min()); }
+    void stop() override
+    {
+        stopTimes.push_back(std::chrono::nanoseconds::min());
+    }
     void stopAt(const std::chrono::nanoseconds time) override
     {
         stopTimes.push_back(time);
@@ -79,10 +85,8 @@ makeConfig() -> gameplay_logic::GameplayCoreConfig
 {
     return {
         .play = { .randomSequence = { 2 },
-                  .noteOrderP1 =
-                    resource_managers::NoteOrderAlgorithm::Normal,
-                  .noteOrderP2 =
-                    resource_managers::NoteOrderAlgorithm::Normal,
+                  .noteOrderP1 = resource_managers::NoteOrderAlgorithm::Normal,
+                  .noteOrderP2 = resource_managers::NoteOrderAlgorithm::Normal,
                   .dpMode = resource_managers::DpOptions::Off,
                   .laneSeed = 91 },
         .savedTimestampSeconds = 1'700'000'123,
@@ -100,9 +104,9 @@ makeCore(SoundBank* bank = nullptr) -> std::unique_ptr<SinglePlayerGameplayCore>
                         static_cast<std::size_t>(bytes.size()) },
       std::filesystem::path{ "memory/core-fixture.bms" },
       makeConfig(),
-      bank ? bank->sounds
-           : std::unordered_map<std::uint64_t,
-                                std::shared_ptr<sounds::Sound>>{});
+      bank
+        ? bank->sounds
+        : std::unordered_map<std::uint64_t, std::shared_ptr<sounds::Sound>>{});
 }
 
 void
@@ -129,7 +133,9 @@ noteById(const gameplay_logic::GameplaySnapshot& snapshot,
   -> const gameplay_logic::GameplaySnapshot::VisibleNote&
 {
     const auto note =
-      std::ranges::find(snapshot.visibleNotes, id, &decltype(snapshot.visibleNotes)::value_type::stableId);
+      std::ranges::find(snapshot.visibleNotes,
+                        id,
+                        &decltype(snapshot.visibleNotes)::value_type::stableId);
     if (note == snapshot.visibleNotes.end()) {
         throw std::runtime_error("Expected visible note is missing");
     }
@@ -157,6 +163,15 @@ TEST_CASE("gameplay core exposes exact immutable production snapshots",
     CHECK(std::ranges::none_of(countdown.pressedColumns,
                                [](const bool value) { return value; }));
     REQUIRE(countdown.visibleNotes.size() == 6);
+    CHECK(noteById(countdown, 0).scrollPosition == Approx(4.0));
+    REQUIRE(noteById(countdown, 0).pairedScrollPosition);
+    CHECK(*noteById(countdown, 0).pairedScrollPosition == Approx(7.0));
+    CHECK(noteById(countdown, 1).scrollPosition == Approx(7.0));
+    REQUIRE(noteById(countdown, 1).pairedScrollPosition);
+    CHECK(*noteById(countdown, 1).pairedScrollPosition == Approx(4.0));
+    CHECK_FALSE(noteById(countdown, 65'536).pairedScrollPosition);
+    CHECK(noteById(countdown, 65'537).beatPosition == Approx(10.0));
+    CHECK(noteById(countdown, 65'537).scrollPosition == Approx(9.5));
     CHECK(countdown.visibleNotes ==
           std::vector<gameplay_logic::GameplaySnapshot::VisibleNote>{
             { 0,
@@ -164,6 +179,8 @@ TEST_CASE("gameplay core exposes exact immutable production snapshots",
               charts::BmsNotesData::NoteType::LongNoteBegin,
               2'000'000'000,
               4.0,
+              4.0,
+              7.0,
               false,
               false },
             { 65'536,
@@ -171,6 +188,8 @@ TEST_CASE("gameplay core exposes exact immutable production snapshots",
               charts::BmsNotesData::NoteType::Normal,
               2'000'000'000,
               4.0,
+              4.0,
+              std::nullopt,
               false,
               false },
             { 131'072,
@@ -178,6 +197,8 @@ TEST_CASE("gameplay core exposes exact immutable production snapshots",
               charts::BmsNotesData::NoteType::Landmine,
               2'500'000'000,
               5.0,
+              5.0,
+              std::nullopt,
               false,
               false },
             { 458'752,
@@ -185,6 +206,8 @@ TEST_CASE("gameplay core exposes exact immutable production snapshots",
               charts::BmsNotesData::NoteType::Normal,
               3'000'000'000,
               6.0,
+              6.0,
+              std::nullopt,
               false,
               false },
             { 1,
@@ -192,6 +215,8 @@ TEST_CASE("gameplay core exposes exact immutable production snapshots",
               charts::BmsNotesData::NoteType::LongNoteEnd,
               3'500'000'000,
               7.0,
+              7.0,
+              4.0,
               false,
               false },
             { 65'537,
@@ -199,6 +224,8 @@ TEST_CASE("gameplay core exposes exact immutable production snapshots",
               charts::BmsNotesData::NoteType::Normal,
               4'833'333'333,
               10.0,
+              9.5,
+              std::nullopt,
               false,
               false },
           });
@@ -223,14 +250,11 @@ TEST_CASE("gameplay core exposes exact immutable production snapshots",
     CHECK(noteById(firstNote, 1).holding);
     CHECK(noteById(firstNote, 65'536).removed);
 
-    core->passKey(
-      input::BmsKey::Col12, GameplayKeyAction::Release, 2100ms);
+    core->passKey(input::BmsKey::Col12, GameplayKeyAction::Release, 2100ms);
     core->passKey(input::BmsKey::Col13, GameplayKeyAction::Press, 2450ms);
     core->advanceTo(2500ms);
-    core->passKey(
-      input::BmsKey::Col13, GameplayKeyAction::Release, 2600ms);
-    core->passKey(
-      input::BmsKey::Col1sUp, GameplayKeyAction::Press, 2970ms);
+    core->passKey(input::BmsKey::Col13, GameplayKeyAction::Release, 2600ms);
+    core->passKey(input::BmsKey::Col1sUp, GameplayKeyAction::Press, 2970ms);
     const auto longNoteHold = core->snapshot();
     CHECK(longNoteHold.chartTimeNs == 2'970'000'000);
     CHECK(longNoteHold.points == 2.0);
@@ -249,10 +273,8 @@ TEST_CASE("gameplay core exposes exact immutable production snapshots",
     CHECK(noteById(longNoteHold, 0).holding);
     CHECK(noteById(longNoteHold, 1).holding);
 
-    core->passKey(
-      input::BmsKey::Col1sUp, GameplayKeyAction::Release, 3100ms);
-    core->passKey(
-      input::BmsKey::Col11, GameplayKeyAction::Release, 3500ms);
+    core->passKey(input::BmsKey::Col1sUp, GameplayKeyAction::Release, 3100ms);
+    core->passKey(input::BmsKey::Col11, GameplayKeyAction::Release, 3500ms);
     const auto longNoteRelease = core->snapshot();
     CHECK(longNoteRelease.points == 4.0);
     CHECK(longNoteRelease.maxPointsNow == 6.0);
@@ -306,21 +328,19 @@ TEST_CASE("gameplay core BGM pre-scheduling is exactly once",
     core->preScheduleBgm();
     runCanonicalInputs(*core);
 
-    CHECK(bank.bgm->playTimes ==
-          std::vector<std::chrono::nanoseconds>{ 2s });
+    CHECK(bank.bgm->playTimes == std::vector<std::chrono::nanoseconds>{ 2s });
 }
 
 TEST_CASE("gameplay snapshot marks only the active same-lane LN pair holding",
           "[SinglePlayerGameplayCore][Snapshot][LongNote]")
 {
-    constexpr auto twoLongNotes = std::string_view{
-        "#TITLE Pair-specific holding\n"
-        "#BPM 120\n"
-        "#LNTYPE 1\n"
-        "#WAV01 long.ogg\n"
-        "#00151:0101\n"
-        "#00251:0101\n"
-    };
+    constexpr auto twoLongNotes =
+      std::string_view{ "#TITLE Pair-specific holding\n"
+                        "#BPM 120\n"
+                        "#LNTYPE 1\n"
+                        "#WAV01 long.ogg\n"
+                        "#00151:0101\n"
+                        "#00251:0101\n" };
     auto config = makeConfig();
     config.play.randomSequence.clear();
     auto core = SinglePlayerGameplayCore::create(
@@ -332,10 +352,8 @@ TEST_CASE("gameplay snapshot marks only the active same-lane LN pair holding",
     core->passKey(input::BmsKey::Col11, GameplayKeyAction::Press, 2s);
     const auto snapshot = core->snapshot();
     auto longNotes =
-      snapshot.visibleNotes |
-      std::views::filter([](const auto& note) {
-          return note.type ==
-                   charts::BmsNotesData::NoteType::LongNoteBegin ||
+      snapshot.visibleNotes | std::views::filter([](const auto& note) {
+          return note.type == charts::BmsNotesData::NoteType::LongNoteBegin ||
                  note.type == charts::BmsNotesData::NoteType::LongNoteEnd;
       }) |
       std::ranges::to<std::vector>();
@@ -347,14 +365,81 @@ TEST_CASE("gameplay snapshot marks only the active same-lane LN pair holding",
     CHECK_FALSE(longNotes[3].holding);
 }
 
+TEST_CASE("gameplay snapshot keeps an LN body that crosses the render window",
+          "[SinglePlayerGameplayCore][Snapshot][LongNote][Scroll]")
+{
+    constexpr auto crossingLongNote =
+      std::string_view{ "#TITLE Crossing long note\n"
+                        "#BPM 120\n"
+                        "#LNTYPE 1\n"
+                        "#WAV01 long.ogg\n"
+                        "#00151:01\n"
+                        "#01151:01\n" };
+    auto config = makeConfig();
+    config.play.randomSequence.clear();
+    auto core = SinglePlayerGameplayCore::create(
+      crossingLongNote,
+      std::filesystem::path{ "memory/crossing-long-note.bms" },
+      config,
+      {});
+
+    core->advanceTo(10s);
+    const auto snapshot = core->snapshot();
+
+    CHECK(snapshot.scrollPosition == Approx(20.0));
+    REQUIRE(snapshot.visibleNotes.size() == 2);
+    CHECK(snapshot.visibleNotes[0].type ==
+          charts::BmsNotesData::NoteType::LongNoteBegin);
+    CHECK(snapshot.visibleNotes[0].scrollPosition == Approx(4.0));
+    REQUIRE(snapshot.visibleNotes[0].pairedScrollPosition);
+    CHECK(*snapshot.visibleNotes[0].pairedScrollPosition == Approx(44.0));
+    CHECK(snapshot.visibleNotes[1].type ==
+          charts::BmsNotesData::NoteType::LongNoteEnd);
+    CHECK(snapshot.visibleNotes[1].scrollPosition == Approx(44.0));
+    REQUIRE(snapshot.visibleNotes[1].pairedScrollPosition);
+    CHECK(*snapshot.visibleNotes[1].pairedScrollPosition == Approx(4.0));
+}
+
+TEST_CASE("gameplay snapshot storage can be reserved and reused",
+          "[SinglePlayerGameplayCore][Snapshot][Storage]")
+{
+    auto core = makeCore();
+    auto buffers = std::array<gameplay_logic::GameplaySnapshot, 3>{};
+
+    CHECK(core->snapshotVisibleNoteCapacity() == 6);
+    for (auto& buffer : buffers) {
+        core->reserveSnapshot(buffer);
+        REQUIRE(buffer.visibleNotes.capacity() >=
+                core->snapshotVisibleNoteCapacity());
+    }
+
+    core->advanceTo(-1s);
+    for (auto& buffer : buffers) {
+        const auto* const storage = buffer.visibleNotes.data();
+        const auto capacity = buffer.visibleNotes.capacity();
+        core->fillSnapshot(buffer);
+        CHECK(buffer.visibleNotes.size() == 6);
+        CHECK(buffer.visibleNotes.data() == storage);
+        CHECK(buffer.visibleNotes.capacity() == capacity);
+    }
+
+    const auto* const storage = buffers[0].visibleNotes.data();
+    const auto capacity = buffers[0].visibleNotes.capacity();
+    core->advanceTo(10s);
+    core->fillSnapshot(buffers[0]);
+    CHECK(buffers[0].finished);
+    CHECK(buffers[0].visibleNotes.empty());
+    CHECK(buffers[0].visibleNotes.data() == storage);
+    CHECK(buffers[0].visibleNotes.capacity() == capacity);
+}
+
 TEST_CASE("gameplay core rejects nondeterminism and non-monotonic input",
           "[SinglePlayerGameplayCore][Determinism]")
 {
-    constexpr auto minimalChart = std::string_view{
-        "#TITLE Core monotonic test\n"
-        "#BPM 120\n"
-        "#00111:0001\n"
-    };
+    constexpr auto minimalChart =
+      std::string_view{ "#TITLE Core monotonic test\n"
+                        "#BPM 120\n"
+                        "#00111:0001\n" };
     auto config = makeConfig();
     config.play.randomSequence.clear();
     auto core = SinglePlayerGameplayCore::create(
@@ -364,28 +449,24 @@ TEST_CASE("gameplay core rejects nondeterminism and non-monotonic input",
       {});
     core->advanceTo(2s);
     REQUIRE_THROWS_AS(
-      core->passKey(input::BmsKey::Col11,
-                    GameplayKeyAction::Press,
-                    1999ms),
+      core->passKey(input::BmsKey::Col11, GameplayKeyAction::Press, 1999ms),
       std::invalid_argument);
 
     config.savedTimestampSeconds = 0;
-    REQUIRE_THROWS_AS(
-      SinglePlayerGameplayCore::create(
-        minimalChart,
-        std::filesystem::path{ "memory/core-missing-time.bms" },
-        config,
-        {}),
-      std::invalid_argument);
+    REQUIRE_THROWS_AS(SinglePlayerGameplayCore::create(
+                        minimalChart,
+                        std::filesystem::path{ "memory/core-missing-time.bms" },
+                        config,
+                        {}),
+                      std::invalid_argument);
     config.savedTimestampSeconds = 1;
     config.scoreGuid.clear();
-    REQUIRE_THROWS_AS(
-      SinglePlayerGameplayCore::create(
-        minimalChart,
-        std::filesystem::path{ "memory/core-missing-guid.bms" },
-        config,
-        {}),
-      std::invalid_argument);
+    REQUIRE_THROWS_AS(SinglePlayerGameplayCore::create(
+                        minimalChart,
+                        std::filesystem::path{ "memory/core-missing-guid.bms" },
+                        config,
+                        {}),
+                      std::invalid_argument);
 }
 
 TEST_CASE("gameplay core emits a byte-identical canonical trace",

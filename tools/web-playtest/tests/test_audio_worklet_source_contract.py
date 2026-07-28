@@ -427,9 +427,7 @@ class AudioWorkletSourceContractTest(unittest.TestCase):
         second_running_check = poll.find(
             "!clock.contextIsRunning()", first_running_check + 1
         )
-        establish_anchor = poll.find(
-            "clock.tryEstablishAnchor(beforeBrowserSample"
-        )
+        establish_anchor = poll.find("clock.tryEstablishAnchor(")
         self.assertTrue(
             -1
             < first_running_check
@@ -547,6 +545,13 @@ class AudioWorkletSourceContractTest(unittest.TestCase):
             source, "EmscriptenAudioWorklet::failTerminal"
         )
         self.assertIn("clock.markTerminal()", fail_terminal)
+        terminal_silence = self._method_body(
+            source, "EmscriptenAudioWorklet::enterTerminalSilence"
+        )
+        self.assertIn("clock.markTerminal()", terminal_silence)
+        self.assertIn(
+            "AudioWorkletLifecycleState::Terminal", terminal_silence
+        )
 
     def test_backend_never_becomes_a_second_transport_producer(self) -> None:
         combined = (

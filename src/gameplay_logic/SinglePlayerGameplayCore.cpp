@@ -38,8 +38,7 @@ asPlayerBuildOptions(const resource_managers::ChartPlayConfig& config)
 }
 
 auto
-makeNormalGauge(const ChartData& chartData,
-                const PlayerChartBuildResult& chart)
+makeNormalGauge(const ChartData& chartData, const PlayerChartBuildResult& chart)
   -> QList<rules::BmsGauge*>
 {
     const auto multiplier =
@@ -53,10 +52,9 @@ makeNormalGauge(const ChartData& chartData,
           "The gameplay core requires a chart with at least one hittable note");
     }
     auto gauges = rules::Lr2Gauge::getGauges(chartData.getTotal(), hitCount);
-    const auto normal =
-      std::ranges::find_if(gauges, [](const auto& gauge) {
-          return gauge->getName() == QStringLiteral("NORMAL");
-      });
+    const auto normal = std::ranges::find_if(gauges, [](const auto& gauge) {
+        return gauge->getName() == QStringLiteral("NORMAL");
+    });
     if (normal == gauges.end()) {
         throw std::logic_error("LR2 NORMAL gauge is unavailable");
     }
@@ -85,8 +83,9 @@ makeScore(const ChartData& chartData,
       std::move(gauges),
       chartData.getRandomSequence(),
       config.play.noteOrderP1,
-      isDp(chart.effectiveKeymode) ? config.play.noteOrderP2
-                                   : resource_managers::NoteOrderAlgorithm::Normal,
+      isDp(chart.effectiveKeymode)
+        ? config.play.noteOrderP2
+        : resource_managers::NoteOrderAlgorithm::Normal,
       chart.effectiveDpOptions,
       chart.storedPermutation(),
       chart.storedSeed(),
@@ -115,6 +114,46 @@ isLongNote(const charts::BmsNotesData::NoteType type) -> bool
 {
     return type == charts::BmsNotesData::NoteType::LongNoteBegin ||
            type == charts::BmsNotesData::NoteType::LongNoteEnd;
+}
+
+auto
+pairedLongNoteScrollPosition(
+  const std::vector<charts::BmsNotesData::Note>& notes,
+  const std::size_t noteIndex) -> std::optional<double>
+{
+    const auto type = notes.at(noteIndex).noteType;
+    if (type == charts::BmsNotesData::NoteType::LongNoteBegin) {
+        const auto pairedIndex = noteIndex + 1;
+        if (pairedIndex >= notes.size() ||
+            notes[pairedIndex].noteType !=
+              charts::BmsNotesData::NoteType::LongNoteEnd) {
+            return std::nullopt;
+        }
+        return notes[pairedIndex].time.position;
+    }
+    if (type == charts::BmsNotesData::NoteType::LongNoteEnd) {
+        if (noteIndex == 0 || notes[noteIndex - 1].noteType !=
+                                charts::BmsNotesData::NoteType::LongNoteBegin) {
+            return std::nullopt;
+        }
+        return notes[noteIndex - 1].time.position;
+    }
+    return std::nullopt;
+}
+
+auto
+intersectsRenderWindow(const double scrollPosition,
+                       const std::optional<double> pairedScrollPosition,
+                       const double renderBottom,
+                       const double renderTop) -> bool
+{
+    const auto segmentBottom =
+      pairedScrollPosition ? std::min(scrollPosition, *pairedScrollPosition)
+                           : scrollPosition;
+    const auto segmentTop = pairedScrollPosition
+                              ? std::max(scrollPosition, *pairedScrollPosition)
+                              : scrollPosition;
+    return !(segmentTop < renderBottom || segmentBottom > renderTop);
 }
 
 auto
@@ -158,12 +197,12 @@ class SinglePlayerGameplayCore::Impl
     bool finished{};
     GameplayTrace trace;
 
-    Impl(GameplayCoreConfig config,
-         resource_managers::ChartDataFactory::ChartComponents components,
-         PlayerChartBuildResult chart,
-         std::unique_ptr<BmsLiveScore> score,
-         std::unordered_map<std::uint64_t, std::shared_ptr<sounds::Sound>>
-           sounds)
+    Impl(
+      GameplayCoreConfig config,
+      resource_managers::ChartDataFactory::ChartComponents components,
+      PlayerChartBuildResult chart,
+      std::unique_ptr<BmsLiveScore> score,
+      std::unordered_map<std::uint64_t, std::shared_ptr<sounds::Sound>> sounds)
       : config(std::move(config))
       , chartData(std::move(components.chartData))
       , notesData(std::move(components.notesData))
@@ -184,15 +223,14 @@ class SinglePlayerGameplayCore::Impl
         const auto columns = this->chart.state->getColumnStates();
         for (qsizetype index = 0; index < columns.size(); ++index) {
             auto* column = columns[index];
-            QObject::connect(
-              this->score.get(),
-              &BmsLiveScore::hit,
-              column,
-              [column, index](const HitEvent& event) {
-                  if (index == event.getColumn()) {
-                      column->onHitEvent(event);
-                  }
-              });
+            QObject::connect(this->score.get(),
+                             &BmsLiveScore::hit,
+                             column,
+                             [column, index](const HitEvent& event) {
+                                 if (index == event.getColumn()) {
+                                     column->onHitEvent(event);
+                                 }
+                             });
         }
         QObject::connect(
           this->score.get(),
@@ -211,9 +249,8 @@ class SinglePlayerGameplayCore::Impl
           std::move(mineHitSound),
           this->score.get(),
           std::move(sounds),
-          rules::HitRules(
-            rules::lr2_timing_windows::judgeNormal(),
-            rules::lr2_hit_values::getLr2HitValue));
+          rules::HitRules(rules::lr2_timing_windows::judgeNormal(),
+                          rules::lr2_hit_values::getLr2HitValue));
         updatePosition();
     }
 
@@ -234,9 +271,8 @@ class SinglePlayerGameplayCore::Impl
 
     void updatePosition()
     {
-        const auto bpm = referee
-                           ? referee->getBpm(currentTime)
-                           : notesData.bpmChanges.front();
+        const auto bpm =
+          referee ? referee->getBpm(currentTime) : notesData.bpmChanges.front();
         position = BmsGameReferee::getPosition(bpm, currentTime);
     }
 
@@ -266,18 +302,12 @@ class SinglePlayerGameplayCore::Impl
             .noteIndex = event.getNoteIndex(),
             .action = event.getAction(),
             .noteRemoved = event.getNoteRemoved(),
-            .judgement =
-              points.transform([](const auto& value) {
-                  return value.getJudgement();
-              }),
-            .deviationNs =
-              points.transform([](const auto& value) {
-                  return value.getDeviation();
-              }),
-            .value =
-              points.transform([](const auto& value) {
-                  return value.getValue();
-              }) });
+            .judgement = points.transform(
+              [](const auto& value) { return value.getJudgement(); }),
+            .deviationNs = points.transform(
+              [](const auto& value) { return value.getDeviation(); }),
+            .value = points.transform(
+              [](const auto& value) { return value.getValue(); }) });
         if (points) {
             trace.gaugeSamples.push_back(
               { .chartTimeNs = event.getOffsetFromStart(),
@@ -285,24 +315,35 @@ class SinglePlayerGameplayCore::Impl
         }
     }
 
-    [[nodiscard]] auto makeSnapshot() const -> GameplaySnapshot
+    [[nodiscard]] auto snapshotVisibleNoteCapacity() const noexcept
+      -> std::size_t
     {
-        auto snapshot = GameplaySnapshot{
-            .chartTimeNs = currentTime.count(),
-            .beatPosition = position.beatPosition,
-            .scrollPosition = position.position,
-            .points = score->getPoints(),
-            .maxPointsNow = score->getMaxPointsNow(),
-            .gauge = gaugeValue(),
-            .combo = score->getCombo(),
-            .maxCombo = score->getMaxCombo(),
-            .mineHits = score->getMineHits(),
-            .latestJudgement = latestJudgement,
-            .latestDeviationNs = latestDeviationNs,
-            .pressedColumns = {},
-            .visibleNotes = {},
-            .finished = finished,
-        };
+        auto capacity = std::size_t{};
+        for (const auto& column : chart.rawNotes) {
+            capacity += column.size();
+        }
+        return capacity;
+    }
+
+    void fillSnapshot(GameplaySnapshot& snapshot) const
+    {
+        snapshot.chartTimeNs = currentTime.count();
+        snapshot.beatPosition = position.beatPosition;
+        snapshot.scrollPosition = position.position;
+        snapshot.points = score->getPoints();
+        snapshot.maxPointsNow = score->getMaxPointsNow();
+        snapshot.gauge = gaugeValue();
+        snapshot.combo = score->getCombo();
+        snapshot.maxCombo = score->getMaxCombo();
+        snapshot.mineHits = score->getMineHits();
+        snapshot.latestJudgement = latestJudgement;
+        snapshot.latestDeviationNs = latestDeviationNs;
+        snapshot.pressedColumns.fill(false);
+        snapshot.visibleNotes.clear();
+        snapshot.finished = finished;
+
+        const auto renderBottom = position.position - renderBehind;
+        const auto renderTop = position.position + renderAhead;
         const auto columnStates = chart.state->getColumnStates();
         for (auto columnIndex = qsizetype{}; columnIndex < columnStates.size();
              ++columnIndex) {
@@ -310,14 +351,17 @@ class SinglePlayerGameplayCore::Impl
             snapshot.pressedColumns[static_cast<std::size_t>(columnIndex)] =
               column->isPressed();
             for (const auto& noteState : column->getNotes()) {
-                const auto rawIndex =
-                  static_cast<std::size_t>(noteState.index);
-                const auto& rawNote =
-                  chart.rawNotes[static_cast<std::size_t>(columnIndex)]
-                                .at(rawIndex);
+                const auto rawIndex = static_cast<std::size_t>(noteState.index);
+                const auto& rawColumn =
+                  chart.rawNotes[static_cast<std::size_t>(columnIndex)];
+                const auto& rawNote = rawColumn.at(rawIndex);
                 const auto type = rawNote.noteType;
-                if (rawNote.time.position < position.position - renderBehind ||
-                    rawNote.time.position > position.position + renderAhead) {
+                const auto pairedScrollPosition =
+                  pairedLongNoteScrollPosition(rawColumn, rawIndex);
+                if (!intersectsRenderWindow(rawNote.time.position,
+                                            pairedScrollPosition,
+                                            renderBottom,
+                                            renderTop)) {
                     continue;
                 }
                 auto removed = false;
@@ -326,27 +370,26 @@ class SinglePlayerGameplayCore::Impl
                       noteState.hitData.value<HitEvent>().getNoteRemoved();
                 }
                 snapshot.visibleNotes.push_back(
-                  { .stableId =
-                      stableId(static_cast<std::size_t>(columnIndex),
-                               noteState.index),
+                  { .stableId = stableId(static_cast<std::size_t>(columnIndex),
+                                         noteState.index),
                     .column = static_cast<std::uint8_t>(columnIndex),
                     .type = type,
                     .chartTimeNs = rawNote.time.timestamp.count(),
                     .beatPosition = rawNote.time.beatPosition,
+                    .scrollPosition = rawNote.time.position,
+                    .pairedScrollPosition = pairedScrollPosition,
                     .removed = removed,
-                    .holding = isPairHolding(noteState,
-                                             type,
-                                             column->isHoldingLongNote()) });
+                    .holding = isPairHolding(
+                      noteState, type, column->isHoldingLongNote()) });
             }
         }
-        std::ranges::sort(
-          snapshot.visibleNotes, [](const auto& left, const auto& right) {
-              if (left.chartTimeNs != right.chartTimeNs) {
-                  return left.chartTimeNs < right.chartTimeNs;
-              }
-              return left.stableId < right.stableId;
-          });
-        return snapshot;
+        std::ranges::sort(snapshot.visibleNotes,
+                          [](const auto& left, const auto& right) {
+                              if (left.chartTimeNs != right.chartTimeNs) {
+                                  return left.chartTimeNs < right.chartTimeNs;
+                              }
+                              return left.stableId < right.stableId;
+                          });
     }
 
     [[nodiscard]] auto makeTrace() const -> QByteArray
@@ -416,15 +459,15 @@ SinglePlayerGameplayCore::create(
                                   *components->chartData,
                                   asPlayerBuildOptions(config.play));
     auto gauges = makeNormalGauge(*components->chartData, chart);
-    auto score = makeScore(
-      *components->chartData, chart, config, std::move(gauges));
+    auto score =
+      makeScore(*components->chartData, chart, config, std::move(gauges));
     return std::unique_ptr<SinglePlayerGameplayCore>{
-        new SinglePlayerGameplayCore{ std::make_unique<Impl>(
-          std::move(config),
-          std::move(*components),
-          std::move(chart),
-          std::move(score),
-          std::move(sounds)) }
+        new SinglePlayerGameplayCore{
+          std::make_unique<Impl>(std::move(config),
+                                 std::move(*components),
+                                 std::move(chart),
+                                 std::move(score),
+                                 std::move(sounds)) }
     };
 }
 
@@ -440,12 +483,11 @@ SinglePlayerGameplayCore::passKey(const input::BmsKey key,
                                   const std::chrono::nanoseconds chartTime)
 {
     impl->advance(chartTime);
-    impl->trace.inputs.push_back(
-      { .chartTimeNs = chartTime.count(),
-        .key = static_cast<int>(key),
-        .action = action == GameplayKeyAction::Press
-                    ? HitEvent::Action::Press
-                    : HitEvent::Action::Release });
+    impl->trace.inputs.push_back({ .chartTimeNs = chartTime.count(),
+                                   .key = static_cast<int>(key),
+                                   .action = action == GameplayKeyAction::Press
+                                               ? HitEvent::Action::Press
+                                               : HitEvent::Action::Release });
     if (action == GameplayKeyAction::Press) {
         impl->referee->passPressed(chartTime, key);
     } else {
@@ -460,9 +502,30 @@ SinglePlayerGameplayCore::preScheduleBgm()
 }
 
 auto
+SinglePlayerGameplayCore::snapshotVisibleNoteCapacity() const noexcept
+  -> std::size_t
+{
+    return impl->snapshotVisibleNoteCapacity();
+}
+
+void
+SinglePlayerGameplayCore::reserveSnapshot(GameplaySnapshot& snapshot) const
+{
+    snapshot.visibleNotes.reserve(snapshotVisibleNoteCapacity());
+}
+
+void
+SinglePlayerGameplayCore::fillSnapshot(GameplaySnapshot& snapshot) const
+{
+    impl->fillSnapshot(snapshot);
+}
+
+auto
 SinglePlayerGameplayCore::snapshot() const -> GameplaySnapshot
 {
-    return impl->makeSnapshot();
+    auto result = GameplaySnapshot{};
+    fillSnapshot(result);
+    return result;
 }
 
 auto

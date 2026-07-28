@@ -114,10 +114,10 @@ RealtimeMixer::render(float* left,
             if (!voice.emittedNonZero &&
                 (contributionLeft != 0.F || contributionRight != 0.F)) {
                 voice.emittedNonZero = true;
-                emit(voice.start,
-                     AudioAckPhase::FirstNonZero,
-                     AudioAckOutcome::Pending,
-                     frame);
+                emitAcknowledgement(voice.start,
+                                    AudioAckPhase::FirstNonZero,
+                                    AudioAckOutcome::Pending,
+                                    frame);
             }
             mixedLeft += contributionLeft;
             mixedRight += contributionRight;
@@ -146,20 +146,20 @@ RealtimeMixer::drainCommands() noexcept
     auto command = AudioCommand{};
     while (drained < available && channel->commands.tryPop(command)) {
         ++drained;
-        emit(command,
-             AudioAckPhase::Dequeued,
-             AudioAckOutcome::Pending,
-             outputFrame);
+        emitAcknowledgement(command,
+                            AudioAckPhase::Dequeued,
+                            AudioAckOutcome::Pending,
+                            outputFrame);
         if (command.type == AudioCommandType::ResetSession ||
             command.type == AudioCommandType::StopAll) {
             handleBarrier(command);
             continue;
         }
         if (command.sessionGeneration != currentGeneration) {
-            emit(command,
-                 AudioAckPhase::Terminal,
-                 AudioAckOutcome::Rejected,
-                 outputFrame);
+            emitAcknowledgement(command,
+                                AudioAckPhase::Terminal,
+                                AudioAckOutcome::Rejected,
+                                outputFrame);
             continue;
         }
         schedule(command);
@@ -173,10 +173,10 @@ RealtimeMixer::handleBarrier(const AudioCommand& command) noexcept
     if (command.type == AudioCommandType::ResetSession) {
         if (command.sessionGeneration <= currentGeneration ||
             command.targetFrame < outputFrame) {
-            emit(command,
-                 AudioAckPhase::Terminal,
-                 AudioAckOutcome::Rejected,
-                 outputFrame);
+            emitAcknowledgement(command,
+                                AudioAckPhase::Terminal,
+                                AudioAckOutcome::Rejected,
+                                outputFrame);
             return;
         }
         cancelPending(true, 0, outputFrame);
@@ -186,21 +186,21 @@ RealtimeMixer::handleBarrier(const AudioCommand& command) noexcept
           currentGeneration, command.targetFrame, settings.outputSampleRate);
     } else {
         if (command.sessionGeneration != currentGeneration) {
-            emit(command,
-                 AudioAckPhase::Terminal,
-                 AudioAckOutcome::Rejected,
-                 outputFrame);
+            emitAcknowledgement(command,
+                                AudioAckPhase::Terminal,
+                                AudioAckOutcome::Rejected,
+                                outputFrame);
             return;
         }
         cancelPending(false, currentGeneration, outputFrame);
         cancelActive(false, currentGeneration, outputFrame);
     }
-    emit(
+    emitAcknowledgement(
       command, AudioAckPhase::Applied, AudioAckOutcome::Completed, outputFrame);
-    emit(command,
-         AudioAckPhase::Terminal,
-         AudioAckOutcome::Completed,
-         outputFrame);
+    emitAcknowledgement(command,
+                        AudioAckPhase::Terminal,
+                        AudioAckOutcome::Completed,
+                        outputFrame);
 }
 
 void
@@ -215,10 +215,10 @@ RealtimeMixer::cancelPending(bool allGenerations,
     for (std::size_t i = 0; i < schedulerSize; ++i) {
         const auto& command = scheduler[i];
         if (allGenerations || command.sessionGeneration == generation) {
-            emit(command,
-                 AudioAckPhase::Terminal,
-                 AudioAckOutcome::Canceled,
-                 observedFrame);
+            emitAcknowledgement(command,
+                                AudioAckPhase::Terminal,
+                                AudioAckOutcome::Canceled,
+                                observedFrame);
         } else {
             scheduler[retained++] = command;
         }
@@ -269,10 +269,10 @@ RealtimeMixer::schedule(const AudioCommand& command) noexcept
         channel->fail(AudioTerminalErrorCode::SchedulerOverflow,
                       command.sessionGeneration,
                       command.sequenceId);
-        emit(command,
-             AudioAckPhase::Terminal,
-             AudioAckOutcome::Rejected,
-             outputFrame);
+        emitAcknowledgement(command,
+                            AudioAckPhase::Terminal,
+                            AudioAckOutcome::Rejected,
+                            outputFrame);
         return;
     }
     auto position = schedulerSize++;
@@ -324,10 +324,10 @@ RealtimeMixer::apply(const AudioCommand& command, std::uint64_t frame) noexcept
     switch (command.type) {
         case AudioCommandType::Start: {
             if (command.voiceId >= soundBank->voiceCount()) {
-                emit(command,
-                     AudioAckPhase::Terminal,
-                     AudioAckOutcome::Rejected,
-                     frame);
+                emitAcknowledgement(command,
+                                    AudioAckPhase::Terminal,
+                                    AudioAckOutcome::Rejected,
+                                    frame);
                 return;
             }
             auto& voice = activeVoices[command.voiceId];
@@ -338,10 +338,10 @@ RealtimeMixer::apply(const AudioCommand& command, std::uint64_t frame) noexcept
             const auto& clip =
               soundBank->clip(soundBank->clipForVoice(command.voiceId));
             if (clip.interleavedStereo.empty()) {
-                emit(command,
-                     AudioAckPhase::Terminal,
-                     AudioAckOutcome::Silent,
-                     frame);
+                emitAcknowledgement(command,
+                                    AudioAckPhase::Terminal,
+                                    AudioAckOutcome::Silent,
+                                    frame);
                 return;
             }
             voice = { .active = true,
@@ -349,16 +349,16 @@ RealtimeMixer::apply(const AudioCommand& command, std::uint64_t frame) noexcept
                       .clipFrame = 0,
                       .start = command };
             channel->setVoicePlaying(command.voiceId, true);
-            emit(
+            emitAcknowledgement(
               command, AudioAckPhase::Applied, AudioAckOutcome::Pending, frame);
             break;
         }
         case AudioCommandType::Stop: {
             if (command.voiceId >= soundBank->voiceCount()) {
-                emit(command,
-                     AudioAckPhase::Terminal,
-                     AudioAckOutcome::Rejected,
-                     frame);
+                emitAcknowledgement(command,
+                                    AudioAckPhase::Terminal,
+                                    AudioAckOutcome::Rejected,
+                                    frame);
                 break;
             }
             if (command.voiceId < activeVoices.size() &&
@@ -366,14 +366,14 @@ RealtimeMixer::apply(const AudioCommand& command, std::uint64_t frame) noexcept
                 terminateActive(
                   command.voiceId, AudioAckOutcome::Canceled, frame);
             }
-            emit(command,
-                 AudioAckPhase::Applied,
-                 AudioAckOutcome::Completed,
-                 frame);
-            emit(command,
-                 AudioAckPhase::Terminal,
-                 AudioAckOutcome::Completed,
-                 frame);
+            emitAcknowledgement(command,
+                                AudioAckPhase::Applied,
+                                AudioAckOutcome::Completed,
+                                frame);
+            emitAcknowledgement(command,
+                                AudioAckPhase::Terminal,
+                                AudioAckOutcome::Completed,
+                                frame);
             break;
         }
         case AudioCommandType::SetVoiceGain:
@@ -381,38 +381,38 @@ RealtimeMixer::apply(const AudioCommand& command, std::uint64_t frame) noexcept
                 std::isfinite(command.value)) {
                 appliedGains[command.voiceId] = command.value;
                 channel->setAppliedVoiceGain(command.voiceId, command.value);
-                emit(command,
-                     AudioAckPhase::Applied,
-                     AudioAckOutcome::Completed,
-                     frame);
-                emit(command,
-                     AudioAckPhase::Terminal,
-                     AudioAckOutcome::Completed,
-                     frame);
+                emitAcknowledgement(command,
+                                    AudioAckPhase::Applied,
+                                    AudioAckOutcome::Completed,
+                                    frame);
+                emitAcknowledgement(command,
+                                    AudioAckPhase::Terminal,
+                                    AudioAckOutcome::Completed,
+                                    frame);
             } else {
-                emit(command,
-                     AudioAckPhase::Terminal,
-                     AudioAckOutcome::Rejected,
-                     frame);
+                emitAcknowledgement(command,
+                                    AudioAckPhase::Terminal,
+                                    AudioAckOutcome::Rejected,
+                                    frame);
             }
             break;
         case AudioCommandType::SetMasterGain:
             if (!std::isfinite(command.value)) {
-                emit(command,
-                     AudioAckPhase::Terminal,
-                     AudioAckOutcome::Rejected,
-                     frame);
+                emitAcknowledgement(command,
+                                    AudioAckPhase::Terminal,
+                                    AudioAckOutcome::Rejected,
+                                    frame);
                 break;
             }
             masterGain = command.value;
-            emit(command,
-                 AudioAckPhase::Applied,
-                 AudioAckOutcome::Completed,
-                 frame);
-            emit(command,
-                 AudioAckPhase::Terminal,
-                 AudioAckOutcome::Completed,
-                 frame);
+            emitAcknowledgement(command,
+                                AudioAckPhase::Applied,
+                                AudioAckOutcome::Completed,
+                                frame);
+            emitAcknowledgement(command,
+                                AudioAckPhase::Terminal,
+                                AudioAckOutcome::Completed,
+                                frame);
             break;
         case AudioCommandType::ResetSession:
         case AudioCommandType::StopAll:
@@ -434,14 +434,14 @@ RealtimeMixer::terminateActive(VoiceId voiceId,
     voice.emittedNonZero = false;
     voice.clipFrame = 0;
     channel->setVoicePlaying(voiceId, false);
-    emit(start, AudioAckPhase::Terminal, outcome, frame);
+    emitAcknowledgement(start, AudioAckPhase::Terminal, outcome, frame);
 }
 
 void
-RealtimeMixer::emit(const AudioCommand& command,
-                    AudioAckPhase phase,
-                    AudioAckOutcome outcome,
-                    std::uint64_t frame) noexcept
+RealtimeMixer::emitAcknowledgement(const AudioCommand& command,
+                                   AudioAckPhase phase,
+                                   AudioAckOutcome outcome,
+                                   std::uint64_t frame) noexcept
 {
     const auto lateBy =
       frame > command.targetFrame ? frame - command.targetFrame : 0;

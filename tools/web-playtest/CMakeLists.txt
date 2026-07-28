@@ -221,10 +221,24 @@ set(RG_WEB_PLAYTEST_AUDIO_WORKLET_SOURCES
     "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/audio/EmscriptenAudioWorklet.h"
 )
 
+set(RG_WEB_PLAYTEST_RUNTIME_SOURCES
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/GameplayWorker.cpp"
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/GameplayWorker.h"
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/InputEvent.cpp"
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/InputEvent.h"
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/OggVorbisDecoder.cpp"
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/OggVorbisDecoder.h"
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/WebPlaytestRuntime.cpp"
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/WebPlaytestRuntime.h"
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/WebPlaytestSnapshot.cpp"
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/WebPlaytestSnapshot.h"
+)
+
 qt_add_executable(RhythmGameWasmProbe
     MANUAL_FINALIZATION
     "${RG_WEB_PLAYTEST_GENERATED_DIR}/WebPlaytestInputDigest.cpp"
     ${RG_WEB_PLAYTEST_AUDIO_WORKLET_SOURCES}
+    ${RG_WEB_PLAYTEST_RUNTIME_SOURCES}
     src/WebPlaytestChartInstaller.cpp
     src/WebPlaytestChartInstaller.h
     src/WebPlaytestInputDigest.h
@@ -238,6 +252,8 @@ target_compile_options(RhythmGameWasmProbe PRIVATE
 )
 target_include_directories(RhythmGameWasmProbe PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_include_directories(RhythmGameWasmProbe SYSTEM PRIVATE
+    "${STB_INCLUDE_DIRS}")
 set_target_properties(RhythmGameWasmProbe PROPERTIES
     NO_WASM_DEFAULT_FILES TRUE
     QT_WASM_INITIAL_MEMORY 268435456
@@ -287,13 +303,12 @@ target_link_options(RhythmGameWasmProbe PRIVATE
     "SHELL:-sDYNAMIC_EXECUTION=0"
     "SHELL:-sEMBIND_AOT=1"
     "SHELL:-sALLOW_MEMORY_GROWTH=1"
+    "SHELL:-sMEMORY_GROWTH_GEOMETRIC_STEP=0"
 )
 
-# The minimal Task 6 entry point does not call the Task 7 backend yet, so the
-# optimizer is allowed to discard its EM_JS imports. This explicit, non-default
-# target retains every public integration path behind a runtime-false branch,
-# links it through the authenticated driver, and verifies the generated loader
-# plus AudioWorklet bootstrap without creating an AudioContext.
+# This explicit, non-default target keeps a small authenticated link check for
+# every public AudioWorklet integration path. It verifies the generated loader
+# and bootstrap without creating an AudioContext.
 add_executable(RhythmGameWasmAudioLinkSmoke EXCLUDE_FROM_ALL
     ${RG_WEB_PLAYTEST_AUDIO_WORKLET_SOURCES}
     tests/EmscriptenAudioWorklet.link.cpp
@@ -321,6 +336,7 @@ target_link_options(RhythmGameWasmAudioLinkSmoke PRIVATE
     "SHELL:-sALLOW_BLOCKING_ON_MAIN_THREAD=0"
     "SHELL:-sDYNAMIC_EXECUTION=0"
     "SHELL:-sALLOW_MEMORY_GROWTH=1"
+    "SHELL:-sMEMORY_GROWTH_GEOMETRIC_STEP=0"
 )
 set_target_properties(RhythmGameWasmAudioLinkSmoke PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY

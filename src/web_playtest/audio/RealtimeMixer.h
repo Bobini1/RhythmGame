@@ -72,10 +72,10 @@ class RealtimeMixer
     void terminateActive(VoiceId voice,
                          AudioAckOutcome outcome,
                          std::uint64_t frame) noexcept;
-    void emit(const AudioCommand& command,
-              AudioAckPhase phase,
-              AudioAckOutcome outcome,
-              std::uint64_t frame) noexcept;
+    void emitAcknowledgement(const AudioCommand& command,
+                             AudioAckPhase phase,
+                             AudioAckOutcome outcome,
+                             std::uint64_t frame) noexcept;
 
     const PcmSoundBank* soundBank;
     AudioTransport* channel;

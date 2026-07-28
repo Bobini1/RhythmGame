@@ -130,6 +130,7 @@ class WebPlaytestSourceContractTest(unittest.TestCase):
             "-sDYNAMIC_EXECUTION=0",
             "-sEMBIND_AOT=1",
             "-sALLOW_MEMORY_GROWTH=1",
+            "-sMEMORY_GROWTH_GEOMETRIC_STEP=0",
         )
         for flag in required:
             with self.subTest(flag=flag):
@@ -148,8 +149,9 @@ class WebPlaytestSourceContractTest(unittest.TestCase):
         main = (PLAYTEST / "src" / "main.cpp").read_text("utf-8")
         self.assertIn("web_playtest::buildInputSha256()", main)
         self.assertIn("rgWebPlaytestBuildInputSha256", main)
-        self.assertIn("QTimer::singleShot(", main)
-        self.assertIn("application.exit(EXIT_FAILURE)", main)
+        self.assertIn("WebPlaytestRuntime::createProcessLifetime(", main)
+        self.assertIn("setContextProperty(", main)
+        self.assertNotIn("application.exit(EXIT_FAILURE)", main)
 
     def test_manifest_and_installer_contract_is_authoritative_and_streaming(
         self,
@@ -304,17 +306,17 @@ class WebPlaytestSourceContractTest(unittest.TestCase):
             ).read_bytes(),
         )
 
-    def test_minimal_qml_stub_is_qt6_safe(self) -> None:
+    def test_playable_qml_shell_is_qt6_safe(self) -> None:
         qml = (PLAYTEST / "qml" / "Main.qml").read_text("utf-8")
         self.assertIn("import QtQuick\n", qml)
         self.assertIn("import QtQuick.Controls.Basic\n", qml)
         self.assertNotRegex(qml, r"^import .+ \d", re.M)
         self.assertNotIn("Canvas", qml)
         for literal in (
-            "RhythmGame web playtest",
-            "Chart package installed",
-            "Initialization failed",
-            "Selected chart: %1",
+            "RhythmGame — Dstorv web playtest",
+            "NORMAL gauge",
+            "Native: A S D Space J K L",
+            "LR2: Z S X D C F V",
         ):
             with self.subTest(literal=literal):
                 self.assertIn(f'qsTr("{literal}")', qml)

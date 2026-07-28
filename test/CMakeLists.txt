@@ -102,6 +102,24 @@ add_executable(RhythmGame_browser_audio_clock_test
         web_playtest/audio/BrowserAudioClock.test.cpp
         "${CMAKE_SOURCE_DIR}/src/web_playtest/audio/BrowserAudioClock.cpp"
 )
+add_executable(RhythmGame_web_playtest_runtime_test
+        web_playtest/WebPlaytestRuntime.test.cpp
+        "${CMAKE_SOURCE_DIR}/src/web_playtest/InputEvent.cpp"
+        "${CMAKE_SOURCE_DIR}/src/web_playtest/InputEvent.h"
+        "${CMAKE_SOURCE_DIR}/src/web_playtest/WebPlaytestSnapshot.cpp"
+        "${CMAKE_SOURCE_DIR}/src/web_playtest/WebPlaytestSnapshot.h"
+)
+target_link_libraries(RhythmGame_web_playtest_runtime_test PRIVATE
+        RhythmGame_web_gameplay_core
+        Catch2::Catch2WithMain
+)
+target_compile_features(
+        RhythmGame_web_playtest_runtime_test PRIVATE cxx_std_23
+)
+set_target_properties(
+        RhythmGame_web_playtest_runtime_test PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
+)
 target_include_directories(RhythmGame_browser_audio_clock_test PRIVATE
         "${CMAKE_SOURCE_DIR}/src"
 )
@@ -127,6 +145,7 @@ add_dependencies(
         RhythmGame_test
         PortableGameplayHeaders_compile
         RhythmGame_browser_audio_clock_test
+        RhythmGame_web_playtest_runtime_test
         RhythmGame_web_audio_core_test
 )
 
@@ -175,6 +194,12 @@ if (WIN32)
             $<TARGET_FILE_DIR:RhythmGame_web_gameplay_core_test>
             COMMAND_EXPAND_LISTS
     )
+    add_custom_command(TARGET RhythmGame_web_playtest_runtime_test POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:RhythmGame_web_playtest_runtime_test>
+            $<TARGET_FILE_DIR:RhythmGame_web_playtest_runtime_test>
+            COMMAND_EXPAND_LISTS
+    )
     add_custom_command(TARGET RhythmGame_test POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_RUNTIME_DLLS:RhythmGame_test> $<TARGET_FILE_DIR:RhythmGame_test>
             COMMAND_EXPAND_LISTS
@@ -192,6 +217,10 @@ catch_discover_tests(RhythmGame_web_gameplay_core_test)
 catch_discover_tests(
         RhythmGame_web_audio_core_test
         TEST_PREFIX "RealtimeMixer.BmsAssetResolver."
+)
+catch_discover_tests(
+        RhythmGame_web_playtest_runtime_test
+        TEST_PREFIX "WebPlaytestRuntime."
 )
 add_test(
         NAME BrowserAudioClock
