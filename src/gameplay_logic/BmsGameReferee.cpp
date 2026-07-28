@@ -40,9 +40,9 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
   , mineHitSound(std::move(mineHitSound))
 {
     for (int i = 0; i < charts::BmsNotesData::columnNumber; i++) {
-        for (const auto& [index, note] :
-             std::ranges::views::enumerate(notes[i])) {
-            addNote(this->notes[i], this->mines[i], note, index);
+        auto noteIndex = 0;
+        for (const auto& note : notes[i]) {
+            addNote(this->notes[i], this->mines[i], note, noteIndex++);
         }
     }
     for (const auto& bgmNote : bgmNotes) {

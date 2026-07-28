@@ -2,6 +2,7 @@
 cmake/toolchains/vcpkg-emscripten.cmake text eol=lf
 tools/wasm-probe/** text eol=lf
 tools/wasm-probe/browser/fixtures/*.webm -text
+tools/web-playtest/** text eol=lf
 vcpkgOverlayPorts/qtdeclarative/* text eol=lf
 vcpkgTriplets/*.cmake text eol=lf
 vcpkgOverlayPorts/qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch -text

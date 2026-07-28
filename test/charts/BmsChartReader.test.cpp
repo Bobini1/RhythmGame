@@ -83,6 +83,12 @@ TEST_CASE("Parse BPM", "[BmsChartReader]")
     REQUIRE(res.tags.bpm.value() ==
             Catch::Approx(expectedBpm).epsilon(allowedError));
 
+    testString = "#BPM 120D";
+    res = charts::readBmsChart(testString, randomGenerator);
+    REQUIRE(res.tags.bpm);
+    REQUIRE(res.tags.bpm.value() ==
+            Catch::Approx(expectedBpm).epsilon(allowedError));
+
     testString = "#BPM 12E1d";
     res = charts::readBmsChart(testString, randomGenerator);
     REQUIRE(res.tags.bpm);
@@ -101,6 +107,25 @@ TEST_CASE("Parse BPM", "[BmsChartReader]")
     REQUIRE(res.tags.bpm);
     REQUIRE(res.tags.bpm.value() ==
             Catch::Approx(-expectedBpm).epsilon(allowedError));
+}
+
+TEST_CASE("Leading plus BPM uses the parser default", "[BmsChartReader]")
+{
+    const auto res = charts::readBmsChart("#BPM +120"s, randomGenerator);
+
+    REQUIRE(res.tags.bpm);
+    REQUIRE(res.tags.bpm.value() ==
+            charts::ParsedBmsChart::Measure::defaultMeter);
+}
+
+TEST_CASE("Out-of-range BPM uses the parser default", "[BmsChartReader]")
+{
+    const auto res =
+      charts::readBmsChart("#BPM 1e999999"s, randomGenerator);
+
+    REQUIRE(res.tags.bpm);
+    REQUIRE(res.tags.bpm.value() ==
+            charts::ParsedBmsChart::Measure::defaultMeter);
 }
 
 /*

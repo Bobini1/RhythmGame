@@ -1120,8 +1120,7 @@ def _selected_compile_sidecars(
     return selected
 
 
-def _selected_application_link_identity(
-    locks: contextlib.ExitStack,
+def _selected_application_link_mode(
     arguments: list[str],
     repo: Path,
     cwd: Path,
@@ -1136,8 +1135,59 @@ def _selected_application_link_identity(
         return None
     if len(outputs) != 1 or "-c" in arguments:
         _fail("Selected application link output/compile contract drifted")
+    output = Path(outputs[0])
+    if not output.is_absolute():
+        output = cwd / output
+    output = Path(os.path.abspath(output))
+    expected_output = Path(
+        os.path.abspath(cwd / "RhythmGameWasmProbe.js")
+    )
+    if not _same_path(output, expected_output):
+        _fail(
+            "Selected application link output/cwd pairing drifted: "
+            f"expected {expected_output}, got {output}"
+        )
+
+    canonical_probe = (
+        repo / "tools" / "wasm-probe" / "build" / "wasm-release"
+    )
+    canonical_playtest = (
+        repo / "tools" / "web-playtest" / "build" / "wasm-release"
+    )
+    if _same_path(cwd, canonical_probe):
+        if qualification is None:
+            _fail("Selected probe link requires qualification closure")
+        return "qualification"
+    if _same_path(cwd, canonical_playtest):
+        if qualification is not None:
+            _fail(
+                "Selected web-playtest link must not inherit qualification "
+                "closure"
+            )
+        return "web-playtest"
+    _fail(
+        "Selected application link must run from a canonical build directory: "
+        f"{canonical_probe} or {canonical_playtest}; got {cwd}"
+    )
+
+
+def _selected_application_link_identity(
+    locks: contextlib.ExitStack,
+    arguments: list[str],
+    repo: Path,
+    cwd: Path,
+    qualification: dict[str, object] | None,
+) -> str | None:
+    mode = _selected_application_link_mode(
+        arguments,
+        repo,
+        cwd,
+        qualification,
+    )
+    if mode is None or mode == "web-playtest":
+        return None
     if qualification is None:
-        _fail("Selected application link requires qualification closure")
+        _fail("Selected probe link requires qualification closure")
 
     opened: dict[str, _AuthenticatedFileLock] = {}
     files: list[dict[str, object]] = []

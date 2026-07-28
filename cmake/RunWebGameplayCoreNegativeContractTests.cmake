@@ -51,6 +51,16 @@ if (DEFINED NESTED_TOOLCHAIN_FILE AND
         list(APPEND base_configure_command
                 "-DVCPKG_HOST_TRIPLET=${VCPKG_HOST_TRIPLET}")
     endif ()
+    if (DEFINED VCPKG_CHAINLOAD_TOOLCHAIN_FILE AND
+            NOT VCPKG_CHAINLOAD_TOOLCHAIN_FILE STREQUAL "")
+        list(APPEND base_configure_command
+                "-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=${VCPKG_CHAINLOAD_TOOLCHAIN_FILE}")
+    endif ()
+    if (DEFINED VCPKG_OVERLAY_TRIPLETS AND
+            NOT VCPKG_OVERLAY_TRIPLETS STREQUAL "")
+        list(APPEND base_configure_command
+                "-DVCPKG_OVERLAY_TRIPLETS=${VCPKG_OVERLAY_TRIPLETS}")
+    endif ()
 elseif (DEFINED NESTED_CXX_COMPILER AND
         NOT NESTED_CXX_COMPILER STREQUAL "")
     list(APPEND base_configure_command
@@ -59,6 +69,49 @@ endif ()
 
 file(REMOVE_RECURSE "${TEST_BINARY_ROOT}")
 file(MAKE_DIRECTORY "${TEST_BINARY_ROOT}")
+
+set(imported_boundary_build
+        "${TEST_BINARY_ROOT}/imported-profiler-boundary")
+execute_process(
+        COMMAND
+        ${base_configure_command}
+        -B "${imported_boundary_build}"
+        -DCONTRACT_CASE=imported_profiler_genex
+        RESULT_VARIABLE imported_boundary_result
+        OUTPUT_VARIABLE imported_boundary_stdout
+        ERROR_VARIABLE imported_boundary_stderr
+        ENCODING UTF-8
+)
+if (NOT imported_boundary_result EQUAL 0)
+    message(FATAL_ERROR
+            "Authenticated imported-target boundary fixture failed:\n"
+            "${imported_boundary_stdout}\n${imported_boundary_stderr}")
+endif ()
+
+set(direct_import_build "${TEST_BINARY_ROOT}/direct-forbidden-import")
+execute_process(
+        COMMAND
+        ${base_configure_command}
+        -B "${direct_import_build}"
+        -DCONTRACT_CASE=direct_forbidden_import
+        RESULT_VARIABLE direct_import_result
+        OUTPUT_VARIABLE direct_import_stdout
+        ERROR_VARIABLE direct_import_stderr
+        ENCODING UTF-8
+)
+set(direct_import_output
+        "${direct_import_stdout}\n${direct_import_stderr}")
+if (direct_import_result EQUAL 0)
+    message(FATAL_ERROR
+            "Forbidden direct imported dependency unexpectedly passed "
+            "configure")
+endif ()
+if (NOT direct_import_output MATCHES
+        "RhythmGame_web_gameplay_core -> SQLiteCpp")
+    message(FATAL_ERROR
+            "Direct imported dependency test failed without the "
+            "link-contract diagnostic:\n${direct_import_output}")
+endif ()
 
 set(link_build "${TEST_BINARY_ROOT}/nested-link")
 execute_process(

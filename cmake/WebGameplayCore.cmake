@@ -130,6 +130,12 @@ function(rhythmgame_web_gameplay_core_check_link_closure target)
         endif ()
         list(APPEND visited_targets "${current_target}")
 
+        get_target_property(current_target_imported
+                "${current_target}" IMPORTED)
+        if (current_target_imported)
+            continue()
+        endif ()
+
         foreach (property LINK_LIBRARIES INTERFACE_LINK_LIBRARIES)
             get_target_property(links "${current_target}" "${property}")
             if (NOT links OR links MATCHES "-NOTFOUND$")

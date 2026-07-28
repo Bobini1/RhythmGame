@@ -199,7 +199,7 @@
     "qtdeclarativePatchSha256": "2A015242AF462BE117A2924D4D8DB2C753B29891921E714C23BF1AB4355C4C50"
   },
   "gateTools": {
-    "adapterSha256": "e2e241adc9d47c9d3f2d50dd679a7b67ec587e6c0515ee1f1b0d64c57e2515b8",
+    "adapterSha256": "5484319b4207a2746da867bf772256de0d6ac56201fd6bba02c7fe08343d426f",
     "responseAuditorSha256": "18bbb2f3791715035dd7a0f644290173a1dc98a3e816d9621ada24079b59466b"
   },
   "reproducibleBuild": {

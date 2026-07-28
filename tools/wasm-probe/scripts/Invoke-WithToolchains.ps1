@@ -131,7 +131,7 @@ $cmakeBuildRequested = (
     $Arguments.Count -gt 0 -and
     $Arguments[0] -ceq '--build'
 )
-$qualificationRequested = $cmakeBuildRequested -or (
+$qualificationRequested = (
     $requestedExecutableName -ieq 'python' -and
     $Arguments.Count -gt 0 -and
     [IO.Path]::GetFileName($Arguments[0]) -ceq 'verify_build.py'
@@ -144,6 +144,9 @@ $qualificationConfigureCommand = (
 $canonicalQualifiedBuildRoot = [IO.Path]::GetFullPath(
     (Join-Path $PSScriptRoot '..\build\wasm-release')
 )
+$canonicalWebPlaytestBuildRoot = [IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot '..\..\web-playtest\build\wasm-release')
+)
 if ($cmakeBuildRequested) {
     if (
         $Arguments.Count -lt 2 -or
@@ -151,8 +154,8 @@ if ($cmakeBuildRequested) {
         (([string]$Arguments[1]).StartsWith('-'))
     ) {
         throw (
-            'Qualified cmake --build requires the canonical build directory. ' +
-            "Configure it first with: $qualificationConfigureCommand"
+            'cmake --build requires a canonical Wasm build directory. ' +
+            "Configure the probe first with: $qualificationConfigureCommand"
         )
     }
     $requestedBuildRoot = if (
@@ -165,16 +168,26 @@ if ($cmakeBuildRequested) {
             (Join-Path (Get-Location).ProviderPath ([string]$Arguments[1]))
         )
     }
-    if (-not [string]::Equals(
+    if ([string]::Equals(
         $requestedBuildRoot,
         $canonicalQualifiedBuildRoot,
         [StringComparison]::OrdinalIgnoreCase
     )) {
+        $qualificationRequested = $true
+    }
+    elseif ([string]::Equals(
+        $requestedBuildRoot,
+        $canonicalWebPlaytestBuildRoot,
+        [StringComparison]::OrdinalIgnoreCase
+    )) {
+        $qualificationRequested = $false
+    }
+    else {
         throw (
-            'Qualified cmake --build currently accepts only ' +
-            'tools/wasm-probe/build/wasm-release because verifier and ' +
-            'runtime paths are fixed to that directory. Configure it ' +
-            "first with: $qualificationConfigureCommand"
+            'cmake --build accepts only canonical ' +
+            'tools/wasm-probe/build/wasm-release or ' +
+            'tools/web-playtest/build/wasm-release directories. Configure ' +
+            "the probe first with: $qualificationConfigureCommand"
         )
     }
 }

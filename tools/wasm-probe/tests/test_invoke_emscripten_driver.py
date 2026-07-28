@@ -62,6 +62,85 @@ def qualification_environment() -> dict[str, str]:
 
 
 class InvokeEmscriptenDriverTest(unittest.TestCase):
+    def test_selected_application_link_mode_binds_output_to_canonical_cwd(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory(
+            prefix="rg driver selected cwd "
+        ) as directory:
+            repo = Path(directory)
+            probe = repo / "tools" / "wasm-probe" / "build" / "wasm-release"
+            playtest = (
+                repo / "tools" / "web-playtest" / "build" / "wasm-release"
+            )
+            unrelated = repo / "build" / "wasm-release"
+            for path in (probe, playtest, unrelated):
+                path.mkdir(parents=True)
+            arguments = ["input.o", "-o", "RhythmGameWasmProbe.js"]
+            qualification = {
+                "algorithm": "fixture",
+                "fileCount": 1,
+                "totalBytes": 1,
+                "inventorySha256": "1" * 64,
+                "aggregateSha256": "2" * 64,
+            }
+
+            self.assertEqual(
+                adapter._selected_application_link_mode(
+                    arguments, repo, probe, qualification
+                ),
+                "qualification",
+            )
+            self.assertEqual(
+                adapter._selected_application_link_mode(
+                    arguments, repo, playtest, None
+                ),
+                "web-playtest",
+            )
+            with self.assertRaisesRegex(
+                adapter.DriverError, "requires qualification closure"
+            ):
+                adapter._selected_application_link_mode(
+                    arguments, repo, probe, None
+                )
+            with self.assertRaisesRegex(
+                adapter.DriverError, "must not inherit qualification closure"
+            ):
+                adapter._selected_application_link_mode(
+                    arguments, repo, playtest, qualification
+                )
+            with self.assertRaisesRegex(
+                adapter.DriverError, "canonical build directory"
+            ):
+                adapter._selected_application_link_mode(
+                    arguments, repo, unrelated, None
+                )
+            for cwd in (probe, playtest):
+                for output in (
+                    cwd.parent / "RhythmGameWasmProbe.js",
+                    repo / "absolute-output" / "RhythmGameWasmProbe.js",
+                ):
+                    mismatch_arguments = [
+                        "input.o",
+                        "-o",
+                        str(output),
+                    ]
+                    with self.subTest(cwd=cwd, output=output):
+                        with self.assertRaisesRegex(
+                            adapter.DriverError, "output/cwd pairing drifted"
+                        ):
+                            adapter._selected_application_link_mode(
+                                mismatch_arguments,
+                                repo,
+                                cwd,
+                                qualification if cwd == probe else None,
+                            )
+            self.assertIsNone(
+                adapter._selected_application_link_mode(
+                    ["input.o", "-o", "other.js"], repo, unrelated, None
+                )
+            )
+
     def _fixture(
         self,
         root: Path,
@@ -443,8 +522,20 @@ class InvokeEmscriptenDriverTest(unittest.TestCase):
         with tempfile.TemporaryDirectory(
             prefix="rg driver selected link binding "
         ) as directory:
-            root = Path(directory)
+            repo = Path(directory) / "fixture repo"
+            root = (
+                repo
+                / "tools"
+                / "wasm-probe"
+                / "build"
+                / "wasm-release"
+            )
             parsed, response, capture = self._fixture(root)
+            canonical_lock = (
+                repo / "tools" / "wasm-probe" / "toolchain-lock.json"
+            )
+            parsed.lock.replace(canonical_lock)
+            parsed.lock = canonical_lock
             object_file = root / "selected object.o"
             archive = root / "selected archive.a"
             object_file.write_bytes(b"\0asm\1\0\0\0selected object")

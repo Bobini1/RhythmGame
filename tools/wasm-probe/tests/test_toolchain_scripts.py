@@ -1249,11 +1249,13 @@ class ToolchainScriptTest(unittest.TestCase):
             0,
             result.stdout + result.stderr,
         )
-        self.assertIn(
-            "currently accepts only "
+        combined = result.stdout + result.stderr
+        for marker in (
+            "cmake --build accepts only canonical",
             "tools/wasm-probe/build/wasm-release",
-            result.stdout + result.stderr,
-        )
+            "tools/web-playtest/build/wasm-release",
+        ):
+            self.assertIn(marker, combined)
         for fragment in configure_command.split(" ", maxsplit=4)[:4] + [
             "tools/wasm-probe/scripts/Invoke-WithToolchains.ps1",
             "-- cmake --preset wasm-release -S tools/wasm-probe",
@@ -1282,6 +1284,73 @@ class ToolchainScriptTest(unittest.TestCase):
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, wrapper_text)
+
+    def test_web_playtest_cmake_build_runs_without_qualification_closure(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory(
+            prefix="rg web playtest wrapper "
+        ) as temporary:
+            fixture = self._fixture(temporary)
+            root = Path(str(fixture["root"]))
+            self._seed_complete(root)
+            wrapper = Path(str(fixture["wrapper"]))
+            web_build = (
+                wrapper.parents[2]
+                / "web-playtest"
+                / "build"
+                / "wasm-release"
+            )
+            source = Path(str(fixture["sandbox"])) / "empty cmake source"
+            source.mkdir()
+            (source / "CMakeLists.txt").write_text(
+                "cmake_minimum_required(VERSION 3.24)\n"
+                "project(WebPlaytestWrapperFixture NONE)\n",
+                encoding="utf-8",
+            )
+            child_value = shutil.which("cmake.exe") or shutil.which("cmake")
+            ninja_value = shutil.which("ninja.exe") or shutil.which("ninja")
+            if child_value is None or ninja_value is None:
+                self.skipTest("cmake and ninja are required")
+            child = Path(child_value).resolve()
+            configured = subprocess.run(
+                [
+                    str(child),
+                    "-S",
+                    str(source),
+                    "-B",
+                    str(web_build),
+                    "-G",
+                    "Ninja",
+                    f"-DCMAKE_MAKE_PROGRAM={ninja_value}",
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(
+                configured.returncode,
+                0,
+                configured.stdout + configured.stderr,
+            )
+
+            result = self._run_wrapper(
+                fixture,
+                child,
+                [
+                    "--build",
+                    str(web_build),
+                ],
+            )
+            self.assertEqual(
+                result.returncode,
+                0,
+                result.stdout + result.stderr,
+            )
+            self.assertNotIn(
+                "Qualification closure:",
+                result.stdout + result.stderr,
+            )
 
     def test_source_tree_and_archive_drift_fail_before_tool_execution(
         self,

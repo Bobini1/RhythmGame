@@ -1,0 +1,10 @@
+#include <string_view>
+
+namespace web_playtest {
+
+auto buildInputSha256() noexcept -> std::string_view
+{
+    return "@RG_WEB_PLAYTEST_BUILD_INPUT_SHA256@";
+}
+
+}

@@ -84,18 +84,18 @@ makeGameplayState(const BmsNotes& notes) -> std::unique_ptr<GameplayState>
     for (const auto& column : notes.getNotes()) {
         auto columnNotes = QList<NoteState>{};
         columnNotes.reserve(column.size());
-        for (const auto& [index, note] :
-             std::ranges::views::enumerate(column)) {
-            columnNotes.append({ note, index });
+        auto index = qint64{ 0 };
+        for (const auto& note : column) {
+            columnNotes.append({ note, index++ });
         }
         noteStates.append(new ColumnState(std::move(columnNotes)));
     }
 
     auto barLineStates = QList<BarLineState>{};
     barLineStates.reserve(notes.getBarLines().size());
-    for (const auto& [index, barLine] :
-         std::ranges::views::enumerate(notes.getBarLines())) {
-        barLineStates.append({ barLine, index });
+    auto barLineIndex = qint64{ 0 };
+    for (const auto& barLine : notes.getBarLines()) {
+        barLineStates.append({ barLine, barLineIndex++ });
     }
     auto* barLinesState = new BarLinesState(std::move(barLineStates));
     return std::make_unique<GameplayState>(std::move(noteStates),

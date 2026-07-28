@@ -4,6 +4,9 @@
 
 #include <utility>
 #include <variant>
+#include <charconv>
+#include <locale>
+#include <sstream>
 #include <lexy/action/parse.hpp>
 #include <lexy/dsl.hpp>
 #include <lexy/callback.hpp>
@@ -21,6 +24,48 @@ namespace charts {
 namespace dsl = lexy::dsl;
 
 namespace {
+template<typename FloatingPoint>
+constexpr bool hasFloatingPointFromChars =
+  requires(const char* first, const char* last, FloatingPoint& value) {
+      std::from_chars(first, last, value);
+  };
+
+template<typename FloatingPoint>
+auto
+parseFloatingPoint(std::string_view str, FloatingPoint& value) -> bool
+{
+    if constexpr (hasFloatingPointFromChars<FloatingPoint>) {
+        auto parsedValue = FloatingPoint{};
+        const auto result =
+          std::from_chars(str.data(), str.data() + str.size(), parsedValue);
+        if (result.ec != std::errc{}) {
+            return false;
+        }
+        value = parsedValue;
+        return true;
+    } else {
+        if (!str.empty() && str.front() == '+') {
+            return false;
+        }
+        if (!str.empty() &&
+            (str.back() == 'f' || str.back() == 'F' || str.back() == 'd' ||
+             str.back() == 'D')) {
+            str.remove_suffix(1);
+        }
+
+        auto stream = std::istringstream{ std::string{ str } };
+        stream.imbue(std::locale::classic());
+        auto parsedValue = FloatingPoint{};
+        stream >> parsedValue;
+        if (stream.fail() ||
+            stream.peek() != std::char_traits<char>::eof()) {
+            return false;
+        }
+        value = parsedValue;
+        return true;
+    }
+}
+
 auto
 trimR(std::string_view str) -> size_t
 {
@@ -166,9 +211,7 @@ struct FloatingPoint
       lexy::as_string<std::string> |
       lexy::callback<double>([](std::string&& str) {
           auto val = ParsedBmsChart::Measure::defaultMeter;
-          auto err =
-            std::from_chars(str.c_str(), str.c_str() + str.size(), val);
-          if (err.ec != std::errc{}) {
+          if (!parseFloatingPoint(str, val)) {
               spdlog::error("Failed to parse meter: {}", str);
           }
           return val;

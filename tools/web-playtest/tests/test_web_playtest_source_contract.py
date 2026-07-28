@@ -1,0 +1,324 @@
+from __future__ import annotations
+
+import json
+import re
+import unittest
+from pathlib import Path
+
+
+REPO = Path(__file__).resolve().parents[3]
+PLAYTEST = REPO / "tools" / "web-playtest"
+
+
+def _is_manifest_owned_web_source(path: Path) -> bool:
+    relative = path.relative_to(PLAYTEST)
+    return (
+        path.is_file()
+        and relative.parts[0] not in {"build", "tests"}
+        and "__pycache__" not in relative.parts
+        and path.name != "input-manifest.txt"
+    )
+
+
+class WebPlaytestSourceContractTest(unittest.TestCase):
+    def test_required_project_files_exist(self) -> None:
+        required = (
+            "CMakeLists.txt",
+            "CMakePresets.json",
+            "vcpkg.json",
+            "input-manifest.txt",
+            "cmake/GenerateWebPlaytestChart.cmake",
+            "cmake/WebPlaytestChartManifest.json.in",
+            "cmake/WebPlaytestInputDigest.cpp.in",
+            "cmake/verify_exact_toolchain.cmake",
+            "qml/Main.qml",
+            "scripts/generate_chart_package.py",
+            "scripts/scan_artifacts_for_host_path.py",
+            "src/WebPlaytestChartInstaller.cpp",
+            "src/WebPlaytestChartInstaller.h",
+            "src/WebPlaytestInputDigest.h",
+            "src/main.cpp",
+        )
+        for relative in required:
+            with self.subTest(relative=relative):
+                self.assertTrue((PLAYTEST / relative).is_file())
+
+    def test_cmake_owns_the_isolated_portable_target_contract(self) -> None:
+        cmake = (PLAYTEST / "CMakeLists.txt").read_text("utf-8")
+        for marker in (
+            "project(RhythmGameWebPlaytest VERSION 1.3.13",
+            "RG_WEB_PLAYTEST_CHART_DIR",
+            "RG_WEB_PLAYTEST_CHART_RELATIVE_PATH",
+            "RG_WEB_PLAYTEST_CHART_DIR_CACHE_TYPE",
+            'STREQUAL "PATH"',
+            "-DRG_WEB_PLAYTEST_CHART_DIR:PATH=T:/absolute/chart/root",
+            "CACHE PATH",
+            'string(REPLACE "\\r\\n" "\\n"',
+            "RHYTHMGAME_REQUIRE_WEB_GAMEPLAY_DEPENDENCY_CONTRACT ON",
+            "RHYTHMGAME_REQUIRE_WEB_AUDIO_DEPENDENCY_CONTRACT ON",
+            "include(${RG_WEB_PLAYTEST_REPO_ROOT}/cmake/WebGameplayCore.cmake)",
+            "include(${RG_WEB_PLAYTEST_REPO_ROOT}/cmake/WebAudioCore.cmake)",
+            "rhythmgame_add_web_gameplay_core(RhythmGame_web_gameplay_core)",
+            "rhythmgame_add_web_audio_core(RhythmGame_web_audio_core)",
+            "qt_add_executable(RhythmGameWasmProbe",
+            "MANUAL_FINALIZATION",
+            "NO_WASM_DEFAULT_FILES TRUE",
+            "QT_WASM_INITIAL_MEMORY 268435456",
+            "QT_WASM_MAXIMUM_MEMORY 1073741824",
+            "BIG_RESOURCES",
+            'PREFIX "/web-playtest/chart"',
+            "OPTIONS -no-compress",
+            "PRE_LINK",
+            "qrc_web_playtest_chart_tmp.cpp",
+            "qrc_web_playtest_chart_manifest.cpp",
+            "--generated-input",
+            "qt_finalize_executable(RhythmGameWasmProbe)",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, cmake)
+        self.assertNotIn("RhythmGame_lib", cmake)
+        self.assertNotIn("RuntimePackage", cmake)
+        self.assertNotRegex(cmake, r"\b(preload|embed)-file\b")
+        self.assertEqual(
+            cmake.count(
+                "rhythmgame_add_web_gameplay_core("
+                "RhythmGame_web_gameplay_core)"
+            ),
+            1,
+        )
+        self.assertEqual(
+            cmake.count(
+                "rhythmgame_add_web_audio_core(RhythmGame_web_audio_core)"
+            ),
+            1,
+        )
+        self.assertEqual(cmake.count("qt_add_executable(RhythmGameWasmProbe"), 1)
+        self.assertIn(
+            'BASE "${RG_WEB_PLAYTEST_CHART_STAGING_DIR}"', cmake
+        )
+        self.assertNotIn(
+            'BASE "${RG_WEB_PLAYTEST_CHART_DIR}"', cmake
+        )
+        for package in (
+            "Qt6 6.11.1 EXACT REQUIRED COMPONENTS",
+            "Boost REQUIRED COMPONENTS headers",
+            "fmt CONFIG REQUIRED",
+            "lexy CONFIG REQUIRED",
+            "magic_enum CONFIG REQUIRED",
+            "spdlog CONFIG REQUIRED",
+            "zstd CONFIG REQUIRED",
+            "Iconv REQUIRED",
+            "STB_INCLUDE_DIRS NAMES stb_vorbis.c REQUIRED",
+        ):
+            with self.subTest(package=package):
+                self.assertIn(f"find_package({package}", cmake) if (
+                    package != "STB_INCLUDE_DIRS NAMES stb_vorbis.c REQUIRED"
+                ) else self.assertIn(f"find_path({package}", cmake)
+
+    def test_wasm_flags_are_exactly_present_and_asyncify_is_absent(self) -> None:
+        cmake = (PLAYTEST / "CMakeLists.txt").read_text("utf-8")
+        required = (
+            "-pthread",
+            "-fwasm-exceptions",
+            "-sSUPPORT_LONGJMP=wasm",
+            "-sJSPI",
+            "-sAUDIO_WORKLET=1",
+            "-sWASM_WORKERS=1",
+            "-sPTHREAD_POOL_SIZE=4",
+            "-sPTHREAD_POOL_SIZE_STRICT=2",
+            "-sALLOW_BLOCKING_ON_MAIN_THREAD=0",
+            "-sDYNAMIC_EXECUTION=0",
+            "-sEMBIND_AOT=1",
+            "-sALLOW_MEMORY_GROWTH=1",
+        )
+        for flag in required:
+            with self.subTest(flag=flag):
+                self.assertIn(flag, cmake)
+        self.assertNotIn("ASYNCIFY", cmake)
+        self.assertEqual(
+            cmake.count(
+                '"${CMAKE_CURRENT_BINARY_DIR}/RhythmGameWasmProbe.'
+            ),
+            4,
+        )
+        self.assertIn(
+            "chartManifest=${RG_WEB_PLAYTEST_CHART_MANIFEST_SHA256}",
+            cmake,
+        )
+        main = (PLAYTEST / "src" / "main.cpp").read_text("utf-8")
+        self.assertIn("web_playtest::buildInputSha256()", main)
+        self.assertIn("rgWebPlaytestBuildInputSha256", main)
+        self.assertIn("QTimer::singleShot(", main)
+        self.assertIn("application.exit(EXIT_FAILURE)", main)
+
+    def test_manifest_and_installer_contract_is_authoritative_and_streaming(
+        self,
+    ) -> None:
+        installer = (
+            PLAYTEST / "src" / "WebPlaytestChartInstaller.cpp"
+        ).read_text("utf-8")
+        for marker in (
+            '":/web-playtest/web-playtest-chart-manifest.json"',
+            '":/web-playtest/chart"',
+            '"/playtest/chart"',
+            "QDirIterator",
+            "QCryptographicHash::Sha256",
+            "manifestFiles",
+            "resourceFiles",
+            "output.remove()",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, installer)
+        self.assertNotIn("readAll(", installer)
+
+    def test_manifest_is_sorted_unique_and_covers_portable_sources(self) -> None:
+        lines = (PLAYTEST / "input-manifest.txt").read_text(
+            "utf-8"
+        ).splitlines()
+        self.assertEqual(lines, sorted(lines, key=str.casefold))
+        self.assertEqual(len(lines), len({line.casefold() for line in lines}))
+        for line in lines:
+            self.assertFalse(Path(line).is_absolute(), line)
+            self.assertNotIn("\\", line)
+            self.assertNotIn("Dstorv", line)
+            self.assertNotIn("BMSTEST", line)
+
+        portable_sources: set[str] = set()
+        for module in (
+            REPO / "cmake" / "WebGameplayCore.cmake",
+            REPO / "cmake" / "WebAudioCore.cmake",
+        ):
+            portable_sources.update(
+                re.findall(r"^\s+(src/[^\s)]+)$", module.read_text("utf-8"), re.M)
+            )
+        self.assertTrue(portable_sources)
+        self.assertTrue(portable_sources.issubset(set(lines)))
+        manifest_paths = set(lines)
+        web_sources = {
+            path.relative_to(REPO).as_posix()
+            for path in PLAYTEST.rglob("*")
+            if _is_manifest_owned_web_source(path)
+        }
+        self.assertTrue(web_sources.issubset(manifest_paths))
+        self.assertTrue(
+            {
+                "tools/wasm-probe/scripts/Invoke-WithToolchains.ps1",
+                "tools/wasm-probe/scripts/audit_emscripten_response_files.py",
+                "tools/wasm-probe/scripts/invoke_emscripten_driver.py",
+                "tools/wasm-probe/toolchain-lock.json",
+            }.issubset(manifest_paths)
+        )
+
+    def test_generated_build_tree_is_not_a_digest_input(self) -> None:
+        self.assertFalse(
+            _is_manifest_owned_web_source(
+                PLAYTEST / "build" / "wasm-release" / "CMakeCache.txt"
+            )
+        )
+        self.assertTrue(
+            _is_manifest_owned_web_source(
+                PLAYTEST / "scripts" / "generate_chart_package.py"
+            )
+        )
+
+    def test_web_playtest_sources_are_checkout_stable_lf_text(self) -> None:
+        attributes = (REPO / ".gitattributes").read_text("utf-8")
+        self.assertIn("tools/web-playtest/** text eol=lf\n", attributes)
+
+    def test_vcpkg_manifest_is_the_exact_direct_allowlist(self) -> None:
+        manifest = json.loads((PLAYTEST / "vcpkg.json").read_text("utf-8"))
+        names = {
+            item if isinstance(item, str) else item["name"]
+            for item in manifest["dependencies"]
+        }
+        self.assertEqual(
+            names,
+            {
+                "boost-headers",
+                "boost-icl",
+                "fmt",
+                "foonathan-lexy",
+                "libiconv",
+                "magic-enum",
+                "qtbase",
+                "qtdeclarative",
+                "qtshadertools",
+                "spdlog",
+                "stb",
+                "zstd",
+            },
+        )
+        qtbase = next(
+            item
+            for item in manifest["dependencies"]
+            if isinstance(item, dict) and item["name"] == "qtbase"
+        )
+        probe_manifest = json.loads(
+            (REPO / "tools" / "wasm-probe" / "vcpkg.json").read_text(
+                "utf-8"
+            )
+        )
+        probe_qtbase = next(
+            item
+            for item in probe_manifest["dependencies"]
+            if isinstance(item, dict) and item["name"] == "qtbase"
+        )
+        self.assertEqual(qtbase["default-features"], False)
+        self.assertEqual(qtbase["features"], probe_qtbase["features"])
+
+    def test_vcpkg_uses_the_authenticated_source_tree_without_git_lookup(
+        self,
+    ) -> None:
+        manifest = json.loads((PLAYTEST / "vcpkg.json").read_text("utf-8"))
+        self.assertNotIn("builtin-baseline", manifest)
+
+        presets = json.loads(
+            (PLAYTEST / "CMakePresets.json").read_text("utf-8")
+        )
+        cache = presets["configurePresets"][0]["cacheVariables"]
+        self.assertEqual(cache["VCPKG_FEATURE_FLAGS"], "-versions")
+        self.assertEqual(
+            cache["CMAKE_TOOLCHAIN_FILE"],
+            "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        )
+        self.assertNotIn("VCPKG_REGISTRIES_CACHE", cache)
+
+    def test_preset_uses_independent_state_and_shared_binary_cache(self) -> None:
+        text = (PLAYTEST / "CMakePresets.json").read_text("utf-8")
+        self.assertIn(".web-playtest-vcpkg/installed", text)
+        self.assertIn(".web-playtest-vcpkg/packages", text)
+        self.assertIn(".web-playtest-vcpkg/downloads", text)
+        self.assertIn(".web-playtest-vcpkg/buildtrees", text)
+        self.assertIn("$env{VCPKG_DEFAULT_BINARY_CACHE},readwrite", text)
+        self.assertNotIn(".wasm-vcpkg/installed", text)
+
+    def test_exact_toolchain_validation_is_copied_byte_for_byte(self) -> None:
+        self.assertEqual(
+            (PLAYTEST / "cmake" / "verify_exact_toolchain.cmake").read_bytes(),
+            (
+                REPO
+                / "tools"
+                / "wasm-probe"
+                / "cmake"
+                / "verify_exact_toolchain.cmake"
+            ).read_bytes(),
+        )
+
+    def test_minimal_qml_stub_is_qt6_safe(self) -> None:
+        qml = (PLAYTEST / "qml" / "Main.qml").read_text("utf-8")
+        self.assertIn("import QtQuick\n", qml)
+        self.assertIn("import QtQuick.Controls.Basic\n", qml)
+        self.assertNotRegex(qml, r"^import .+ \d", re.M)
+        self.assertNotIn("Canvas", qml)
+        for literal in (
+            "RhythmGame web playtest",
+            "Chart package installed",
+            "Initialization failed",
+            "Selected chart: %1",
+        ):
+            with self.subTest(literal=literal):
+                self.assertIn(f'qsTr("{literal}")', qml)
+
+
+if __name__ == "__main__":
+    unittest.main()

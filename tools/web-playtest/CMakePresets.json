@@ -1,0 +1,40 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "wasm-release",
+      "displayName": "RhythmGame Web Playtest Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/wasm-release",
+      "cacheVariables": {
+        "CMAKE_AUTOGEN_COMMAND_LINE_LENGTH_MAX": "4096",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_FIND_ROOT_PATH_MODE_PACKAGE": "ONLY",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/../../cmake/toolchains/vcpkg-emscripten.cmake",
+        "VCPKG_FEATURE_FLAGS": "-versions",
+        "VCPKG_HOST_TRIPLET": "x64-windows-rg-host-release",
+        "VCPKG_INSTALL_OPTIONS": "--x-buildtrees-root=${sourceDir}/../../.web-playtest-vcpkg/buildtrees;--x-packages-root=${sourceDir}/../../.web-playtest-vcpkg/packages;--downloads-root=${sourceDir}/../../.web-playtest-vcpkg/downloads;--binarysource=clear;--binarysource=files,$env{VCPKG_DEFAULT_BINARY_CACHE},readwrite",
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/../../.web-playtest-vcpkg/installed",
+        "VCPKG_MANIFEST_DIR": "${sourceDir}",
+        "VCPKG_OVERLAY_PORTS": "${sourceDir}/../../vcpkgOverlayPorts;${sourceDir}/../../vcpkgOverlayPortsWasm",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/../../vcpkgTriplets",
+        "VCPKG_TARGET_TRIPLET": "wasm32-emscripten-rg"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "wasm-release",
+      "configurePreset": "wasm-release",
+      "configuration": "Release",
+      "verbose": true
+    }
+  ]
+}

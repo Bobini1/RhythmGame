@@ -27,6 +27,7 @@ share/RhythmGame/log.txt
 .toolchains/
 .wb/
 .wasm-vcpkg/
+.web-playtest-vcpkg/
 .vcpkg-buildtrees/
 .vcpkg-cache/
 .vcpkg-packages/
@@ -38,3 +39,5 @@ tools/wasm-probe/browser/node_modules/
 tools/wasm-probe/browser/playwright-report/
 tools/wasm-probe/scripts/__pycache__/
 tools/wasm-probe/tests/__pycache__/
+tools/web-playtest/scripts/__pycache__/
+tools/web-playtest/tests/__pycache__/
