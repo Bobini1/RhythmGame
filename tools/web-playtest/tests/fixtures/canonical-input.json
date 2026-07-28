@@ -1,0 +1,46 @@
+{
+  "events": [
+    {
+      "action": "press",
+      "atMilliseconds": 0,
+      "code": "KeyA"
+    },
+    {
+      "action": "release",
+      "atMilliseconds": 36,
+      "code": "KeyA"
+    },
+    {
+      "action": "press",
+      "atMilliseconds": 120,
+      "code": "KeyS"
+    },
+    {
+      "action": "release",
+      "atMilliseconds": 156,
+      "code": "KeyS"
+    },
+    {
+      "action": "press",
+      "atMilliseconds": 240,
+      "code": "Space"
+    },
+    {
+      "action": "release",
+      "atMilliseconds": 276,
+      "code": "Space"
+    },
+    {
+      "action": "press",
+      "atMilliseconds": 360,
+      "code": "KeyJ"
+    },
+    {
+      "action": "release",
+      "atMilliseconds": 396,
+      "code": "KeyJ"
+    }
+  ],
+  "preset": "native",
+  "schemaVersion": 1
+}

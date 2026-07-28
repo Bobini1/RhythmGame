@@ -82,6 +82,12 @@ class GameplayWorker final
     [[nodiscard]] auto visibleNoteCapacity() const noexcept -> std::size_t;
     [[nodiscard]] auto errorText() const -> QString;
     [[nodiscard]] auto droppedInputCommands() const noexcept -> std::uint64_t;
+    /**
+     * Returns the immutable canonical trace for the most recently completed
+     * session. Published trace buffers have page lifetime so browser-side
+     * copying never races a retry.
+     */
+    [[nodiscard]] auto completedTrace() const noexcept -> const QByteArray*;
 
     [[nodiscard]] auto snapshots() noexcept -> SnapshotMailbox&;
 
@@ -127,6 +133,7 @@ class GameplayWorker final
     std::array<char, errorCapacity> terminalError = {};
     std::atomic<std::size_t> terminalErrorLength = {};
     std::atomic_flag failureClaimed = {};
+    std::atomic<const QByteArray*> publishedCompletedTrace = {};
 
     WorkerTelemetry telemetry;
     std::uint64_t snapshotPublicationSequence = {};

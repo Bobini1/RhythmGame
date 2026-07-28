@@ -400,5 +400,215 @@ add_custom_command(TARGET RhythmGameWasmProbe POST_BUILD
     VERBATIM
 )
 
+if(NOT DEFINED VCPKG_INSTALLED_DIR
+        OR NOT DEFINED VCPKG_TARGET_TRIPLET)
+    message(FATAL_ERROR
+        "Runtime packaging requires the vcpkg installed root/triplet")
+endif()
+set(RG_WEB_PLAYTEST_DEPENDENCY_ROOT
+    "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
+set(RG_WEB_PLAYTEST_RUNTIME_DIRECTORY
+    "${CMAKE_CURRENT_BINARY_DIR}/runtime")
+set(RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY
+    "${CMAKE_CURRENT_BINARY_DIR}/runtime-packaging-inputs")
+set(RG_WEB_PLAYTEST_RUNTIME_PACKAGER
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/tools/wasm-probe/scripts/package_runtime_artifacts.py")
+set(RG_WEB_PLAYTEST_RUNTIME_HTML_TEMPLATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/browser/web/RhythmGameWasmProbe.html.in")
+set(RG_WEB_PLAYTEST_RUNTIME_CSS
+    "${CMAKE_CURRENT_SOURCE_DIR}/browser/web/playtest.css")
+set(RG_WEB_PLAYTEST_RUNTIME_BOOTSTRAP
+    "${CMAKE_CURRENT_SOURCE_DIR}/browser/web/bootstrap.mjs")
+set(RG_WEB_PLAYTEST_RUNTIME_PREFLIGHT_WORKER
+    "${CMAKE_CURRENT_SOURCE_DIR}/browser/web/preflight-worker.mjs")
+set(RG_WEB_PLAYTEST_RUNTIME_MEDIA
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/tools/wasm-probe/browser/fixtures/probe.webm")
+set(RG_WEB_PLAYTEST_QTLOADER
+    "${RG_WEB_PLAYTEST_DEPENDENCY_ROOT}/plugins/platforms/qtloader.js")
+set(RG_WEB_PLAYTEST_GENERATED_MAIN_JS
+    "${CMAKE_CURRENT_BINARY_DIR}/RhythmGameWasmProbe.js")
+set(RG_WEB_PLAYTEST_GENERATED_WASM
+    "${CMAKE_CURRENT_BINARY_DIR}/RhythmGameWasmProbe.wasm")
+set(RG_WEB_PLAYTEST_GENERATED_AUDIO_WORKLET
+    "${CMAKE_CURRENT_BINARY_DIR}/RhythmGameWasmProbe.aw.js")
+set(RG_WEB_PLAYTEST_GENERATED_WASM_WORKER
+    "${CMAKE_CURRENT_BINARY_DIR}/RhythmGameWasmProbe.ww.js")
+
+foreach(RG_WEB_PLAYTEST_LEGACY_SHELL IN ITEMS
+        "${CMAKE_CURRENT_BINARY_DIR}/RhythmGameWasmProbe.html"
+        "${CMAKE_CURRENT_BINARY_DIR}/qtloader.js"
+        "${CMAKE_CURRENT_BINARY_DIR}/qtlogo.svg")
+    if(IS_DIRECTORY "${RG_WEB_PLAYTEST_LEGACY_SHELL}")
+        message(FATAL_ERROR
+            "Legacy Wasm shell leaf is unexpectedly a directory: "
+            "${RG_WEB_PLAYTEST_LEGACY_SHELL}")
+    endif()
+    if(EXISTS "${RG_WEB_PLAYTEST_LEGACY_SHELL}"
+            OR IS_SYMLINK "${RG_WEB_PLAYTEST_LEGACY_SHELL}")
+        file(REMOVE "${RG_WEB_PLAYTEST_LEGACY_SHELL}")
+    endif()
+endforeach()
+
+set(RG_WEB_PLAYTEST_RUNTIME_MANIFEST
+    "${RG_WEB_PLAYTEST_RUNTIME_DIRECTORY}/runtime-artifacts.json")
+set(RG_WEB_PLAYTEST_RUNTIME_HTML
+    "${RG_WEB_PLAYTEST_RUNTIME_DIRECTORY}/RhythmGameWasmProbe.html")
+set(RG_WEB_PLAYTEST_STAGED_MAIN_JS
+    "${RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY}/RhythmGameWasmProbe.js")
+set(RG_WEB_PLAYTEST_STAGED_WASM
+    "${RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY}/RhythmGameWasmProbe.wasm")
+set(RG_WEB_PLAYTEST_STAGED_AUDIO_WORKLET
+    "${RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY}/RhythmGameWasmProbe.aw.js")
+set(RG_WEB_PLAYTEST_STAGED_WASM_WORKER
+    "${RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY}/RhythmGameWasmProbe.ww.js")
+set(RG_WEB_PLAYTEST_STAGED_HTML_TEMPLATE
+    "${RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY}/RhythmGameWasmProbe.html.in")
+set(RG_WEB_PLAYTEST_STAGED_CSS
+    "${RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY}/probe.css")
+set(RG_WEB_PLAYTEST_STAGED_BOOTSTRAP
+    "${RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY}/bootstrap.mjs")
+set(RG_WEB_PLAYTEST_STAGED_PREFLIGHT_WORKER
+    "${RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY}/preflight-worker.mjs")
+set(RG_WEB_PLAYTEST_STAGED_QTLOADER
+    "${RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY}/qtloader.js")
+set(RG_WEB_PLAYTEST_STAGED_MEDIA
+    "${RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY}/probe.webm")
+
+foreach(RG_WEB_PLAYTEST_RUNTIME_INPUT IN ITEMS
+        "${RG_WEB_PLAYTEST_RUNTIME_PACKAGER}"
+        "${RG_WEB_PLAYTEST_RUNTIME_HTML_TEMPLATE}"
+        "${RG_WEB_PLAYTEST_RUNTIME_CSS}"
+        "${RG_WEB_PLAYTEST_RUNTIME_BOOTSTRAP}"
+        "${RG_WEB_PLAYTEST_RUNTIME_PREFLIGHT_WORKER}"
+        "${RG_WEB_PLAYTEST_RUNTIME_MEDIA}"
+        "${RG_WEB_PLAYTEST_QTLOADER}")
+    if(NOT EXISTS "${RG_WEB_PLAYTEST_RUNTIME_INPUT}"
+            OR IS_DIRECTORY "${RG_WEB_PLAYTEST_RUNTIME_INPUT}")
+        message(FATAL_ERROR
+            "Missing web playtest runtime packaging input: "
+            "${RG_WEB_PLAYTEST_RUNTIME_INPUT}")
+    endif()
+endforeach()
+
+set_property(TARGET RhythmGameWasmProbe APPEND PROPERTY LINK_DEPENDS
+    "${RG_WEB_PLAYTEST_RUNTIME_PACKAGER}"
+    "${RG_WEB_PLAYTEST_RUNTIME_HTML_TEMPLATE}"
+    "${RG_WEB_PLAYTEST_RUNTIME_CSS}"
+    "${RG_WEB_PLAYTEST_RUNTIME_BOOTSTRAP}"
+    "${RG_WEB_PLAYTEST_RUNTIME_PREFLIGHT_WORKER}"
+    "${RG_WEB_PLAYTEST_RUNTIME_MEDIA}"
+    "${RG_WEB_PLAYTEST_QTLOADER}"
+)
+
+add_custom_command(TARGET RhythmGameWasmProbe POST_BUILD
+    COMMAND
+        "${CMAKE_COMMAND}" -E make_directory
+        "${RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${RG_WEB_PLAYTEST_GENERATED_MAIN_JS}"
+        "${RG_WEB_PLAYTEST_STAGED_MAIN_JS}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${RG_WEB_PLAYTEST_GENERATED_WASM}"
+        "${RG_WEB_PLAYTEST_STAGED_WASM}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${RG_WEB_PLAYTEST_GENERATED_AUDIO_WORKLET}"
+        "${RG_WEB_PLAYTEST_STAGED_AUDIO_WORKLET}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${RG_WEB_PLAYTEST_GENERATED_WASM_WORKER}"
+        "${RG_WEB_PLAYTEST_STAGED_WASM_WORKER}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${RG_WEB_PLAYTEST_RUNTIME_HTML_TEMPLATE}"
+        "${RG_WEB_PLAYTEST_STAGED_HTML_TEMPLATE}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${RG_WEB_PLAYTEST_RUNTIME_CSS}"
+        "${RG_WEB_PLAYTEST_STAGED_CSS}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${RG_WEB_PLAYTEST_RUNTIME_BOOTSTRAP}"
+        "${RG_WEB_PLAYTEST_STAGED_BOOTSTRAP}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${RG_WEB_PLAYTEST_RUNTIME_PREFLIGHT_WORKER}"
+        "${RG_WEB_PLAYTEST_STAGED_PREFLIGHT_WORKER}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${RG_WEB_PLAYTEST_QTLOADER}"
+        "${RG_WEB_PLAYTEST_STAGED_QTLOADER}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${RG_WEB_PLAYTEST_RUNTIME_MEDIA}"
+        "${RG_WEB_PLAYTEST_STAGED_MEDIA}"
+    COMMAND
+        "$ENV{EMSDK_PYTHON}" -I -B
+        "${RG_WEB_PLAYTEST_RUNTIME_PACKAGER}"
+        --build-id "${RG_WEB_PLAYTEST_BUILD_INPUT_SHA256}"
+        --generated-dir "${RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY}"
+        --generated-shape-dir "${CMAKE_CURRENT_BINARY_DIR}"
+        --output-dir "${RG_WEB_PLAYTEST_RUNTIME_DIRECTORY}"
+        --html-template "${RG_WEB_PLAYTEST_STAGED_HTML_TEMPLATE}"
+        --css "${RG_WEB_PLAYTEST_STAGED_CSS}"
+        --bootstrap "${RG_WEB_PLAYTEST_STAGED_BOOTSTRAP}"
+        --preflight-worker "${RG_WEB_PLAYTEST_STAGED_PREFLIGHT_WORKER}"
+        --qtloader "${RG_WEB_PLAYTEST_STAGED_QTLOADER}"
+        --media "${RG_WEB_PLAYTEST_STAGED_MEDIA}"
+        --expected-audio-worklet-occurrences 1
+        --expected-wasm-worker-occurrences 0
+    BYPRODUCTS
+        "${RG_WEB_PLAYTEST_RUNTIME_STAGING_DIRECTORY}"
+        "${RG_WEB_PLAYTEST_STAGED_MAIN_JS}"
+        "${RG_WEB_PLAYTEST_STAGED_WASM}"
+        "${RG_WEB_PLAYTEST_STAGED_AUDIO_WORKLET}"
+        "${RG_WEB_PLAYTEST_STAGED_WASM_WORKER}"
+        "${RG_WEB_PLAYTEST_STAGED_HTML_TEMPLATE}"
+        "${RG_WEB_PLAYTEST_STAGED_CSS}"
+        "${RG_WEB_PLAYTEST_STAGED_BOOTSTRAP}"
+        "${RG_WEB_PLAYTEST_STAGED_PREFLIGHT_WORKER}"
+        "${RG_WEB_PLAYTEST_STAGED_QTLOADER}"
+        "${RG_WEB_PLAYTEST_STAGED_MEDIA}"
+        "${RG_WEB_PLAYTEST_RUNTIME_DIRECTORY}"
+        "${RG_WEB_PLAYTEST_RUNTIME_MANIFEST}"
+        "${RG_WEB_PLAYTEST_RUNTIME_HTML}"
+    COMMENT "Packaging content-addressed web playtest runtime artifacts"
+    COMMAND_EXPAND_LISTS
+    VERBATIM
+)
+
+add_custom_target(RhythmGameWasmProbeRuntimePackage ALL
+    DEPENDS
+        "${RG_WEB_PLAYTEST_RUNTIME_PACKAGER}"
+        "${RG_WEB_PLAYTEST_RUNTIME_HTML_TEMPLATE}"
+        "${RG_WEB_PLAYTEST_RUNTIME_CSS}"
+        "${RG_WEB_PLAYTEST_RUNTIME_BOOTSTRAP}"
+        "${RG_WEB_PLAYTEST_RUNTIME_PREFLIGHT_WORKER}"
+        "${RG_WEB_PLAYTEST_RUNTIME_MEDIA}"
+        "${RG_WEB_PLAYTEST_QTLOADER}"
+)
+add_dependencies(
+    RhythmGameWasmProbeRuntimePackage
+    RhythmGameWasmProbe
+)
+
+add_custom_target(RhythmGameWasmProbeRuntimeVerify
+    COMMAND
+        "$ENV{EMSDK_PYTHON}" -I -B
+        "${RG_WEB_PLAYTEST_RUNTIME_PACKAGER}"
+        --verify-output-dir "${RG_WEB_PLAYTEST_RUNTIME_DIRECTORY}"
+        --expected-build-id "${RG_WEB_PLAYTEST_BUILD_INPUT_SHA256}"
+    DEPENDS
+        "${RG_WEB_PLAYTEST_RUNTIME_PACKAGER}"
+    COMMENT "Verifying exact web playtest runtime artifact inventory"
+    VERBATIM
+)
+add_dependencies(
+    RhythmGameWasmProbeRuntimeVerify
+    RhythmGameWasmProbeRuntimePackage
+)
+
 qt_import_qml_plugins(RhythmGameWasmProbe)
 qt_finalize_executable(RhythmGameWasmProbe)

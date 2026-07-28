@@ -31,6 +31,12 @@ class WebPlaytestSourceContractTest(unittest.TestCase):
             "cmake/WebPlaytestChartManifest.json.in",
             "cmake/WebPlaytestInputDigest.cpp.in",
             "cmake/verify_exact_toolchain.cmake",
+            "browser/manual-launch.mjs",
+            "browser/playtest-driver.mjs",
+            "browser/test-playtest.mjs",
+            "browser/web/bootstrap.mjs",
+            "browser/web/playtest.css",
+            "browser/web/preflight-worker.mjs",
             "qml/Main.qml",
             "scripts/generate_chart_package.py",
             "scripts/scan_artifacts_for_host_path.py",
@@ -38,6 +44,7 @@ class WebPlaytestSourceContractTest(unittest.TestCase):
             "src/WebPlaytestChartInstaller.h",
             "src/WebPlaytestInputDigest.h",
             "src/main.cpp",
+            "tests/fixtures/canonical-input.json",
         )
         for relative in required:
             with self.subTest(relative=relative):
@@ -77,7 +84,20 @@ class WebPlaytestSourceContractTest(unittest.TestCase):
             with self.subTest(marker=marker):
                 self.assertIn(marker, cmake)
         self.assertNotIn("RhythmGame_lib", cmake)
-        self.assertNotIn("RuntimePackage", cmake)
+        self.assertIn("RhythmGameWasmProbeRuntimePackage", cmake)
+        self.assertIn("RhythmGameWasmProbeRuntimeVerify", cmake)
+        self.assertIn(
+            "tools/wasm-probe/scripts/package_runtime_artifacts.py",
+            cmake,
+        )
+        self.assertIn(
+            "--expected-audio-worklet-occurrences 1",
+            re.sub(r"\s+", " ", cmake),
+        )
+        self.assertIn(
+            "--expected-wasm-worker-occurrences 0",
+            re.sub(r"\s+", " ", cmake),
+        )
         self.assertNotRegex(cmake, r"\b(preload|embed)-file\b")
         self.assertEqual(
             cmake.count(
@@ -136,11 +156,15 @@ class WebPlaytestSourceContractTest(unittest.TestCase):
             with self.subTest(flag=flag):
                 self.assertIn(flag, cmake)
         self.assertNotIn("ASYNCIFY", cmake)
-        self.assertEqual(
-            cmake.count(
-                '"${CMAKE_CURRENT_BINARY_DIR}/RhythmGameWasmProbe.'
-            ),
-            4,
+        generated_leaves = re.findall(
+            r'set\(RG_WEB_PLAYTEST_GENERATED_[A-Z_]+\s+'
+            r'"\$\{CMAKE_CURRENT_BINARY_DIR\}/'
+            r'RhythmGameWasmProbe\.([^"]+)"\)',
+            cmake,
+        )
+        self.assertCountEqual(
+            generated_leaves,
+            ["aw.js", "js", "wasm", "ww.js"],
         )
         self.assertIn(
             "chartManifest=${RG_WEB_PLAYTEST_CHART_MANIFEST_SHA256}",
@@ -320,6 +344,132 @@ class WebPlaytestSourceContractTest(unittest.TestCase):
         ):
             with self.subTest(literal=literal):
                 self.assertIn(f'qsTr("{literal}")', qml)
+
+    def test_strict_browser_bootstrap_audits_and_maps_runtime_roles(
+        self,
+    ) -> None:
+        bootstrap = (
+            PLAYTEST / "browser" / "web" / "bootstrap.mjs"
+        ).read_text("utf-8")
+        for marker in (
+            'fetch("runtime-artifacts.json"',
+            "crossOriginIsolated",
+            "isSecureContext",
+            "crypto.subtle.digest",
+            "new Worker(",
+            "new CSSStyleSheet()",
+            "adoptedStyleSheets",
+            "await window.qtLoad({",
+            "locateFile",
+            "audited.wasm.url",
+            "audited.audioWorklet.url",
+            "audited.wasmWorker.url",
+            "window.RhythmGameWasmProbe_entry",
+            "__rhythmGameWebPlaytestTestBridge",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, bootstrap)
+        for forbidden in (
+            "autoplay",
+            "unsafe-inline",
+            "--disable-web-security",
+            "--allow-file-access-from-files",
+            "ignoreHTTPSErrors",
+            "setIgnoreCertificateErrors",
+            "document.domain",
+            "Access-Control-Allow-Origin",
+        ):
+            with self.subTest(forbidden=forbidden):
+                self.assertNotIn(forbidden, bootstrap)
+
+    def test_browser_launchers_reuse_strict_probe_lifecycle(self) -> None:
+        manual = (
+            PLAYTEST / "browser" / "manual-launch.mjs"
+        ).read_text("utf-8")
+        automated = (
+            PLAYTEST / "browser" / "test-playtest.mjs"
+        ).read_text("utf-8")
+        driver = (
+            PLAYTEST / "browser" / "playtest-driver.mjs"
+        ).read_text("utf-8")
+        for source in (manual, automated):
+            self.assertIn("startProbeServer", source)
+            self.assertIn("launchExternalLifecycleBrowser", source)
+        self.assertIn("chrome-stable", manual)
+        self.assertIn("SIGINT", manual)
+        self.assertIn("SIGTERM", manual)
+        for marker in ("console", "pageerror", "crash", "requestfailed"):
+            self.assertIn(marker, manual)
+        for marker in (
+            "--input-sequence",
+            "--trace-output",
+            "traceBytes",
+            "writeFile",
+            "completeForTrace: true",
+        ):
+            self.assertIn(marker, driver)
+        for marker in (
+            "crossOriginIsolated",
+            "page.keyboard.down",
+            "page.keyboard.up",
+            "setViewportSize",
+            "completeForTrace",
+            "uncaughtExceptions",
+            "qmlErrors",
+            "droppedInputs",
+            "audioWorkletFailures",
+            "browserCrashes",
+            "consoleWarnings",
+            "failedRequests",
+            "httpFailures",
+            "missing-coop",
+            "missing-coep",
+            "path traversal",
+            "unhashed",
+            "missing manifest role",
+            "non-HTTPS",
+        ):
+            self.assertIn(marker, automated)
+        for forbidden in (
+            "--disable-web-security",
+            "--allow-file-access-from-files",
+            "ignoreHTTPSErrors",
+        ):
+            self.assertNotIn(forbidden, manual + automated + driver)
+
+    def test_canonical_input_fixture_is_bounded_and_code_based(self) -> None:
+        fixture = json.loads(
+            (
+                PLAYTEST
+                / "tests"
+                / "fixtures"
+                / "canonical-input.json"
+            ).read_text("utf-8")
+        )
+        self.assertEqual(set(fixture), {"events", "preset", "schemaVersion"})
+        self.assertEqual(fixture["schemaVersion"], 1)
+        self.assertIn(fixture["preset"], {"native", "lr2"})
+        self.assertGreater(len(fixture["events"]), 0)
+        self.assertLessEqual(len(fixture["events"]), 256)
+        previous = -1
+        pressed: set[str] = set()
+        for event in fixture["events"]:
+            self.assertEqual(
+                set(event),
+                {"action", "atMilliseconds", "code"},
+            )
+            self.assertRegex(event["code"], r"^(?:Key[A-Z]|Space|ShiftLeft|ControlLeft)$")
+            self.assertIn(event["action"], {"press", "release"})
+            self.assertIsInstance(event["atMilliseconds"], int)
+            self.assertGreaterEqual(event["atMilliseconds"], previous)
+            previous = event["atMilliseconds"]
+            if event["action"] == "press":
+                self.assertNotIn(event["code"], pressed)
+                pressed.add(event["code"])
+            else:
+                self.assertIn(event["code"], pressed)
+                pressed.remove(event["code"])
+        self.assertEqual(pressed, set())
 
 
 if __name__ == "__main__":

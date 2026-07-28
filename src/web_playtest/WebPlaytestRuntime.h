@@ -131,6 +131,7 @@ class WebPlaytestRuntime final : public QObject
     void sealReadyHeap();
     void synchronizePhase();
     void setTerminalError(QString error, bool notifyWorker);
+    void publishBrowserBridgeState(bool force = false);
     [[nodiscard]] auto enqueueTick() noexcept -> bool;
     [[nodiscard]] auto enqueueInput(const BrowserKeyTransition& transition,
                                     std::int64_t browserMonotonicUs) noexcept
@@ -204,6 +205,8 @@ class WebPlaytestRuntime final : public QObject
     bool startCommandInFlight = {};
     bool abortCommandInFlight = {};
     bool presetIsLocked = {};
+    std::int64_t lastBrowserBridgePublishUs = {};
+    const QByteArray* lastPublishedTrace = {};
 };
 
 } // namespace web_playtest

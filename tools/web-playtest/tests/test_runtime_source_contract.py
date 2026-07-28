@@ -341,6 +341,37 @@ class RuntimeSourceContractTest(unittest.TestCase):
             observation.index("telemetry.lateByFrames"),
         )
 
+    def test_browser_bridge_publishes_real_state_and_canonical_trace(
+        self,
+    ) -> None:
+        worker_header = self.read("src/web_playtest/GameplayWorker.h")
+        worker = self.read("src/web_playtest/GameplayWorker.cpp")
+        runtime = self.read("src/web_playtest/WebPlaytestRuntime.cpp")
+        for marker in (
+            "std::atomic<const QByteArray*> publishedCompletedTrace",
+            "completedTrace() const noexcept",
+        ):
+            self.assertIn(marker, worker_header)
+        self.assertIn("core->finishTrace()", worker)
+        self.assertIn(
+            "publishedCompletedTrace.store(nullptr", worker
+        )
+        self.assertIn(
+            "publishedCompletedTrace.store(completed", worker
+        )
+        for marker in (
+            "__rhythmGameWebPlaytestTestBridge",
+            "publishNativeState",
+            "publishTrace",
+            "rhythmgamePublishWebPlaytestState",
+            "rhythmgamePublishWebPlaytestTrace",
+            "worker->completedTrace()",
+            "audioReadyForTrustedResume",
+            "underrunTelemetryAvailable",
+        ):
+            self.assertIn(marker, runtime)
+        self.assertNotIn("startFromTestBridge", runtime)
+
 
 if __name__ == "__main__":
     unittest.main()

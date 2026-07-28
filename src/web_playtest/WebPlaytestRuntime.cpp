@@ -5,6 +5,73 @@
 #if defined(__EMSCRIPTEN__)
 #include <emscripten.h>
 #include <emscripten/heap.h>
+
+// clang-format off
+EM_JS(void,
+      rhythmgamePublishWebPlaytestState,
+      (int phase,
+       const char* phaseText,
+       int decodedAssets,
+       int totalAssets,
+       int combo,
+       double score,
+       int pressedLaneMask,
+       double droppedInputs,
+       int activeVoices,
+       int underrunTelemetryAvailable,
+       double underruns,
+       int startPending,
+       const char* terminalError,
+       const char* latestJudgement,
+       int audioLifecycle,
+       int audioError,
+       int audioReady,
+       double sessionGeneration,
+       double heapBytes),
+      {
+          const bridge = globalThis.__rhythmGameWebPlaytestTestBridge;
+          if (bridge === undefined
+              || typeof bridge.publishNativeState !== "function") {
+              return;
+          }
+          bridge.publishNativeState(Object.freeze({
+              phase,
+              phaseText: UTF8ToString(phaseText),
+              decodedAssets,
+              totalAssets,
+              combo,
+              score,
+              pressedLaneMask,
+              droppedInputs,
+              activeVoices,
+              underrunTelemetryAvailable: underrunTelemetryAvailable !== 0,
+              underruns,
+              startPending: startPending !== 0,
+              terminalError: UTF8ToString(terminalError),
+              latestJudgement: UTF8ToString(latestJudgement),
+              audioLifecycle,
+              audioWorkletError: audioError,
+              audioReadyForTrustedResume: audioReady !== 0,
+              sessionGeneration,
+              heapBytes,
+          }));
+      });
+
+EM_JS(void,
+      rhythmgamePublishWebPlaytestTrace,
+      (const unsigned char* data, int length, double sessionGeneration),
+      {
+          const bridge = globalThis.__rhythmGameWebPlaytestTestBridge;
+          if (bridge === undefined
+              || typeof bridge.publishTrace !== "function") {
+              return;
+          }
+          const copy = length > 0
+              ? HEAPU8.slice(data, data + length)
+              : new Uint8Array();
+          bridge.publishTrace(copy, sessionGeneration);
+      });
+// clang-format on
 #endif
 
 #include <algorithm>
@@ -108,6 +175,7 @@ WebPlaytestRuntime::WebPlaytestRuntime(QString installedChartPath,
     pollTimer.setTimerType(Qt::PreciseTimer);
     connect(&pollTimer, &QTimer::timeout, this, &WebPlaytestRuntime::poll);
     pollTimer.start();
+    publishBrowserBridgeState(true);
 }
 
 auto
@@ -360,6 +428,7 @@ WebPlaytestRuntime::startFromTrustedGesture()
     presetIsLocked = true;
     emit inputPresetChanged();
     emit phaseChanged();
+    publishBrowserBridgeState(true);
 }
 
 void
@@ -389,6 +458,7 @@ WebPlaytestRuntime::abort()
     presetIsLocked = false;
     emit inputPresetChanged();
     emit phaseChanged();
+    publishBrowserBridgeState(true);
 }
 
 void
@@ -454,6 +524,7 @@ WebPlaytestRuntime::refreshSnapshot()
         return;
     }
     worker->snapshots().releaseReading();
+    publishBrowserBridgeState();
 }
 
 void
@@ -557,6 +628,7 @@ WebPlaytestRuntime::poll()
         return;
     }
     synchronizePhase();
+    publishBrowserBridgeState();
 }
 
 void
@@ -658,6 +730,7 @@ WebPlaytestRuntime::synchronizePhase()
         emit inputPresetChanged();
     }
     emit phaseChanged();
+    publishBrowserBridgeState(true);
 }
 
 void
@@ -695,6 +768,73 @@ WebPlaytestRuntime::setTerminalError(QString error, bool notifyWorker)
     if (droppedChanged) {
         emit snapshotChanged();
     }
+    publishBrowserBridgeState(true);
+}
+
+void
+WebPlaytestRuntime::publishBrowserBridgeState(bool force)
+{
+#if defined(__EMSCRIPTEN__)
+    const auto now = browserMonotonicNowUs();
+    constexpr auto minimumPublishIntervalUs = std::int64_t{ 16'000 };
+    if (!force && lastBrowserBridgePublishUs != 0 &&
+        now - lastBrowserBridgePublishUs < minimumPublishIntervalUs) {
+        return;
+    }
+    lastBrowserBridgePublishUs = now;
+
+    const auto phaseUtf8 = phaseText().toUtf8();
+    const auto errorUtf8 = errorMessage.toUtf8();
+    const auto judgementUtf8 = snapshotLatestJudgement.toUtf8();
+    const auto audioLifecycle =
+      worklet != nullptr ? static_cast<int>(worklet->lifecycleState()) : -1;
+    const auto audioError =
+      worklet != nullptr ? static_cast<int>(worklet->terminalError()) : -1;
+    const auto audioReady =
+      worklet != nullptr && worklet->readyForTrustedResume();
+    const auto sessionGeneration =
+      pendingSessionGeneration != 0
+        ? pendingSessionGeneration
+        : (worker != nullptr ? worker->sessionGeneration() : 0);
+
+    rhythmgamePublishWebPlaytestState(
+      static_cast<int>(displayedPhase),
+      phaseUtf8.constData(),
+      lastDecodedAssets,
+      lastTotalAssets,
+      snapshotCombo,
+      snapshotScore,
+      snapshotPressedLaneMask,
+      static_cast<double>(snapshotDroppedInputs),
+      snapshotActiveVoices,
+      audioUnderrunTelemetryAvailable ? 1 : 0,
+      static_cast<double>(audioUnderruns),
+      startPending() ? 1 : 0,
+      errorUtf8.constData(),
+      judgementUtf8.constData(),
+      audioLifecycle,
+      audioError,
+      audioReady ? 1 : 0,
+      static_cast<double>(sessionGeneration),
+      static_cast<double>(observedHeapBytes));
+
+    const auto* trace = worker != nullptr ? worker->completedTrace() : nullptr;
+    if (trace == lastPublishedTrace) {
+        return;
+    }
+    if (trace == nullptr) {
+        rhythmgamePublishWebPlaytestTrace(
+          nullptr, 0, static_cast<double>(sessionGeneration));
+    } else {
+        rhythmgamePublishWebPlaytestTrace(
+          reinterpret_cast<const unsigned char*>(trace->constData()),
+          trace->size(),
+          static_cast<double>(sessionGeneration));
+    }
+    lastPublishedTrace = trace;
+#else
+    Q_UNUSED(force)
+#endif
 }
 
 auto

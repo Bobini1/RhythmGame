@@ -270,6 +270,12 @@ GameplayWorker::droppedInputCommands() const noexcept -> std::uint64_t
 }
 
 auto
+GameplayWorker::completedTrace() const noexcept -> const QByteArray*
+{
+    return publishedCompletedTrace.load(std::memory_order_acquire);
+}
+
+auto
 GameplayWorker::snapshots() noexcept -> SnapshotMailbox&
 {
     return snapshotMailbox;
@@ -481,6 +487,7 @@ GameplayWorker::startSession(const RuntimeCommand& command)
     if (sessionEverStarted) {
         core = createCore();
     }
+    publishedCompletedTrace.store(nullptr, std::memory_order_release);
     timestampWatermark.reset();
     telemetry = {};
     telemetry.sessionGeneration = command.sessionGeneration;
@@ -733,6 +740,12 @@ GameplayWorker::publishSnapshot(std::int64_t chartTimeNs)
                   RuntimePhase::Finished,
                   std::memory_order_release,
                   std::memory_order_acquire)) {
+                // Trace buffers are immutable after publication and retain
+                // page lifetime. This keeps the browser copy lock-free while
+                // allowing abort/retry sessions without invalidating a reader.
+                const auto* completed = new QByteArray{ core->finishTrace() };
+                publishedCompletedTrace.store(completed,
+                                              std::memory_order_release);
                 payload->phase = RuntimePhase::Finished;
             } else {
                 payload->phase = expected;
