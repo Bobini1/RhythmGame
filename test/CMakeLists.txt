@@ -195,6 +195,15 @@ add_test(
 )
 if (CMAKE_GENERATOR MATCHES "^Ninja")
     add_test(
+            NAME WebAudioCore_pthread_compdb_contracts
+            COMMAND ${CMAKE_COMMAND}
+            "-DSOURCE_ROOT=${CMAKE_SOURCE_DIR}"
+            "-DTEST_BINARY_ROOT=${CMAKE_BINARY_DIR}/web-audio-core-pthread-audit-tests"
+            "-DNINJA_PROGRAM=${CMAKE_MAKE_PROGRAM}"
+            -P
+            "${CMAKE_SOURCE_DIR}/cmake/RunWebAudioCorePthreadAuditTests.cmake"
+    )
+    add_test(
             NAME WebAudioCore_negative_dependency_contracts
             COMMAND ${CMAKE_COMMAND}
             "-DSOURCE_ROOT=${CMAKE_SOURCE_DIR}"

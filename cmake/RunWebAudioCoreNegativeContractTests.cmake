@@ -209,6 +209,13 @@ if (NOT EXISTS
             "Clean core-only build did not produce the dependency-contract "
             "success stamp")
 endif ()
+file(READ "${clean_build}/build.ninja" clean_ninja_graph)
+if (NOT clean_ninja_graph MATCHES
+        "AuditWebAudioCorePthreadCompdb[.]cmake")
+    message(FATAL_ERROR
+            "Clean core-only graph does not bind the pthread audit helper "
+            "as a rebuild dependency")
+endif ()
 
 message(STATUS
         "Portable audio negative dependency contracts passed")

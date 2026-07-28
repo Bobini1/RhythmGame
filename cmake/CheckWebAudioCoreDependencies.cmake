@@ -94,40 +94,36 @@ if (REQUIRE_PTHREAD)
     endif ()
     execute_process(
             COMMAND
-            "${NINJA_PROGRAM}" -C "${BINARY_DIR}" -t commands "${TARGET_NAME}"
-            RESULT_VARIABLE commands_result
-            OUTPUT_VARIABLE commands_output
-            ERROR_VARIABLE commands_error
+            "${NINJA_PROGRAM}" -C "${BINARY_DIR}"
+            -t compdb-targets "${TARGET_NAME}"
+            RESULT_VARIABLE raw_compdb_result
+            OUTPUT_VARIABLE RAW_COMPDB_JSON
+            ERROR_VARIABLE raw_compdb_error
             ENCODING UTF-8
     )
-    if (NOT commands_result EQUAL 0)
+    if (NOT raw_compdb_result EQUAL 0)
         message(FATAL_ERROR
-                "Could not inspect Ninja commands for ${TARGET_NAME}: "
-                "${commands_error}")
+                "Could not inspect raw Ninja compilation database for "
+                "${TARGET_NAME}: ${raw_compdb_error}")
     endif ()
-    string(REPLACE "\\" "/" normalized_commands "${commands_output}")
-    string(REPLACE "\r\n" "\n" normalized_commands "${normalized_commands}")
-    string(REPLACE "\n" ";" command_lines "${normalized_commands}")
-    set(pthread_compile_count 0)
-    foreach (command_line IN LISTS command_lines)
-        if (NOT command_line MATCHES
-                "CMakeFiles/${TARGET_NAME}[.]dir/.*[.](obj|o)" OR
-                NOT command_line MATCHES "(^|[ \t])-c([ \t]|$)")
-            continue()
-        endif ()
-        math(EXPR pthread_compile_count "${pthread_compile_count} + 1")
-        if (NOT command_line MATCHES "(^|[ \t])-pthread([ \t]|$)")
-            message(FATAL_ERROR
-                    "${TARGET_NAME} compile command omits direct -pthread: "
-                    "${command_line}")
-        endif ()
-    endforeach ()
-    if (NOT pthread_compile_count EQUAL target_object_count)
+    execute_process(
+            COMMAND
+            "${NINJA_PROGRAM}" -C "${BINARY_DIR}"
+            -t compdb-targets -x "${TARGET_NAME}"
+            RESULT_VARIABLE expanded_compdb_result
+            OUTPUT_VARIABLE EXPANDED_COMPDB_JSON
+            ERROR_VARIABLE expanded_compdb_error
+            ENCODING UTF-8
+    )
+    if (NOT expanded_compdb_result EQUAL 0)
         message(FATAL_ERROR
-                "${TARGET_NAME} command/dependency object count differs: "
-                "${pthread_compile_count} commands vs "
-                "${target_object_count} dependency objects")
+                "Could not inspect expanded Ninja compilation database for "
+                "${TARGET_NAME}: ${expanded_compdb_error}")
     endif ()
+    set(TARGET_OBJECTS "${target_objects}")
+    set(TARGET_OBJECT_COUNT "${target_object_count}")
+    include(
+            "${SOURCE_ROOT}/cmake/AuditWebAudioCorePthreadCompdb.cmake")
 
     set(atomic_instruction_found FALSE)
     foreach (target_object IN LISTS target_objects)

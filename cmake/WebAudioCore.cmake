@@ -273,6 +273,8 @@ function(rhythmgame_add_web_audio_core target)
         endif ()
         set(dependency_contract_script
                 "${RHYTHMGAME_WEB_AUDIO_CORE_ROOT}/cmake/CheckWebAudioCoreDependencies.cmake")
+        set(dependency_contract_pthread_audit
+                "${RHYTHMGAME_WEB_AUDIO_CORE_ROOT}/cmake/AuditWebAudioCorePthreadCompdb.cmake")
         set(dependency_contract_stamp
                 "${CMAKE_CURRENT_BINARY_DIR}/${target}-dependency-contract.stamp")
         set(dependency_contract_anchor_source
@@ -297,7 +299,12 @@ function(rhythmgame_add_web_audio_core target)
         endif ()
         set_property(SOURCE "${dependency_contract_anchor_source}"
                 APPEND PROPERTY OBJECT_DEPENDS
-                "${dependency_contract_script}")
+                "${dependency_contract_script}"
+                "${dependency_contract_pthread_audit}")
+        set_property(TARGET "${target}"
+                APPEND PROPERTY LINK_DEPENDS
+                "${dependency_contract_script}"
+                "${dependency_contract_pthread_audit}")
         add_custom_command(TARGET "${target}" POST_BUILD
                 BYPRODUCTS "${dependency_contract_stamp}"
                 COMMAND ${CMAKE_COMMAND} -E rm -f
