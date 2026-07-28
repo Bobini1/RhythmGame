@@ -109,7 +109,11 @@ target_link_libraries(
         RhythmGame_web_gameplay_core
 )
 target_compile_features(PortableGameplayHeaders_compile PRIVATE cxx_std_23)
-add_dependencies(RhythmGame_test PortableGameplayHeaders_compile)
+add_dependencies(
+        RhythmGame_test
+        PortableGameplayHeaders_compile
+        RhythmGame_web_audio_core_test
+)
 
 target_link_libraries(
         RhythmGame_test PRIVATE
@@ -144,6 +148,12 @@ add_custom_command(TARGET RhythmGame_test POST_BUILD
         ${CMAKE_SOURCE_DIR}/testOnlyAssets testOnlyAssets)
 
 if (WIN32)
+    add_custom_command(TARGET RhythmGame_web_audio_core_test POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:RhythmGame_web_audio_core_test>
+            $<TARGET_FILE_DIR:RhythmGame_web_audio_core_test>
+            COMMAND_EXPAND_LISTS
+    )
     add_custom_command(TARGET RhythmGame_web_gameplay_core_test POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_RUNTIME_DLLS:RhythmGame_web_gameplay_core_test>
@@ -164,8 +174,18 @@ if (WIN32)
 endif ()
 
 catch_discover_tests(RhythmGame_web_gameplay_core_test)
-catch_discover_tests(RhythmGame_web_audio_core_test)
+catch_discover_tests(
+        RhythmGame_web_audio_core_test
+        TEST_PREFIX "RealtimeMixer.BmsAssetResolver."
+)
 catch_discover_tests(RhythmGame_test)
+add_test(
+        NAME WebAudioCore_source_contract
+        COMMAND ${CMAKE_COMMAND}
+        "-DSOURCE_ROOT=${CMAKE_SOURCE_DIR}"
+        "-DSOURCE_MANIFEST=${CMAKE_BINARY_DIR}/RhythmGame_web_audio_core-sources.txt"
+        -P "${CMAKE_SOURCE_DIR}/cmake/CheckWebAudioCore.cmake"
+)
 add_test(
         NAME WebGameplayCore_source_contract
         COMMAND ${CMAKE_COMMAND}
@@ -174,6 +194,21 @@ add_test(
         -P "${CMAKE_SOURCE_DIR}/cmake/CheckWebGameplayCore.cmake"
 )
 if (CMAKE_GENERATOR MATCHES "^Ninja")
+    add_test(
+            NAME WebAudioCore_negative_dependency_contracts
+            COMMAND ${CMAKE_COMMAND}
+            "-DSOURCE_ROOT=${CMAKE_SOURCE_DIR}"
+            "-DTEST_BINARY_ROOT=${CMAKE_BINARY_DIR}/web-audio-core-negative-contracts"
+            "-DNINJA_PROGRAM=${CMAKE_MAKE_PROGRAM}"
+            "-DDEPENDENCY_PREFIX=${CMAKE_PREFIX_PATH}"
+            "-DNESTED_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            "-DNESTED_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
+            "-DVCPKG_INSTALLED_DIR=${_VCPKG_INSTALLED_DIR}"
+            "-DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET}"
+            "-DVCPKG_HOST_TRIPLET=${VCPKG_HOST_TRIPLET}"
+            -P
+            "${CMAKE_SOURCE_DIR}/cmake/RunWebAudioCoreNegativeContractTests.cmake"
+    )
     add_test(
             NAME WebGameplayCore_negative_dependency_contracts
             COMMAND ${CMAKE_COMMAND}

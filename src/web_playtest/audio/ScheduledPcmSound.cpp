@@ -1,10 +1,36 @@
 #include "ScheduledPcmSound.h"
 
-#include <algorithm>
-#include <cmath>
 #include <limits>
 
 namespace web_playtest {
+namespace detail {
+auto
+chartTimeToFrame(std::uint64_t chartStartFrame,
+                 std::int64_t chartTimeNanoseconds,
+                 std::uint32_t outputSampleRate) noexcept -> std::uint64_t
+{
+    const auto nanoseconds =
+      chartTimeNanoseconds > 0
+        ? static_cast<std::uint64_t>(chartTimeNanoseconds)
+        : std::uint64_t{};
+    constexpr auto nanosecondsPerSecond = std::uint64_t{ 1'000'000'000 };
+    const auto wholeSeconds = nanoseconds / nanosecondsPerSecond;
+    const auto remainder = nanoseconds % nanosecondsPerSecond;
+    const auto maximum = (std::numeric_limits<std::uint64_t>::max)();
+    if (outputSampleRate != 0 &&
+        wholeSeconds > (maximum - chartStartFrame) / outputSampleRate) {
+        return maximum;
+    }
+    const auto wholeFrames = wholeSeconds * outputSampleRate;
+    const auto roundedFraction =
+      (remainder * outputSampleRate + nanosecondsPerSecond / 2) /
+      nanosecondsPerSecond;
+    if (roundedFraction > maximum - chartStartFrame - wholeFrames) {
+        return maximum;
+    }
+    return chartStartFrame + wholeFrames + roundedFraction;
+}
+} // namespace detail
 
 ScheduledPcmSound::ScheduledPcmSound(AudioTransport& transport,
                                      VoiceId voice) noexcept
@@ -36,9 +62,6 @@ ScheduledPcmSound::stopAt(std::chrono::nanoseconds chartTime)
 void
 ScheduledPcmSound::setVolume(float volume)
 {
-    if (std::isfinite(volume)) {
-        channel->setRequestedVoiceGain(voiceId, volume);
-    }
     publish(
       AudioCommandType::SetVoiceGain, std::chrono::nanoseconds{}, true, volume);
 }
@@ -80,15 +103,8 @@ ScheduledPcmSound::frameFor(const AudioSessionSnapshot& session,
                             std::chrono::nanoseconds chartTime) noexcept
   -> std::uint64_t
 {
-    const auto nonnegative = std::max(chartTime, std::chrono::nanoseconds{});
-    const auto frames = static_cast<long double>(nonnegative.count()) *
-                        session.outputSampleRate / 1'000'000'000.0L;
-    const auto rounded = static_cast<std::uint64_t>(std::llround(frames));
-    const auto start = session.chartStartFrame;
-    if (rounded > std::numeric_limits<std::uint64_t>::max() - start) {
-        return std::numeric_limits<std::uint64_t>::max();
-    }
-    return start + rounded;
+    return detail::chartTimeToFrame(
+      session.chartStartFrame, chartTime.count(), session.outputSampleRate);
 }
 
 } // namespace web_playtest

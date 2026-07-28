@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 
 namespace web_playtest {
@@ -30,26 +31,47 @@ saturate(double value) noexcept -> float
 RealtimeMixer::RealtimeMixer(const PcmSoundBank& bank,
                              AudioTransport& transport,
                              Config config)
-  : soundBank(&bank)
-  , channel(&transport)
-  , settings(config)
-  , activeVoices(config.voiceCapacity)
-  , appliedGains(config.voiceCapacity, 1.F)
-  , scheduler(config.scheduledEventCapacity)
+  : RealtimeMixer(bank, transport, validateConfig(bank, transport, config))
 {
-    const auto required =
-      config.authoredBgmEventCount + config.liveCommandHeadroom;
-    if (!bank.frozen() || config.outputSampleRate != bank.outputSampleRate() ||
+}
+
+auto
+RealtimeMixer::validateConfig(const PcmSoundBank& bank,
+                              AudioTransport& transport,
+                              Config config) -> ValidatedConfig
+{
+    const auto maximum = (std::numeric_limits<std::size_t>::max)();
+    const auto additionOverflows =
+      config.authoredBgmEventCount > maximum - config.liveCommandHeadroom;
+    const auto required = additionOverflows ? maximum
+                                            : config.authoredBgmEventCount +
+                                                config.liveCommandHeadroom;
+    if (!bank.frozen() || config.outputSampleRate < minimumOutputSampleRate ||
+        config.outputSampleRate > maximumOutputSampleRate ||
+        config.outputSampleRate != bank.outputSampleRate() ||
         config.voiceCapacity < bank.voiceCount() ||
         config.voiceCapacity > AudioTransport::voiceCapacity ||
-        config.scheduledEventCapacity < required ||
+        additionOverflows || config.scheduledEventCapacity < required ||
         required > AudioTransport::commandCapacity ||
         config.scheduledEventCapacity > AudioTransport::commandCapacity) {
         transport.fail(AudioTerminalErrorCode::InvalidConfiguration, 0, 0);
         throw std::invalid_argument("invalid realtime mixer capacity");
     }
+    return { .value = config };
+}
+
+RealtimeMixer::RealtimeMixer(const PcmSoundBank& bank,
+                             AudioTransport& transport,
+                             ValidatedConfig validated)
+  : soundBank(&bank)
+  , channel(&transport)
+  , settings(validated.value)
+  , activeVoices(validated.value.voiceCapacity)
+  , appliedGains(validated.value.voiceCapacity, 1.F)
+  , scheduler(validated.value.scheduledEventCapacity)
+{
     for (std::size_t voice = 0; voice < bank.voiceCount(); ++voice) {
-        channel->setRequestedVoiceGain(static_cast<VoiceId>(voice), 1.F);
+        channel->setAppliedVoiceGain(static_cast<VoiceId>(voice), 1.F);
         channel->setVoicePlaying(static_cast<VoiceId>(voice), false);
     }
 }
@@ -59,8 +81,6 @@ RealtimeMixer::render(float* left,
                       float* right,
                       std::uint32_t frameCount) noexcept
 {
-    std::fill_n(left, frameCount, 0.F);
-    std::fill_n(right, frameCount, 0.F);
     drainCommands();
 
     for (std::uint32_t offset = 0; offset < frameCount; ++offset) {
@@ -120,8 +140,12 @@ RealtimeMixer::render(float* left,
 void
 RealtimeMixer::drainCommands() noexcept
 {
+    const auto available =
+      (std::min)(channel->commands.size(), AudioTransport::commandCapacity);
+    auto drained = std::size_t{};
     auto command = AudioCommand{};
-    while (channel->commands.tryPop(command)) {
+    while (drained < available && channel->commands.tryPop(command)) {
+        ++drained;
         emit(command,
              AudioAckPhase::Dequeued,
              AudioAckOutcome::Pending,
@@ -140,6 +164,7 @@ RealtimeMixer::drainCommands() noexcept
         }
         schedule(command);
     }
+    drainedLastRender.store(drained, std::memory_order_release);
 }
 
 void
@@ -329,6 +354,13 @@ RealtimeMixer::apply(const AudioCommand& command, std::uint64_t frame) noexcept
             break;
         }
         case AudioCommandType::Stop: {
+            if (command.voiceId >= soundBank->voiceCount()) {
+                emit(command,
+                     AudioAckPhase::Terminal,
+                     AudioAckOutcome::Rejected,
+                     frame);
+                break;
+            }
             emit(command,
                  AudioAckPhase::Applied,
                  AudioAckOutcome::Completed,
@@ -345,9 +377,10 @@ RealtimeMixer::apply(const AudioCommand& command, std::uint64_t frame) noexcept
             break;
         }
         case AudioCommandType::SetVoiceGain:
-            if (command.voiceId < activeVoices.size() &&
+            if (command.voiceId < soundBank->voiceCount() &&
                 std::isfinite(command.value)) {
                 appliedGains[command.voiceId] = command.value;
+                channel->setAppliedVoiceGain(command.voiceId, command.value);
                 emit(command,
                      AudioAckPhase::Applied,
                      AudioAckOutcome::Completed,
@@ -446,6 +479,13 @@ RealtimeMixer::storageFingerprint() const noexcept -> std::uintptr_t
     return reinterpret_cast<std::uintptr_t>(activeVoices.data()) ^
            reinterpret_cast<std::uintptr_t>(appliedGains.data()) ^
            reinterpret_cast<std::uintptr_t>(scheduler.data());
+}
+
+auto
+RealtimeMixer::lastDrainedCommandCountForTesting() const noexcept -> std::size_t
+{
+    static_assert(std::atomic_size_t::is_always_lock_free);
+    return drainedLastRender.load(std::memory_order_acquire);
 }
 
 } // namespace web_playtest

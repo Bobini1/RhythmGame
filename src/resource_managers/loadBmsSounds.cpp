@@ -13,9 +13,10 @@
 #include "support/PathToQString.h"
 #include "support/PathToUtfString.h"
 
-#include <unordered_set>
 #include <QtConcurrent>
 #include <spdlog/spdlog.h>
+#include <stdexcept>
+#include <unordered_set>
 
 namespace charts {
 
@@ -32,8 +33,8 @@ loadBmsSounds(sounds::AudioEngine* engine,
     auto uniqueSoundPaths = std::unordered_set<std::filesystem::path>{};
     const auto resolver = BmsAssetResolver::fromDirectory(path);
     if (!resolver.valid()) {
-        spdlog::error("BMS asset index failed: {}", resolver.diagnostic());
-        return {};
+        throw std::runtime_error("BMS asset index failed: " +
+                                 resolver.diagnostic());
     }
     for (const auto& [key, value] : wavs) {
         {
@@ -117,8 +118,8 @@ loadBmsonSounds(
     auto uniquePaths = std::unordered_set<std::filesystem::path>{};
     const auto resolver = BmsAssetResolver::fromDirectory(basePath);
     if (!resolver.valid()) {
-        spdlog::error("BMSON asset index failed: {}", resolver.diagnostic());
-        return {};
+        throw std::runtime_error("BMSON asset index failed: " +
+                                 resolver.diagnostic());
     }
     for (const auto& [idx, relPath] : channelPaths) {
         const auto resolved =
@@ -189,7 +190,7 @@ loadBmsonSounds(
           slice.endSeconds < 0.0
             ? totalFrames
             : static_cast<ma_uint64>(slice.endSeconds * sampleRate);
-        startFrame = std::min(startFrame, totalFrames);
+        startFrame = (std::min)(startFrame, totalFrames);
         endFrame = std::clamp(endFrame, startFrame, totalFrames);
         auto frameCount = endFrame - startFrame;
 

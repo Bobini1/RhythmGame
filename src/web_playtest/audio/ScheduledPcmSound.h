@@ -7,6 +7,13 @@
 
 namespace web_playtest {
 
+namespace detail {
+[[nodiscard]] auto
+chartTimeToFrame(std::uint64_t chartStartFrame,
+                 std::int64_t chartTimeNanoseconds,
+                 std::uint32_t outputSampleRate) noexcept -> std::uint64_t;
+}
+
 class ScheduledPcmSound final : public sounds::Sound
 {
   public:

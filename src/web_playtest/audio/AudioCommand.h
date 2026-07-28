@@ -10,10 +10,16 @@
 
 namespace web_playtest {
 
+static_assert(std::atomic<std::uint64_t>::is_always_lock_free);
+static_assert(std::atomic<std::int64_t>::is_always_lock_free);
+static_assert(std::atomic<std::uint32_t>::is_always_lock_free);
+static_assert(std::atomic<bool>::is_always_lock_free);
+static_assert(std::atomic<float>::is_always_lock_free);
+
 using VoiceId = std::uint32_t;
 using ClipId = std::uint32_t;
 
-inline constexpr auto invalidVoiceId = std::numeric_limits<VoiceId>::max();
+inline constexpr auto invalidVoiceId = (std::numeric_limits<VoiceId>::max)();
 inline constexpr auto neutralSourceInputId = std::uint64_t{};
 inline constexpr auto neutralSourceEventMonotonicUs = std::int64_t{ -1 };
 
@@ -29,15 +35,15 @@ enum class AudioCommandType : std::uint8_t
 
 struct AudioCommand
 {
-    AudioCommandType type{};
-    std::uint64_t sessionGeneration{};
-    std::uint64_t sequenceId{};
-    std::uint64_t sourceInputId{};
-    VoiceId voiceId{ invalidVoiceId };
-    std::uint64_t targetFrame{};
-    std::int64_t sourceEventMonotonicUs{ neutralSourceEventMonotonicUs };
-    std::int64_t publishedMonotonicUs{};
-    float value{ 1.F };
+    AudioCommandType type = {};
+    std::uint64_t sessionGeneration = {};
+    std::uint64_t sequenceId = {};
+    std::uint64_t sourceInputId = {};
+    VoiceId voiceId = invalidVoiceId;
+    std::uint64_t targetFrame = {};
+    std::int64_t sourceEventMonotonicUs = neutralSourceEventMonotonicUs;
+    std::int64_t publishedMonotonicUs = {};
+    float value = 1.F;
 };
 
 enum class AudioAckPhase : std::uint8_t
@@ -59,16 +65,16 @@ enum class AudioAckOutcome : std::uint8_t
 
 struct AudioAcknowledgement
 {
-    std::uint64_t sessionGeneration{};
-    std::uint64_t sequenceId{};
-    std::uint64_t sourceInputId{};
-    AudioAckPhase phase{};
-    AudioAckOutcome outcome{};
-    std::uint64_t observedFrame{};
-    std::uint64_t targetFrame{};
-    std::uint64_t lateByFrames{};
-    std::int64_t sourceEventMonotonicUs{ neutralSourceEventMonotonicUs };
-    std::int64_t publishedMonotonicUs{};
+    std::uint64_t sessionGeneration = {};
+    std::uint64_t sequenceId = {};
+    std::uint64_t sourceInputId = {};
+    AudioAckPhase phase = {};
+    AudioAckOutcome outcome = {};
+    std::uint64_t observedFrame = {};
+    std::uint64_t targetFrame = {};
+    std::uint64_t lateByFrames = {};
+    std::int64_t sourceEventMonotonicUs = neutralSourceEventMonotonicUs;
+    std::int64_t publishedMonotonicUs = {};
 };
 
 enum class AudioTerminalErrorCode : std::uint8_t
@@ -79,27 +85,28 @@ enum class AudioTerminalErrorCode : std::uint8_t
     AcknowledgementRingOverflow,
     InvalidConfiguration
 };
+static_assert(std::atomic<AudioTerminalErrorCode>::is_always_lock_free);
 
 struct AudioTerminalError
 {
-    AudioTerminalErrorCode code{};
-    std::uint64_t sessionGeneration{};
-    std::uint64_t sequenceId{};
+    AudioTerminalErrorCode code = {};
+    std::uint64_t sessionGeneration = {};
+    std::uint64_t sequenceId = {};
 };
 
 struct AudioCommandProvenance
 {
-    std::uint64_t sourceInputId{ neutralSourceInputId };
-    std::int64_t sourceEventMonotonicUs{ neutralSourceEventMonotonicUs };
-    std::int64_t publishedMonotonicUs{};
+    std::uint64_t sourceInputId = neutralSourceInputId;
+    std::int64_t sourceEventMonotonicUs = neutralSourceEventMonotonicUs;
+    std::int64_t publishedMonotonicUs = {};
 };
 
 struct AudioSessionSnapshot
 {
-    std::uint64_t generation{};
-    std::uint64_t chartStartFrame{};
-    std::uint64_t currentOutputFrame{};
-    std::uint32_t outputSampleRate{};
+    std::uint64_t generation = {};
+    std::uint64_t chartStartFrame = {};
+    std::uint64_t currentOutputFrame = {};
+    std::uint32_t outputSampleRate = {};
 };
 
 class AudioTransport
@@ -112,12 +119,16 @@ class AudioTransport
     SpscRing<AudioCommand, commandCapacity> commands;
     SpscRing<AudioAcknowledgement, acknowledgementCapacity> acknowledgements;
 
-    AudioTransport() noexcept
+    AudioTransport()
     {
         for (auto& gain : gains) {
             gain.store(1.F, std::memory_order_relaxed);
         }
     }
+    AudioTransport(const AudioTransport&) = delete;
+    auto operator=(const AudioTransport&) -> AudioTransport& = delete;
+    AudioTransport(AudioTransport&&) = delete;
+    auto operator=(AudioTransport&&) -> AudioTransport& = delete;
 
     [[nodiscard]] auto tryPublish(const AudioCommand& command) noexcept -> bool
     {
@@ -273,7 +284,7 @@ class AudioTransport
         return id < voiceCapacity ? gains[id].load(std::memory_order_acquire)
                                   : 0.F;
     }
-    void setRequestedVoiceGain(VoiceId id, float value) noexcept
+    void setAppliedVoiceGain(VoiceId id, float value) noexcept
     {
         if (id < voiceCapacity) {
             gains[id].store(value, std::memory_order_release);
@@ -284,20 +295,20 @@ class AudioTransport
     std::atomic<AudioTerminalErrorCode> errorCode{
         AudioTerminalErrorCode::None
     };
-    std::atomic_flag errorClaimed{};
-    std::atomic<std::uint64_t> errorGeneration{};
-    std::atomic<std::uint64_t> errorSequence{};
-    std::atomic<std::uint64_t> publisherGeneration{};
-    std::atomic<std::uint64_t> publisherChartStartFrame{};
-    std::atomic<std::uint32_t> publisherOutputSampleRate{};
-    std::atomic<std::uint64_t> sequence{ 1 };
-    std::atomic<std::uint64_t> provenanceInput{};
-    std::atomic<std::int64_t> provenanceEvent{ neutralSourceEventMonotonicUs };
-    std::atomic<std::int64_t> provenancePublished{};
-    std::atomic<std::uint64_t> outputFrame{};
-    mutable std::atomic<std::uint64_t> sessionRevision{};
-    std::array<std::atomic_bool, voiceCapacity> playing{};
-    std::array<std::atomic<float>, voiceCapacity> gains{};
+    std::atomic_flag errorClaimed = {};
+    std::atomic<std::uint64_t> errorGeneration = {};
+    std::atomic<std::uint64_t> errorSequence = {};
+    std::atomic<std::uint64_t> publisherGeneration = {};
+    std::atomic<std::uint64_t> publisherChartStartFrame = {};
+    std::atomic<std::uint32_t> publisherOutputSampleRate = {};
+    std::atomic<std::uint64_t> sequence = 1;
+    std::atomic<std::uint64_t> provenanceInput = {};
+    std::atomic<std::int64_t> provenanceEvent = neutralSourceEventMonotonicUs;
+    std::atomic<std::int64_t> provenancePublished = {};
+    std::atomic<std::uint64_t> outputFrame = {};
+    mutable std::atomic<std::uint64_t> sessionRevision = {};
+    std::array<std::atomic_bool, voiceCapacity> playing = {};
+    std::array<std::atomic<float>, voiceCapacity> gains = {};
 };
 
 } // namespace web_playtest

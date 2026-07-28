@@ -6,6 +6,31 @@
 #include <stdexcept>
 
 namespace web_playtest {
+namespace detail {
+auto
+resampledFrameCount(std::size_t sourceFrames,
+                    std::uint32_t sourceRate,
+                    std::uint32_t outputRate,
+                    std::size_t maximumOutputFrames) -> std::size_t
+{
+    if (sourceRate == 0 || outputRate == 0) {
+        throw std::invalid_argument("sample rates must be nonzero");
+    }
+    const auto whole = sourceFrames / sourceRate;
+    const auto remainder = sourceFrames % sourceRate;
+    if (whole > maximumOutputFrames / outputRate) {
+        throw std::overflow_error("resampled frame count overflows");
+    }
+    const auto base = whole * outputRate;
+    const auto fractional = static_cast<std::size_t>(
+      static_cast<std::uint64_t>(remainder) * outputRate / sourceRate);
+    if (fractional > maximumOutputFrames - base) {
+        throw std::overflow_error("resampled frame count overflows");
+    }
+    return base + fractional;
+}
+} // namespace detail
+
 namespace {
 auto
 toStereo(const DecodedPcm& decoded) -> std::vector<float>
@@ -32,13 +57,18 @@ toStereo(const DecodedPcm& decoded) -> std::vector<float>
           decoded.downmixToStereo(decoded.interleaved, decoded.channelCount);
         const auto sourceFrames =
           decoded.interleaved.size() / decoded.channelCount;
-        if (stereo.size() != sourceFrames * 2 ||
+        if (sourceFrames > (std::numeric_limits<std::size_t>::max)() / 2 ||
+            stereo.size() != sourceFrames * 2 ||
             !std::ranges::all_of(
               stereo, [](float value) { return std::isfinite(value); })) {
             throw std::invalid_argument(
               "decoder downmix returned malformed stereo");
         }
         return stereo;
+    }
+    if (decoded.interleaved.size() >
+        (std::numeric_limits<std::size_t>::max)() / 2) {
+        throw std::overflow_error("mono to stereo size overflows");
     }
     auto stereo = std::vector<float>{};
     stereo.reserve(decoded.interleaved.size() * 2);
@@ -58,18 +88,22 @@ resampleLinear(const std::vector<float>& stereo,
     if (sourceFrames == 0 || sourceRate == outputRate) {
         return stereo;
     }
-    const auto outputFrames = static_cast<std::size_t>(
-      static_cast<std::uint64_t>(sourceFrames) * outputRate / sourceRate);
+    auto output = std::vector<float>{};
+    const auto maximumFrames =
+      (std::min)((std::numeric_limits<std::size_t>::max)() / 2,
+                 output.max_size() / 2);
+    const auto outputFrames = detail::resampledFrameCount(
+      sourceFrames, sourceRate, outputRate, maximumFrames);
     if (outputFrames == 0) {
         throw std::invalid_argument("resampling produced an empty clip");
     }
-    auto output = std::vector<float>(outputFrames * 2);
+    output.resize(outputFrames * 2);
     for (std::size_t frame = 0; frame < outputFrames; ++frame) {
         const auto sourcePosition =
           static_cast<long double>(frame) * sourceRate / outputRate;
-        const auto first =
-          std::min(static_cast<std::size_t>(sourcePosition), sourceFrames - 1);
-        const auto second = std::min(first + 1, sourceFrames - 1);
+        const auto first = (std::min)(static_cast<std::size_t>(sourcePosition),
+                                      sourceFrames - 1);
+        const auto second = (std::min)(first + 1, sourceFrames - 1);
         const auto fraction =
           static_cast<float>(sourcePosition - static_cast<long double>(first));
         for (std::size_t channel = 0; channel < 2; ++channel) {
@@ -85,8 +119,9 @@ resampleLinear(const std::vector<float>& stereo,
 PcmSoundBank::PcmSoundBank(std::uint32_t outputSampleRate)
   : outputRate(outputSampleRate)
 {
-    if (outputRate == 0) {
-        throw std::invalid_argument("output sample rate must be nonzero");
+    if (outputRate < minimumOutputSampleRate ||
+        outputRate > maximumOutputSampleRate) {
+        throw std::invalid_argument("unsupported output sample rate");
     }
 }
 
@@ -97,11 +132,15 @@ PcmSoundBank::addClip(std::string_view canonicalAssetKey, DecodedPcm decoded)
     if (isFrozen || canonicalAssetKey.empty()) {
         throw std::logic_error("PCM bank is frozen or asset key is empty");
     }
+    if (decoded.sampleRate < minimumOutputSampleRate ||
+        decoded.sampleRate > maximumOutputSampleRate) {
+        throw std::invalid_argument("unsupported decoded sample rate");
+    }
     if (const auto existing = assetClips.find(std::string(canonicalAssetKey));
         existing != assetClips.end()) {
         return existing->second;
     }
-    if (clips.size() >= std::numeric_limits<ClipId>::max()) {
+    if (clips.size() >= (std::numeric_limits<ClipId>::max)()) {
         throw std::overflow_error("ClipId capacity exceeded");
     }
     auto stereo = toStereo(decoded);
@@ -127,7 +166,7 @@ PcmSoundBank::addVoice(std::uint64_t chartSoundId, ClipId clipId) -> VoiceId
     if (chartVoices.contains(chartSoundId)) {
         throw std::invalid_argument("chart sound ID already owns a voice");
     }
-    if (voices.size() >= std::numeric_limits<VoiceId>::max() ||
+    if (voices.size() >= (std::numeric_limits<VoiceId>::max)() ||
         voices.size() >= AudioTransport::voiceCapacity) {
         throw std::overflow_error("VoiceId capacity exceeded");
     }

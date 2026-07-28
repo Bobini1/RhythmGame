@@ -58,6 +58,16 @@ TEST_CASE("BMS resolver uses NFC Unicode case folding", "[BmsAssetResolver]")
             "音/CAFÉ.ogg");
 }
 
+TEST_CASE("BMS resolver resolves decoded non-ASCII chart names",
+          "[BmsAssetResolver][CP932-decoded-path]")
+{
+    // ReadBmsFile owns CP932 decoding. The resolver receives that decoded
+    // UTF-8 spelling and must retain it through extension fallback.
+    const auto resolver = BmsAssetResolver{ entries({ "音/龍の鍵.ogg" }) };
+    REQUIRE(resolver.resolve("音\\龍の鍵.wav")->relativeUtf8 ==
+            "音/龍の鍵.ogg");
+}
+
 TEST_CASE("BMS resolver diagnoses folded collisions deterministically",
           "[BmsAssetResolver]")
 {

@@ -13,8 +13,10 @@
 #include "sounds/AudioEngine.h"
 #include "sounds/NormalSound.h"
 #include "sounds/NormalSoundBuffer.h"
+#include "support/QStringToPath.h"
 
 #include <QByteArray>
+#include <QTemporaryDir>
 
 #include <support/UtfStringToPath.h>
 
@@ -35,7 +37,7 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
     auto tags = charts::readBmsChart(bmsFile, randomGenerator).tags;
     std::unordered_map<uint64_t, std::filesystem::path> wavs;
     wavs.reserve(tags.wavs.size());
-    for (auto& wav : tags.wavs) {
+    for (const auto& wav : tags.wavs) {
         wavs.emplace(wav.first, support::utfStringToPath(wav.second));
     }
     auto engine = sounds::AudioEngine{};
@@ -71,10 +73,50 @@ TEST_CASE("Even when the extension says wav, allow loading other extensions",
     auto tags = charts::readBmsChart(bmsFile, randomGenerator).tags;
     std::unordered_map<uint64_t, std::filesystem::path> wavs;
     wavs.reserve(tags.wavs.size());
-    for (auto& wav : tags.wavs) {
+    for (const auto& wav : tags.wavs) {
         wavs.emplace(wav.first, support::utfStringToPath(wav.second));
     }
     auto engine = sounds::AudioEngine{};
     auto sounds = charts::loadBmsSounds(&engine, wavs, folder);
     REQUIRE(sounds.size() == 4);
+}
+
+TEST_CASE("A terminal BMS asset index failure is not an empty success",
+          "[loadBmsSounds][BmsAssetResolver]")
+{
+    qputenv("RHYTHMGAME_AUDIO_BACKEND", QByteArrayLiteral("Null"));
+    auto engine = sounds::AudioEngine{};
+    auto temporary = QTemporaryDir{};
+    REQUIRE(temporary.isValid());
+    const auto missing = support::qStringToPath(temporary.path()) / "missing";
+    REQUIRE_THROWS(charts::loadBmsSounds(
+      &engine, { { 1, std::filesystem::path("sample.wav") } }, missing));
+}
+
+TEST_CASE("A terminal BMSON asset index failure is not an empty success",
+          "[loadBmsSounds][BmsAssetResolver][BMSON]")
+{
+    qputenv("RHYTHMGAME_AUDIO_BACKEND", QByteArrayLiteral("Null"));
+    auto engine = sounds::AudioEngine{};
+    auto temporary = QTemporaryDir{};
+    REQUIRE(temporary.isValid());
+    const auto missing = support::qStringToPath(temporary.path()) / "missing";
+    const auto channels =
+      std::unordered_map<std::uint64_t, std::filesystem::path>{
+          { 1, std::filesystem::path("sample.wav") }
+      };
+    const auto slices = std::vector<charts::BmsNotesData::BmsonSliceInfo>{};
+    const auto fusions =
+      std::unordered_map<std::uint64_t, std::vector<std::uint64_t>>{};
+    REQUIRE_THROWS(
+      charts::loadBmsonSounds(&engine, channels, slices, fusions, missing));
+}
+
+TEST_CASE("A valid BMS asset index may load zero declared sounds",
+          "[loadBmsSounds][BmsAssetResolver]")
+{
+    qputenv("RHYTHMGAME_AUDIO_BACKEND", QByteArrayLiteral("Null"));
+    auto engine = sounds::AudioEngine{};
+    const auto folder = findTestAssetsFolder() / "supportedSoundFormats";
+    REQUIRE(charts::loadBmsSounds(&engine, {}, folder).empty());
 }

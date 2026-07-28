@@ -141,17 +141,31 @@ BmsAssetResolver::fromDirectory(const std::filesystem::path& chartRoot)
     std::error_code error;
     auto iterator =
       std::filesystem::recursive_directory_iterator(chartRoot, error);
+    if (error) {
+        auto resolver = BmsAssetResolver{ std::move(entries) };
+        resolver.terminalDiagnostic = "BMS asset directory scan failed";
+        return resolver;
+    }
     const auto end = std::filesystem::recursive_directory_iterator{};
-    while (!error && iterator != end) {
-        if (iterator->is_regular_file(error) && !error) {
+    while (iterator != end) {
+        if (iterator->is_regular_file(error)) {
+            if (error) {
+                break;
+            }
             const auto relative =
               std::filesystem::relative(iterator->path(), chartRoot, error);
-            if (!error) {
-                entries.push_back({ .relativeUtf8 = utf8Path(relative),
-                                    .actualPath = iterator->path() });
+            if (error) {
+                break;
             }
+            entries.push_back({ .relativeUtf8 = utf8Path(relative),
+                                .actualPath = iterator->path() });
+        } else if (error) {
+            break;
         }
         iterator.increment(error);
+        if (error) {
+            break;
+        }
     }
     auto resolver = BmsAssetResolver{ std::move(entries) };
     if (error) {

@@ -3,18 +3,31 @@
 #include "AudioCommand.h"
 
 #include <cstdint>
+#include <limits>
+#include <span>
 #include <string>
 #include <string_view>
-#include <span>
 #include <unordered_map>
 #include <vector>
 
 namespace web_playtest {
 
+inline constexpr auto minimumOutputSampleRate = std::uint32_t{ 8'000 };
+inline constexpr auto maximumOutputSampleRate = std::uint32_t{ 192'000 };
+
+namespace detail {
+[[nodiscard]] auto
+resampledFrameCount(std::size_t sourceFrames,
+                    std::uint32_t sourceRate,
+                    std::uint32_t outputRate,
+                    std::size_t maximumOutputFrames =
+                      (std::numeric_limits<std::size_t>::max)()) -> std::size_t;
+}
+
 struct PcmClip
 {
     std::vector<float> interleavedStereo;
-    std::uint32_t sampleRate{};
+    std::uint32_t sampleRate = {};
 };
 
 struct DecodedPcm
@@ -23,9 +36,9 @@ struct DecodedPcm
                                                    std::uint8_t);
 
     std::vector<float> interleaved;
-    std::uint32_t sampleRate{};
-    std::uint8_t channelCount{};
-    DownmixToStereo downmixToStereo{};
+    std::uint32_t sampleRate = {};
+    std::uint8_t channelCount = {};
+    DownmixToStereo downmixToStereo = {};
 };
 
 class PcmSoundBank
@@ -48,7 +61,7 @@ class PcmSoundBank
 
   private:
     std::uint32_t outputRate;
-    bool isFrozen{};
+    bool isFrozen = {};
     std::vector<PcmClip> clips;
     std::vector<ClipId> voices;
     std::unordered_map<std::string, ClipId> assetClips;

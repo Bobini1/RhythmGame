@@ -14,11 +14,18 @@
 #include <limits>
 #include <new>
 #include <thread>
+#include <type_traits>
 #include <vector>
 
 using Catch::Approx;
 using namespace std::chrono_literals;
 using namespace web_playtest;
+
+static_assert(!std::is_nothrow_default_constructible_v<AudioTransport>);
+static_assert(!std::is_copy_constructible_v<AudioTransport>);
+static_assert(!std::is_move_constructible_v<AudioTransport>);
+static_assert(!std::is_copy_constructible_v<RealtimeMixer>);
+static_assert(!std::is_move_constructible_v<RealtimeMixer>);
 
 namespace allocation_probe {
 std::atomic<std::uint64_t> count{};
@@ -93,10 +100,10 @@ downmixFirstTwo(std::span<const float> samples, std::uint8_t channels)
 
 struct Fixture
 {
-    PcmSoundBank bank{ 48'000 };
+    PcmSoundBank bank = PcmSoundBank{ 48'000 };
     AudioTransport transport;
-    VoiceId voice0{};
-    VoiceId voice1{};
+    VoiceId voice0 = {};
+    VoiceId voice1 = {};
 
     Fixture()
     {
@@ -184,6 +191,42 @@ TEST_CASE("SPSC acquire-release ordering survives cross-thread wraparound",
     REQUIRE(ring.empty());
 }
 
+TEST_CASE("Render drains a bounded command snapshot under replenishment",
+          "[RealtimeMixer][SpscRing][realtime]")
+{
+    auto fixture = Fixture{};
+    auto mixer = fixture.mixer(AudioTransport::commandCapacity);
+    for (std::size_t i = 0; i < AudioTransport::commandCapacity; ++i) {
+        push(fixture.transport,
+             { .type = AudioCommandType::SetMasterGain,
+               .sessionGeneration = 0,
+               .sequenceId = i + 1,
+               .targetFrame = 1,
+               .value = 1.F });
+    }
+    auto replenish = std::atomic_bool{ true };
+    auto producer = std::thread([&] {
+        auto sequence = std::uint64_t{ 10'000 };
+        while (replenish.load(std::memory_order_acquire)) {
+            auto command = AudioCommand{
+                .type = AudioCommandType::SetMasterGain,
+                .sessionGeneration = 0,
+                .sequenceId = sequence++,
+                .targetFrame = 1,
+                .value = 1.F,
+            };
+            (void)fixture.transport.commands.tryPush(command);
+        }
+    });
+    auto left = std::array<float, 1>{};
+    auto right = left;
+    mixer.render(left.data(), right.data(), 1);
+    replenish.store(false, std::memory_order_release);
+    producer.join();
+    REQUIRE(mixer.lastDrainedCommandCountForTesting() ==
+            AudioTransport::commandCapacity);
+}
+
 TEST_CASE("PCM bank converts to immutable output-rate stereo",
           "[RealtimeMixer][PcmSoundBank]")
 {
@@ -220,7 +263,7 @@ TEST_CASE("PCM bank converts to immutable output-rate stereo",
                      .sampleRate = 48'000,
                      .channelCount = 1 }));
     REQUIRE_THROWS(bank.addClip("empty", mono({})));
-    bank.addVoice(std::numeric_limits<std::uint64_t>::max(), stereoId);
+    bank.addVoice((std::numeric_limits<std::uint64_t>::max)(), stereoId);
     bank.freeze();
     REQUIRE(bank.frozen());
     REQUIRE_THROWS(bank.addClip("late", mono({ 1 })));
@@ -237,6 +280,20 @@ TEST_CASE("PCM bank converts to immutable output-rate stereo",
                            .sampleRate = 44'100,
                            .channelCount = 1 });
     REQUIRE(timingBank.clip(floorClip).interleavedStereo.size() == 108 * 2);
+    REQUIRE(detail::resampledFrameCount(
+              (std::numeric_limits<std::uint32_t>::max)(), 8'000, 192'000) ==
+            std::size_t{ 103'079'215'080 });
+    REQUIRE_THROWS(detail::resampledFrameCount(
+      (std::numeric_limits<std::size_t>::max)(), 8'000, 192'000));
+    REQUIRE_THROWS(
+      detail::resampledFrameCount((std::numeric_limits<std::uint32_t>::max)(),
+                                  8'000,
+                                  192'000,
+                                  (std::numeric_limits<std::uint32_t>::max)()));
+    REQUIRE_THROWS(timingBank.addClip("source-low", mono({ 1.F }, 7'999)));
+    REQUIRE_THROWS(timingBank.addClip("source-high", mono({ 1.F }, 192'001)));
+    REQUIRE_THROWS(PcmSoundBank{ 7'999 });
+    REQUIRE_THROWS(PcmSoundBank{ 192'001 });
 }
 
 TEST_CASE("Mixer drains around far-future commands and is sample accurate",
@@ -403,7 +460,7 @@ TEST_CASE("Timed gain is render-applied and non-finite gain is rejected",
            .sequenceId = 2,
            .voiceId = fixture.voice0,
            .targetFrame = 0 });
-    fixture.transport.setRequestedVoiceGain(fixture.voice0, 0.25F);
+    REQUIRE(fixture.transport.voiceGain(fixture.voice0) == 1.F);
     push(fixture.transport,
          { .type = AudioCommandType::SetVoiceGain,
            .sessionGeneration = 1,
@@ -420,6 +477,7 @@ TEST_CASE("Timed gain is render-applied and non-finite gain is rejected",
     auto left = std::array<float, 4>{};
     auto right = left;
     mixer.render(left.data(), right.data(), left.size());
+    REQUIRE(fixture.transport.voiceGain(fixture.voice0) == 0.25F);
     REQUIRE(left[0] == Approx(0.5F));
     REQUIRE(left[1] == Approx(0.25F));
     REQUIRE(left[2] == Approx(0.03125F));
@@ -431,12 +489,63 @@ TEST_CASE("Timed gain is render-applied and non-finite gain is rejected",
     }));
 }
 
+TEST_CASE("Canceled and overflowed gain never changes observable volume",
+          "[RealtimeMixer][gain][overflow]")
+{
+    auto fixture = Fixture{};
+    auto mixer = fixture.mixer();
+    auto sound = ScheduledPcmSound{ fixture.transport, fixture.voice0 };
+    push(fixture.transport,
+         { .type = AudioCommandType::ResetSession,
+           .sessionGeneration = 1,
+           .sequenceId = 50,
+           .targetFrame = 0 });
+    auto left = std::array<float, 1>{};
+    auto right = left;
+    mixer.render(left.data(), right.data(), 1);
+    (void)drain(fixture.transport);
+
+    sound.setVolume(0.25F);
+    REQUIRE(sound.getVolume() == 1.F);
+    push(fixture.transport,
+         { .type = AudioCommandType::StopAll,
+           .sessionGeneration = 1,
+           .sequenceId = 51 });
+    mixer.render(left.data(), right.data(), 1);
+    REQUIRE(sound.getVolume() == 1.F);
+    const auto canceledAcks = drain(fixture.transport);
+    const auto barrierApplied =
+      std::ranges::find_if(canceledAcks, [](const auto& ack) {
+          return ack.sequenceId == 51 && ack.phase == AudioAckPhase::Applied;
+      });
+    REQUIRE(barrierApplied != canceledAcks.end());
+    REQUIRE(std::ranges::count_if(
+              canceledAcks.begin(), barrierApplied, [](const auto& ack) {
+                  return ack.sequenceId == 1 &&
+                         ack.phase == AudioAckPhase::Terminal &&
+                         ack.outcome == AudioAckOutcome::Canceled;
+              }) == 1);
+    REQUIRE_FALSE(std::ranges::any_of(canceledAcks, [](const auto& ack) {
+        return ack.sequenceId == 1 && ack.phase == AudioAckPhase::Applied;
+    }));
+
+    for (std::size_t i = 0; i < AudioTransport::commandCapacity; ++i) {
+        auto command = AudioCommand{};
+        command.sequenceId = i + 100;
+        REQUIRE(fixture.transport.commands.tryPush(command));
+    }
+    sound.setVolume(0.5F);
+    REQUIRE(sound.getVolume() == 1.F);
+    REQUIRE(fixture.transport.terminalError().code ==
+            AudioTerminalErrorCode::CommandRingOverflow);
+}
+
 TEST_CASE("Finite extreme gain and silence can never produce NaN",
           "[RealtimeMixer][gain]")
 {
     auto bank = PcmSoundBank{ 48'000 };
-    const auto clip =
-      bank.addClip("extreme", mono({ 0.F, std::numeric_limits<float>::max() }));
+    const auto clip = bank.addClip(
+      "extreme", mono({ 0.F, (std::numeric_limits<float>::max)() }));
     const auto voice = bank.addVoice(1, clip);
     bank.freeze();
     auto transport = AudioTransport{};
@@ -457,13 +566,13 @@ TEST_CASE("Finite extreme gain and silence can never produce NaN",
            .sequenceId = 2,
            .voiceId = voice,
            .targetFrame = 0,
-           .value = std::numeric_limits<float>::max() });
+           .value = (std::numeric_limits<float>::max)() });
     push(transport,
          { .type = AudioCommandType::SetMasterGain,
            .sessionGeneration = 1,
            .sequenceId = 3,
            .targetFrame = 0,
-           .value = std::numeric_limits<float>::max() });
+           .value = (std::numeric_limits<float>::max)() });
     push(transport,
          { .type = AudioCommandType::Start,
            .sessionGeneration = 1,
@@ -659,6 +768,125 @@ TEST_CASE("Repeated starts coexist and barriers cancel before applying",
     REQUIRE(mixer.renderedFrames() == 902);
 }
 
+TEST_CASE("Mid-chart StopAll resolves active and pending correlations once",
+          "[RealtimeMixer][session][ack]")
+{
+    auto fixture = Fixture{};
+    auto mixer = fixture.mixer();
+    push(fixture.transport,
+         { .type = AudioCommandType::ResetSession,
+           .sessionGeneration = 1,
+           .sequenceId = 1,
+           .targetFrame = 10 });
+    push(fixture.transport,
+         { .type = AudioCommandType::Start,
+           .sessionGeneration = 1,
+           .sequenceId = 2,
+           .sourceInputId = 22,
+           .voiceId = fixture.voice0,
+           .targetFrame = 10,
+           .sourceEventMonotonicUs = 123,
+           .publishedMonotonicUs = 456 });
+    push(fixture.transport,
+         { .type = AudioCommandType::Start,
+           .sessionGeneration = 1,
+           .sequenceId = 3,
+           .voiceId = fixture.voice1,
+           .targetFrame = 100 });
+    auto left = std::array<float, 1>{};
+    auto right = left;
+    mixer.render(left.data(), right.data(), 1);
+    (void)drain(fixture.transport);
+    push(fixture.transport,
+         { .type = AudioCommandType::StopAll,
+           .sessionGeneration = 1,
+           .sequenceId = 4 });
+    mixer.render(left.data(), right.data(), 1);
+    const auto acks = drain(fixture.transport);
+    const auto applied = std::ranges::find_if(acks, [](const auto& ack) {
+        return ack.sequenceId == 4 && ack.phase == AudioAckPhase::Applied;
+    });
+    REQUIRE(applied != acks.end());
+    for (const auto sequence : { 2ULL, 3ULL }) {
+        REQUIRE(std::ranges::count_if(
+                  acks.begin(), applied, [sequence](const auto& ack) {
+                      return ack.sequenceId == sequence &&
+                             ack.phase == AudioAckPhase::Terminal &&
+                             ack.outcome == AudioAckOutcome::Canceled;
+                  }) == 1);
+    }
+    mixer.render(left.data(), right.data(), 1);
+    REQUIRE(left[0] == 0.F);
+}
+
+TEST_CASE("Acknowledgement phases preserve exact provenance and lateness",
+          "[RealtimeMixer][ack]")
+{
+    auto fixture = Fixture{};
+    auto mixer = fixture.mixer();
+    push(fixture.transport,
+         { .type = AudioCommandType::ResetSession,
+           .sessionGeneration = 1,
+           .sequenceId = 1,
+           .targetFrame = 100 });
+    auto scratchLeft = std::array<float, 3>{};
+    auto scratchRight = scratchLeft;
+    mixer.render(scratchLeft.data(), scratchRight.data(), scratchLeft.size());
+    (void)drain(fixture.transport);
+    push(fixture.transport,
+         { .type = AudioCommandType::Start,
+           .sessionGeneration = 1,
+           .sequenceId = 2,
+           .sourceInputId = 77,
+           .voiceId = fixture.voice0,
+           .targetFrame = 101,
+           .sourceEventMonotonicUs = 111,
+           .publishedMonotonicUs = 222 });
+    push(fixture.transport,
+         { .type = AudioCommandType::Stop,
+           .sessionGeneration = 1,
+           .sequenceId = 3,
+           .voiceId = fixture.voice1,
+           .targetFrame = 103 });
+    push(fixture.transport,
+         { .type = AudioCommandType::SetVoiceGain,
+           .sessionGeneration = 1,
+           .sequenceId = 4,
+           .voiceId = fixture.voice1,
+           .targetFrame = 103,
+           .value = 0.5F });
+    auto left = std::array<float, 1>{};
+    auto right = left;
+    mixer.render(left.data(), right.data(), 1);
+    const auto acks = drain(fixture.transport);
+    const auto phasesFor = [&](std::uint64_t sequence) {
+        auto phases = std::vector<AudioAckPhase>{};
+        for (const auto& ack : acks) {
+            if (ack.sequenceId == sequence) {
+                phases.push_back(ack.phase);
+            }
+        }
+        return phases;
+    };
+    REQUIRE(phasesFor(2) == std::vector{ AudioAckPhase::Dequeued,
+                                         AudioAckPhase::Applied,
+                                         AudioAckPhase::FirstNonZero });
+    const auto applied = std::ranges::find_if(acks, [](const auto& ack) {
+        return ack.sequenceId == 2 && ack.phase == AudioAckPhase::Applied;
+    });
+    REQUIRE(applied->observedFrame == 103);
+    REQUIRE(applied->lateByFrames == 2);
+    REQUIRE(applied->sourceInputId == 77);
+    REQUIRE(applied->sourceEventMonotonicUs == 111);
+    REQUIRE(applied->publishedMonotonicUs == 222);
+    REQUIRE(phasesFor(3) == std::vector{ AudioAckPhase::Dequeued,
+                                         AudioAckPhase::Applied,
+                                         AudioAckPhase::Terminal });
+    REQUIRE(phasesFor(4) == std::vector{ AudioAckPhase::Dequeued,
+                                         AudioAckPhase::Applied,
+                                         AudioAckPhase::Terminal });
+}
+
 TEST_CASE("Command and scheduler overflow are terminal and correlated",
           "[RealtimeMixer][overflow]")
 {
@@ -801,7 +1029,73 @@ TEST_CASE("Scheduled sound publishes chart frames with explicit provenance",
     REQUIRE(command.sessionGeneration == 7);
     REQUIRE(command.sourceInputId == 123);
     sound.setVolume(0.25F);
-    REQUIRE(sound.getVolume() == Approx(0.25F));
+    REQUIRE(sound.getVolume() == Approx(1.F));
+}
+
+TEST_CASE("Scheduled frame conversion rounds with integer saturation",
+          "[RealtimeMixer][ScheduledPcmSound]")
+{
+    REQUIRE(detail::chartTimeToFrame(
+              (std::numeric_limits<std::uint64_t>::max)() - 2,
+              (std::numeric_limits<std::int64_t>::max)(),
+              192'000) == (std::numeric_limits<std::uint64_t>::max)());
+    REQUIRE(detail::chartTimeToFrame(100, 10'416, 48'000) == 100);
+    REQUIRE(detail::chartTimeToFrame(100, 10'417, 48'000) == 101);
+}
+
+TEST_CASE("Invalid stop and gain voice IDs are rejected before apply",
+          "[RealtimeMixer][ack]")
+{
+    auto fixture = Fixture{};
+    auto mixer = fixture.mixer();
+    push(fixture.transport,
+         { .type = AudioCommandType::ResetSession,
+           .sessionGeneration = 1,
+           .sequenceId = 1,
+           .targetFrame = 0 });
+    for (const auto type :
+         { AudioCommandType::Stop, AudioCommandType::SetVoiceGain }) {
+        push(fixture.transport,
+             { .type = type,
+               .sessionGeneration = 1,
+               .sequenceId = type == AudioCommandType::Stop ? 2ULL : 3ULL,
+               .voiceId = 99,
+               .targetFrame = 0,
+               .value = 0.5F });
+    }
+    auto left = std::array<float, 1>{};
+    auto right = left;
+    mixer.render(left.data(), right.data(), 1);
+    const auto acks = drain(fixture.transport);
+    for (const auto sequence : { 2ULL, 3ULL }) {
+        REQUIRE_FALSE(std::ranges::any_of(acks, [sequence](const auto& ack) {
+            return ack.sequenceId == sequence &&
+                   ack.phase == AudioAckPhase::Applied;
+        }));
+        REQUIRE(std::ranges::any_of(acks, [sequence](const auto& ack) {
+            return ack.sequenceId == sequence &&
+                   ack.phase == AudioAckPhase::Terminal &&
+                   ack.outcome == AudioAckOutcome::Rejected;
+        }));
+    }
+}
+
+TEST_CASE("Invalid mixer config fails before allocating storage",
+          "[RealtimeMixer][config]")
+{
+    auto fixture = Fixture{};
+    REQUIRE_THROWS_AS(
+      RealtimeMixer(
+        fixture.bank,
+        fixture.transport,
+        { .outputSampleRate = 48'000,
+          .voiceCapacity = (std::numeric_limits<std::size_t>::max)(),
+          .scheduledEventCapacity = (std::numeric_limits<std::size_t>::max)(),
+          .authoredBgmEventCount = (std::numeric_limits<std::size_t>::max)(),
+          .liveCommandHeadroom = 1 }),
+      std::invalid_argument);
+    REQUIRE(fixture.transport.terminalError().code ==
+            AudioTerminalErrorCode::InvalidConfiguration);
 }
 
 TEST_CASE("Scheduled sound takes a coherent generation-anchor snapshot",

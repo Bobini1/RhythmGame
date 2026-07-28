@@ -19,6 +19,10 @@ class SpscRing
       : storage(std::make_unique<T[]>(Capacity))
     {
     }
+    SpscRing(const SpscRing&) = delete;
+    auto operator=(const SpscRing&) -> SpscRing& = delete;
+    SpscRing(SpscRing&&) = delete;
+    auto operator=(SpscRing&&) -> SpscRing& = delete;
 
     [[nodiscard]] auto tryPush(const T& value) noexcept -> bool
     {
