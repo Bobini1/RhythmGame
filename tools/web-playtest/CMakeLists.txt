@@ -214,9 +214,17 @@ set(RHYTHMGAME_REQUIRE_WEB_AUDIO_DEPENDENCY_CONTRACT ON
 include(${RG_WEB_PLAYTEST_REPO_ROOT}/cmake/WebAudioCore.cmake)
 rhythmgame_add_web_audio_core(RhythmGame_web_audio_core)
 
+set(RG_WEB_PLAYTEST_AUDIO_WORKLET_SOURCES
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/audio/BrowserAudioClock.cpp"
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/audio/BrowserAudioClock.h"
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/audio/EmscriptenAudioWorklet.cpp"
+    "${RG_WEB_PLAYTEST_REPO_ROOT}/src/web_playtest/audio/EmscriptenAudioWorklet.h"
+)
+
 qt_add_executable(RhythmGameWasmProbe
     MANUAL_FINALIZATION
     "${RG_WEB_PLAYTEST_GENERATED_DIR}/WebPlaytestInputDigest.cpp"
+    ${RG_WEB_PLAYTEST_AUDIO_WORKLET_SOURCES}
     src/WebPlaytestChartInstaller.cpp
     src/WebPlaytestChartInstaller.h
     src/WebPlaytestInputDigest.h
@@ -279,6 +287,58 @@ target_link_options(RhythmGameWasmProbe PRIVATE
     "SHELL:-sDYNAMIC_EXECUTION=0"
     "SHELL:-sEMBIND_AOT=1"
     "SHELL:-sALLOW_MEMORY_GROWTH=1"
+)
+
+# The minimal Task 6 entry point does not call the Task 7 backend yet, so the
+# optimizer is allowed to discard its EM_JS imports. This explicit, non-default
+# target retains every public integration path behind a runtime-false branch,
+# links it through the authenticated driver, and verifies the generated loader
+# plus AudioWorklet bootstrap without creating an AudioContext.
+add_executable(RhythmGameWasmAudioLinkSmoke EXCLUDE_FROM_ALL
+    ${RG_WEB_PLAYTEST_AUDIO_WORKLET_SOURCES}
+    tests/EmscriptenAudioWorklet.link.cpp
+)
+target_compile_features(RhythmGameWasmAudioLinkSmoke PRIVATE cxx_std_23)
+target_compile_options(RhythmGameWasmAudioLinkSmoke PRIVATE
+    -O0
+    -pthread
+    -fwasm-exceptions
+    "SHELL:-sSUPPORT_LONGJMP=wasm"
+)
+target_link_libraries(RhythmGameWasmAudioLinkSmoke PRIVATE
+    RhythmGame_web_audio_core
+)
+target_link_options(RhythmGameWasmAudioLinkSmoke PRIVATE
+    -O0
+    -pthread
+    -fwasm-exceptions
+    -Wno-pthreads-mem-growth
+    "SHELL:-sSUPPORT_LONGJMP=wasm"
+    "SHELL:-sAUDIO_WORKLET=1"
+    "SHELL:-sWASM_WORKERS=1"
+    "SHELL:-sPTHREAD_POOL_SIZE=4"
+    "SHELL:-sPTHREAD_POOL_SIZE_STRICT=2"
+    "SHELL:-sALLOW_BLOCKING_ON_MAIN_THREAD=0"
+    "SHELL:-sDYNAMIC_EXECUTION=0"
+    "SHELL:-sALLOW_MEMORY_GROWTH=1"
+)
+set_target_properties(RhythmGameWasmAudioLinkSmoke PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY
+        "${CMAKE_CURRENT_BINARY_DIR}/audio-worklet-link-smoke"
+)
+set(RG_WEB_PLAYTEST_AUDIO_LINK_SMOKE_VERIFIER
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/verify_audio_worklet_link_smoke.py")
+set_property(TARGET RhythmGameWasmAudioLinkSmoke APPEND PROPERTY LINK_DEPENDS
+    "${RG_WEB_PLAYTEST_AUDIO_LINK_SMOKE_VERIFIER}")
+add_custom_command(TARGET RhythmGameWasmAudioLinkSmoke POST_BUILD
+    COMMAND
+        "$ENV{EMSDK_PYTHON}" -I -B
+        "${RG_WEB_PLAYTEST_AUDIO_LINK_SMOKE_VERIFIER}"
+        --loader "$<TARGET_FILE:RhythmGameWasmAudioLinkSmoke>"
+        --worklet
+            "$<TARGET_FILE_DIR:RhythmGameWasmAudioLinkSmoke>/$<TARGET_FILE_BASE_NAME:RhythmGameWasmAudioLinkSmoke>.aw.js"
+    COMMENT "Verifying Task 7 EM_JS link reachability"
+    VERBATIM
 )
 
 set(RG_WEB_PLAYTEST_ARTIFACT_SCANNER

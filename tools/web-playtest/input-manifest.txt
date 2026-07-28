@@ -82,6 +82,10 @@ src/support/UtfStringToPath.cpp
 src/support/UtfStringToPath.h
 src/support/Version.h
 src/web_playtest/audio/AudioCommand.h
+src/web_playtest/audio/BrowserAudioClock.cpp
+src/web_playtest/audio/BrowserAudioClock.h
+src/web_playtest/audio/EmscriptenAudioWorklet.cpp
+src/web_playtest/audio/EmscriptenAudioWorklet.h
 src/web_playtest/audio/PcmSoundBank.cpp
 src/web_playtest/audio/PcmSoundBank.h
 src/web_playtest/audio/RealtimeMixer.cpp

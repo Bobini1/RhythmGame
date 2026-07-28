@@ -98,6 +98,20 @@ add_dependencies(
         RhythmGame_web_audio_core_test
         RhythmGame_web_audio_core_source_contract
 )
+add_executable(RhythmGame_browser_audio_clock_test
+        web_playtest/audio/BrowserAudioClock.test.cpp
+        "${CMAKE_SOURCE_DIR}/src/web_playtest/audio/BrowserAudioClock.cpp"
+)
+target_include_directories(RhythmGame_browser_audio_clock_test PRIVATE
+        "${CMAKE_SOURCE_DIR}/src"
+)
+target_compile_features(
+        RhythmGame_browser_audio_clock_test PRIVATE cxx_std_20
+)
+set_target_properties(
+        RhythmGame_browser_audio_clock_test PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
+)
 add_library(PortableGameplayHeaders_compile OBJECT
         resource_managers/PortableGameplayHeaders.compile.cpp
 )
@@ -112,6 +126,7 @@ target_compile_features(PortableGameplayHeaders_compile PRIVATE cxx_std_23)
 add_dependencies(
         RhythmGame_test
         PortableGameplayHeaders_compile
+        RhythmGame_browser_audio_clock_test
         RhythmGame_web_audio_core_test
 )
 
@@ -177,6 +192,10 @@ catch_discover_tests(RhythmGame_web_gameplay_core_test)
 catch_discover_tests(
         RhythmGame_web_audio_core_test
         TEST_PREFIX "RealtimeMixer.BmsAssetResolver."
+)
+add_test(
+        NAME BrowserAudioClock
+        COMMAND RhythmGame_browser_audio_clock_test
 )
 catch_discover_tests(RhythmGame_test)
 add_test(
