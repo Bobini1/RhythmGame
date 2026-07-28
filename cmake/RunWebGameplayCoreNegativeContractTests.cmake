@@ -105,7 +105,7 @@ execute_process(
         COMMAND
         "${CMAKE_COMMAND}"
         --build "${header_build}"
-        --target RhythmGame_web_gameplay_core_dependency_contract
+        --target RhythmGame_web_gameplay_core
         --parallel
         RESULT_VARIABLE header_build_result
         OUTPUT_VARIABLE header_build_stdout
@@ -124,6 +124,53 @@ if (NOT header_build_output MATCHES
     message(FATAL_ERROR
             "Forbidden-header test failed without the dependency-contract "
             "diagnostic:\n${header_build_output}")
+endif ()
+
+set(clean_build "${TEST_BINARY_ROOT}/clean")
+execute_process(
+        COMMAND
+        ${base_configure_command}
+        -B "${clean_build}"
+        -DCONTRACT_CASE=clean
+        RESULT_VARIABLE clean_configure_result
+        OUTPUT_VARIABLE clean_configure_stdout
+        ERROR_VARIABLE clean_configure_stderr
+        ENCODING UTF-8
+)
+if (NOT clean_configure_result EQUAL 0)
+    message(FATAL_ERROR
+            "Clean contract fixture did not configure:\n"
+            "${clean_configure_stdout}\n${clean_configure_stderr}")
+endif ()
+
+execute_process(
+        COMMAND
+        "${CMAKE_COMMAND}"
+        --build "${clean_build}"
+        --target RhythmGame_web_gameplay_core
+        --parallel
+        RESULT_VARIABLE clean_build_result
+        OUTPUT_VARIABLE clean_build_stdout
+        ERROR_VARIABLE clean_build_stderr
+        ENCODING UTF-8
+)
+set(clean_build_output
+        "${clean_build_stdout}\n${clean_build_stderr}")
+if (NOT clean_build_result EQUAL 0)
+    message(FATAL_ERROR
+            "Clean portable-core build failed:\n${clean_build_output}")
+endif ()
+if (NOT clean_build_output MATCHES
+        "Portable gameplay active include closure passed")
+    message(FATAL_ERROR
+            "Clean core-only build omitted the active-include audit:\n"
+            "${clean_build_output}")
+endif ()
+if (NOT EXISTS
+        "${clean_build}/RhythmGame_web_gameplay_core-dependency-contract.stamp")
+    message(FATAL_ERROR
+            "Clean core-only build did not produce the dependency-contract "
+            "success stamp")
 endif ()
 
 message(STATUS

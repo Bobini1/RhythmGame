@@ -287,17 +287,30 @@ function(rhythmgame_add_web_gameplay_core target)
                     "expose compiler-ingested dependencies through "
                     "'ninja -t deps'")
         endif ()
-        add_custom_target("${target}_dependency_contract"
+        set(dependency_contract_script
+                "${RHYTHMGAME_WEB_GAMEPLAY_CORE_ROOT}/cmake/CheckWebGameplayCoreDependencies.cmake")
+        set(dependency_contract_stamp
+                "${CMAKE_CURRENT_BINARY_DIR}/${target}-dependency-contract.stamp")
+        set(dependency_contract_anchor_source
+                "${RHYTHMGAME_WEB_GAMEPLAY_CORE_ROOT}/src/gameplay_logic/SinglePlayerGameplayCore.cpp")
+        set_property(SOURCE "${dependency_contract_anchor_source}"
+                APPEND PROPERTY OBJECT_DEPENDS
+                "${dependency_contract_script}")
+        add_custom_command(TARGET "${target}" POST_BUILD
+                BYPRODUCTS "${dependency_contract_stamp}"
+                COMMAND ${CMAKE_COMMAND} -E rm -f
+                "${dependency_contract_stamp}"
                 COMMAND ${CMAKE_COMMAND}
                 "-DSOURCE_ROOT=${RHYTHMGAME_WEB_GAMEPLAY_CORE_ROOT}"
                 "-DBINARY_DIR=${CMAKE_BINARY_DIR}"
                 "-DNINJA_PROGRAM=${CMAKE_MAKE_PROGRAM}"
                 "-DTARGET_NAME=${target}"
                 -P
-                "${RHYTHMGAME_WEB_GAMEPLAY_CORE_ROOT}/cmake/CheckWebGameplayCoreDependencies.cmake"
+                "${dependency_contract_script}"
+                COMMAND ${CMAKE_COMMAND} -E touch
+                "${dependency_contract_stamp}"
                 VERBATIM
         )
-        add_dependencies("${target}_dependency_contract" "${target}")
     else ()
         message(STATUS
                 "${target}: Ninja compiler-dependency audit is not active; "

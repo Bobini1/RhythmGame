@@ -77,13 +77,6 @@ add_dependencies(
         RhythmGame_web_gameplay_core_test
         RhythmGame_web_gameplay_core_source_contract
 )
-if (TARGET RhythmGame_web_gameplay_core_dependency_contract)
-    add_dependencies(
-            RhythmGame_web_gameplay_core_test
-            RhythmGame_web_gameplay_core_dependency_contract
-    )
-endif ()
-
 add_library(PortableGameplayHeaders_compile OBJECT
         resource_managers/PortableGameplayHeaders.compile.cpp
 )

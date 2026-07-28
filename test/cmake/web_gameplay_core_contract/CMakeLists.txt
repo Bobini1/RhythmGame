@@ -40,8 +40,10 @@ elseif (CONTRACT_CASE STREQUAL "nested_forbidden_link")
     )
     rhythmgame_verify_web_gameplay_core_target(
             RhythmGame_web_gameplay_core)
+elseif (CONTRACT_CASE STREQUAL "clean")
+    # The unmodified target is built by the positive contract test.
 else ()
     message(FATAL_ERROR
-            "CONTRACT_CASE must be forbidden_header or "
+            "CONTRACT_CASE must be clean, forbidden_header, or "
             "nested_forbidden_link")
 endif ()
