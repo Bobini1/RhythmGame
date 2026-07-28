@@ -1,10 +1,5 @@
 include(cmake/folders.cmake)
 
-if (WIN32)
-    find_program(TOOL_WINDEPLOYQT NAMES windeployqt)
-    find_program(TOOL_WINDEPLOYQT_DEBUG NAMES windeployqt.debug.bat)
-endif ()
-
 include(CTest)
 if (BUILD_TESTING)
     add_subdirectory(test)
@@ -37,7 +32,6 @@ if (ENABLE_INCLUDE_WHAT_YOU_USE)
     include(cmake/include-what-you-use.cmake)
 endif ()
 
-include(cmake/build-dir-setup.cmake)
 include(cmake/lint-targets.cmake)
 include(cmake/spell-targets.cmake)
 

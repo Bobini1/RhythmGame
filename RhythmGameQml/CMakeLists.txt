@@ -228,3 +228,5 @@ qt6_add_shaders(RhythmGame_lr2_qml "lr2_shaders"
         FILES
         ${LR2_SKIN_SHADERS}
 )
+
+include(${PROJECT_SOURCE_DIR}/src/CMakeLists.txt)

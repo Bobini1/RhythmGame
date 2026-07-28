@@ -430,58 +430,14 @@ target_include_directories(
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
 )
 
-# ---- Declare QML module ----
-add_subdirectory(RhythmGameQml)
-qt_import_qml_plugins(RhythmGame_qmlplugin)
-qt_import_qml_plugins(RhythmGame_lr2_qmlplugin)
-
-# ---- Declare executable ----
-
-if (WIN32)
-    enable_language("RC")
-    qt_add_executable(RhythmGame_exe
-            src/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/staticAssets/RhythmGame.rc
-    )
-    set_target_properties(RhythmGame_exe PROPERTIES
-            WIN32_EXECUTABLE $<IF:$<CONFIG:Debug,RelWithDebInfo>,FALSE,TRUE>
-            OUTPUT_NAME RhythmGame
-    )
-    # use main() as entry point
-    set_target_properties(RhythmGame_exe PROPERTIES
-            LINK_FLAGS "/ENTRY:mainCRTStartup"
-    )
-else ()
-    qt_add_executable(RhythmGame_exe
-            src/main.cpp
-    )
-endif ()
-add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
-
-qt_add_resources(
-        RhythmGame_exe
-        "text_files"
-        BASE
-        "${CMAKE_SOURCE_DIR}"
-        FILES
-        ${CMAKE_SOURCE_DIR}/ATTRIBUTIONS.md ${CMAKE_SOURCE_DIR}/LICENSE.md
-)
-
-set_target_properties(
-        RhythmGame_exe PROPERTIES
-        OUTPUT_NAME RhythmGame
-        EXPORT_NAME exe
-        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
-)
-
-qt_import_qml_plugins(RhythmGame_exe)
-
-target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
-
 add_subdirectory(src/tgaplugin)
 add_subdirectory(src/cimplugin)
 add_subdirectory(src/ddsplugin)
 
-target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin RhythmGame_lr2_qmlplugin tga cim dds)
+# ---- Declare QML modules and executable ----
+add_subdirectory(RhythmGameQml)
+qt_import_qml_plugins(RhythmGame_qmlplugin)
+qt_import_qml_plugins(RhythmGame_lr2_qmlplugin)
 
 if (NOT APPLE)
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
@@ -501,8 +457,6 @@ if (WIN32)
     target_compile_options(RhythmGame_lib PRIVATE /bigobj)
     set_target_properties(RhythmGame_exe PROPERTIES LINK_FLAGS "/STACK:8388608")
 endif ()
-
-include(cmake/translations.cmake)
 
 # ---- Developer mode ----
 
