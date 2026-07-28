@@ -77,6 +77,27 @@ add_dependencies(
         RhythmGame_web_gameplay_core_test
         RhythmGame_web_gameplay_core_source_contract
 )
+add_executable(RhythmGame_web_audio_core_test
+        web_playtest/RealtimeMixer.test.cpp
+        resource_managers/BmsAssetResolver.test.cpp
+)
+target_link_libraries(RhythmGame_web_audio_core_test PRIVATE
+        RhythmGame_web_audio_core
+        Catch2::Catch2WithMain
+)
+target_compile_features(RhythmGame_web_audio_core_test PRIVATE cxx_std_23)
+target_compile_definitions(
+        RhythmGame_web_audio_core_test PRIVATE
+        RHYTHMGAME_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+)
+set_target_properties(
+        RhythmGame_web_audio_core_test PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
+)
+add_dependencies(
+        RhythmGame_web_audio_core_test
+        RhythmGame_web_audio_core_source_contract
+)
 add_library(PortableGameplayHeaders_compile OBJECT
         resource_managers/PortableGameplayHeaders.compile.cpp
 )
@@ -143,6 +164,7 @@ if (WIN32)
 endif ()
 
 catch_discover_tests(RhythmGame_web_gameplay_core_test)
+catch_discover_tests(RhythmGame_web_audio_core_test)
 catch_discover_tests(RhythmGame_test)
 add_test(
         NAME WebGameplayCore_source_contract

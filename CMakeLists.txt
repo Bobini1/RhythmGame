@@ -98,6 +98,8 @@ find_package(zlib-ng CONFIG REQUIRED)
 
 include(cmake/WebGameplayCore.cmake)
 rhythmgame_add_web_gameplay_core(RhythmGame_web_gameplay_core)
+include(cmake/WebAudioCore.cmake)
+rhythmgame_add_web_audio_core(RhythmGame_web_audio_core)
 
 # ---- Load library ----
 
@@ -412,7 +414,7 @@ if (NOT Stb_FOUND)
 else ()
     target_link_libraries(RhythmGame_lib PUBLIC ${Stb_LIBRARIES})
 endif ()
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 libremidi Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::WebSockets Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog_header_only foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
+target_link_libraries(RhythmGame_lib PUBLIC RhythmGame_web_audio_core SDL2::SDL2 libremidi Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::WebSockets Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog_header_only foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
 target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
 
 if (WIN32)

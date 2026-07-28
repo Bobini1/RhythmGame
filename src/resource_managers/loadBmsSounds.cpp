@@ -3,6 +3,7 @@
 //
 
 #include "loadBmsSounds.h"
+#include "BmsAssetResolver.h"
 
 #include "sounds/MultiSound.h"
 #include "sounds/NormalSound.h"
@@ -12,92 +13,11 @@
 #include "support/PathToQString.h"
 #include "support/PathToUtfString.h"
 
-#include <optional>
 #include <unordered_set>
 #include <QtConcurrent>
+#include <spdlog/spdlog.h>
 
 namespace charts {
-
-#if _WIN32
-auto
-getActualPathWindows(std::filesystem::path filePath)
-  -> std::optional<std::filesystem::path>
-{
-    if (exists(filePath)) {
-        return filePath;
-    }
-    filePath.replace_extension(".wav");
-    if (exists(filePath)) {
-        return filePath;
-    }
-    filePath.replace_extension(".flac");
-    if (exists(filePath)) {
-        return filePath;
-    }
-    filePath.replace_extension(".ogg");
-    if (exists(filePath)) {
-        return filePath;
-    }
-    filePath.replace_extension(".mp3");
-    if (exists(filePath)) {
-        return filePath;
-    }
-    return std::nullopt;
-}
-#endif
-
-auto
-getActualPath(
-  std::unordered_map<std::string, std::filesystem::path>& lowerCaseFilesMap,
-  std::string filePath) -> std::optional<std::filesystem::path>
-{
-    if (auto it = lowerCaseFilesMap.find(filePath);
-        it != lowerCaseFilesMap.end()) {
-        return std::filesystem::path{ it->second };
-    }
-    filePath.replace(filePath.end() - 3, filePath.end(), "wav");
-    if (auto it = lowerCaseFilesMap.find(filePath);
-        it != lowerCaseFilesMap.end()) {
-        return std::filesystem::path{ it->second };
-    }
-    filePath.replace(filePath.end() - 3, filePath.end(), "flac");
-    if (auto it = lowerCaseFilesMap.find(filePath);
-        it != lowerCaseFilesMap.end()) {
-        return std::filesystem::path{ it->second };
-    }
-    filePath.replace(filePath.end() - 4, filePath.end(), "ogg");
-    if (auto it = lowerCaseFilesMap.find(filePath);
-        it != lowerCaseFilesMap.end()) {
-        return std::filesystem::path{ it->second };
-    }
-    filePath.replace(filePath.end() - 3, filePath.end(), "mp3");
-    if (auto it = lowerCaseFilesMap.find(filePath);
-        it != lowerCaseFilesMap.end()) {
-        return std::filesystem::path{ it->second };
-    }
-    return std::nullopt;
-}
-
-auto
-createLowerCaseFilesMap(std::filesystem::path dirToSearch)
-  -> std::unordered_map<std::string, std::filesystem::path>
-{
-    auto lowerCaseFilesMap =
-      std::unordered_map<std::string, std::filesystem::path>{};
-    for (const auto& entry :
-         std::filesystem::recursive_directory_iterator(dirToSearch)) {
-        if (entry.is_regular_file()) {
-            auto path = entry.path();
-            auto pathString = support::pathToUtfString(path.filename());
-            std::ranges::transform(
-              pathString, pathString.begin(), [](unsigned char c) {
-                  return std::tolower(c);
-              });
-            lowerCaseFilesMap.emplace(pathString, path);
-        }
-    }
-    return lowerCaseFilesMap;
-}
 
 auto
 loadBmsSounds(sounds::AudioEngine* engine,
@@ -110,31 +30,23 @@ loadBmsSounds(sounds::AudioEngine* engine,
       std::unordered_map<uint64_t, std::filesystem::path>{};
     wavsActualPaths.reserve(wavs.size());
     auto uniqueSoundPaths = std::unordered_set<std::filesystem::path>{};
-#ifndef _WIN32
-    auto lowerCaseFilesMap = createLowerCaseFilesMap(path);
-#endif
+    const auto resolver = BmsAssetResolver::fromDirectory(path);
+    if (!resolver.valid()) {
+        spdlog::error("BMS asset index failed: {}", resolver.diagnostic());
+        return {};
+    }
     for (const auto& [key, value] : wavs) {
         {
-#ifdef _WIN32
             auto filePath = path / value;
-            auto actualPath = getActualPathWindows(filePath);
-#else
-            auto valueLower = support::pathToUtfString(value);
-            std::ranges::transform(
-              valueLower, valueLower.begin(), [](unsigned char c) {
-                  return std::tolower(c);
-              });
-
-            auto filePath = path / value;
-            auto actualPath = getActualPath(lowerCaseFilesMap, valueLower);
-#endif
-            if (!actualPath) {
+            const auto resolved =
+              resolver.resolve(support::pathToUtfString(value));
+            if (!resolved) {
                 spdlog::warn("File {} not found.",
                              support::pathToUtfString(filePath));
                 continue;
             }
-            wavsActualPaths.emplace(key, *actualPath);
-            uniqueSoundPaths.emplace(std::move(*actualPath));
+            wavsActualPaths.emplace(key, resolved->actualPath);
+            uniqueSoundPaths.emplace(resolved->actualPath);
         }
     }
     std::unordered_map<std::filesystem::path,
@@ -203,26 +115,21 @@ loadBmsonSounds(
     auto channelActualPaths =
       std::unordered_map<uint64_t, std::filesystem::path>{};
     auto uniquePaths = std::unordered_set<std::filesystem::path>{};
-#ifndef _WIN32
-    auto lowerCaseFilesMap = createLowerCaseFilesMap(basePath);
-#endif
+    const auto resolver = BmsAssetResolver::fromDirectory(basePath);
+    if (!resolver.valid()) {
+        spdlog::error("BMSON asset index failed: {}", resolver.diagnostic());
+        return {};
+    }
     for (const auto& [idx, relPath] : channelPaths) {
-#ifdef _WIN32
-        auto actualPath = getActualPathWindows(basePath / relPath);
-#else
-        auto valueLower = support::pathToUtfString(relPath);
-        std::ranges::transform(valueLower,
-                               valueLower.begin(),
-                               [](unsigned char c) { return std::tolower(c); });
-        auto actualPath = getActualPath(lowerCaseFilesMap, valueLower);
-#endif
-        if (!actualPath) {
+        const auto resolved =
+          resolver.resolve(support::pathToUtfString(relPath));
+        if (!resolved) {
             spdlog::warn("Bmson sound not found: {}",
                          support::pathToUtfString(basePath / relPath));
             continue;
         }
-        channelActualPaths.emplace(idx, *actualPath);
-        uniquePaths.emplace(std::move(*actualPath));
+        channelActualPaths.emplace(idx, resolved->actualPath);
+        uniquePaths.emplace(resolved->actualPath);
     }
 
     // 2. Load full buffers in parallel
