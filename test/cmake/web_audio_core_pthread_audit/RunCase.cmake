@@ -68,8 +68,112 @@ elseif (AUDIT_CASE STREQUAL "malformed_response")
             "CMakeFiles/audio.dir/b.cpp.o -c b.cpp\","
             "\"file\":\"b.cpp\","
             "\"output\":\"CMakeFiles/audio.dir/b.cpp.o\"}]")
+elseif (AUDIT_CASE STREQUAL "launcher_shape_drift")
+    string(CONCAT RAW_COMPDB_JSON
+            "[{\"directory\":\"${BINARY_DIR}\","
+            "\"command\":\"em++.bat -pthread -o "
+            "CMakeFiles/audio.dir/a.cpp.o -c a.cpp\","
+            "\"file\":\"a.cpp\","
+            "\"output\":\"CMakeFiles/audio.dir/a.cpp.o\"},"
+            "{\"directory\":\"${BINARY_DIR}\","
+            "\"command\":\"em++.bat -pthread -o "
+            "CMakeFiles/audio.dir/b.cpp.o -c b.cpp\","
+            "\"file\":\"b.cpp\","
+            "\"output\":\"CMakeFiles/audio.dir/b.cpp.o\"}]")
+    string(CONCAT EXPANDED_COMPDB_JSON
+            "[{\"directory\":\"${BINARY_DIR}\","
+            "\"command\":\"python -I -B invoke_emscripten_driver.py "
+            "--driver-kind em++ -- em++.bat -pthread -o "
+            "CMakeFiles/audio.dir/a.cpp.o -c a.cpp\","
+            "\"file\":\"a.cpp\","
+            "\"output\":\"CMakeFiles/audio.dir/a.cpp.o\"},"
+            "{\"directory\":\"${BINARY_DIR}\","
+            "\"command\":\"python -I -B invoke_emscripten_driver.py "
+            "--driver-kind em++ -- em++.bat -pthread -o "
+            "CMakeFiles/audio.dir/b.cpp.o -c b.cpp\","
+            "\"file\":\"b.cpp\","
+            "\"output\":\"CMakeFiles/audio.dir/b.cpp.o\"}]")
 else ()
-    if (AUDIT_CASE STREQUAL "missing_pthread")
+    set(COMPILER_PREFIX "fake++")
+    string(CONCAT A_FLAGS
+            "\"-DQUOTED=value with spaces\" "
+            "-DESCAPED=\\\"value\\\" -pthread")
+    if (AUDIT_CASE MATCHES "^authenticated_launcher$|^launcher_")
+        string(CONCAT COMPILER_PREFIX
+                "python -I -B invoke_emscripten_driver.py "
+                "--lock toolchain-lock.json "
+                "--auditor audit.py "
+                "--emscripten-root emscripten "
+                "--driver-kind em++ -- em++.bat")
+    endif ()
+
+    if (AUDIT_CASE STREQUAL "launcher_pthread_only")
+        string(CONCAT COMPILER_PREFIX
+                "python -I -B invoke_emscripten_driver.py "
+                "--lock -pthread "
+                "--driver-kind em++ -- em++.bat")
+        set(A_FLAGS "-DRESPONSE_OBJECT=1")
+        set(B_FLAGS "-DSECOND_OBJECT=1")
+    elseif (AUDIT_CASE STREQUAL "launcher_missing_delimiter")
+        string(CONCAT COMPILER_PREFIX
+                "python -I -B invoke_emscripten_driver.py "
+                "--driver-kind em++ em++.bat")
+        set(B_FLAGS "-DSECOND_OBJECT=1 -pthread")
+    elseif (AUDIT_CASE STREQUAL "launcher_multiple_driver_kind")
+        string(CONCAT COMPILER_PREFIX
+                "python -I -B invoke_emscripten_driver.py "
+                "--driver-kind em++ --driver-kind em++ -- em++.bat")
+        set(B_FLAGS "-DSECOND_OBJECT=1 -pthread")
+    elseif (AUDIT_CASE STREQUAL "launcher_multiple_adapter")
+        string(CONCAT COMPILER_PREFIX
+                "python -I -B invoke_emscripten_driver.py "
+                "invoke_emscripten_driver.py "
+                "--driver-kind em++ -- em++.bat")
+        set(B_FLAGS "-DSECOND_OBJECT=1 -pthread")
+    elseif (AUDIT_CASE STREQUAL "launcher_missing_adapter")
+        string(CONCAT COMPILER_PREFIX
+                "python -I -B unrelated.py "
+                "--driver-kind em++ -- em++.bat")
+        set(B_FLAGS "-DSECOND_OBJECT=1 -pthread")
+    elseif (AUDIT_CASE STREQUAL "launcher_posix_uppercase_adapter")
+        string(CONCAT COMPILER_PREFIX
+                "python -I -B /tmp/INVOKE_EMSCRIPTEN_DRIVER.PY "
+                "--driver-kind em++ -- em++.bat")
+        set(B_FLAGS "-DSECOND_OBJECT=1 -pthread")
+    elseif (AUDIT_CASE STREQUAL "launcher_posix_uppercase_driver")
+        string(CONCAT COMPILER_PREFIX
+                "python -I -B invoke_emscripten_driver.py "
+                "--driver-kind em++ -- /tmp/EM++.BAT")
+        set(B_FLAGS "-DSECOND_OBJECT=1 -pthread")
+    elseif (AUDIT_CASE STREQUAL "launcher_early_boundary")
+        string(CONCAT COMPILER_PREFIX
+                "python -I -B invoke_emscripten_driver.py -- "
+                "--driver-kind em++ -- em++.bat")
+        set(B_FLAGS "-DSECOND_OBJECT=1 -pthread")
+    elseif (AUDIT_CASE STREQUAL "launcher_ambiguous_boundary")
+        string(CONCAT COMPILER_PREFIX
+                "python -I -B invoke_emscripten_driver.py "
+                "--driver-kind em++ -- -- em++.bat")
+        set(B_FLAGS "-DSECOND_OBJECT=1 -pthread")
+    elseif (AUDIT_CASE STREQUAL "launcher_wrong_driver")
+        string(CONCAT COMPILER_PREFIX
+                "python -I -B invoke_emscripten_driver.py "
+                "--driver-kind em++ -- emcc.bat")
+        set(B_FLAGS "-DSECOND_OBJECT=1 -pthread")
+    elseif (AUDIT_CASE STREQUAL "launcher_wrong_driver_kind")
+        string(CONCAT COMPILER_PREFIX
+                "python -I -B invoke_emscripten_driver.py "
+                "--driver-kind emcc -- em++.bat")
+        set(B_FLAGS "-DSECOND_OBJECT=1 -pthread")
+    elseif (AUDIT_CASE STREQUAL "launcher_missing_driver_kind")
+        string(CONCAT COMPILER_PREFIX
+                "python -I -B invoke_emscripten_driver.py -- em++.bat")
+        set(B_FLAGS "-DSECOND_OBJECT=1 -pthread")
+    elseif (AUDIT_CASE STREQUAL "launcher_compiler_terminator")
+        set(B_FLAGS "-DSECOND_OBJECT=1 -- -pthread")
+    elseif (AUDIT_CASE STREQUAL "launcher_consumed_pthread")
+        set(B_FLAGS "-DSECOND_OBJECT=1 -MT -pthread")
+    elseif (AUDIT_CASE STREQUAL "missing_pthread")
         set(B_FLAGS "\"-DNOTE=unrelated -pthread text\"")
     elseif (AUDIT_CASE STREQUAL "consumed_pthread")
         set(B_FLAGS "-MT -pthread")
@@ -88,19 +192,19 @@ else ()
 ninja_required_version = 1.13
 
 rule response_compile
-  command = fake++ @$RSP_FILE -MD -MT $out -o $out -c $in
+  command = @COMPILER_PREFIX@ @$RSP_FILE -MD -MT $out -o $out -c $in
   rspfile = $RSP_FILE
   rspfile_content = $flags
 
 rule direct_compile
-  command = fake++ $flags -MD -MT $out -o $out -c $in
+  command = @COMPILER_PREFIX@ $flags -MD -MT $out -o $out -c $in
 
 rule unrelated
   command = fake-note $flags
 
 build CMakeFiles/audio.dir/a.cpp.o: response_compile a.cpp
   RSP_FILE = @A_RSPFILE@
-  flags = "-DQUOTED=value with spaces" -DESCAPED=\"value\" -pthread
+  flags = @A_FLAGS@
 
 build CMakeFiles/audio.dir/b.cpp.o: direct_compile b.cpp
   flags = @B_FLAGS@

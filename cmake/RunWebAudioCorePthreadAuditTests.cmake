@@ -24,10 +24,26 @@ file(MAKE_DIRECTORY "${TEST_BINARY_ROOT}")
 set(case_script
         "${SOURCE_ROOT}/test/cmake/web_audio_core_pthread_audit/RunCase.cmake")
 set(success_cases
-        response_and_direct)
+        response_and_direct
+        authenticated_launcher)
 set(failure_cases
         missing_pthread
         consumed_pthread
+        launcher_pthread_only
+        launcher_missing_delimiter
+        launcher_multiple_driver_kind
+        launcher_multiple_adapter
+        launcher_missing_adapter
+        launcher_posix_uppercase_adapter
+        launcher_posix_uppercase_driver
+        launcher_early_boundary
+        launcher_ambiguous_boundary
+        launcher_wrong_driver
+        launcher_wrong_driver_kind
+        launcher_missing_driver_kind
+        launcher_compiler_terminator
+        launcher_consumed_pthread
+        launcher_shape_drift
         outside_response
         malformed_response
         response_directory
@@ -82,6 +98,91 @@ foreach (audit_case IN LISTS
             "audio compile command omits effective expanded.*-pthread.*b[.]cpp[.]o")
         message(FATAL_ERROR
                 "consumed_pthread failed without the effective-option "
+                "diagnostic:\n${case_output}")
+    elseif (audit_case STREQUAL "launcher_pthread_only" AND
+            NOT case_output MATCHES
+            "audio compile command omits effective expanded.*-pthread.*a[.]cpp[.]o")
+        message(FATAL_ERROR
+                "launcher_pthread_only failed without the compiler-argument "
+                "diagnostic:\n${case_output}")
+    elseif (audit_case STREQUAL "launcher_missing_delimiter" AND
+            NOT case_output MATCHES
+            "authenticated launcher must place -- immediately after --driver-kind em[+][+]")
+        message(FATAL_ERROR
+                "launcher_missing_delimiter failed without the boundary "
+                "diagnostic:\n${case_output}")
+    elseif (audit_case STREQUAL "launcher_multiple_driver_kind" AND
+            NOT case_output MATCHES
+            "authenticated launcher has multiple --driver-kind options")
+        message(FATAL_ERROR
+                "launcher_multiple_driver_kind failed without the "
+                "multiplicity diagnostic:\n${case_output}")
+    elseif (audit_case STREQUAL "launcher_multiple_adapter" AND
+            NOT case_output MATCHES
+            "authenticated launcher has multiple invoke_emscripten_driver[.]py arguments")
+        message(FATAL_ERROR
+                "launcher_multiple_adapter failed without the multiplicity "
+                "diagnostic:\n${case_output}")
+    elseif (audit_case STREQUAL "launcher_missing_adapter" AND
+            NOT case_output MATCHES
+            "has --driver-kind without the authenticated invoke_emscripten_driver[.]py")
+        message(FATAL_ERROR
+                "launcher_missing_adapter failed without the adapter "
+                "diagnostic:\n${case_output}")
+    elseif (audit_case STREQUAL "launcher_posix_uppercase_adapter" AND
+            NOT case_output MATCHES
+            "has --driver-kind without the authenticated invoke_emscripten_driver[.]py")
+        message(FATAL_ERROR
+                "launcher_posix_uppercase_adapter failed without the "
+                "case-sensitive adapter diagnostic:\n${case_output}")
+    elseif (audit_case STREQUAL "launcher_posix_uppercase_driver" AND
+            NOT case_output MATCHES
+            "authenticated launcher compiler is not em[+][+]")
+        message(FATAL_ERROR
+                "launcher_posix_uppercase_driver failed without the "
+                "case-sensitive driver diagnostic:\n${case_output}")
+    elseif (audit_case STREQUAL "launcher_early_boundary" AND
+            NOT case_output MATCHES
+            "authenticated launcher has an ambiguous compiler boundary")
+        message(FATAL_ERROR
+                "launcher_early_boundary failed without the boundary "
+                "diagnostic:\n${case_output}")
+    elseif (audit_case STREQUAL "launcher_ambiguous_boundary" AND
+            NOT case_output MATCHES
+            "authenticated launcher has an ambiguous compiler boundary")
+        message(FATAL_ERROR
+                "launcher_ambiguous_boundary failed without the boundary "
+                "diagnostic:\n${case_output}")
+    elseif (audit_case STREQUAL "launcher_wrong_driver" AND
+            NOT case_output MATCHES
+            "authenticated launcher compiler is not em[+][+]")
+        message(FATAL_ERROR
+                "launcher_wrong_driver failed without the driver "
+                "diagnostic:\n${case_output}")
+    elseif (audit_case STREQUAL "launcher_wrong_driver_kind" AND
+            NOT case_output MATCHES
+            "authenticated launcher --driver-kind must be em[+][+]")
+        message(FATAL_ERROR
+                "launcher_wrong_driver_kind failed without the kind value "
+                "diagnostic:\n${case_output}")
+    elseif (audit_case STREQUAL "launcher_missing_driver_kind" AND
+            NOT case_output MATCHES
+            "authenticated launcher is missing --driver-kind")
+        message(FATAL_ERROR
+                "launcher_missing_driver_kind failed without the kind "
+                "diagnostic:\n${case_output}")
+    elseif (audit_case MATCHES
+            "^launcher_(compiler_terminator|consumed_pthread)$" AND
+            NOT case_output MATCHES
+            "audio compile command omits effective expanded.*-pthread.*b[.]cpp[.]o")
+        message(FATAL_ERROR
+                "${audit_case} failed without the effective compiler-option "
+                "diagnostic:\n${case_output}")
+    elseif (audit_case STREQUAL "launcher_shape_drift" AND
+            NOT case_output MATCHES
+            "raw/expanded authenticated-launcher shape differs")
+        message(FATAL_ERROR
+                "launcher_shape_drift failed without the database-shape "
                 "diagnostic:\n${case_output}")
     elseif (audit_case STREQUAL "outside_response" AND
             NOT case_output MATCHES

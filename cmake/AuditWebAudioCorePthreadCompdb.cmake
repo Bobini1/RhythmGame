@@ -77,6 +77,161 @@ function(rhythmgame_require_binary_location candidate description)
     endif ()
 endfunction()
 
+function(rhythmgame_command_filename argument output_variable)
+    string(REPLACE "\\" "/" normalized_argument "${argument}")
+    string(REGEX REPLACE "^.*/" ""
+            comparable_filename "${normalized_argument}")
+
+    # Native Windows commands are case-insensitive. Keep POSIX-shaped paths
+    # case-sensitive even when this script is exercised by CMake on Windows.
+    if (WIN32 AND
+            (NOT normalized_argument MATCHES "^/" OR
+            normalized_argument MATCHES "^//"))
+        string(TOLOWER "${comparable_filename}"
+                comparable_filename)
+    endif ()
+    set("${output_variable}" "${comparable_filename}" PARENT_SCOPE)
+endfunction()
+
+function(rhythmgame_select_compiler_arguments
+        arguments_variable
+        output_variable
+        launcher_output_variable
+        command_description)
+    # The adapter's delimiter is not the compiler's option terminator.
+    # Authenticate that boundary first, then audit only the compiler argv.
+    set(command_arguments "${${arguments_variable}}")
+    set(adapter_indices)
+    set(driver_kind_indices)
+    list(LENGTH command_arguments command_argument_count)
+    if (command_argument_count GREATER 0)
+        math(EXPR last_command_argument_index
+                "${command_argument_count} - 1")
+        foreach (argument_index RANGE
+                0 ${last_command_argument_index})
+            list(GET command_arguments
+                    ${argument_index} argument)
+            rhythmgame_command_filename(
+                    "${argument}" comparable_argument_filename)
+            if (comparable_argument_filename STREQUAL
+                    "invoke_emscripten_driver.py")
+                list(APPEND adapter_indices ${argument_index})
+            endif ()
+            if (argument STREQUAL "--driver-kind")
+                list(APPEND driver_kind_indices ${argument_index})
+            endif ()
+        endforeach ()
+    endif ()
+
+    list(LENGTH adapter_indices adapter_count)
+    list(LENGTH driver_kind_indices driver_kind_count)
+    if (adapter_count EQUAL 0 AND driver_kind_count EQUAL 0)
+        set("${output_variable}" "${command_arguments}" PARENT_SCOPE)
+        set("${launcher_output_variable}" FALSE PARENT_SCOPE)
+        return()
+    endif ()
+
+    if (adapter_count EQUAL 0)
+        message(FATAL_ERROR
+                "${command_description} has --driver-kind without the "
+                "authenticated invoke_emscripten_driver.py launcher")
+    elseif (adapter_count GREATER 1)
+        message(FATAL_ERROR
+                "${command_description} authenticated launcher has "
+                "multiple invoke_emscripten_driver.py arguments")
+    endif ()
+    if (driver_kind_count EQUAL 0)
+        message(FATAL_ERROR
+                "${command_description} authenticated launcher is "
+                "missing --driver-kind")
+    elseif (driver_kind_count GREATER 1)
+        message(FATAL_ERROR
+                "${command_description} authenticated launcher has "
+                "multiple --driver-kind options")
+    endif ()
+
+    list(GET adapter_indices 0 adapter_index)
+    list(GET driver_kind_indices 0 driver_kind_index)
+    if (NOT adapter_index LESS driver_kind_index)
+        message(FATAL_ERROR
+                "${command_description} authenticated launcher places "
+                "--driver-kind before invoke_emscripten_driver.py")
+    endif ()
+
+    math(EXPR driver_kind_value_index
+            "${driver_kind_index} + 1")
+    if (NOT driver_kind_value_index LESS command_argument_count)
+        message(FATAL_ERROR
+                "${command_description} authenticated launcher has no "
+                "value for --driver-kind")
+    endif ()
+    list(GET command_arguments
+            ${driver_kind_value_index} driver_kind)
+    if (NOT driver_kind STREQUAL "em++")
+        message(FATAL_ERROR
+                "${command_description} authenticated launcher "
+                "--driver-kind must be em++, not ${driver_kind}")
+    endif ()
+
+    math(EXPR launcher_boundary_index
+            "${driver_kind_value_index} + 1")
+    if (NOT launcher_boundary_index LESS command_argument_count)
+        message(FATAL_ERROR
+                "${command_description} authenticated launcher must "
+                "place -- immediately after --driver-kind em++")
+    endif ()
+    list(GET command_arguments
+            ${launcher_boundary_index} launcher_boundary)
+    if (NOT launcher_boundary STREQUAL "--")
+        message(FATAL_ERROR
+                "${command_description} authenticated launcher must "
+                "place -- immediately after --driver-kind em++")
+    endif ()
+
+    if (launcher_boundary_index GREATER 0)
+        math(EXPR launcher_argument_last_index
+                "${launcher_boundary_index} - 1")
+        foreach (launcher_argument_index RANGE
+                0 ${launcher_argument_last_index})
+            list(GET command_arguments
+                    ${launcher_argument_index} launcher_argument)
+            if (launcher_argument STREQUAL "--")
+                message(FATAL_ERROR
+                        "${command_description} authenticated launcher "
+                        "has an ambiguous compiler boundary")
+            endif ()
+        endforeach ()
+    endif ()
+
+    math(EXPR compiler_driver_index
+            "${launcher_boundary_index} + 1")
+    if (NOT compiler_driver_index LESS command_argument_count)
+        message(FATAL_ERROR
+                "${command_description} authenticated launcher has no "
+                "compiler after its boundary")
+    endif ()
+    list(GET command_arguments
+            ${compiler_driver_index} compiler_driver)
+    if (compiler_driver STREQUAL "--")
+        message(FATAL_ERROR
+                "${command_description} authenticated launcher has an "
+                "ambiguous compiler boundary")
+    endif ()
+    rhythmgame_command_filename(
+            "${compiler_driver}" comparable_compiler_driver_filename)
+    if (NOT comparable_compiler_driver_filename STREQUAL "em++" AND
+            NOT comparable_compiler_driver_filename STREQUAL "em++.bat")
+        message(FATAL_ERROR
+                "${command_description} authenticated launcher compiler "
+                "is not em++: ${compiler_driver}")
+    endif ()
+
+    list(SUBLIST command_arguments
+            ${compiler_driver_index} -1 compiler_arguments)
+    set("${output_variable}" "${compiler_arguments}" PARENT_SCOPE)
+    set("${launcher_output_variable}" TRUE PARENT_SCOPE)
+endfunction()
+
 function(rhythmgame_has_effective_pthread
         arguments_variable output_variable)
     set(options_with_separate_value
@@ -453,7 +608,26 @@ foreach (comparable_target_object IN LISTS comparable_target_objects)
                 UNIX_COMMAND "${expanded_target_command}")
     endif ()
 
-    foreach (compile_arguments raw_arguments expanded_arguments)
+    rhythmgame_select_compiler_arguments(
+            raw_arguments
+            raw_compiler_arguments
+            raw_uses_authenticated_launcher
+            "${TARGET_NAME} raw command for ${raw_target_output}")
+    rhythmgame_select_compiler_arguments(
+            expanded_arguments
+            expanded_compiler_arguments
+            expanded_uses_authenticated_launcher
+            "${TARGET_NAME} expanded command for ${expanded_target_output}")
+    if (NOT raw_uses_authenticated_launcher STREQUAL
+            expanded_uses_authenticated_launcher)
+        message(FATAL_ERROR
+                "${TARGET_NAME} raw/expanded authenticated-launcher shape "
+                "differs for ${expanded_target_output}")
+    endif ()
+
+    foreach (compile_arguments
+            raw_compiler_arguments
+            expanded_compiler_arguments)
         if (NOT "-c" IN_LIST "${compile_arguments}")
             message(FATAL_ERROR
                     "${TARGET_NAME} compilation database record is not a "
@@ -463,7 +637,7 @@ foreach (comparable_target_object IN LISTS comparable_target_objects)
     endforeach ()
 
     rhythmgame_has_effective_pthread(
-            expanded_arguments expanded_pthread_found)
+            expanded_compiler_arguments expanded_pthread_found)
     if (NOT expanded_pthread_found)
         message(FATAL_ERROR
                 "${TARGET_NAME} compile command omits effective expanded "
@@ -473,7 +647,7 @@ foreach (comparable_target_object IN LISTS comparable_target_objects)
     endif ()
 
     set(response_arguments)
-    foreach (raw_argument IN LISTS raw_arguments)
+    foreach (raw_argument IN LISTS raw_compiler_arguments)
         if (raw_argument MATCHES "^@")
             list(APPEND response_arguments "${raw_argument}")
         endif ()
@@ -543,7 +717,7 @@ foreach (comparable_target_object IN LISTS comparable_target_objects)
     endforeach ()
 
     rhythmgame_has_effective_pthread(
-            raw_arguments raw_pthread_found)
+            raw_compiler_arguments raw_pthread_found)
     if (response_argument_count EQUAL 0 AND
             NOT raw_pthread_found)
         message(FATAL_ERROR
