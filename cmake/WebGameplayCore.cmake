@@ -92,6 +92,32 @@ set(RHYTHMGAME_WEB_GAMEPLAY_CORE_FORBIDDEN_LINK_PATTERN
         "sqlite|vars|miniaudio|audioengine|profile|chartrunner|bga|multimedia|llfio|wil|rhythmgame_lib"
 )
 
+option(
+        RHYTHMGAME_REQUIRE_WEB_GAMEPLAY_DEPENDENCY_CONTRACT
+        "Require Ninja compiler-dependency auditing for the portable gameplay target"
+        OFF
+)
+
+function(rhythmgame_web_gameplay_core_extract_target_candidates
+        link_item output_variable)
+    set(target_candidates)
+    if (TARGET "${link_item}")
+        list(APPEND target_candidates "${link_item}")
+    endif ()
+
+    string(REGEX MATCHALL
+            "[-A-Za-z0-9_.+]+(::[-A-Za-z0-9_.+]+)*"
+            link_tokens
+            "${link_item}")
+    foreach (link_token IN LISTS link_tokens)
+        if (TARGET "${link_token}")
+            list(APPEND target_candidates "${link_token}")
+        endif ()
+    endforeach ()
+    list(REMOVE_DUPLICATES target_candidates)
+    set("${output_variable}" "${target_candidates}" PARENT_SCOPE)
+endfunction()
+
 function(rhythmgame_web_gameplay_core_check_link_closure target)
     set(pending_targets ${target})
     set(visited_targets)
@@ -117,9 +143,9 @@ function(rhythmgame_web_gameplay_core_check_link_closure target)
                             "${target} has forbidden ${property} dependency "
                             "${current_target} -> ${link}")
                 endif ()
-                if (TARGET "${link}")
-                    list(APPEND pending_targets "${link}")
-                endif ()
+                rhythmgame_web_gameplay_core_extract_target_candidates(
+                        "${link}" link_target_candidates)
+                list(APPEND pending_targets ${link_target_candidates})
             endforeach ()
         endforeach ()
     endwhile ()
@@ -252,4 +278,30 @@ function(rhythmgame_add_web_gameplay_core target)
             VERBATIM
     )
     add_dependencies("${target}" "${target}_source_contract")
+
+    if (RHYTHMGAME_REQUIRE_WEB_GAMEPLAY_DEPENDENCY_CONTRACT)
+        if (NOT CMAKE_GENERATOR MATCHES "^Ninja")
+            message(FATAL_ERROR
+                    "RHYTHMGAME_REQUIRE_WEB_GAMEPLAY_DEPENDENCY_CONTRACT "
+                    "requires a Ninja generator; ${CMAKE_GENERATOR} does not "
+                    "expose compiler-ingested dependencies through "
+                    "'ninja -t deps'")
+        endif ()
+        add_custom_target("${target}_dependency_contract"
+                COMMAND ${CMAKE_COMMAND}
+                "-DSOURCE_ROOT=${RHYTHMGAME_WEB_GAMEPLAY_CORE_ROOT}"
+                "-DBINARY_DIR=${CMAKE_BINARY_DIR}"
+                "-DNINJA_PROGRAM=${CMAKE_MAKE_PROGRAM}"
+                "-DTARGET_NAME=${target}"
+                -P
+                "${RHYTHMGAME_WEB_GAMEPLAY_CORE_ROOT}/cmake/CheckWebGameplayCoreDependencies.cmake"
+                VERBATIM
+        )
+        add_dependencies("${target}_dependency_contract" "${target}")
+    else ()
+        message(STATUS
+                "${target}: Ninja compiler-dependency audit is not active; "
+                "set RHYTHMGAME_REQUIRE_WEB_GAMEPLAY_DEPENDENCY_CONTRACT=ON "
+                "for browser and contract-verification builds")
+    endif ()
 endfunction()

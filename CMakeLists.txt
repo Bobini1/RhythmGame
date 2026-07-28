@@ -486,6 +486,12 @@ if (NOT EMSCRIPTEN)
             RhythmGame_web_gameplay_core
             Qt6::Core
     )
+    if (TARGET RhythmGame_web_gameplay_core_dependency_contract)
+        add_dependencies(
+                RhythmGame_web_playtest_trace
+                RhythmGame_web_gameplay_core_dependency_contract
+        )
+    endif ()
     set_target_properties(
             RhythmGame_web_playtest_trace PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"

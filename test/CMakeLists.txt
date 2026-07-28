@@ -77,6 +77,12 @@ add_dependencies(
         RhythmGame_web_gameplay_core_test
         RhythmGame_web_gameplay_core_source_contract
 )
+if (TARGET RhythmGame_web_gameplay_core_dependency_contract)
+    add_dependencies(
+            RhythmGame_web_gameplay_core_test
+            RhythmGame_web_gameplay_core_dependency_contract
+    )
+endif ()
 
 add_library(PortableGameplayHeaders_compile OBJECT
         resource_managers/PortableGameplayHeaders.compile.cpp
@@ -152,6 +158,23 @@ add_test(
         "-DSOURCE_MANIFEST=${CMAKE_BINARY_DIR}/RhythmGame_web_gameplay_core-sources.txt"
         -P "${CMAKE_SOURCE_DIR}/cmake/CheckWebGameplayCore.cmake"
 )
+if (CMAKE_GENERATOR MATCHES "^Ninja")
+    add_test(
+            NAME WebGameplayCore_negative_dependency_contracts
+            COMMAND ${CMAKE_COMMAND}
+            "-DSOURCE_ROOT=${CMAKE_SOURCE_DIR}"
+            "-DTEST_BINARY_ROOT=${CMAKE_BINARY_DIR}/web-gameplay-core-negative-contracts"
+            "-DNINJA_PROGRAM=${CMAKE_MAKE_PROGRAM}"
+            "-DDEPENDENCY_PREFIX=${CMAKE_PREFIX_PATH}"
+            "-DNESTED_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            "-DNESTED_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
+            "-DVCPKG_INSTALLED_DIR=${_VCPKG_INSTALLED_DIR}"
+            "-DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET}"
+            "-DVCPKG_HOST_TRIPLET=${VCPKG_HOST_TRIPLET}"
+            -P
+            "${CMAKE_SOURCE_DIR}/cmake/RunWebGameplayCoreNegativeContractTests.cmake"
+    )
+endif ()
 # ---- End-of-file commands ----
 
 add_folders(Test)
