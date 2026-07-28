@@ -56,6 +56,15 @@ function(rhythmgame_web_audio_core_extract_target_candidates
     set("${output_variable}" "${target_candidates}" PARENT_SCOPE)
 endfunction()
 
+function(rhythmgame_web_audio_core_get_target_property
+        target property output_variable)
+    get_target_property(property_value "${target}" "${property}")
+    if (property_value MATCHES "-NOTFOUND$")
+        set(property_value)
+    endif ()
+    set("${output_variable}" "${property_value}" PARENT_SCOPE)
+endfunction()
+
 function(rhythmgame_web_audio_core_check_link_closure target)
     set(pending_targets ${target})
     set(visited_targets)
@@ -68,9 +77,14 @@ function(rhythmgame_web_audio_core_check_link_closure target)
         endif ()
         list(APPEND visited_targets "${current_target}")
 
-        foreach (property LINK_LIBRARIES INTERFACE_LINK_LIBRARIES)
-            get_target_property(links "${current_target}" "${property}")
-            if (NOT links OR links MATCHES "-NOTFOUND$")
+        foreach (property
+                LINK_LIBRARIES
+                INTERFACE_LINK_LIBRARIES
+                INTERFACE_LINK_LIBRARIES_DIRECT
+                INTERFACE_LINK_LIBRARIES_DIRECT_EXCLUDE)
+            rhythmgame_web_audio_core_get_target_property(
+                    "${current_target}" "${property}" links)
+            if (NOT links)
                 continue()
             endif ()
             foreach (link IN LISTS links)
@@ -104,7 +118,8 @@ function(rhythmgame_verify_web_audio_core_target target)
                 "${target} must be a static library, got ${target_type}")
     endif ()
 
-    get_target_property(actual_sources "${target}" SOURCES)
+    rhythmgame_web_audio_core_get_target_property(
+            "${target}" SOURCES actual_sources)
     set(expected_sources ${RHYTHMGAME_WEB_AUDIO_CORE_SOURCES})
     list(SORT actual_sources)
     list(SORT expected_sources)
@@ -113,10 +128,11 @@ function(rhythmgame_verify_web_audio_core_target target)
                 "${target} source closure differs from WebAudioCore.cmake")
     endif ()
 
-    get_target_property(actual_compile_definitions
-            "${target}" COMPILE_DEFINITIONS)
-    get_target_property(actual_interface_compile_definitions
-            "${target}" INTERFACE_COMPILE_DEFINITIONS)
+    rhythmgame_web_audio_core_get_target_property(
+            "${target}" COMPILE_DEFINITIONS actual_compile_definitions)
+    rhythmgame_web_audio_core_get_target_property(
+            "${target}" INTERFACE_COMPILE_DEFINITIONS
+            actual_interface_compile_definitions)
     set(expected_compile_definitions NOMINMAX)
     list(SORT actual_compile_definitions)
     list(SORT actual_interface_compile_definitions)
@@ -129,10 +145,11 @@ function(rhythmgame_verify_web_audio_core_target target)
                 "${target} must define and export exactly NOMINMAX")
     endif ()
 
-    get_target_property(actual_compile_features
-            "${target}" COMPILE_FEATURES)
-    get_target_property(actual_interface_compile_features
-            "${target}" INTERFACE_COMPILE_FEATURES)
+    rhythmgame_web_audio_core_get_target_property(
+            "${target}" COMPILE_FEATURES actual_compile_features)
+    rhythmgame_web_audio_core_get_target_property(
+            "${target}" INTERFACE_COMPILE_FEATURES
+            actual_interface_compile_features)
     set(expected_compile_features cxx_std_23)
     if (NOT actual_compile_features STREQUAL expected_compile_features OR
             NOT actual_interface_compile_features STREQUAL
@@ -141,10 +158,11 @@ function(rhythmgame_verify_web_audio_core_target target)
                 "${target} must require and export exactly cxx_std_23")
     endif ()
 
-    get_target_property(actual_include_directories
-            "${target}" INCLUDE_DIRECTORIES)
-    get_target_property(actual_interface_include_directories
-            "${target}" INTERFACE_INCLUDE_DIRECTORIES)
+    rhythmgame_web_audio_core_get_target_property(
+            "${target}" INCLUDE_DIRECTORIES actual_include_directories)
+    rhythmgame_web_audio_core_get_target_property(
+            "${target}" INTERFACE_INCLUDE_DIRECTORIES
+            actual_interface_include_directories)
     set(expected_include_directories
             "$<BUILD_INTERFACE:${RHYTHMGAME_WEB_AUDIO_CORE_ROOT}/src>")
     if (NOT actual_include_directories STREQUAL
@@ -156,15 +174,48 @@ function(rhythmgame_verify_web_audio_core_target target)
                 "BUILD_INTERFACE include")
     endif ()
 
-    get_target_property(actual_links "${target}" LINK_LIBRARIES)
+    rhythmgame_web_audio_core_get_target_property(
+            "${target}" LINK_LIBRARIES actual_links)
+    rhythmgame_web_audio_core_get_target_property(
+            "${target}" INTERFACE_LINK_LIBRARIES actual_interface_links)
+    rhythmgame_web_audio_core_get_target_property(
+            "${target}" INTERFACE_LINK_LIBRARIES_DIRECT actual_direct_links)
+    rhythmgame_web_audio_core_get_target_property(
+            "${target}" INTERFACE_LINK_LIBRARIES_DIRECT_EXCLUDE
+            actual_direct_link_excludes)
     set(expected_links Qt6::Core)
     list(SORT actual_links)
+    list(SORT actual_interface_links)
     list(SORT expected_links)
-    if (NOT actual_links STREQUAL expected_links)
+    if (NOT actual_links STREQUAL expected_links OR
+            NOT actual_interface_links STREQUAL expected_links OR
+            actual_direct_links OR actual_direct_link_excludes)
         message(FATAL_ERROR
-                "${target} direct link closure differs from "
-                "WebAudioCore.cmake: ${actual_links}")
+                "${target} own link properties differ from WebAudioCore.cmake: "
+                "LINK_LIBRARIES=${actual_links}; "
+                "INTERFACE_LINK_LIBRARIES=${actual_interface_links}; "
+                "INTERFACE_LINK_LIBRARIES_DIRECT=${actual_direct_links}; "
+                "INTERFACE_LINK_LIBRARIES_DIRECT_EXCLUDE="
+                "${actual_direct_link_excludes}")
     endif ()
+
+    set(expected_options)
+    if (EMSCRIPTEN)
+        set(expected_options -pthread)
+    endif ()
+    foreach (property
+            COMPILE_OPTIONS
+            INTERFACE_COMPILE_OPTIONS
+            LINK_OPTIONS
+            INTERFACE_LINK_OPTIONS)
+        rhythmgame_web_audio_core_get_target_property(
+                "${target}" "${property}" actual_options)
+        if (NOT "${actual_options}" STREQUAL "${expected_options}")
+            message(FATAL_ERROR
+                    "${target} must own exact ${property}="
+                    "${expected_options}, got ${actual_options}")
+        endif ()
+    endforeach ()
 
     rhythmgame_web_audio_core_check_link_closure("${target}")
 
@@ -178,8 +229,9 @@ endfunction()
 
 function(rhythmgame_add_web_audio_core target)
     if (TARGET "${target}")
-        rhythmgame_verify_web_audio_core_target("${target}")
-        return()
+        message(FATAL_ERROR
+                "${target} already exists; WebAudioCore.cmake must create and "
+                "own the portable audio target")
     endif ()
 
     add_library("${target}" STATIC ${RHYTHMGAME_WEB_AUDIO_CORE_SOURCES})
@@ -188,8 +240,14 @@ function(rhythmgame_add_web_audio_core target)
     target_include_directories("${target}" PUBLIC
             "$<BUILD_INTERFACE:${RHYTHMGAME_WEB_AUDIO_CORE_ROOT}/src>")
     target_link_libraries("${target}" PUBLIC Qt6::Core)
+    if (EMSCRIPTEN)
+        target_compile_options("${target}" PUBLIC -pthread)
+        target_link_options("${target}" PUBLIC -pthread)
+    endif ()
 
     rhythmgame_verify_web_audio_core_target("${target}")
+    cmake_language(EVAL CODE
+            "cmake_language(DEFER CALL rhythmgame_verify_web_audio_core_target [[${target}]])")
 
     set(source_manifest
             "${CMAKE_CURRENT_BINARY_DIR}/${target}-sources.txt")
@@ -219,6 +277,24 @@ function(rhythmgame_add_web_audio_core target)
                 "${CMAKE_CURRENT_BINARY_DIR}/${target}-dependency-contract.stamp")
         set(dependency_contract_anchor_source
                 "${RHYTHMGAME_WEB_AUDIO_CORE_ROOT}/src/web_playtest/audio/RealtimeMixer.cpp")
+        set(dependency_contract_objdump "${CMAKE_OBJDUMP}")
+        if (EMSCRIPTEN AND
+                (NOT EXISTS "${dependency_contract_objdump}"))
+            get_filename_component(
+                    emscripten_driver_directory
+                    "${CMAKE_CXX_COMPILER}"
+                    DIRECTORY)
+            find_program(
+                    dependency_contract_objdump
+                    NAMES llvm-objdump llvm-objdump.exe
+                    HINTS "${emscripten_driver_directory}/../bin"
+                    NO_DEFAULT_PATH)
+            if (NOT dependency_contract_objdump)
+                message(FATAL_ERROR
+                        "Could not find pinned llvm-objdump next to "
+                        "${CMAKE_CXX_COMPILER}")
+            endif ()
+        endif ()
         set_property(SOURCE "${dependency_contract_anchor_source}"
                 APPEND PROPERTY OBJECT_DEPENDS
                 "${dependency_contract_script}")
@@ -231,6 +307,8 @@ function(rhythmgame_add_web_audio_core target)
                 "-DBINARY_DIR=${CMAKE_BINARY_DIR}"
                 "-DNINJA_PROGRAM=${CMAKE_MAKE_PROGRAM}"
                 "-DTARGET_NAME=${target}"
+                "-DREQUIRE_PTHREAD=${EMSCRIPTEN}"
+                "-DOBJDUMP_PROGRAM=${dependency_contract_objdump}"
                 -P
                 "${dependency_contract_script}"
                 COMMAND ${CMAKE_COMMAND} -E touch

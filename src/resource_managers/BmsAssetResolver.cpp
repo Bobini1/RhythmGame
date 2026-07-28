@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
 #include <map>
 #include <stdexcept>
 

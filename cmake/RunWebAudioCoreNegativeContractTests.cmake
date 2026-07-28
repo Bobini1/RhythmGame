@@ -56,59 +56,70 @@ elseif (DEFINED NESTED_CXX_COMPILER AND
     list(APPEND base_configure_command
             "-DCMAKE_CXX_COMPILER=${NESTED_CXX_COMPILER}")
 endif ()
+foreach (forwarded_variable
+        VCPKG_CHAINLOAD_TOOLCHAIN_FILE
+        VCPKG_OVERLAY_TRIPLETS
+        VCPKG_OVERLAY_PORTS)
+    if (DEFINED "${forwarded_variable}" AND
+            NOT "${${forwarded_variable}}" STREQUAL "")
+        string(REPLACE ";" "\\;" forwarded_value
+                "${${forwarded_variable}}")
+        list(APPEND base_configure_command
+                "-D${forwarded_variable}=${forwarded_value}")
+    endif ()
+endforeach ()
 
 file(REMOVE_RECURSE "${TEST_BINARY_ROOT}")
 file(MAKE_DIRECTORY "${TEST_BINARY_ROOT}")
 
-set(link_build "${TEST_BINARY_ROOT}/nested-link")
-execute_process(
-        COMMAND
-        ${base_configure_command}
-        -B "${link_build}"
-        -DCONTRACT_CASE=nested_forbidden_link
-        RESULT_VARIABLE link_result
-        OUTPUT_VARIABLE link_stdout
-        ERROR_VARIABLE link_stderr
-        ENCODING UTF-8
+set(configure_failure_cases
+        preexisting_target
+        late_source
+        late_definition
+        late_include
+        late_private_link
+        late_interface_link
+        late_direct_link
+        late_direct_exclude
+        late_created_helper
 )
-set(link_output "${link_stdout}\n${link_stderr}")
-if (link_result EQUAL 0)
-    message(FATAL_ERROR
-            "Nested generator-expression dependency injection unexpectedly "
-            "passed configure")
-endif ()
-if (NOT link_output MATCHES
-        "RhythmGame_contract_hidden_helper -> SQLiteCpp")
-    message(FATAL_ERROR
-            "Nested dependency test failed without the link-contract "
-            "diagnostic:\n${link_output}")
-endif ()
-
-set(compile_contract_build
-        "${TEST_BINARY_ROOT}/missing-compile-contract")
-execute_process(
-        COMMAND
-        ${base_configure_command}
-        -B "${compile_contract_build}"
-        -DCONTRACT_CASE=missing_compile_contract
-        RESULT_VARIABLE compile_contract_result
-        OUTPUT_VARIABLE compile_contract_stdout
-        ERROR_VARIABLE compile_contract_stderr
-        ENCODING UTF-8
-)
-set(compile_contract_output
-        "${compile_contract_stdout}\n${compile_contract_stderr}")
-if (compile_contract_result EQUAL 0)
-    message(FATAL_ERROR
-            "Pre-existing target without the compile contract unexpectedly "
-            "passed configure")
-endif ()
-if (NOT compile_contract_output MATCHES
-        "must define and export exactly NOMINMAX")
-    message(FATAL_ERROR
-            "Missing-compile-contract test failed without the target "
-            "verifier diagnostic:\n${compile_contract_output}")
-endif ()
+foreach (contract_case IN LISTS configure_failure_cases)
+    set(contract_build "${TEST_BINARY_ROOT}/${contract_case}")
+    execute_process(
+            COMMAND
+            ${base_configure_command}
+            -B "${contract_build}"
+            "-DCONTRACT_CASE=${contract_case}"
+            RESULT_VARIABLE contract_result
+            OUTPUT_VARIABLE contract_stdout
+            ERROR_VARIABLE contract_stderr
+            ENCODING UTF-8
+    )
+    set(contract_output "${contract_stdout}\n${contract_stderr}")
+    if (contract_result EQUAL 0)
+        message(FATAL_ERROR
+                "${contract_case} unexpectedly passed final-state configure "
+                "verification")
+    endif ()
+    if (NOT contract_output MATCHES "RhythmGame_web_audio_core")
+        message(FATAL_ERROR
+                "${contract_case} failed without a portable-target "
+                "diagnostic:\n${contract_output}")
+    endif ()
+    if (contract_case STREQUAL "preexisting_target" AND
+            NOT contract_output MATCHES "already exists")
+        message(FATAL_ERROR
+                "preexisting_target did not report ownership rejection:\n"
+                "${contract_output}")
+    endif ()
+    if (contract_case STREQUAL "late_created_helper" AND
+            NOT contract_output MATCHES
+            "RhythmGame_contract_late_helper -> SQLiteCpp")
+        message(FATAL_ERROR
+                "late_created_helper did not report the transitive forbidden "
+                "dependency:\n${contract_output}")
+    endif ()
+endforeach ()
 
 set(header_build "${TEST_BINARY_ROOT}/forbidden-header")
 execute_process(

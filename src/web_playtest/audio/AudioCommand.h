@@ -8,6 +8,10 @@
 #include <cstdint>
 #include <limits>
 
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
+#error "The web audio core requires Emscripten pthread atomics"
+#endif
+
 namespace web_playtest {
 
 static_assert(std::atomic<std::uint64_t>::is_always_lock_free);
@@ -181,7 +185,6 @@ class AudioTransport
                                         std::memory_order_relaxed);
         publisherChartStartFrame.store(chartStartFrame,
                                        std::memory_order_relaxed);
-        outputFrame.store(chartStartFrame, std::memory_order_relaxed);
         publisherGeneration.store(generation, std::memory_order_relaxed);
         sessionRevision.fetch_add(1, std::memory_order_release);
     }
