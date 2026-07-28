@@ -7,6 +7,7 @@ project(RhythmGameTests LANGUAGES CXX)
 # ---- Dependencies ----
 
 find_package(Catch2 3 REQUIRED)
+include(Catch)
 # ---- Tests ----
 
 add_executable(RhythmGame_test
@@ -30,7 +31,6 @@ add_executable(RhythmGame_test
         gameplay_logic/ChartStartGate.test.cpp
         gameplay_logic/ScheduledSound.test.cpp
         gameplay_logic/SinglePlayerChartBuilder.test.cpp
-        gameplay_logic/SinglePlayerGameplayCore.test.cpp
         charts/BmsChartReader.test.cpp
         db/SqliteCppDb.test.cpp
         sounds/OpenAlSound.test.cpp
@@ -57,13 +57,37 @@ add_executable(RhythmGame_test
         lr2_skin/Lr2SkinRuntimeTypes.test.cpp
 )
 
+add_executable(RhythmGame_web_gameplay_core_test
+        gameplay_logic/SinglePlayerGameplayCore.test.cpp
+)
+target_link_libraries(RhythmGame_web_gameplay_core_test PRIVATE
+        RhythmGame_web_gameplay_core
+        Catch2::Catch2WithMain
+)
+target_compile_features(RhythmGame_web_gameplay_core_test PRIVATE cxx_std_23)
+target_compile_definitions(
+        RhythmGame_web_gameplay_core_test PRIVATE
+        RHYTHMGAME_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+)
+set_target_properties(
+        RhythmGame_web_gameplay_core_test PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
+)
+add_dependencies(
+        RhythmGame_web_gameplay_core_test
+        RhythmGame_web_gameplay_core_source_contract
+)
+
 add_library(PortableGameplayHeaders_compile OBJECT
         resource_managers/PortableGameplayHeaders.compile.cpp
 )
 target_include_directories(PortableGameplayHeaders_compile BEFORE PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/portable_header_checks"
 )
-target_link_libraries(PortableGameplayHeaders_compile PRIVATE RhythmGame_lib)
+target_link_libraries(
+        PortableGameplayHeaders_compile PRIVATE
+        RhythmGame_web_gameplay_core
+)
 target_compile_features(PortableGameplayHeaders_compile PRIVATE cxx_std_23)
 add_dependencies(RhythmGame_test PortableGameplayHeaders_compile)
 
@@ -87,7 +111,6 @@ set_target_properties(
         RhythmGame_test PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
 )
-include(Catch)
 
 # boolean cache variable "sanitize"
 option(DISABLE_WINDOW_TESTS "Disable tests that launch windows and fail at the sanitizer")
@@ -101,6 +124,12 @@ add_custom_command(TARGET RhythmGame_test POST_BUILD
         ${CMAKE_SOURCE_DIR}/testOnlyAssets testOnlyAssets)
 
 if (WIN32)
+    add_custom_command(TARGET RhythmGame_web_gameplay_core_test POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:RhythmGame_web_gameplay_core_test>
+            $<TARGET_FILE_DIR:RhythmGame_web_gameplay_core_test>
+            COMMAND_EXPAND_LISTS
+    )
     add_custom_command(TARGET RhythmGame_test POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_RUNTIME_DLLS:RhythmGame_test> $<TARGET_FILE_DIR:RhythmGame_test>
             COMMAND_EXPAND_LISTS
@@ -114,11 +143,13 @@ if (WIN32)
     )
 endif ()
 
+catch_discover_tests(RhythmGame_web_gameplay_core_test)
 catch_discover_tests(RhythmGame_test)
 add_test(
         NAME WebGameplayCore_source_contract
         COMMAND ${CMAKE_COMMAND}
         "-DSOURCE_ROOT=${CMAKE_SOURCE_DIR}"
+        "-DSOURCE_MANIFEST=${CMAKE_BINARY_DIR}/RhythmGame_web_gameplay_core-sources.txt"
         -P "${CMAKE_SOURCE_DIR}/cmake/CheckWebGameplayCore.cmake"
 )
 # ---- End-of-file commands ----

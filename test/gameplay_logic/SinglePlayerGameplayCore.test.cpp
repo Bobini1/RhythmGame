@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <ranges>
 #include <stdexcept>
 #include <string_view>
 #include <unordered_map>
@@ -307,6 +308,43 @@ TEST_CASE("gameplay core BGM pre-scheduling is exactly once",
 
     CHECK(bank.bgm->playTimes ==
           std::vector<std::chrono::nanoseconds>{ 2s });
+}
+
+TEST_CASE("gameplay snapshot marks only the active same-lane LN pair holding",
+          "[SinglePlayerGameplayCore][Snapshot][LongNote]")
+{
+    constexpr auto twoLongNotes = std::string_view{
+        "#TITLE Pair-specific holding\n"
+        "#BPM 120\n"
+        "#LNTYPE 1\n"
+        "#WAV01 long.ogg\n"
+        "#00151:0101\n"
+        "#00251:0101\n"
+    };
+    auto config = makeConfig();
+    config.play.randomSequence.clear();
+    auto core = SinglePlayerGameplayCore::create(
+      twoLongNotes,
+      std::filesystem::path{ "memory/two-long-notes.bms" },
+      config,
+      {});
+
+    core->passKey(input::BmsKey::Col11, GameplayKeyAction::Press, 2s);
+    const auto snapshot = core->snapshot();
+    auto longNotes =
+      snapshot.visibleNotes |
+      std::views::filter([](const auto& note) {
+          return note.type ==
+                   charts::BmsNotesData::NoteType::LongNoteBegin ||
+                 note.type == charts::BmsNotesData::NoteType::LongNoteEnd;
+      }) |
+      std::ranges::to<std::vector>();
+
+    REQUIRE(longNotes.size() == 4);
+    CHECK(longNotes[0].holding);
+    CHECK(longNotes[1].holding);
+    CHECK_FALSE(longNotes[2].holding);
+    CHECK_FALSE(longNotes[3].holding);
 }
 
 TEST_CASE("gameplay core rejects nondeterminism and non-monotonic input",

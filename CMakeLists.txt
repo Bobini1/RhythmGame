@@ -94,6 +94,11 @@ find_package(magic_enum REQUIRED)
 # absent; fall back to the system zlib which exposes the same API.
 find_package(zlib-ng CONFIG REQUIRED)
 
+# ---- Portable gameplay core ----
+
+include(cmake/WebGameplayCore.cmake)
+rhythmgame_add_web_gameplay_core(RhythmGame_web_gameplay_core)
+
 # ---- Load library ----
 
 qt_add_library(RhythmGame_lib OBJECT
@@ -472,20 +477,15 @@ else ()
 endif ()
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
 
-add_custom_target(WebGameplayCore_source_contract
-        COMMAND ${CMAKE_COMMAND}
-        "-DSOURCE_ROOT=${CMAKE_SOURCE_DIR}"
-        -P "${CMAKE_SOURCE_DIR}/cmake/CheckWebGameplayCore.cmake"
-        VERBATIM
-)
-
 if (NOT EMSCRIPTEN)
     qt_add_executable(RhythmGame_web_playtest_trace
             tools/web-playtest-native/TraceRunner.cpp
     )
     target_compile_features(RhythmGame_web_playtest_trace PRIVATE cxx_std_23)
-    target_link_libraries(RhythmGame_web_playtest_trace PRIVATE RhythmGame_lib Qt6::Core)
-    add_dependencies(RhythmGame_web_playtest_trace WebGameplayCore_source_contract)
+    target_link_libraries(RhythmGame_web_playtest_trace PRIVATE
+            RhythmGame_web_gameplay_core
+            Qt6::Core
+    )
     set_target_properties(
             RhythmGame_web_playtest_trace PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"

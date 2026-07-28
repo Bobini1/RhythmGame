@@ -117,6 +117,28 @@ isLongNote(const charts::BmsNotesData::NoteType type) -> bool
            type == charts::BmsNotesData::NoteType::LongNoteEnd;
 }
 
+auto
+hasRemovedHit(const QVariant& hitData) -> bool
+{
+    return !hitData.isNull() && hitData.value<HitEvent>().getNoteRemoved();
+}
+
+auto
+isPairHolding(const NoteState& noteState,
+              const charts::BmsNotesData::NoteType type,
+              const bool laneHolding) -> bool
+{
+    if (!laneHolding || !isLongNote(type)) {
+        return false;
+    }
+    if (type == charts::BmsNotesData::NoteType::LongNoteBegin) {
+        return hasRemovedHit(noteState.hitData) &&
+               !hasRemovedHit(noteState.otherEndHitData);
+    }
+    return hasRemovedHit(noteState.otherEndHitData) &&
+           !hasRemovedHit(noteState.hitData);
+}
+
 } // namespace
 
 class SinglePlayerGameplayCore::Impl
@@ -312,8 +334,9 @@ class SinglePlayerGameplayCore::Impl
                     .chartTimeNs = rawNote.time.timestamp.count(),
                     .beatPosition = rawNote.time.beatPosition,
                     .removed = removed,
-                    .holding =
-                      column->isHoldingLongNote() && isLongNote(type) });
+                    .holding = isPairHolding(noteState,
+                                             type,
+                                             column->isHoldingLongNote()) });
             }
         }
         std::ranges::sort(

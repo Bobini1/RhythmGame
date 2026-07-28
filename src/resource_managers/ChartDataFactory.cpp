@@ -4,7 +4,7 @@
 
 #include "charts/Base62.h"
 #include "support/Version.h"
-#if defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__) || defined(RHYTHMGAME_PORTABLE_GAMEPLAY)
 #include <QFile>
 #elif defined(_WIN32)
 #include <windows.h>
@@ -136,7 +136,7 @@ auto
 withMappedFile(const std::filesystem::path& path, Func&& func)
   -> decltype(func(std::string_view{}))
 {
-#if defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__) || defined(RHYTHMGAME_PORTABLE_GAMEPLAY)
     auto file = QFile{ support::pathToQString(path) };
     if (!file.open(QIODevice::ReadOnly)) {
         throw std::runtime_error("Could not open file");
