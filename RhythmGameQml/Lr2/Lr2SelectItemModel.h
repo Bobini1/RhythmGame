@@ -243,7 +243,6 @@ private:
 	QString effectiveDisplayText(const Item& item) const;
 	QString effectiveTitle(const Item& item) const;
 	int effectiveTitleType(const Item& item) const;
-	int effectiveBodyType(const Item& item) const;
 
 	QList<Item> m_items;
 	QHash<QString, FolderSummary> m_folderSummaries;

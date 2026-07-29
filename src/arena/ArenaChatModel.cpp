@@ -57,7 +57,7 @@ ArenaChatModel::data(const QModelIndex& index, int role) const -> QVariant
         case TimestampRole:
             return message.sentAtMs;
         case SelfRole:
-            return message.authorMemberId == m_selfMemberId;
+            return isSelf(message);
     }
     return {};
 }
@@ -71,8 +71,9 @@ ArenaChatModel::roleNames() const -> QHash<int, QByteArray>
 }
 
 auto
-ArenaChatModel::replace(QVector<ChatMessage> messages, QString selfMemberId)
-  -> bool
+ArenaChatModel::replace(QVector<ChatMessage> messages,
+                        QString selfMemberId,
+                        QString roomId) -> bool
 {
     if (!validReplacement(messages)) {
         return false;
@@ -80,7 +81,13 @@ ArenaChatModel::replace(QVector<ChatMessage> messages, QString selfMemberId)
     const auto countChangedValue = messages.size() != m_messages.size();
     beginResetModel();
     m_messages = std::move(messages);
-    m_selfMemberId = std::move(selfMemberId);
+    if (m_roomId != roomId) {
+        m_selfMemberIds.clear();
+        m_roomId = std::move(roomId);
+    }
+    if (!selfMemberId.isEmpty()) {
+        m_selfMemberIds.insert(std::move(selfMemberId));
+    }
     endResetModel();
     if (countChangedValue) {
         emit countChanged();
@@ -108,8 +115,8 @@ ArenaChatModel::upsert(ChatMessage message) -> bool
         QList<int> changedRoles;
         if (found->authorMemberId != message.authorMemberId) {
             changedRoles.push_back(MemberIdRole);
-            const auto oldSelf = found->authorMemberId == m_selfMemberId;
-            const auto newSelf = message.authorMemberId == m_selfMemberId;
+            const auto oldSelf = isSelf(*found);
+            const auto newSelf = isSelf(message);
             if (oldSelf != newSelf) {
                 changedRoles.push_back(SelfRole);
             }
@@ -170,14 +177,13 @@ ArenaChatModel::remove(QStringView messageId) -> bool
 void
 ArenaChatModel::setSelfMemberId(QString memberId)
 {
-    if (m_selfMemberId == memberId) {
+    if (memberId.isEmpty() || m_selfMemberIds.contains(memberId)) {
         return;
     }
-    const auto old = m_selfMemberId;
-    m_selfMemberId = std::move(memberId);
+    m_selfMemberIds.insert(memberId);
     for (qsizetype i = 0; i < m_messages.size(); ++i) {
         const auto& author = m_messages[i].authorMemberId;
-        if (author == old || author == m_selfMemberId) {
+        if (author == memberId) {
             emit dataChanged(index(static_cast<int>(i), 0),
                              index(static_cast<int>(i), 0),
                              { SelfRole });
@@ -186,15 +192,35 @@ ArenaChatModel::setSelfMemberId(QString memberId)
 }
 
 void
+ArenaChatModel::resetSelfMemberIds()
+{
+    if (m_selfMemberIds.isEmpty() && m_roomId.isEmpty()) {
+        return;
+    }
+    const auto hadSelfMemberIds = !m_selfMemberIds.isEmpty();
+    m_selfMemberIds.clear();
+    m_roomId.clear();
+    if (hadSelfMemberIds && !m_messages.isEmpty()) {
+        emit dataChanged(index(0, 0),
+                         index(static_cast<int>(m_messages.size() - 1), 0),
+                         { SelfRole });
+    }
+}
+
+auto
+ArenaChatModel::isSelf(const ChatMessage& message) const -> bool
+{
+    return m_selfMemberIds.contains(message.authorMemberId);
+}
+
+void
 ArenaChatModel::clear()
 {
     if (m_messages.isEmpty()) {
-        m_selfMemberId.clear();
         return;
     }
     beginResetModel();
     m_messages.clear();
-    m_selfMemberId.clear();
     endResetModel();
     emit countChanged();
 }

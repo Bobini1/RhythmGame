@@ -380,8 +380,8 @@ TEST_CASE(
           QStringLiteral("Song"));
 }
 
-TEST_CASE("LR2 select item model prefixes Arena-unavailable charts with the "
-          "shared marker",
+TEST_CASE("LR2 select item model decorates Arena-unavailable charts without "
+          "replacing chart metadata",
           "[lr2][runtime][select]")
 {
     arena::ArenaAvailabilityIndex availability;
@@ -389,12 +389,19 @@ TEST_CASE("LR2 select item model prefixes Arena-unavailable charts with the "
 
     Lr2SelectItemModel source;
     source.setArenaAvailability(&availability);
+    source.setBarBodyTypes({ 4 });
+    source.setBarTitleTypes({ 8 });
     source.setItems({
       QVariantMap{
         { QStringLiteral("type"), QStringLiteral("chart") },
         { QStringLiteral("title"), QStringLiteral("Song") },
         { QStringLiteral("subtitle"), QStringLiteral("Sub") },
         { QStringLiteral("sha256"), QString(64, QLatin1Char('0')) },
+        { QStringLiteral("bodyType"), 0 },
+        { QStringLiteral("titleType"), 0 },
+        { QStringLiteral("playLevel"), 7 },
+        { QStringLiteral("difficulty"), 3 },
+        { QStringLiteral("keymode"), 7 },
       },
     });
 
@@ -413,6 +420,17 @@ TEST_CASE("LR2 select item model prefixes Arena-unavailable charts with the "
           QStringLiteral("Song Sub"));
     CHECK(source.data(row, Lr2SelectItemModel::TitleRole).toString() ==
           QStringLiteral("Song"));
+    CHECK(source.data(row, Lr2SelectItemModel::TitleTypeRole).toInt() == 8);
+    CHECK(source.data(row, Lr2SelectItemModel::BodyTypeRole).toInt() == 0);
+    CHECK(source.data(row, Lr2SelectItemModel::PlayLevelRole).toInt() == 7);
+    CHECK(source.data(row, Lr2SelectItemModel::DifficultyRole).toInt() == 3);
+
+    Lr2SelectBarCell cell;
+    REQUIRE(source.populateBarCell(0, 0, &cell));
+    CHECK(cell.titleType() == 8);
+    CHECK(cell.bodyType() == 0);
+    CHECK(cell.numberVisible(3));
+    CHECK(cell.numberValueForVariant(3) == 7);
 }
 
 TEST_CASE("LR2 select item model detects lean folder rows from raw strings",

@@ -1975,7 +1975,9 @@ ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
         }
     }
     const auto chatReplaced =
-      membersReplaced && m_chat.replace(snapshot.chat, snapshot.self.memberId);
+      membersReplaced &&
+      m_chat.replace(
+        snapshot.chat, snapshot.self.memberId, snapshot.roomId);
     if (lifecycle != m_lifecycleGeneration) {
         return;
     }
@@ -4283,6 +4285,7 @@ void
 ArenaSession::handleActiveProfileChanged()
 {
     m_lastLoggedIn = m_identityProvider->loggedIn();
+    m_chat.resetSelfMemberIds();
     cleanupForIdentityChange();
 }
 
@@ -4291,6 +4294,9 @@ ArenaSession::handleLoginStateChanged()
 {
     const auto loggedIn = m_identityProvider->loggedIn();
     const auto wasLoggedIn = std::exchange(m_lastLoggedIn, loggedIn);
+    if (wasLoggedIn && !loggedIn) {
+        m_chat.resetSelfMemberIds();
+    }
     if (!m_active) {
         return;
     }

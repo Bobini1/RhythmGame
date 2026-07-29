@@ -3,6 +3,7 @@
 #include "ArenaTypes.h"
 
 #include <QAbstractListModel>
+#include <QSet>
 
 namespace arena {
 
@@ -29,19 +30,24 @@ class ArenaChatModel : public QAbstractListModel
     auto roleNames() const -> QHash<int, QByteArray> override;
 
     [[nodiscard]] auto replace(QVector<ChatMessage> messages,
-                               QString selfMemberId) -> bool;
+                               QString selfMemberId,
+                               QString roomId) -> bool;
     [[nodiscard]] auto containsMessage(QStringView messageId) const -> bool;
     [[nodiscard]] auto upsert(ChatMessage message) -> bool;
     [[nodiscard]] auto remove(QStringView messageId) -> bool;
     void setSelfMemberId(QString memberId);
+    void resetSelfMemberIds();
     void clear();
 
   signals:
     void countChanged();
 
   private:
+    [[nodiscard]] auto isSelf(const ChatMessage& message) const -> bool;
+
     QVector<ChatMessage> m_messages{};
-    QString m_selfMemberId{};
+    QSet<QString> m_selfMemberIds{};
+    QString m_roomId{};
 };
 
 } // namespace arena

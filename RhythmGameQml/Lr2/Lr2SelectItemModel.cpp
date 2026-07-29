@@ -584,7 +584,6 @@ void Lr2SelectItemModel::refreshArenaAvailability() {
 		index(m_items.size() - 1, 0),
 		{ DisplayTextRole,
 		  TitleTypeRole,
-		  BodyTypeRole,
 		  TitleRole,
 		  ArenaAvailabilityRole });
 }
@@ -1095,7 +1094,7 @@ bool Lr2SelectItemModel::populateBarCell(int sourceRow, int visualRow, Lr2Select
 				  true,
 				  effectiveDisplayText(item),
 				  effectiveTitleType(item),
-				  effectiveBodyType(item),
+				  item.bodyType,
 				  item.playLevel,
 				  item.difficulty,
 				  item.keymode,
@@ -1628,7 +1627,7 @@ QVariant Lr2SelectItemModel::roleData(const Item& item, int role) const {
 	case KeyRole: return item.key;
 	case KindRole: return item.kind;
 	case TitleTypeRole: return effectiveTitleType(item);
-	case BodyTypeRole: return effectiveBodyType(item);
+	case BodyTypeRole: return item.bodyType;
 	case TitleRole: return effectiveTitle(item);
 	case SubtitleRole: return item.subtitle;
 	case ArtistRole: return item.artist;
@@ -1702,13 +1701,4 @@ int Lr2SelectItemModel::effectiveTitleType(const Item& item) const {
 		return 8;
 	}
 	return item.titleType;
-}
-
-int Lr2SelectItemModel::effectiveBodyType(const Item& item) const {
-	if (m_useBeatorajaBarTextTypes
-		&& arenaAvailabilityForItem(item) == arena::ArenaAvailabilityIndex::Availability::UnavailableToSome
-		&& variantListContainsInt(m_barBodyTypes, 4)) {
-		return 4;
-	}
-	return item.bodyType;
 }
