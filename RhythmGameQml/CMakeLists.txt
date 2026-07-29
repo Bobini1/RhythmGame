@@ -136,6 +136,8 @@ set(RHYTHM_GAME_QML_FILES
         ColorChanger.qml
         LegacySkinCustomizeHost.qml
         LegacySkinCustomizeOverlay.qml
+        LegacySkinCustomizePlacementFrame.qml
+        OverlayResizeHandle.qml
         Arena/ArenaStatusAnnouncer.qml
         Arena/ArenaRoom.qml
         Arena/ArenaAvatar.qml

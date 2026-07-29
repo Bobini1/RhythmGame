@@ -7,6 +7,8 @@
 #include <QMetaType>
 #include <QVariantList>
 
+#include <memory>
+
 namespace gameplay_logic::lr2_skin {
 
 struct Lr2Dst
@@ -57,6 +59,8 @@ struct Lr2Dst
     int op3 = 0;
     int op4 = 0;
     QVariantList offsets;
+
+    bool operator==(const Lr2Dst&) const = default;
 };
 
 struct Lr2SrcImage
@@ -167,6 +171,8 @@ struct Lr2SrcImage
     int side = 0;
     QString debugLabel;
     QString source;
+
+    bool operator==(const Lr2SrcImage&) const = default;
 };
 
 struct Lr2SrcBga
@@ -179,6 +185,8 @@ struct Lr2SrcBga
     int noBase = 0;
     int noLayer = 0;
     int noPoor = 0;
+
+    bool operator==(const Lr2SrcBga&) const = default;
 };
 
 struct Lr2SrcNumber
@@ -219,6 +227,8 @@ struct Lr2SrcNumber
     int side = 0;
     int judgementIndex = -1;
     QString source;
+
+    bool operator==(const Lr2SrcNumber&) const = default;
 };
 
 struct Lr2SrcText
@@ -253,6 +263,8 @@ struct Lr2SrcText
     bool readme = false;
     int readmeId = 0;
     int readmeLineSpacing = 18;
+
+    bool operator==(const Lr2SrcText&) const = default;
 };
 
 struct Lr2SrcBarImage
@@ -282,6 +294,8 @@ struct Lr2SrcBarImage
     int variant = 0;
     QVariant source;
     QVariantList sources;
+
+    bool operator==(const Lr2SrcBarImage&) const = default;
 };
 
 struct Lr2SrcBarText
@@ -312,6 +326,8 @@ struct Lr2SrcBarText
     int fontThickness = 0;
     int fontType = 0;
     bool bitmapFont = false;
+
+    bool operator==(const Lr2SrcBarText&) const = default;
 };
 
 struct Lr2SrcBarNumber
@@ -329,6 +345,8 @@ struct Lr2SrcBarNumber
     int kind = Level;
     int variant = 0;
     QVariant source;
+
+    bool operator==(const Lr2SrcBarNumber&) const = default;
 };
 
 struct Lr2SrcBarGraph
@@ -361,6 +379,8 @@ struct Lr2SrcBarGraph
     int direction = 0;
     int specialType = Lr2SrcImage::None;
     QString source;
+
+    bool operator==(const Lr2SrcBarGraph&) const = default;
 };
 
 struct Lr2SrcNoteChart
@@ -389,6 +409,8 @@ struct Lr2SrcNoteChart
     int orderReverse = 0;
     int noGap = 0;
     int noGapX = 0;
+
+    bool operator==(const Lr2SrcNoteChart&) const = default;
 };
 
 struct Lr2SrcBpmChart
@@ -415,6 +437,8 @@ struct Lr2SrcBpmChart
     QString otherBpmColor = QStringLiteral("ffff00");
     QString stopLineColor = QStringLiteral("ff00ff");
     QString transitionLineColor = QStringLiteral("7f7f7f");
+
+    bool operator==(const Lr2SrcBpmChart&) const = default;
 };
 
 struct Lr2SrcTimingChart
@@ -449,6 +473,8 @@ struct Lr2SrcTimingChart
     QString prColor = QStringLiteral("ff0000");
     int drawAverage = 1;
     int drawDev = 1;
+
+    bool operator==(const Lr2SrcTimingChart&) const = default;
 };
 
 struct Lr2SrcTimingVisualizer
@@ -483,6 +509,8 @@ struct Lr2SrcTimingVisualizer
     QString prColor = QStringLiteral("ff0000cc");
     int transparent = 0;
     int drawDecay = 0;
+
+    bool operator==(const Lr2SrcTimingVisualizer&) const = default;
 };
 
 struct Lr2Element
@@ -500,6 +528,8 @@ struct Lr2Element
     int type = -1;
     QVariant src;
     QVariantList dsts;
+
+    bool operator==(const Lr2Element&) const = default;
 };
 
 struct Lr2SkinData
@@ -549,9 +579,30 @@ struct Lr2SkinData
     QVariantList lineDsts;
 };
 
+class Lr2SkinDefinition
+{
+  public:
+    struct Data;
+
+    Lr2SkinDefinition() = default;
+
+    [[nodiscard]] bool isValid() const;
+
+  private:
+    explicit Lr2SkinDefinition(std::shared_ptr<const Data> data);
+
+    std::shared_ptr<const Data> m_data;
+
+    friend class Lr2SkinParser;
+};
+
 class Lr2SkinParser
 {
   public:
+    static Lr2SkinDefinition compile(const QString& path);
+    static Lr2SkinData materialize(const Lr2SkinDefinition& definition,
+                                   const QVariantMap& settingValues = {},
+                                   const QVariantList& activeOptions = {});
     static QList<Lr2Element> parse(const QString& path,
                                    const QVariantMap& settingValues = {},
                                    const QVariantList& activeOptions = {});

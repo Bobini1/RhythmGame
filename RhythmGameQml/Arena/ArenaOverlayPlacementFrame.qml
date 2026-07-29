@@ -17,6 +17,7 @@ Item {
     property bool customizeMode: false
     property string customizationLabel: qsTr("Arena panel")
     property bool defaultExpanded: false
+    property bool visibilityCustomizable: true
     property bool overlayVisible: true
     property bool expanded: defaultExpanded
     property bool chatSelected: false
@@ -153,7 +154,7 @@ Item {
         const result = placementKind === "resultStandings";
         const gameplay = placementKind === "gameplayLeaderboard";
         const select = placementKind === "selectRoom";
-        return themeVars && viewport && propertyPrefix().length > 0
+        return !!themeVars && !!viewport && propertyPrefix().length > 0
                 && ((result && layoutVariant === "result")
                     || (gameplay && layoutVariant !== "result"
                         && layoutVariant !== "select")
@@ -196,7 +197,10 @@ Item {
     }
 
     function reloadPresentationState() {
-        overlayVisible = storedBoolean("Visible", true);
+        const storedVisible = storedBoolean("Visible", true);
+        overlayVisible = visibilityCustomizable ? storedVisible : true;
+        if (!visibilityCustomizable && storedVisible === false)
+            commitBoolean("Visible", true);
         expanded = storedBoolean("Expanded", defaultExpanded);
         chatSelected = storedBoolean("ChatSelected", false);
         presentationStateLoaded = canLoadPlacement();
@@ -210,7 +214,7 @@ Item {
     }
 
     function setOverlayVisible(value) {
-        const next = !!value;
+        const next = visibilityCustomizable ? !!value : true;
         if (overlayVisible === next)
             return;
         overlayVisible = next;
@@ -333,6 +337,7 @@ Item {
     onMinimumPixelSizeChanged: reloadPlacement()
     onDefaultPixelRectHintChanged: reloadPlacement()
     onDefaultExpandedChanged: reloadPresentationState()
+    onVisibilityCustomizableChanged: reloadPresentationState()
 
     Component.onCompleted: {
         reloadPlacement();
@@ -358,7 +363,8 @@ Item {
 
         function onValueChanged(key, value) {
             if (key === root.propertyKey("Visible")) {
-                root.overlayVisible = typeof value === "boolean" ? value : true;
+                root.overlayVisible = root.visibilityCustomizable
+                    ? (typeof value === "boolean" ? value : true) : true;
             } else if (key === root.propertyKey("Expanded")) {
                 root.expanded = typeof value === "boolean"
                     ? value : root.defaultExpanded;
@@ -402,6 +408,7 @@ Item {
             anchors.fill: parent
             acceptedButtons: Qt.RightButton
             cursorShape: Qt.PointingHandCursor
+            enabled: root.visibilityCustomizable
 
             onClicked: visibilityMenu.popup()
         }
@@ -413,7 +420,9 @@ Item {
         MenuItem {
             checkable: true
             checked: root.overlayVisible
+            enabled: root.visibilityCustomizable
             text: qsTr("Show Arena panel")
+            visible: root.visibilityCustomizable
 
             onTriggered: root.setOverlayVisible(!root.overlayVisible)
         }

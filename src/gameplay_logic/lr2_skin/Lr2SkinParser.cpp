@@ -31,6 +31,13 @@
 #include <spdlog/spdlog.h>
 
 namespace gameplay_logic::lr2_skin {
+
+struct Lr2SkinDefinition::Data
+{
+    std::filesystem::path rootPath;
+    QHash<QString, std::shared_ptr<const std::vector<QStringList>>> files;
+};
+
 namespace {
 #ifdef _WIN32
 auto
@@ -153,6 +160,7 @@ struct ParseState
     QString laneCoverSource;
     SettingsIdState settingsIdState;
     int settingsItemIndex = 0;
+    const Lr2SkinDefinition::Data* definition = nullptr;
 };
 
 auto
@@ -2719,22 +2727,39 @@ topLevelSkinPath(const std::filesystem::path& filePath) -> std::filesystem::path
 void
 parseFileIntoState(const std::filesystem::path& filePath, ParseState& state)
 {
-    const auto lines = loadLines(filePath);
-    if (lines.empty()) {
+    auto loadedLines = std::vector<QStringList>{};
+    const std::vector<QStringList>* lines = nullptr;
+    if (state.definition) {
+        const auto key = support::pathToQString(
+          std::filesystem::absolute(filePath).lexically_normal());
+        const auto it = state.definition->files.constFind(key);
+        if (it != state.definition->files.cend()) {
+            lines = it.value().get();
+        } else {
+            loadedLines = loadLines(filePath);
+            lines = &loadedLines;
+        }
+    } else {
+        loadedLines = loadLines(filePath);
+        lines = &loadedLines;
+    }
+    if (!lines || lines->empty()) {
         return;
     }
     int index = 0;
-    parseLines(lines, index, state, filePath.parent_path(), false);
+    parseLines(*lines, index, state, filePath.parent_path(), false);
 }
 
 auto
 parseFile(const std::filesystem::path& filePath,
           const QVariantMap& settingValues,
-          const std::set<int>& initialOptions) -> Lr2SkinData
+          const std::set<int>& initialOptions,
+          const Lr2SkinDefinition::Data* definition = nullptr) -> Lr2SkinData
 {
     ParseState state;
     state.settingValues = settingValues;
     state.activeOptions = initialOptions;
+    state.definition = definition;
     parseFileIntoState(filePath, state);
     flushCurrentElement(state);
     state.laneCoverSource =
@@ -2874,7 +2899,94 @@ parseOptions(const QVariantList& activeOptions) -> std::set<int>
     }
     return options;
 }
+
+void
+compileFileGraph(const std::filesystem::path& filePath,
+                 Lr2SkinDefinition::Data& definition)
+{
+    const auto absolutePath =
+      std::filesystem::absolute(filePath).lexically_normal();
+    const auto key = support::pathToQString(absolutePath);
+    if (definition.files.contains(key)) {
+        return;
+    }
+
+    auto lines =
+      std::make_shared<const std::vector<QStringList>>(loadLines(absolutePath));
+    definition.files.insert(key, lines);
+    const auto currentDir = absolutePath.parent_path();
+
+    for (const auto& tokens : *lines) {
+        if (tokens.size() < 2 ||
+            normalizeCommand(tokens[0]) != QStringLiteral("#INCLUDE")) {
+            continue;
+        }
+
+        const auto rawPath = resolveRawPath(currentDir, tokens[1].trimmed());
+        if (rawPath.empty()) {
+            continue;
+        }
+        const auto filename = support::pathToQString(rawPath.filename());
+        if (!filename.contains(QLatin1Char('*'))) {
+            std::error_code ec;
+            if (std::filesystem::is_regular_file(rawPath, ec)) {
+                compileFileGraph(rawPath, definition);
+            }
+            continue;
+        }
+
+        const auto wildcard = globToRegex(stripLr2WildcardMarkers(filename));
+        std::error_code ec;
+        for (const auto& entry :
+             std::filesystem::directory_iterator(rawPath.parent_path(), ec)) {
+            if (ec || !entry.is_regular_file()) {
+                continue;
+            }
+            const auto candidate =
+              support::pathToQString(entry.path().filename());
+            if (wildcard.match(candidate).hasMatch()) {
+                compileFileGraph(entry.path(), definition);
+            }
+        }
+    }
+}
 } // namespace
+
+Lr2SkinDefinition::Lr2SkinDefinition(std::shared_ptr<const Data> data)
+  : m_data(std::move(data))
+{
+}
+
+bool
+Lr2SkinDefinition::isValid() const
+{
+    return m_data && !m_data->rootPath.empty() && !m_data->files.isEmpty();
+}
+
+Lr2SkinDefinition
+Lr2SkinParser::compile(const QString& path)
+{
+    auto definition = std::make_shared<Lr2SkinDefinition::Data>();
+    definition->rootPath = topLevelSkinPath(support::qStringToPath(path));
+    if (!definition->rootPath.empty()) {
+        compileFileGraph(definition->rootPath, *definition);
+    }
+    return Lr2SkinDefinition{ std::move(definition) };
+}
+
+Lr2SkinData
+Lr2SkinParser::materialize(const Lr2SkinDefinition& definition,
+                           const QVariantMap& settingValues,
+                           const QVariantList& activeOptions)
+{
+    if (!definition.isValid()) {
+        return {};
+    }
+    return parseFile(definition.m_data->rootPath,
+                     settingValues,
+                     parseOptions(activeOptions),
+                     definition.m_data.get());
+}
 
 QList<Lr2Element>
 Lr2SkinParser::parse(const QString& path,
@@ -2889,9 +3001,7 @@ Lr2SkinParser::parseData(const QString& path,
                          const QVariantMap& settingValues,
                          const QVariantList& activeOptions)
 {
-    const auto options = parseOptions(activeOptions);
-    return parseFile(
-      topLevelSkinPath(support::qStringToPath(path)), settingValues, options);
+    return materialize(compile(path), settingValues, activeOptions);
 }
 
 } // namespace gameplay_logic::lr2_skin

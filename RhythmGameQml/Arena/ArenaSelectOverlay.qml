@@ -12,6 +12,7 @@ Item {
     property rect defaultPixelRectHint: Qt.rect(0, 0, 0, 0)
     property bool customizeMode: false
     property bool presentationActive: true
+    property string readyShortcutDescription: ""
     readonly property alias placementFrame: selectPlacementFrame
     readonly property alias panel: panel
 
@@ -29,6 +30,7 @@ Item {
         moveHandle: panel.dragHandle
         placementKind: "selectRoom"
         themeVars: root.themeVars
+        visibilityCustomizable: false
         viewport: root.viewport
         visible: selectPlacementFrame.overlayVisible || root.customizeMode
 
@@ -49,6 +51,7 @@ Item {
 
             anchors.fill: parent
             navigationFocusTarget: root.navigationFocusTarget
+            readyShortcutDescription: root.readyShortcutDescription
             session: root.session
 
             onChatSelected: chat => selectPlacementFrame.setChatSelected(chat)

@@ -165,7 +165,8 @@ QtObject {
                 ? family.path + "/" + item.path
                 : "";
             if (directory.length > 0) {
-                let files = Rg.fileQuery.getSelectableFilesForDirectory(directory) || [];
+                let filters = item.filters || [];
+                let files = Rg.fileQuery.getSelectableFilesForDirectory(directory, filters) || [];
                 for (let j = 0; j < files.length; ++j) {
                     result.choices.push(String(files[j]));
                     result.labels.push(String(files[j]));

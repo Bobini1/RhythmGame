@@ -316,6 +316,7 @@ FocusScope {
                                                   480 * root.contentScale)
                     navigationFocusTarget: songList
                     presentationActive: root.enabled && root.visible
+                    readyShortcutDescription: qsTr("Press Start twice to toggle ready.")
                     session: Rg.arenaSession
                     themeVars: root.themeVars
                     viewport: root

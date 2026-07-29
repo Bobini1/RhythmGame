@@ -9,6 +9,7 @@ FocusScope {
 
     required property var session
     property Item navigationFocusTarget: null
+    property string readyShortcutDescription: ""
     readonly property bool arenaNativeSelectPresentation: true
     readonly property alias announcementCount: statusAnnouncer.announcementCount
     readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
@@ -42,6 +43,15 @@ FocusScope {
             return qsTr("Choose a chart available to everyone before becoming ready.");
         }
         return "";
+    }
+    readonly property string readyToolTipText: {
+        if (root.readyDisabledReason.length === 0) {
+            return root.readyShortcutDescription;
+        }
+        if (root.readyShortcutDescription.length === 0) {
+            return root.readyDisabledReason;
+        }
+        return root.readyDisabledReason + "\n" + root.readyShortcutDescription;
     }
 
     signal chatSelected(bool chat)
@@ -184,7 +194,7 @@ FocusScope {
                         && (root.session.ready === true || root.preparingRound)
 
                     objectName: "arenaSelectReady"
-                    Accessible.description: root.readyDisabledReason
+                    Accessible.description: root.readyToolTipText
                     Accessible.name: text
                     checkState: ready ? Qt.Checked : Qt.Unchecked
                     enabled: root.session
@@ -198,9 +208,9 @@ FocusScope {
                     }
                     text: qsTr("Ready")
 
-                    ToolTip.text: root.readyDisabledReason
-                    ToolTip.visible: hovered && !enabled
-                        && root.readyDisabledReason.length > 0
+                    ToolTip.text: root.readyToolTipText
+                    ToolTip.visible: hovered
+                        && root.readyToolTipText.length > 0
 
                     onClicked: {
                         if (root.session)

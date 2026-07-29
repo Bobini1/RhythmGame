@@ -119,6 +119,8 @@ Item {
         Lr2FastSprite {
             srcData: root.srcData
             stateData: root.segmentState(index)
+            asynchronousLoading: !!root.screenRoot
+                && root.screenRoot.customizeMode === true
             skinTime: root.spriteSkinTime
             timers: root.timers
             scaleOverride: root.scaleOverride

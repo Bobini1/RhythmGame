@@ -20,6 +20,7 @@ Item {
     property real offsetY: 0
     property int value: 0
     property bool forceHidden: false
+    property bool asynchronousLoading: false
     property bool colorKeyEnabled: false
     property color transColor: "black"
     readonly property string sourcePathLower: srcData && srcData.source
@@ -256,6 +257,9 @@ Item {
             id: digitAtlas
             source: root.resolvedSource
             cache: true
+            asynchronous: root.asynchronousLoading
+                || (!!root.screenRoot && root.screenRoot.customizeMode === true)
+            retainWhileLoading: true
             smooth: root.hasCurrentState && root.stateFilter !== 0
             mipmap: false
             visible: false
@@ -322,4 +326,3 @@ Item {
         }
     }
 }
-

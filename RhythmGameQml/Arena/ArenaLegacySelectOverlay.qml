@@ -28,6 +28,7 @@ FocusScope {
             && (root.presentationItem.screenUpdatesActive !== undefined
                 ? root.presentationItem.screenUpdatesActive === true
                 : root.presentationItem.enabled && root.presentationItem.visible)
+        readyShortcutDescription: qsTr("Press Start twice to toggle ready.")
         session: root.session
         themeVars: root.themeVars
         viewport: root.viewport

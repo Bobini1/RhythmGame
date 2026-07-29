@@ -1085,6 +1085,33 @@ jsonValueToString(const QJsonValue& value) -> std::string
     return QJsonDocument(value.toObject()).toJson().toStdString();
 }
 
+auto
+fileFilters(const QJsonObject& object) -> QStringList
+{
+    const auto filtersValue = object["filters"];
+    if (filtersValue.isUndefined()) {
+        return {};
+    }
+    if (!filtersValue.isArray()) {
+        throw support::Exception(
+          std::format("filters field of property of type file is not an array: "
+                      "{}",
+                      jsonValueToString(object)));
+    }
+
+    auto filters = QStringList{};
+    for (const auto& filter : filtersValue.toArray()) {
+        if (!filter.isString() || filter.toString().isEmpty()) {
+            throw support::Exception(
+              std::format("filters field of property of type file contains an "
+                          "empty or non-string filter: {}",
+                          jsonValueToString(object)));
+        }
+        filters.append(filter.toString());
+    }
+    return filters;
+}
+
 void
 createFileProperty(QHash<QString, QVariant>& screenVars,
                    const QJsonObject& object,
@@ -1109,6 +1136,10 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
           "default field of property of type file is not a string: {}",
           jsonValueToString(object)));
     }
+    const auto filters = fileFilters(object);
+    const auto files =
+      qml_components::FileQuery().getSelectableFilesForDirectory(
+        support::pathToQString(themePath / stdPath), filters);
     if (object["default"].isString()) {
         const auto defaultPath =
           support::qStringToPath(object["default"].toString());
@@ -1118,10 +1149,15 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
                           "relative path: {}",
                           jsonValueToString(object)));
         }
-        if (!exists(themePath / stdPath / defaultPath)) {
+        const auto defaultMatchesFilters =
+          filters.isEmpty() ||
+          files.contains(support::pathToQString(defaultPath),
+                         Qt::CaseInsensitive);
+        if (!exists(themePath / stdPath / defaultPath) ||
+            !defaultMatchesFilters) {
             spdlog::debug("default file of property of type file does not "
-                          "exist, will pick the "
-                          "first one available instead: {}",
+                          "exist or does not match its filters, will pick the "
+                          "first available matching file instead: {}",
                           jsonValueToString(object));
         } else {
             screenVars[object["id"].toString()] =
@@ -1129,10 +1165,7 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
             return;
         }
     }
-    if (const auto files =
-          qml_components::FileQuery().getSelectableFilesForDirectory(
-            support::pathToQString(themePath / stdPath));
-        !files.empty()) {
+    if (!files.empty()) {
         screenVars[object["id"].toString()] = QVariant(files.first());
     } else {
         spdlog::debug("No files found for property of type file: {}",
@@ -1467,7 +1500,12 @@ createHiddenProperty(QHash<QString, QVariant>& screenVars,
 struct ScreenVarsPopulationResult
 {
     QHash<QString, QVariant> screenVars;
-    QHash<QString, QString> fileTypeProperties;
+    struct FileTypeProperty
+    {
+        QString path;
+        QStringList filters;
+    };
+    QHash<QString, FileTypeProperty> fileTypeProperties;
     struct FontTypeProperty
     {
         QString path;
@@ -1517,8 +1555,9 @@ createProperty(ScreenVarsPopulationResult& result,
     }
     if (object["type"] == "file") {
         createFileProperty(result.screenVars, object, themePath);
-        result.fileTypeProperties.insert(object["id"].toString(),
-                                         object["path"].toString());
+        result.fileTypeProperties.insert(
+          object["id"].toString(),
+          { object["path"].toString(), fileFilters(object) });
     } else if (object["type"] == "font") {
         createFontProperty(result.screenVars, object, themePath);
         result.fontTypeProperties.insert(
@@ -1722,22 +1761,28 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
                 if (value.isNull()) {
                     continue;
                 }
+                const auto& fileProperty = vars[screen].fileTypeProperties[key];
+                const auto selectableFiles =
+                  qml_components::FileQuery().getSelectableFilesForDirectory(
+                    support::pathToQString(
+                      themePath / support::qStringToPath(fileProperty.path)),
+                    fileProperty.filters);
                 if (exists(themePath /
-                           support::qStringToPath(
-                             vars[screen].fileTypeProperties[key]) /
-                           support::qStringToPath(value.toString()))) {
+                           support::qStringToPath(fileProperty.path) /
+                           support::qStringToPath(value.toString())) &&
+                    (fileProperty.filters.isEmpty() ||
+                     selectableFiles.contains(value.toString(),
+                                              Qt::CaseInsensitive))) {
                     result[screen][key] = value;
                 } else {
                     spdlog::debug(
                       "The saved file property {} of screen {} of theme {} "
-                      "({}) does not point to an existing file, will use "
-                      "the default instead ({}).",
+                      "({}) does not point to an existing file matching its "
+                      "filters, will use the default instead ({}).",
                       key.toStdString(),
                       screen.toStdString(),
                       themePath.string(),
-                      (themePath /
-                       support::qStringToPath(
-                         vars[screen].fileTypeProperties[key]) /
+                      (themePath / support::qStringToPath(fileProperty.path) /
                        support::qStringToPath(value.toString()))
                         .string(),
                       result[screen][key].toString().toStdString());

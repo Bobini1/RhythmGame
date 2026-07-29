@@ -138,22 +138,40 @@ Rectangle {
             enabled: false
             sourceComponent: Login {}
         }
+
+        function handleStartPressed(timer) {
+            if (optionOverlay.arenaSeated) {
+                if (timer.running) {
+                    timer.stop();
+                    const session = Rg.arenaSession;
+                    const preparingRound =
+                        String(session.currentRoundId || "").length > 0;
+                    if (session.roundsAvailable !== false
+                            && !preparingRound
+                            && (session.ready === true
+                                || session.canReady === true)) {
+                        session.setReady(session.ready !== true);
+                    }
+                } else {
+                    timer.restart();
+                }
+                return;
+            }
+            if ((timer.running && !login.enabled) || login.enabled) {
+                login.enabled = !login.enabled;
+            } else {
+                timer.restart();
+            }
+        }
+
         Timer {
             id: p1StartTimer
             interval: 500
         }
         property bool start1Pressed: Input.start1
         onStart1PressedChanged: {
-            if (optionOverlay.arenaSeated) {
-                return;
-            }
-            if (start1Pressed) {
-                if (p1StartTimer.running && !login.enabled || login.enabled) {
-                    login.enabled = !login.enabled;
-                } else {
-                    p1StartTimer.restart();
-                }
-            }
+            if (start1Pressed)
+                options.handleStartPressed(p1StartTimer);
         }
         Timer {
             id: p2StartTimer
@@ -161,16 +179,8 @@ Rectangle {
         }
         property bool start2Pressed: Input.start2
         onStart2PressedChanged: {
-            if (optionOverlay.arenaSeated) {
-                return;
-            }
-            if (start2Pressed) {
-                if (p2StartTimer.running && !login.enabled || login.enabled) {
-                    login.enabled = !login.enabled;
-                } else {
-                    p2StartTimer.restart();
-                }
-            }
+            if (start2Pressed)
+                options.handleStartPressed(p2StartTimer);
         }
     }
 }

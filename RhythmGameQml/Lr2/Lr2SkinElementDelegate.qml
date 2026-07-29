@@ -9,6 +9,7 @@ Loader {
     width: skinW * skinScale
     height: skinH * skinScale
     z: selectSearchInputElement ? 100260 : elementState.z || 0
+    asynchronous: !!screenRoot && screenRoot.customizeMode === true
     required property var screenRoot
     required property var skinModel
     required property var selectContext
@@ -385,6 +386,7 @@ Loader {
                 sourceTimerFire: elemLoader.srcTimerFire
                 chartAssetSource: elemLoader.directChartAssetSource
                 preferAtlasImagePath: elemLoader.screenRoot.effectiveScreenKey === "select"
+                asynchronousLoading: elemLoader.screenRoot.customizeMode === true
                 scaleOverride: skinScale
                 mediaActive: elemLoader.screenRoot.enabled && elemLoader.screenUpdatesActive
                 transColor: skinModel.transColor
@@ -807,6 +809,7 @@ Loader {
             timerFire: elemLoader.dstTimerFire
             sourceTimerFire: elemLoader.srcTimerFire
             scaleOverride: skinScale
+            asynchronousLoading: elemLoader.screenRoot.customizeMode === true
             value: numberRenderer.currentNumberValue
             forceHidden: numberRenderer.hiddenByOptionOnlyRank
                 || numberRenderer.hiddenByNegativeSelectValue
@@ -897,6 +900,7 @@ Loader {
             bannerSource: elemLoader.sourceTreeUsesChartAsset ? elemLoader.bannerSource : ""
             transColor: skinModel.transColor
             colorKeyEnabled: skinModel.hasTransColor
+            asynchronousLoading: elemLoader.screenRoot.customizeMode === true
         }
     }
 
@@ -945,6 +949,7 @@ Loader {
             selectedFastBarDrawX: elemLoader.screenRoot.selectedFastBarDrawX
             selectedFastBarDrawY: elemLoader.screenRoot.selectedFastBarDrawY
             barCenter: skinModel.barCenter
+            asynchronousLoading: elemLoader.screenRoot.customizeMode === true
             colorKeyEnabled: skinModel.hasTransColor
             transColor: skinModel.transColor
         }
@@ -970,6 +975,7 @@ Loader {
             timerFire: elemLoader.dstTimerFire
             sourceTimerFire: elemLoader.srcTimerFire
             chartAssetSource: elemLoader.directChartAssetSource
+            asynchronousLoading: elemLoader.screenRoot.customizeMode === true
             scaleOverride: skinScale
             colorKeyEnabled: skinModel.hasTransColor
             transColor: skinModel.transColor
@@ -1011,6 +1017,7 @@ Loader {
             colorKeyEnabled: skinModel.hasTransColor
             transColor: skinModel.transColor
             chartAssetSource: elemLoader.directChartAssetSource
+            asynchronousLoading: elemLoader.screenRoot.customizeMode === true
         }
     }
 }

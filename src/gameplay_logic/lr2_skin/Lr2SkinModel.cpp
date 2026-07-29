@@ -1,6 +1,7 @@
 #include "Lr2SkinModel.h"
 
 #include <QSet>
+#include <QtConcurrentRun>
 #include <algorithm>
 #include <cstdlib>
 
@@ -429,6 +430,18 @@ scratchRotationSidesForElements(const QList<Lr2Element>& elements)
 Lr2SkinModel::Lr2SkinModel(QObject* parent)
   : QAbstractListModel(parent)
 {
+    connect(&m_loadWatcher,
+            &QFutureWatcher<Lr2SkinData>::finished,
+            this,
+            &Lr2SkinModel::handleAsyncLoadFinished);
+}
+
+Lr2SkinModel::~Lr2SkinModel()
+{
+    disconnect(&m_loadWatcher, nullptr, this, nullptr);
+    if (m_loadWatcher.isRunning()) {
+        m_loadWatcher.waitForFinished();
+    }
 }
 
 int
@@ -799,7 +812,11 @@ Lr2SkinModel::setSettingValues(const QVariantMap& values)
         return;
     m_settingValues = values;
     emit settingValuesChanged();
-    loadSkin();
+    if (m_hasLoadedSkin) {
+        requestAsyncLoad();
+    } else {
+        loadSkin();
+    }
 }
 
 void
@@ -812,14 +829,22 @@ Lr2SkinModel::setActiveOptions(const QVariantList& options)
                             m_activeOptions, options, m_conditionOptions);
     m_activeOptions = options;
     emit activeOptionsChanged();
-    if (needsReload) {
-        loadSkin();
+    if (needsReload || m_loadActive) {
+        if (m_hasLoadedSkin) {
+            requestAsyncLoad();
+        } else {
+            loadSkin();
+        }
     }
 }
 
 void
 Lr2SkinModel::loadSkin()
 {
+    ++m_requestedLoadGeneration;
+    m_reloadPending = false;
+    m_definition = {};
+
     if (m_csvPath.isEmpty()) {
         beginResetModel();
         m_elements.clear();
@@ -904,11 +929,64 @@ Lr2SkinModel::loadSkin()
         return;
     }
 
-    beginResetModel();
-    const auto skinData =
-      Lr2SkinParser::parseData(m_csvPath, m_settingValues, m_activeOptions);
-    m_elements = skinData.elements;
-    sortElementsByDrawOrder(m_elements, skinData.noteDsts);
+    m_definition = Lr2SkinParser::compile(m_csvPath);
+    applySkinData(Lr2SkinParser::materialize(
+      m_definition, m_settingValues, m_activeOptions));
+}
+
+void
+Lr2SkinModel::requestAsyncLoad()
+{
+    ++m_requestedLoadGeneration;
+    if (!m_definition.isValid()) {
+        loadSkin();
+        return;
+    }
+    if (m_loadActive) {
+        m_reloadPending = true;
+        return;
+    }
+    startAsyncLoad();
+}
+
+void
+Lr2SkinModel::startAsyncLoad()
+{
+    if (!m_definition.isValid()) {
+        return;
+    }
+
+    m_reloadPending = false;
+    m_runningLoadGeneration = m_requestedLoadGeneration;
+    m_loadActive = true;
+    const auto definition = m_definition;
+    const auto settingValues = m_settingValues;
+    const auto activeOptions = m_activeOptions;
+    m_loadWatcher.setFuture(
+      QtConcurrent::run([definition, settingValues, activeOptions] {
+          return Lr2SkinParser::materialize(
+            definition, settingValues, activeOptions);
+      }));
+}
+
+void
+Lr2SkinModel::handleAsyncLoadFinished()
+{
+    auto skinData = m_loadWatcher.result();
+    m_loadActive = false;
+    if (m_runningLoadGeneration == m_requestedLoadGeneration) {
+        applySkinData(std::move(skinData));
+    }
+    if (m_reloadPending) {
+        startAsyncLoad();
+    }
+}
+
+void
+Lr2SkinModel::applySkinData(Lr2SkinData skinData)
+{
+    auto elements = skinData.elements;
+    sortElementsByDrawOrder(elements, skinData.noteDsts);
     const auto mouseCursor = findMouseCursorElement(skinData.elements);
     const bool hasMouseHover = hasMouseHoverElement(skinData.elements);
     const int scratchRotationSides =
@@ -1015,12 +1093,51 @@ Lr2SkinModel::loadSkin()
     m_noteDsts = skinData.noteDsts;
     m_lineSources = skinData.lineSources;
     m_lineDsts = skinData.lineDsts;
-    endResetModel();
+    applyElements(std::move(elements));
     if (metadataChanged) {
         emit skinMetadataChanged();
     }
     m_hasLoadedSkin = true;
     emit skinLoaded();
+}
+
+void
+Lr2SkinModel::applyElements(QList<Lr2Element> elements)
+{
+    const int oldSize = static_cast<int>(m_elements.size());
+    const int newSize = static_cast<int>(elements.size());
+    const int commonSize = std::min(oldSize, newSize);
+    int firstChangedRow = -1;
+    int lastChangedRow = -1;
+
+    for (int row = 0; row < commonSize; ++row) {
+        if (m_elements[row] == elements[row]) {
+            continue;
+        }
+        m_elements[row] = std::move(elements[row]);
+        if (firstChangedRow < 0) {
+            firstChangedRow = row;
+        }
+        lastChangedRow = row;
+    }
+    if (firstChangedRow >= 0) {
+        emit dataChanged(index(firstChangedRow),
+                         index(lastChangedRow),
+                         { TypeRole, SrcRole, DstsRole });
+    }
+
+    if (newSize < oldSize) {
+        beginRemoveRows({}, newSize, oldSize - 1);
+        m_elements.erase(m_elements.begin() + newSize, m_elements.end());
+        endRemoveRows();
+    } else if (newSize > oldSize) {
+        beginInsertRows({}, oldSize, newSize - 1);
+        m_elements.reserve(newSize);
+        for (int row = oldSize; row < newSize; ++row) {
+            m_elements.append(std::move(elements[row]));
+        }
+        endInsertRows();
+    }
 }
 
 } // namespace gameplay_logic::lr2_skin

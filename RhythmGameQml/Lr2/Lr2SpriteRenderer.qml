@@ -51,6 +51,7 @@ Item {
     property real scratchAngle1: 0
     property real scratchAngle2: 0
     property bool preferAtlasImagePath: false
+    property bool asynchronousLoading: false
     property bool sourceHasFrameAnimation: Lr2SkinUtils.sourceCyclesContinuously(srcData)
     property real loadedTextureWidth: 0
     property real loadedTextureHeight: 0
@@ -388,31 +389,13 @@ Item {
 
             Item {
                 anchors.fill: parent
-                property real playbackStartWallMs: 0
-                property int lastVideoPosition: -1
-                property bool sawPositionAdvance: false
-                readonly property int manualLoopLeadMs: 80
-                readonly property int manualLoopGraceMs: 120
-
-                function nowMs() : var {
-                    return Date.now();
-                }
-
-                function notePlaybackStarted() : void {
-                    playbackStartWallMs = nowMs();
-                    lastVideoPosition = -1;
-                    sawPositionAdvance = false;
-                }
 
                 function syncVideoPlayback() : void {
                     if (root.shouldPlayVideo) {
                         if (videoPlayer.playbackState !== MediaPlayer.PlayingState) {
                             videoPlayer.play();
-                        } else if (playbackStartWallMs <= 0) {
-                            notePlaybackStarted();
                         }
                     } else {
-                        playbackStartWallMs = 0;
                         videoPlayer.stop();
                     }
                 }
@@ -425,22 +408,7 @@ Item {
                     root.reloadVideoPlayback();
                 }
 
-                function checkManualLoop() : void {
-                    if (!root.shouldPlayVideo || playbackStartWallMs <= 0 || videoPlayer.duration <= 0) {
-                        return;
-                    }
-
-                    const elapsed = nowMs() - playbackStartWallMs;
-                    const restartAt = sawPositionAdvance
-                        ? videoPlayer.duration + manualLoopGraceMs
-                        : Math.max(1, videoPlayer.duration - manualLoopLeadMs);
-                    if (elapsed >= restartAt) {
-                        root.reloadVideoPlayback();
-                    }
-                }
-
                 function stopVideo() : void {
-                    playbackStartWallMs = 0;
                     videoPlayer.stop();
                     videoPlayer.videoOutput = null;
                     videoPlayer.source = "";
@@ -466,34 +434,8 @@ Item {
                         if (playbackState === MediaPlayer.StoppedState
                                 && mediaStatus === MediaPlayer.EndOfMedia) {
                             loopVideoFromEnd();
-                        } else if (playbackState === MediaPlayer.PlayingState) {
-                            notePlaybackStarted();
-                        } else if (playbackState === MediaPlayer.StoppedState) {
-                            playbackStartWallMs = 0;
-                            if (root.shouldPlayVideo
-                                    && mediaStatus !== MediaPlayer.NoMedia
-                                    && mediaStatus !== MediaPlayer.InvalidMedia) {
-                                root.reloadVideoPlayback();
-                            }
                         }
                     }
-                    onPositionChanged: (position) => {
-                        if (lastVideoPosition >= 1000 && position < 500) {
-                            notePlaybackStarted();
-                        } else if (lastVideoPosition >= 0 && position > lastVideoPosition + 50) {
-                            sawPositionAdvance = true;
-                        }
-                        lastVideoPosition = position;
-                    }
-                }
-
-                Timer {
-                    interval: 100
-                    repeat: true
-                    running: root.shouldPlayVideo
-                        && videoPlayer.playbackState === MediaPlayer.PlayingState
-                        && videoPlayer.duration > 0
-                    onTriggered: checkManualLoop()
                 }
 
                 Component.onCompleted: syncVideoPlayback()
@@ -510,7 +452,7 @@ Item {
                 : Qt.rect(0, 0, 0, 0)
             fillMode: Image.Stretch
             cache: true
-            asynchronous: root.sourceIsChartAsset
+            asynchronous: root.sourceIsChartAsset || root.asynchronousLoading
             retainWhileLoading: true
             smooth: drawState.hasState && drawState.filter !== 0
             mipmap: false
@@ -526,7 +468,7 @@ Item {
             id: atlasImage
             source: root.hasDrawableTexture ? root.resolvedSource : ""
             cache: true
-            asynchronous: root.sourceIsChartAsset
+            asynchronous: root.sourceIsChartAsset || root.asynchronousLoading
             retainWhileLoading: true
             smooth: drawState.hasState && drawState.filter !== 0
             mipmap: false

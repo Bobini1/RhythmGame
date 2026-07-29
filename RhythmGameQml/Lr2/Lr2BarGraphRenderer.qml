@@ -25,6 +25,7 @@ Item {
     property int valueAnimationDuration: 100
     property bool colorKeyEnabled: false
     property color transColor: "black"
+    property bool asynchronousLoading: false
     property bool sourceHasFrameAnimation: Lr2SkinUtils.sourceCyclesContinuously(srcData)
 
     Lr2TimelineFrame {
@@ -137,11 +138,13 @@ Item {
         Image {
             id: graphAtlas
             source: root.resolvedSource
-            asynchronous: root.srcData
+            asynchronous: root.asynchronousLoading
+                || (root.srcData
                 && (root.srcData.specialType === 1
                     || root.srcData.specialType === 3
-                    || root.srcData.specialType === 4)
+                    || root.srcData.specialType === 4))
             cache: true
+            retainWhileLoading: true
             smooth: false
             mipmap: false
             visible: false
@@ -167,4 +170,3 @@ Item {
         }
     }
 }
-

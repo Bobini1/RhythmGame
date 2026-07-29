@@ -10,6 +10,7 @@
 #include <QFont>
 #include <QFontDatabase>
 #include <QFontMetricsF>
+#include <QRegularExpression>
 #include <QStringList>
 #include <QUrl>
 #include <QStringDecoder>
@@ -37,7 +38,24 @@ fileNameStartsWithDot(const std::filesystem::path& path) -> bool
 }
 
 auto
-getSelectableFilesForDirectory(const std::filesystem::path& path)
+fileNameMatchesFilters(const QString& fileName, const QStringList& filters)
+  -> bool
+{
+    if (filters.isEmpty()) {
+        return true;
+    }
+
+    return std::ranges::any_of(filters, [&fileName](const QString& filter) {
+        const auto expression = QRegularExpression(
+          QRegularExpression::wildcardToRegularExpression(filter),
+          QRegularExpression::CaseInsensitiveOption);
+        return expression.isValid() && expression.match(fileName).hasMatch();
+    });
+}
+
+auto
+getSelectableFilesForDirectory(const std::filesystem::path& path,
+                               const QStringList& filters = {})
   -> QList<QString>
 {
     auto files = QList<QString>{};
@@ -62,7 +80,10 @@ getSelectableFilesForDirectory(const std::filesystem::path& path)
         if (fileNameStartsWithDot(file.path())) {
             continue;
         }
-        files.push_back(support::pathToQString(file.path().filename()));
+        const auto fileName = support::pathToQString(file.path().filename());
+        if (fileNameMatchesFilters(fileName, filters)) {
+            files.push_back(fileName);
+        }
     }
     return files;
 }
@@ -289,6 +310,23 @@ FileQuery::getSelectableFilesForDirectory(const QString& directory) const
         spdlog::error("Error getting selectable files for directory {}: {}",
                       directory.toStdString(),
                       e.what());
+        return {};
+    }
+}
+
+auto
+FileQuery::getSelectableFilesForDirectory(const QString& directory,
+                                          const QStringList& filters) const
+  -> QList<QString>
+{
+    try {
+        return ::getSelectableFilesForDirectory(
+          support::qStringToPath(directory), filters);
+    } catch (const std::exception& e) {
+        spdlog::error(
+          "Error getting selectable files for directory {} with filters: {}",
+          directory.toStdString(),
+          e.what());
         return {};
     }
 }
