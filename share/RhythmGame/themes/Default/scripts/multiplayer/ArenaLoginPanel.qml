@@ -84,7 +84,7 @@ FocusScope {
                 TextField {
                     id: emailField
 
-                    Accessible.name: qsTr("Arena account email")
+                    Accessible.name: qsTr("IR account email")
                     KeyNavigation.tab: passwordField
                     Layout.fillWidth: true
                     placeholderText: qsTr("Email")
@@ -96,7 +96,7 @@ FocusScope {
                 TextField {
                     id: passwordField
 
-                    Accessible.name: qsTr("Arena account password")
+                    Accessible.name: qsTr("IR account password")
                     KeyNavigation.tab: loginButton
                     Layout.fillWidth: true
                     echoMode: TextInput.Password
