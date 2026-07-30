@@ -506,34 +506,10 @@ Rectangle {
                             }
 
                             Text {
-                                objectName: "arenaStandingLocalMark"
-                                color: "#9ee6ff"
-                                font.bold: true
-                                font.pixelSize: typography.bodyPixelSize
-                                text: qsTr("YOU")
-                                textFormat: Text.PlainText
-                                visible: standingDelegate.localMember
-
-                                Accessible.ignored: true
-                            }
-
-                            Text {
-                                objectName: "arenaStandingTargetMark"
-                                color: "#cbb8ff"
-                                font.bold: true
-                                font.pixelSize: typography.bodyPixelSize
-                                text: qsTr("RIVAL")
-                                textFormat: Text.PlainText
-                                visible: standingDelegate.opponentTarget
-
-                                Accessible.ignored: true
-                            }
-
-                            Text {
                                 objectName: "arenaStandingName"
                                 Layout.fillWidth: true
                                 Layout.minimumWidth: 0
-                                color: "white"
+                                color: standingDelegate.localMember ? "#ffe39b" : "white"
                                 elide: Text.ElideRight
                                 font.bold: true
                                 font.pixelSize: typography.bodyPixelSize

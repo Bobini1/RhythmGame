@@ -46,16 +46,6 @@ Rectangle {
         spacing: 7
 
         Text {
-            color: "#8fdcff"
-            font.bold: true
-            font.pixelSize: typography.bodyPixelSize
-            text: qsTr("Chat")
-            textFormat: Text.PlainText
-
-            Accessible.ignored: true
-        }
-
-        Text {
             Layout.maximumWidth: Math.max(0, root.width * 0.28)
             color: "white"
             elide: Text.ElideRight
