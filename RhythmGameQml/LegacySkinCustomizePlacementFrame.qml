@@ -268,9 +268,9 @@ Item {
             if (active) {
                 root.resolvedPixelRect = root.clampPixelRect(
                     Qt.rect(root.moveStartRect.x
-                            + translation.x * root.effectiveContentScale,
+                            + activeTranslation.x,
                             root.moveStartRect.y
-                            + translation.y * root.effectiveContentScale,
+                            + activeTranslation.y,
                             root.moveStartRect.width,
                             root.moveStartRect.height));
             }
