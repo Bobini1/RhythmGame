@@ -11,9 +11,6 @@ FocusScope {
     property Item navigationFocusTarget: null
     property string readyShortcutDescription: ""
     readonly property bool arenaNativeSelectPresentation: true
-    readonly property alias announcementCount: statusAnnouncer.announcementCount
-    readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
-    readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
     readonly property alias dragHandle: selectHeader
     readonly property bool chatOpen: root.session && root.session.chatOpen === true
     readonly property bool preparingRound: root.session
@@ -56,8 +53,6 @@ FocusScope {
 
     signal chatSelected(bool chat)
 
-    Accessible.name: root.session
-        ? (root.session.roomName || qsTr("Arena room")) : qsTr("Arena room")
     Accessible.role: Accessible.Grouping
 
     function restoreNavigationFocus(): void {
@@ -151,8 +146,6 @@ FocusScope {
                 Layout.alignment: Qt.AlignVCenter
                 Layout.fillWidth: false
                 Layout.preferredHeight: implicitHeight
-                chatAccessibleName: qsTr("Show Arena chat")
-                detailsAccessibleName: qsTr("Show Arena room details")
                 session: root.session
 
                 onTabSelected: chat => root.chatSelected(chat)
@@ -285,17 +278,6 @@ FocusScope {
             session: root.session
         }
 
-    }
-
-    ArenaStatusAnnouncer {
-        id: statusAnnouncer
-
-        active: root.visible
-        errorMessageKey: root.session ? String(root.session.errorMessageKey || "") : ""
-        reconnecting: root.session ? root.session.reconnecting === true : false
-        roundLaunchCancellationStatusKey: root.session
-            ? String(root.session.roundLaunchCancellationStatusKey || "") : ""
-        target: root
     }
 
     Component {

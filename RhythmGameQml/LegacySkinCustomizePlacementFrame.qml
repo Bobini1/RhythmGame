@@ -32,10 +32,6 @@ Item {
     width: resolvedPixelRect.width
     height: resolvedPixelRect.height
 
-    Accessible.role: Accessible.Grouping
-    Accessible.name: qsTr("Skin customization panel placement")
-    Accessible.description: qsTr("Drag the header to move. Drag an edge or corner to resize.")
-
     function bounded(value, minimum, maximum) {
         return Math.max(minimum, Math.min(maximum, value));
     }
@@ -287,6 +283,8 @@ Item {
         interactionEnabled: true
         metricScale: root.effectiveContentScale
 
+        Accessible.ignored: true
+
         onInteractionStarted: function(horizontalEdge, verticalEdge) {
             root.beginResize(horizontalEdge, verticalEdge);
         }
@@ -301,7 +299,6 @@ Item {
     }
 
     ResizeHandle {
-        accessibleName: qsTr("Resize customization panel from top left")
         horizontalEdge: -1
         verticalEdge: -1
         x: -width / 2
@@ -309,7 +306,6 @@ Item {
     }
 
     ResizeHandle {
-        accessibleName: qsTr("Resize customization panel from top")
         verticalEdge: -1
         width: Math.max(16 * root.effectiveContentScale,
                         root.width - 2 * root.resizeEdgeInset)
@@ -318,7 +314,6 @@ Item {
     }
 
     ResizeHandle {
-        accessibleName: qsTr("Resize customization panel from top right")
         horizontalEdge: 1
         verticalEdge: -1
         x: root.width - width / 2
@@ -326,7 +321,6 @@ Item {
     }
 
     ResizeHandle {
-        accessibleName: qsTr("Resize customization panel from right")
         horizontalEdge: 1
         height: Math.max(16 * root.effectiveContentScale,
                          root.height - 2 * root.resizeEdgeInset)
@@ -335,7 +329,6 @@ Item {
     }
 
     ResizeHandle {
-        accessibleName: qsTr("Resize customization panel from bottom right")
         horizontalEdge: 1
         verticalEdge: 1
         x: root.width - width / 2
@@ -343,7 +336,6 @@ Item {
     }
 
     ResizeHandle {
-        accessibleName: qsTr("Resize customization panel from bottom")
         verticalEdge: 1
         width: Math.max(16 * root.effectiveContentScale,
                         root.width - 2 * root.resizeEdgeInset)
@@ -352,7 +344,6 @@ Item {
     }
 
     ResizeHandle {
-        accessibleName: qsTr("Resize customization panel from bottom left")
         horizontalEdge: -1
         verticalEdge: 1
         x: -width / 2
@@ -360,7 +351,6 @@ Item {
     }
 
     ResizeHandle {
-        accessibleName: qsTr("Resize customization panel from left")
         horizontalEdge: -1
         height: Math.max(16 * root.effectiveContentScale,
                          root.height - 2 * root.resizeEdgeInset)

@@ -93,7 +93,6 @@ FocusScope {
         id: memberList
 
         objectName: "arenaRosterList"
-        Accessible.name: qsTr("Arena players")
         Accessible.role: Accessible.List
         anchors.fill: parent
         activeFocusOnTab: true
@@ -137,7 +136,6 @@ FocusScope {
             required property string roundState
 
             objectName: "arenaRosterMember-" + memberDelegate.memberId
-            Accessible.description: markerLabel.text.length > 0 ? qsTr("%1. %2. %3").arg(markerLabel.text).arg(statusLabel.text).arg(winsLabel.text) : qsTr("%1. %2").arg(statusLabel.text).arg(winsLabel.text)
             Accessible.name: memberDelegate.displayName
             Accessible.role: Accessible.ListItem
             border.color: ListView.isCurrentItem && ListView.view.activeFocus ? "#8ec5ff" : "transparent"
@@ -224,8 +222,6 @@ FocusScope {
 
                         Button {
                             objectName: "arenaRosterKick-" + memberDelegate.memberId
-                            Accessible.description: root.session && root.session.reconnecting === true ? qsTr("Unavailable while reconnecting to Arena.") : ""
-                            Accessible.name: qsTr("Kick %1").arg(memberDelegate.displayName)
                             enabled: !root.session || root.session.reconnecting !== true
                             focusPolicy: Qt.NoFocus
                             font.pixelSize: typography.supportingPixelSize

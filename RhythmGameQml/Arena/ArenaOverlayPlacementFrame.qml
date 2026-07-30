@@ -52,10 +52,6 @@ Item {
     height: resolvedPixelRect.height
     visible: forcedVisible
 
-    Accessible.role: Accessible.Grouping
-    Accessible.name: qsTr("Arena overlay placement")
-    Accessible.description: qsTr("Drag to move. Drag an edge or corner to resize.")
-
     onInteractionActiveChanged: interactionStateChanged(interactionActive)
 
     function bounded(value, minimum, maximum) {
@@ -463,6 +459,8 @@ Item {
         interactionEnabled: true
         metricScale: root.viewportScale
 
+        Accessible.ignored: true
+
         onInteractionStarted: function(horizontalEdge, verticalEdge) {
             root.beginResize(horizontalEdge, verticalEdge);
         }
@@ -478,7 +476,6 @@ Item {
 
     ResizeHandle {
         handleObjectName: "arenaResizeTopLeft"
-        accessibleName: qsTr("Resize Arena overlay from top left")
         horizontalEdge: -1
         verticalEdge: -1
         x: -width / 2
@@ -487,7 +484,6 @@ Item {
 
     ResizeHandle {
         handleObjectName: "arenaResizeTop"
-        accessibleName: qsTr("Resize Arena overlay from top")
         verticalEdge: -1
         width: Math.max(16 * root.viewportScale,
                         root.width - 2 * root.resizeEdgeInset)
@@ -497,7 +493,6 @@ Item {
 
     ResizeHandle {
         handleObjectName: "arenaResizeTopRight"
-        accessibleName: qsTr("Resize Arena overlay from top right")
         horizontalEdge: 1
         verticalEdge: -1
         x: root.width - width / 2
@@ -506,7 +501,6 @@ Item {
 
     ResizeHandle {
         handleObjectName: "arenaResizeRight"
-        accessibleName: qsTr("Resize Arena overlay from right")
         horizontalEdge: 1
         height: Math.max(16 * root.viewportScale,
                          root.height - 2 * root.resizeEdgeInset)
@@ -516,7 +510,6 @@ Item {
 
     ResizeHandle {
         handleObjectName: "arenaResizeBottomRight"
-        accessibleName: qsTr("Resize Arena overlay from bottom right")
         horizontalEdge: 1
         verticalEdge: 1
         x: root.width - width / 2
@@ -525,7 +518,6 @@ Item {
 
     ResizeHandle {
         handleObjectName: "arenaResizeBottom"
-        accessibleName: qsTr("Resize Arena overlay from bottom")
         verticalEdge: 1
         width: Math.max(16 * root.viewportScale,
                         root.width - 2 * root.resizeEdgeInset)
@@ -535,7 +527,6 @@ Item {
 
     ResizeHandle {
         handleObjectName: "arenaResizeBottomLeft"
-        accessibleName: qsTr("Resize Arena overlay from bottom left")
         horizontalEdge: -1
         verticalEdge: 1
         x: -width / 2
@@ -544,7 +535,6 @@ Item {
 
     ResizeHandle {
         handleObjectName: "arenaResizeLeft"
-        accessibleName: qsTr("Resize Arena overlay from left")
         horizontalEdge: -1
         height: Math.max(16 * root.viewportScale,
                          root.height - 2 * root.resizeEdgeInset)

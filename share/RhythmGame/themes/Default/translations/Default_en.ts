@@ -4,7 +4,7 @@
 <context>
     <name>ArenaBrowser</name>
     <message numerus="yes">
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="385"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="380"/>
         <source>%n player reconnecting</source>
         <translation>
             <numerusform>%n player reconnecting</numerusform>
@@ -15,7 +15,7 @@
 <context>
     <name>ArenaChatView</name>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaChatView.qml" line="72"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaChatView.qml" line="78"/>
         <source>%n unread message(s)</source>
         <comment>Arena chat unread count</comment>
         <translation>
@@ -46,32 +46,9 @@
     </message>
 </context>
 <context>
-    <name>ArenaGameplayOverlay</name>
-    <message numerus="yes">
-        <source>%n win(s)</source>
-        <comment>Arena lobby wins</comment>
-        <translation type="vanished">
-            <numerusform>%n win</numerusform>
-            <numerusform>%n wins</numerusform>
-        </translation>
-    </message>
-</context>
-<context>
-    <name>ArenaRoom</name>
-    <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="227"/>
-        <source>%n win(s)</source>
-        <comment>Arena lobby wins</comment>
-        <translation>
-            <numerusform>%n win</numerusform>
-            <numerusform>%n wins</numerusform>
-        </translation>
-    </message>
-</context>
-<context>
     <name>ArenaRosterView</name>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="221"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="219"/>
         <source>%n win(s)</source>
         <comment>Arena lobby wins</comment>
         <translation>
@@ -106,7 +83,7 @@
 <context>
     <name>Select</name>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="660"/>
+        <location filename="../scripts/select/Select.qml" line="663"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>Found %n chart</numerusform>

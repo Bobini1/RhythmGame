@@ -9,13 +9,8 @@ Rectangle {
 
     required property var session
     property bool expanded: false
-    property int announcementCount: 0
-    property string lastAnnouncementKey: ""
-    property string lastAnnouncementText: ""
-    property string observedRoundId: ""
     property string keyboardStandingMemberId: ""
     property var activeStandingsView: null
-    property var standingSnapshots: ({})
     readonly property alias dragHandle: gameplayHeader
     readonly property bool chatOpen: root.session && root.session.chatOpen === true
     readonly property bool narrowHeader: root.width < 620
@@ -32,7 +27,6 @@ Rectangle {
 
     Accessible.role: Accessible.Grouping
     Accessible.name: root.roomName
-    Accessible.description: root.chatOpen ? qsTr("Arena chat") : qsTr("Arena live standings")
 
     ArenaCompetitionText {
         id: competitionText
@@ -83,87 +77,6 @@ Rectangle {
         });
     }
 
-    function standingAccessibleName(standing): string {
-        const markers = [];
-        if (standing.localMember) {
-            markers.push(qsTr("you"));
-        }
-        if (standing.opponentTarget) {
-            markers.push(qsTr("rival"));
-        }
-        if (markers.length === 0) {
-            return standing.displayName;
-        }
-        return qsTr("%1, %2").arg(standing.displayName).arg(markers.join(qsTr(", ")));
-    }
-
-    function standingAccessibleDescription(standing): string {
-        const parts = [];
-        parts.push(standing.rank > 0 ? qsTr("Rank %1").arg(standing.rank) : qsTr("Not ranked"));
-        parts.push(qsTr("EX %1").arg(scoreText(standing.hasScore, standing.exScore)));
-        parts.push(stateText(standing.connected, standing.competitionState));
-        parts.push(qsTr("Combo %1").arg(standing.maxCombo));
-        parts.push(qsTr("PG %1, GR %2, GD %3, BD %4, PR %5, EP %6")
-            .arg(standing.perfect).arg(standing.great).arg(standing.good)
-            .arg(standing.bad).arg(standing.poor).arg(standing.emptyPoor));
-        if (standing.hasScore) {
-            parts.push(standing.currentClear);
-        }
-        const outcome = outcomeText(standing.clearType, standing.lobbyWinsAfter, standing.dnfReason);
-        if (outcome.length > 0) {
-            parts.push(outcome);
-        }
-        return parts.join(qsTr(", "));
-    }
-
-    function issueAnnouncement(key, text): void {
-        if (text.length === 0 || key === lastAnnouncementKey) {
-            return;
-        }
-        lastAnnouncementKey = key;
-        lastAnnouncementText = text;
-        announcementCount += 1;
-        Accessible.announce(text, Accessible.Polite);
-    }
-
-    function observeStanding(memberId, displayName, connected, competitionState, rank, dnfReason): void {
-        const roundId = session && session.liveStandings ? String(session.liveStandings.roundId || "") : "";
-        if (roundId !== observedRoundId) {
-            observedRoundId = roundId;
-            standingSnapshots = ({});
-            lastAnnouncementKey = "";
-        }
-
-        const snapshotKey = "member:" + String(memberId);
-        const previous = standingSnapshots[snapshotKey];
-        const current = {
-            "connected": !!connected,
-            "competitionState": String(competitionState || ""),
-            "rank": Number(rank),
-            "dnfReason": String(dnfReason || "")
-        };
-        standingSnapshots[snapshotKey] = current;
-        if (previous === undefined) {
-            return;
-        }
-
-        let eventKind = "";
-        let message = "";
-        if (current.competitionState === "dnf" && current.dnfReason.length > 0 && (previous.competitionState !== current.competitionState || previous.dnfReason !== current.dnfReason)) {
-            eventKind = "dnf:" + current.dnfReason;
-            message = qsTr("%1 did not finish: %2").arg(displayName).arg(dnfReasonText(current.dnfReason));
-        } else if (current.competitionState === "finished" && current.rank === 1 && (previous.competitionState !== current.competitionState || previous.rank !== current.rank)) {
-            eventKind = "winner";
-            message = qsTr("%1 takes first place").arg(displayName);
-        } else if (current.competitionState !== "finished" && current.competitionState !== "dnf" && previous.connected !== current.connected) {
-            eventKind = current.connected ? "reconnected" : "disconnected";
-            message = current.connected ? qsTr("%1 reconnected").arg(displayName) : qsTr("%1 disconnected").arg(displayName);
-        }
-        if (eventKind.length > 0) {
-            issueAnnouncement(roundId + "|" + snapshotKey + "|" + eventKind, message);
-        }
-    }
-
     function stateText(connected, state): string {
         return competitionText.stateText(connected, state);
     }
@@ -181,10 +94,6 @@ Rectangle {
 
     function scoreText(hasScore, exScore): string {
         return hasScore ? String(exScore) : "—";
-    }
-
-    function dnfReasonText(value): string {
-        return competitionText.dnfReasonText(value);
     }
 
     function outcomeText(clearType, lobbyWinsAfter, dnfReason): string {
@@ -208,35 +117,13 @@ Rectangle {
         delegate: QtObject {
             required property int index
             required property string memberId
-            required property string displayName
-            required property bool connected
-            required property string competitionState
-            required property int rank
-            required property string dnfReason
-            property bool observationReady: false
-
-            function observe(): void {
-                if (!observationReady) {
-                    return;
-                }
-                root.observeStanding(memberId, displayName, connected, competitionState, rank, dnfReason);
-            }
 
             function restoreKeyboardFocus(): void {
                 root.restoreKeyboardStanding(memberId, index);
             }
 
             onIndexChanged: restoreKeyboardFocus()
-            onDisplayNameChanged: observe()
-            onConnectedChanged: observe()
-            onCompetitionStateChanged: observe()
-            onRankChanged: observe()
-            onDnfReasonChanged: observe()
-            Component.onCompleted: {
-                observationReady = true;
-                observe();
-                restoreKeyboardFocus();
-            }
+            Component.onCompleted: restoreKeyboardFocus()
         }
     }
 
@@ -329,8 +216,6 @@ Rectangle {
                     id: gameplayTabs
 
                     Layout.preferredHeight: implicitHeight
-                    chatAccessibleName: qsTr("Show Arena chat")
-                    detailsAccessibleName: qsTr("Show Arena standings")
                     session: root.session
 
                     onTabSelected: chat => root.chatSelected(chat)
@@ -387,8 +272,6 @@ Rectangle {
             spacing: 4
 
             Accessible.role: Accessible.List
-            Accessible.name: qsTr("Arena standings")
-            Accessible.description: qsTr("Use the arrow keys to review players")
             Accessible.focusable: true
 
             ScrollBar.vertical: ScrollBar {}
@@ -446,7 +329,6 @@ Rectangle {
                 required property string dnfReason
 
                 readonly property bool localMember: memberId === String(root.session.selfMemberId || "")
-                readonly property bool opponentTarget: root.session.opponentTarget !== null && root.session.opponentTarget !== undefined && memberId === String(root.session.opponentTarget.memberId || "")
                 readonly property bool focusIndicatorVisible: activeFocus || (ListView.isCurrentItem && standingsView.activeFocus)
                 readonly property string currentClearLabel: competitionText.liveClearLabel(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli)
                 readonly property bool currentClearShowsGaugeValue: competitionText.liveClearShowsGaugeValue(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli)
@@ -461,8 +343,6 @@ Rectangle {
                 width: ListView.view.width
 
                 Accessible.role: Accessible.ListItem
-                Accessible.name: root.standingAccessibleName(standingDelegate)
-                Accessible.description: root.standingAccessibleDescription(standingDelegate)
                 Accessible.focusable: true
 
                 onActiveFocusChanged: {

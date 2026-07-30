@@ -8,9 +8,6 @@ Frame {
     required property var session
     property bool actionsVisible: true
     property bool compact: false
-    readonly property alias announcementCount: statusAnnouncer.announcementCount
-    readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
-    readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
     readonly property int connectedCount: rosterCounter.connectedCount
     readonly property int reservedCount: rosterCounter.reservedCount
     readonly property bool preparingRound: session ? String(session.currentRoundId || "").length > 0 : false
@@ -18,25 +15,6 @@ Frame {
     readonly property bool busy: session ? session.availabilitySyncing === true || preparingRound : false
     readonly property bool ready: session ? session.ready === true : false
     readonly property bool readyForCurrentRound: ready || preparingRound
-    readonly property string readyDisabledReason: {
-        if (!root.session) {
-            return "";
-        }
-        if (root.updateRequired) {
-            return qsTr("Update required to play in this room.");
-        }
-        if (root.session.availabilitySyncing === true) {
-            return qsTr("Song libraries are still being compared.");
-        }
-        if (root.preparingRound) {
-            return qsTr("The synchronized round is already being prepared.");
-        }
-        if (!root.ready && root.session.canReady !== true) {
-            return qsTr("Choose a chart available to everyone before becoming ready.");
-        }
-        return "";
-    }
-
     signal leaveRequested
 
     function errorText(key): string {
@@ -68,7 +46,6 @@ Frame {
         return root.ready ? qsTr("Ready") : qsTr("Not ready");
     }
 
-    Accessible.name: qsTr("Arena room controls")
     Accessible.role: Accessible.Grouping
     implicitHeight: content.implicitHeight + topPadding + bottomPadding
 
@@ -144,7 +121,6 @@ Frame {
 
             Button {
                 objectName: "arenaStripReady"
-                Accessible.description: root.readyDisabledReason
                 Accessible.name: text
                 enabled: root.session && !root.updateRequired && !root.preparingRound && (root.ready || root.session.canReady === true)
                 text: root.preparingRound
@@ -158,7 +134,6 @@ Frame {
             }
 
             Button {
-                Accessible.name: qsTr("Leave Arena room")
                 text: qsTr("Leave")
                 onClicked: root.leaveRequested()
             }
@@ -187,13 +162,4 @@ Frame {
         width: 0
     }
 
-    ArenaStatusAnnouncer {
-        id: statusAnnouncer
-
-        active: root.visible
-        errorMessageKey: root.session ? String(root.session.errorMessageKey || "") : ""
-        reconnecting: root.session ? root.session.reconnecting === true : false
-        roundLaunchCancellationStatusKey: root.session ? String(root.session.roundLaunchCancellationStatusKey || "") : ""
-        target: root
-    }
 }

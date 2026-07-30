@@ -17,15 +17,8 @@ FocusScope {
     property string kickMemberId: ""
     property string kickDisplayName: ""
     property Item kickOrigin: null
-    readonly property alias announcementCount: statusAnnouncer.announcementCount
-    readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
-    readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
-    readonly property string moderationDisabledReason: session.state === ArenaSession.Reconnecting
-        ? qsTr("Unavailable while reconnecting to Arena.")
-        : ""
     readonly property bool mutableRoom: session.state === ArenaSession.InRoom
 
-    Accessible.name: root.session.roomName || qsTr("Arena room")
     Accessible.role: Accessible.Grouping
 
     function errorText(key) : string {
@@ -185,7 +178,6 @@ FocusScope {
                         id: memberList
 
                         objectName: "arenaRoomMemberList"
-                        Accessible.name: qsTr("Arena players")
                         Accessible.role: Accessible.List
                         activeFocusOnTab: true
                         Layout.fillHeight: true
@@ -219,12 +211,8 @@ FocusScope {
                             required property bool connected
                             required property bool owner
                             required property bool self
-                            required property int lobbyWins
 
                             objectName: "arenaRoomMember-" + memberDelegate.memberId
-                            Accessible.description: qsTr("%1. %2")
-                                .arg(memberStatus.text)
-                                .arg(qsTr("%n win(s)", "Arena lobby wins", memberDelegate.lobbyWins))
                             Accessible.name: memberName.text
                             Accessible.role: Accessible.ListItem
                             border.color: ListView.isCurrentItem && ListView.view.activeFocus ? "#2387d9" : "transparent"
@@ -302,8 +290,6 @@ FocusScope {
                                     id: kickButton
 
                                     objectName: "arenaRoomKick-" + memberDelegate.memberId
-                                    Accessible.description: root.moderationDisabledReason
-                                    Accessible.name: qsTr("Kick %1").arg(memberDelegate.displayName)
                                     enabled: root.mutableRoom
                                     text: qsTr("Kick")
                                     visible: root.session.isOwner && !memberDelegate.self
@@ -348,7 +334,6 @@ FocusScope {
                         }
 
                         objectName: "arenaRoomChatList"
-                        Accessible.name: qsTr("Arena chat")
                         Accessible.role: Accessible.List
                         activeFocusOnTab: true
                         Layout.fillHeight: true
@@ -389,7 +374,6 @@ FocusScope {
                             required property bool self
 
                             objectName: "arenaRoomChat-" + chatDelegate.messageId
-                            Accessible.name: qsTr("%1: %2").arg(chatDelegate.displayName).arg(chatDelegate.text)
                             Accessible.role: Accessible.ListItem
                             border.color: ListView.isCurrentItem && ListView.view.activeFocus ? "#2387d9" : "transparent"
                             border.width: ListView.isCurrentItem && ListView.view.activeFocus ? 2 : 0
@@ -440,7 +424,6 @@ FocusScope {
                         TextField {
                             id: chatField
 
-                            Accessible.name: qsTr("Arena chat message")
                             Layout.fillWidth: true
                             enabled: root.mutableRoom
                             maximumLength: 500
@@ -499,13 +482,4 @@ FocusScope {
         }
     }
 
-    ArenaStatusAnnouncer {
-        id: statusAnnouncer
-
-        active: root.visible
-        errorMessageKey: root.session.errorMessageKey
-        reconnecting: root.session.state === ArenaSession.Reconnecting
-        roundLaunchCancellationStatusKey: root.session.roundLaunchCancellationStatusKey
-        target: root
-    }
 }

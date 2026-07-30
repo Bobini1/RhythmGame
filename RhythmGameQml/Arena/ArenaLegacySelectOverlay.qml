@@ -17,7 +17,6 @@ FocusScope {
     anchors.fill: parent
     visible: !nativePresentation
 
-    Accessible.name: qsTr("Arena room overlay")
     Accessible.role: Accessible.Pane
 
     ArenaSelectOverlay {

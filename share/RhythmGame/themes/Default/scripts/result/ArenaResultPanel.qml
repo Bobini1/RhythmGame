@@ -15,10 +15,6 @@ Rectangle {
     required property string textFontFamily
     property bool expanded: true
     readonly property alias dragHandle: resultHeader
-    readonly property alias announcementCount: resultAnnouncer.announcementCount
-    readonly property alias lastAnnouncementKey: resultAnnouncer.lastAnnouncementKey
-    readonly property alias lastAnnouncementText: resultAnnouncer.lastAnnouncementText
-    readonly property alias finalAnnouncementText: resultAnnouncer.finalAnnouncementText
     readonly property bool chatOpen: panel.session && panel.session.chatOpen === true
     readonly property string roomName: panel.session
         ? String(panel.session.roomName || qsTr("Arena")) : qsTr("Arena")
@@ -48,8 +44,6 @@ Rectangle {
     }
 
     Accessible.role: Accessible.Pane
-    Accessible.name: qsTr("Arena result")
-    Accessible.description: panel.finalAnnouncementText.length > 0 ? panel.finalAnnouncementText : qsTr("Waiting for final standings")
 
     color: "#ed111821"
     border.color: "#74859a"
@@ -63,16 +57,6 @@ Rectangle {
 
     ArenaTypography {
         id: typography
-    }
-
-    ArenaResultAnnouncer {
-        id: resultAnnouncer
-
-        active: panel.result && panel.result.valid && panel.result.finalized
-        localStanding: panel.localStanding
-        result: panel.result
-        target: panel
-        winnerSummary: panel.winnerSummary
     }
 
     ColumnLayout {
@@ -154,7 +138,6 @@ Rectangle {
                 visible: !panel.chatOpen
 
                 Accessible.name: text
-                Accessible.description: panel.expanded ? qsTr("Hide detailed Arena standings") : qsTr("Show detailed Arena standings")
                 onClicked: panel.expanded = !panel.expanded
             }
 
@@ -164,8 +147,6 @@ Rectangle {
                 Layout.alignment: Qt.AlignVCenter
                 Layout.fillWidth: false
                 Layout.preferredHeight: implicitHeight
-                chatAccessibleName: qsTr("Show Arena chat")
-                detailsAccessibleName: qsTr("Show Arena result")
                 session: panel.session
 
                 onTabSelected: chat => panel.chatSelected(chat)
@@ -233,7 +214,6 @@ Rectangle {
             visible: !panel.chatOpen
 
             Accessible.role: Accessible.List
-            Accessible.name: qsTr("Arena final standings")
 
             function ensureCurrentItem() {
                 if (count === 0) {
@@ -285,7 +265,6 @@ Rectangle {
                 readonly property string finalClearLabel: competitionText.clearTypeText(clearType)
                 readonly property int totalNotes: Math.max(0, perfect) + Math.max(0, great)
                     + Math.max(0, good) + Math.max(0, bad) + Math.max(0, poor)
-                readonly property string accessibleSummary: qsTr("%1, rank %2, score %3, %4").arg(local ? qsTr("You · %1").arg(displayName) : displayName).arg(rankLabel).arg(hasScore ? String(exScore) : qsTr("No score")).arg(detailsLabel)
                 readonly property bool focusIndicatorVisible: ListView.isCurrentItem && standingsView.activeFocus
 
                 objectName: "arenaNativeResultRow-" + memberId
@@ -296,8 +275,6 @@ Rectangle {
                 width: ListView.view.width
 
                 Accessible.role: Accessible.ListItem
-                Accessible.name: accessibleSummary
-                Accessible.description: winsLabel
                 Accessible.focusable: true
                 Accessible.focused: focusIndicatorVisible
                 Accessible.selected: ListView.isCurrentItem

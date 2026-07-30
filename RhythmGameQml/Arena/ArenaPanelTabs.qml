@@ -8,8 +8,6 @@ RowLayout {
     id: root
 
     required property var session
-    property string detailsAccessibleName: qsTr("Show Arena details")
-    property string chatAccessibleName: qsTr("Show Arena chat")
     readonly property bool chatOpen: session && session.chatOpen === true
     readonly property bool hovered: detailsButton.hovered || chatButton.hovered
 
@@ -59,7 +57,6 @@ RowLayout {
         id: detailsButton
 
         objectName: "arenaDetailsTab"
-        Accessible.name: root.detailsAccessibleName
         selected: !root.chatOpen
         text: qsTr("Details")
         onClicked: {
@@ -73,7 +70,6 @@ RowLayout {
         id: chatButton
 
         objectName: "arenaChatTab"
-        Accessible.name: root.chatAccessibleName
         selected: root.chatOpen
         text: qsTr("Chat")
         onClicked: {

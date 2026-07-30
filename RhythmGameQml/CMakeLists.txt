@@ -138,7 +138,6 @@ set(RHYTHM_GAME_QML_FILES
         LegacySkinCustomizeOverlay.qml
         LegacySkinCustomizePlacementFrame.qml
         OverlayResizeHandle.qml
-        Arena/ArenaStatusAnnouncer.qml
         Arena/ArenaRoom.qml
         Arena/ArenaAvatar.qml
         Arena/ArenaSelectStrip.qml
@@ -157,7 +156,6 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaGameplayOverlay.qml
         Arena/ArenaJudgementBreakdown.qml
         Arena/ArenaCompetitionText.qml
-        Arena/ArenaResultAnnouncer.qml
         Arena/ArenaResultOverlay.qml
         Arena/ArenaOverlayPlacementFrame.qml
         Arena/ArenaOverlayResizeHandle.qml

@@ -20,16 +20,12 @@ FocusScope {
     property string selectedRoomId: ""
     property string selectedRoomName: ""
     property Item dialogOrigin: null
-    readonly property alias announcementCount: statusAnnouncer.announcementCount
-    readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
-    readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
     readonly property bool admissionInFlight: session.admissionPending && !session.loginRequired
     readonly property int contentMaximumWidth: 1200
     readonly property int messageMaximumWidth: 720
     readonly property bool updateRequired: session.state === ArenaSession.Browsing && !admissionInFlight && session.directoryReady && !session.competitionAvailable
     readonly property bool roomActionsEnabled: session.state === ArenaSession.Browsing && !admissionInFlight && !updateRequired
 
-    Accessible.name: qsTr("Online Arena")
     Accessible.role: Accessible.Grouping
 
     function errorText(key): string {
@@ -82,11 +78,6 @@ FocusScope {
         default:
             return qsTr("Unknown");
         }
-    }
-
-    function roomDescription(phase, passwordProtected, connectedCount, reservedCount, maximumCount, memberNames): string {
-        const summary = qsTr("%1, %2. %3 connected, %4 reserved, %5 maximum.").arg(root.phaseText(phase)).arg(passwordProtected ? qsTr("Password required") : qsTr("Public")).arg(connectedCount).arg(reservedCount).arg(maximumCount);
-        return memberNames.length > 0 ? qsTr("%1 Members: %2.").arg(summary).arg(memberNames) : summary;
     }
 
     function openCreateDialog(origin): void {
@@ -279,7 +270,6 @@ FocusScope {
                 id: roomList
 
                 objectName: "arenaRoomList"
-                Accessible.name: qsTr("Arena rooms")
                 Accessible.role: Accessible.List
                 activeFocusOnTab: true
                 anchors.bottom: parent.bottom
@@ -330,7 +320,6 @@ FocusScope {
                     readonly property int occupiedCount: roomDelegate.connectedCount + roomDelegate.reservedCount
 
                     objectName: "arenaRoom-" + roomDelegate.roomId
-                    Accessible.description: root.roomDescription(roomDelegate.phase, roomDelegate.passwordProtected, roomDelegate.connectedCount, roomDelegate.reservedCount, roomDelegate.maximumCount, memberStack.memberNames)
                     Accessible.name: roomDelegate.name
                     Accessible.role: Accessible.ListItem
                     height: row.implicitHeight + topPadding + bottomPadding
@@ -406,7 +395,6 @@ FocusScope {
                         Button {
                             id: joinButton
 
-                            Accessible.name: qsTr("Join %1").arg(roomDelegate.name)
                             enabled: root.roomActionsEnabled && roomDelegate.occupiedCount < roomDelegate.maximumCount
                             text: roomDelegate.occupiedCount >= roomDelegate.maximumCount ? qsTr("Full") : qsTr("Join")
                             onClicked: roomDelegate.activate()
@@ -488,7 +476,6 @@ FocusScope {
                 TextField {
                     id: roomNameField
 
-                    Accessible.name: qsTr("Arena room name")
                     Layout.fillWidth: true
                     maximumLength: 80
                     selectByMouse: true
@@ -507,7 +494,6 @@ FocusScope {
                 TextField {
                     id: createPasswordField
 
-                    Accessible.name: qsTr("Arena room password")
                     Layout.fillWidth: true
                     echoMode: TextInput.Password
                     inputMethodHints: Qt.ImhHiddenText | Qt.ImhSensitiveData | Qt.ImhNoPredictiveText
@@ -557,7 +543,6 @@ FocusScope {
                 TextField {
                     id: joinPasswordField
 
-                    Accessible.name: qsTr("Arena room password")
                     Layout.fillWidth: true
                     echoMode: TextInput.Password
                     inputMethodHints: Qt.ImhHiddenText | Qt.ImhSensitiveData | Qt.ImhNoPredictiveText
@@ -567,13 +552,4 @@ FocusScope {
         }
     }
 
-    ArenaStatusAnnouncer {
-        id: statusAnnouncer
-
-        active: root.visible
-        errorMessageKey: String(root.session.errorMessageKey || "")
-        reconnecting: root.session.reconnecting === true
-        roundLaunchCancellationStatusKey: String(root.session.roundLaunchCancellationStatusKey || "")
-        target: root
-    }
 }

@@ -79,7 +79,6 @@ FocusScope {
             }
 
             Button {
-                Accessible.name: qsTr("Jump to newest Arena message")
                 focusPolicy: Qt.NoFocus
                 font.pixelSize: typography.bodyPixelSize
                 text: qsTr("Newest")
@@ -94,7 +93,6 @@ FocusScope {
             id: chatList
 
             objectName: "arenaChatList"
-            Accessible.name: qsTr("Arena chat history")
             Accessible.role: Accessible.List
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -157,7 +155,6 @@ FocusScope {
                 required property bool self
 
                 objectName: "arenaChatMessage-" + messageDelegate.messageId
-                Accessible.name: qsTr("%1: %2").arg(messageDelegate.displayName).arg(messageDelegate.text)
                 Accessible.role: Accessible.ListItem
                 border.color: ListView.isCurrentItem && ListView.view.activeFocus ? "#8ec5ff" : "transparent"
                 border.width: ListView.isCurrentItem && ListView.view.activeFocus ? 2 : 0
@@ -218,7 +215,6 @@ FocusScope {
                 id: input
 
                 objectName: "arenaChatInput"
-                Accessible.name: qsTr("Arena chat message")
                 Layout.fillWidth: true
                 enabled: root.inputEnabled
                 font.pixelSize: typography.bodyPixelSize
@@ -243,7 +239,6 @@ FocusScope {
             Button {
                 id: sendButton
 
-                Accessible.name: qsTr("Send Arena chat message")
                 enabled: root.inputEnabled && input.text.trim().length > 0
                 focusPolicy: Qt.NoFocus
                 font.pixelSize: typography.bodyPixelSize

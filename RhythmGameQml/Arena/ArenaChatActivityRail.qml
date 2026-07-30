@@ -11,10 +11,6 @@ Rectangle {
         ? Number(session.unreadChatCount || 0) : 0
 
     Accessible.role: Accessible.Button
-    Accessible.name: qsTr("Unread Arena chat from %1: %2")
-        .arg(session ? String(session.latestUnreadChatDisplayName || "") : "")
-        .arg(session ? String(session.latestUnreadChatText || "") : "")
-    Accessible.description: qsTr("Open Arena chat")
     Accessible.focusable: visible
     Accessible.focused: activeFocus
     Accessible.onPressAction: openChat()

@@ -15,12 +15,6 @@ FocusScope {
 
     implicitHeight: panel.implicitHeight
     implicitWidth: panel.implicitWidth
-    Accessible.description: root.loggingIn
-        ? qsTr("Logging in to Arena.")
-        : root.actionRequired
-            ? qsTr("Login is required before joining the selected Arena room.")
-            : qsTr("Login is required before creating or joining Arena rooms.")
-    Accessible.name: qsTr("Arena login")
     Accessible.role: Accessible.Grouping
     enabled: root.admissionAllowed
 
@@ -84,7 +78,6 @@ FocusScope {
                 TextField {
                     id: emailField
 
-                    Accessible.name: qsTr("IR account email")
                     KeyNavigation.tab: passwordField
                     Layout.fillWidth: true
                     placeholderText: qsTr("Email")
@@ -96,7 +89,6 @@ FocusScope {
                 TextField {
                     id: passwordField
 
-                    Accessible.name: qsTr("IR account password")
                     KeyNavigation.tab: loginButton
                     Layout.fillWidth: true
                     echoMode: TextInput.Password

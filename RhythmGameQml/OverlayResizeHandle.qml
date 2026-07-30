@@ -4,7 +4,6 @@ Item {
     id: root
 
     required property bool interactionEnabled
-    required property string accessibleName
     property real metricScale: 1
     property int horizontalEdge: 0
     property int verticalEdge: 0
@@ -23,8 +22,6 @@ Item {
     z: 1001
 
     Accessible.role: Accessible.Grip
-    Accessible.name: accessibleName
-    Accessible.description: qsTr("Use arrow keys to resize. Hold Shift for larger steps.")
     Accessible.focusable: false
 
     Accessible.onIncreaseAction: resizeOutward(1)
