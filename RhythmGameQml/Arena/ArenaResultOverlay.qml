@@ -293,7 +293,7 @@ Rectangle {
                 required property int lobbyWinsAfter
                 required property string dnfReason
 
-                readonly property bool localMarkerVisible: memberId === String(root.session.selfMemberId || "")
+                readonly property bool localMember: memberId === String(root.session.selfMemberId || "")
                 readonly property string rankLabel: root.rankLabel(rank, competitionState)
                 readonly property string winsLabel: root.winsLabel(lobbyWinsAfter)
                 readonly property string detailsLabel: competitionText.resultDetailsText(competitionState, dnfReason, maxCombo, clearType)
@@ -301,7 +301,7 @@ Rectangle {
                 readonly property string gaugeLabel: competitionText.gaugeValueText(gaugeValueMilli)
                 readonly property int totalNotes: Math.max(0, perfect) + Math.max(0, great)
                     + Math.max(0, good) + Math.max(0, bad) + Math.max(0, poor)
-                readonly property string accessibleSummary: qsTr("%1, rank %2, score %3, %4").arg(localMarkerVisible ? qsTr("You · %1").arg(displayName) : displayName).arg(rankLabel).arg(hasScore ? String(exScore) : qsTr("No score")).arg(detailsLabel)
+                readonly property string accessibleSummary: qsTr("%1, rank %2, score %3, %4").arg(localMember ? qsTr("You · %1").arg(displayName) : displayName).arg(rankLabel).arg(hasScore ? String(exScore) : qsTr("No score")).arg(detailsLabel)
                 readonly property bool focusIndicatorVisible: ListView.isCurrentItem && standingsView.activeFocus
 
                 objectName: "arenaResultRow-" + memberId
@@ -347,11 +347,11 @@ Rectangle {
 
                         Text {
                             Layout.fillWidth: true
-                            color: "white"
+                            color: standingDelegate.localMember ? "#ffe39b" : "white"
                             elide: Text.ElideRight
                             font.bold: true
                             font.pixelSize: typography.bodyPixelSize
-                            text: standingDelegate.localMarkerVisible ? qsTr("You · %1").arg(standingDelegate.displayName) : standingDelegate.displayName
+                            text: standingDelegate.displayName
                             textFormat: Text.PlainText
                         }
 
