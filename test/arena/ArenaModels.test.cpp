@@ -173,9 +173,8 @@ TEST_CASE("ArenaModels replace snapshots by value and preserve order",
     REQUIRE(rooms.replace(roomRows));
     REQUIRE(members.replace(
       memberRows, QStringLiteral("member-2"), QStringLiteral("member-1")));
-    REQUIRE(chats.replace(chatRows,
-                          QStringLiteral("member-1"),
-                          QStringLiteral("room-1")));
+    REQUIRE(chats.replace(
+      chatRows, QStringLiteral("member-1"), QStringLiteral("room-1")));
     roomRows[0].name = QStringLiteral("Mutated source");
     memberRows.clear();
     chatRows.clear();
@@ -208,9 +207,8 @@ TEST_CASE("ArenaModels reject duplicate replacement keys without mutation",
     REQUIRE(rooms.replace({ room(QStringLiteral("keep")) }));
     REQUIRE(members.replace(
       { member(QStringLiteral("keep")) }, std::nullopt, QString{}));
-    REQUIRE(chats.replace({ chat(QStringLiteral("keep")) },
-                          QString{},
-                          QStringLiteral("room-1")));
+    REQUIRE(chats.replace(
+      { chat(QStringLiteral("keep")) }, QString{}, QStringLiteral("room-1")));
 
     CHECK_FALSE(rooms.replace({ room(QStringLiteral("duplicate")),
                                 room(QStringLiteral("duplicate")) }));
@@ -403,9 +401,8 @@ TEST_CASE("ArenaModels keep chat ordered bounded and self-aware",
     for (int i = 0; i < MaxWireChatBacklog; ++i) {
         initial.push_back(chat(QStringLiteral("message-%1").arg(i)));
     }
-    REQUIRE(model.replace(initial,
-                          QStringLiteral("member-1"),
-                          QStringLiteral("room-1")));
+    REQUIRE(model.replace(
+      initial, QStringLiteral("member-1"), QStringLiteral("room-1")));
     CHECK(model.upsert(
       chat(QStringLiteral("new-message"), QStringLiteral("member-2"))));
     CHECK(model.rowCount() == MaxWireChatBacklog);
@@ -462,17 +459,19 @@ TEST_CASE("ArenaChatModel preserves self authorship across lobby rejoin",
                           QStringLiteral("rejoined-member"),
                           QStringLiteral("room-1")));
     CHECK(model.data(model.index(0, 0), ArenaChatModel::SelfRole).toBool());
-    REQUIRE(model.upsert(
-      chat(QStringLiteral("current-message"), QStringLiteral("rejoined-member"))));
+    REQUIRE(model.upsert(chat(QStringLiteral("current-message"),
+                              QStringLiteral("rejoined-member"))));
     CHECK(model.data(model.index(1, 0), ArenaChatModel::SelfRole).toBool());
 
     REQUIRE(model.replace({ priorMessage },
                           QStringLiteral("different-member"),
                           QStringLiteral("room-2")));
-    CHECK_FALSE(model.data(model.index(0, 0), ArenaChatModel::SelfRole).toBool());
+    CHECK_FALSE(
+      model.data(model.index(0, 0), ArenaChatModel::SelfRole).toBool());
 
     model.resetSelfMemberIds();
-    CHECK_FALSE(model.data(model.index(0, 0), ArenaChatModel::SelfRole).toBool());
+    CHECK_FALSE(
+      model.data(model.index(0, 0), ArenaChatModel::SelfRole).toBool());
 }
 
 TEST_CASE("ArenaModels fake transport records writes and injects events",

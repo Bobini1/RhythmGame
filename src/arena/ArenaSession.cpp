@@ -1976,8 +1976,7 @@ ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
     }
     const auto chatReplaced =
       membersReplaced &&
-      m_chat.replace(
-        snapshot.chat, snapshot.self.memberId, snapshot.roomId);
+      m_chat.replace(snapshot.chat, snapshot.self.memberId, snapshot.roomId);
     if (lifecycle != m_lifecycleGeneration) {
         return;
     }

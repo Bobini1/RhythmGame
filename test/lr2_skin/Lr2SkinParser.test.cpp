@@ -6,12 +6,16 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <QCoreApplication>
+#include <QEventLoop>
 #include <QFile>
 #include <QString>
 #include <QTemporaryDir>
+#include <QTimer>
 #include <QVariant>
 
 #include <filesystem>
+#include <memory>
 
 using gameplay_logic::lr2_skin::Lr2Dst;
 using gameplay_logic::lr2_skin::Lr2SkinModel;
@@ -19,6 +23,38 @@ using gameplay_logic::lr2_skin::Lr2SkinParser;
 using gameplay_logic::lr2_skin::Lr2SrcImage;
 
 namespace {
+
+void
+ensureCoreApplication()
+{
+    if (QCoreApplication::instance() != nullptr) {
+        return;
+    }
+    static auto argc = 1;
+    static char appName[] = "RhythmGame_test";
+    static char* argv[] = { appName, nullptr };
+    static auto application = std::make_unique<QCoreApplication>(argc, argv);
+}
+
+void
+waitForSkinLoadCount(Lr2SkinModel& model, const int& loadCount, int expected)
+{
+    if (loadCount >= expected) {
+        return;
+    }
+    auto loop = QEventLoop{};
+    const auto connection = QObject::connect(&model,
+                                             &Lr2SkinModel::skinLoaded,
+                                             &loop,
+                                             [&loop, &loadCount, expected]() {
+                                                 if (loadCount >= expected) {
+                                                     loop.quit();
+                                                 }
+                                             });
+    QTimer::singleShot(1'000, &loop, &QEventLoop::quit);
+    loop.exec();
+    QObject::disconnect(connection);
+}
 
 void
 writeSkinFile(const std::filesystem::path& path, const QString& text)
@@ -232,6 +268,7 @@ TEST_CASE("LR2 skin model keeps DST-only runtime option changes hot",
 TEST_CASE("LR2 skin model reloads when conditional options change",
           "[lr2][skin]")
 {
+    ensureCoreApplication();
     QTemporaryDir tempDir;
     const auto path = tempSkinPath(tempDir);
 
@@ -252,6 +289,7 @@ TEST_CASE("LR2 skin model reloads when conditional options change",
     REQUIRE(model.conditionOptions().contains(QVariant(34)));
 
     model.setActiveOptions(QVariantList{ 35, 39 });
+    waitForSkinLoadCount(model, loadCount, 2);
 
     CHECK(loadCount == 2);
 }

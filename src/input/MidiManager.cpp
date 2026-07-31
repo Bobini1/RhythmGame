@@ -98,11 +98,12 @@ void
 MidiManager::addInput(MidiDevice device, libremidi::input_port port)
 {
     try {
-        auto input = std::make_unique<libremidi::midi_in>(
-          libremidi::input_configuration{
-            .on_message = [this, device](libremidi::message&& message) {
-              processMessage(device, message);
-            },
+        auto input =
+          std::make_unique<libremidi::midi_in>(libremidi::input_configuration{
+            .on_message =
+              [this, device](libremidi::message&& message) {
+                  processMessage(device, message);
+              },
             .ignore_sysex = true,
             .ignore_timing = true,
             .ignore_sensing = true,
@@ -148,10 +149,7 @@ MidiManager::processMessage(const MidiDevice& device,
             }
             break;
         case 0xe0:
-            emit pitchBendChanged(device,
-                                  channel,
-                                  (data2 << 7) | data1,
-                                  time);
+            emit pitchBendChanged(device, channel, (data2 << 7) | data1, time);
             break;
         default:
             break;
@@ -178,8 +176,8 @@ operator<<(QDataStream& stream, const MidiDevice& device) -> QDataStream&
 } // namespace input
 
 auto
-std::hash<input::MidiDevice>::operator()(const input::MidiDevice& s) const
-  noexcept -> std::size_t
+std::hash<input::MidiDevice>::operator()(
+  const input::MidiDevice& s) const noexcept -> std::size_t
 {
     return std::hash<QString>{}(s.name) ^ std::hash<int>{}(s.index);
 }

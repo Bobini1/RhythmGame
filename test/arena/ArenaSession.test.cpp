@@ -458,8 +458,7 @@ roomSnapshotData(QString token = QStringLiteral("seat-token-1"),
   -> QJsonObject
 {
     if (members.isEmpty()) {
-        members.append(
-          phase2Member(selfMemberId, QStringLiteral("Alice")));
+        members.append(phase2Member(selfMemberId, QStringLiteral("Alice")));
     } else {
         for (auto index = 0; index < members.size(); ++index) {
             members[index] = withRoundMemberFields(members[index].toObject());
@@ -2733,53 +2732,47 @@ TEST_CASE("ArenaSession preserves chat self roles after leaving and rejoining",
                   } } }));
     auto* chat = fixture.session.getChat();
     REQUIRE(chat->rowCount() == 1);
-    REQUIRE(chat->data(chat->index(0, 0), arena::ArenaChatModel::SelfRole)
-              .toBool());
+    REQUIRE(
+      chat->data(chat->index(0, 0), arena::ArenaChatModel::SelfRole).toBool());
 
     fixture.session.leaveRoom();
     fixture.transport.injectText(
       2,
-      compact({ { QStringLiteral("type"),
-                  QStringLiteral("room_member_left") },
+      compact({ { QStringLiteral("type"), QStringLiteral("room_member_left") },
                 { QStringLiteral("data"),
                   QJsonObject{
                     { QStringLiteral("roomId"), QStringLiteral("room-1") },
                     { QStringLiteral("roomGeneration"), 3 },
-                    { QStringLiteral("memberId"),
-                      QStringLiteral("member-1") },
+                    { QStringLiteral("memberId"), QStringLiteral("member-1") },
                     { QStringLiteral("reason"), QStringLiteral("left") },
                   } } }));
-    REQUIRE(fixture.session.getState() ==
-            arena::ArenaSession::State::Browsing);
+    REQUIRE(fixture.session.getState() == arena::ArenaSession::State::Browsing);
 
     fixture.session.joinRoom(QStringLiteral("room-1"), QString{});
-    const auto join =
-      messageObject(fixture.transport.textCalls.back().message);
+    const auto join = messageObject(fixture.transport.textCalls.back().message);
     REQUIRE(join.value(QStringLiteral("type")).toString() ==
             QStringLiteral("room_join"));
-    const auto currentMessage =
-      chatMessage(QStringLiteral("message-new-self"),
-                  QStringLiteral("member-2"),
-                  QStringLiteral("Alice"),
-                  QStringLiteral("After rejoining"));
+    const auto currentMessage = chatMessage(QStringLiteral("message-new-self"),
+                                            QStringLiteral("member-2"),
+                                            QStringLiteral("Alice"),
+                                            QStringLiteral("After rejoining"));
     fixture.transport.injectText(
       2,
       roomSnapshot(
         join.value(QStringLiteral("requestId")).toString(),
-        roomSnapshotData(
-          QStringLiteral("seat-token-2"),
-          4,
-          2,
-          QJsonArray{ phase2Member(QStringLiteral("member-2"),
-                                   QStringLiteral("Alice")) },
-          QJsonArray{ historicalMessage, currentMessage },
-          QStringLiteral("member-2"))));
+        roomSnapshotData(QStringLiteral("seat-token-2"),
+                         4,
+                         2,
+                         QJsonArray{ phase2Member(QStringLiteral("member-2"),
+                                                  QStringLiteral("Alice")) },
+                         QJsonArray{ historicalMessage, currentMessage },
+                         QStringLiteral("member-2"))));
 
     REQUIRE(chat->rowCount() == 2);
-    CHECK(chat->data(chat->index(0, 0), arena::ArenaChatModel::SelfRole)
-            .toBool());
-    CHECK(chat->data(chat->index(1, 0), arena::ArenaChatModel::SelfRole)
-            .toBool());
+    CHECK(
+      chat->data(chat->index(0, 0), arena::ArenaChatModel::SelfRole).toBool());
+    CHECK(
+      chat->data(chat->index(1, 0), arena::ArenaChatModel::SelfRole).toBool());
 }
 
 TEST_CASE("ArenaSession resumes immediately with a fresh ticket and rotates "

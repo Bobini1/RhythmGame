@@ -311,6 +311,7 @@ TEST_CASE("MIDI note input follows note on and note off", "[input][midi]")
 
     auto harness = InputTranslatorHarness{};
     auto& translator = *harness.translator;
+    translator.setDebounceMs(0.0);
     auto device = testMidiDevice();
     translator.setKeyConfig(QList<Mapping>{
       Mapping{ Key{ QVariant::fromValue(device),
@@ -332,8 +333,7 @@ TEST_CASE("MIDI note input follows note on and note off", "[input][midi]")
     CHECK(releases.front() == ButtonEvent{ BmsKey::Col11, 6'010 });
 }
 
-TEST_CASE("MIDI sustain pedal uses OpenLR2 digital threshold",
-          "[input][midi]")
+TEST_CASE("MIDI sustain pedal uses OpenLR2 digital threshold", "[input][midi]")
 {
     using input::BmsKey;
     using input::Key;
@@ -341,6 +341,7 @@ TEST_CASE("MIDI sustain pedal uses OpenLR2 digital threshold",
 
     auto harness = InputTranslatorHarness{};
     auto& translator = *harness.translator;
+    translator.setDebounceMs(0.0);
     auto device = testMidiDevice();
     translator.setKeyConfig(QList<Mapping>{
       Mapping{ Key{ QVariant::fromValue(device),

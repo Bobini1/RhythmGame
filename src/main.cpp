@@ -554,8 +554,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BgaContainer");
         qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "key");
         qmlRegisterType<input::Gamepad>("RhythmGameQml", 1, 0, "gamepad");
-        qmlRegisterType<input::MidiDevice>(
-          "RhythmGameQml", 1, 0, "midiDevice");
+        qmlRegisterType<input::MidiDevice>("RhythmGameQml", 1, 0, "midiDevice");
         qmlRegisterType<qml_components::OnlineProfileInfo>(
           "RhythmGameQml", 1, 0, "onlineProfileInfo");
         qmlRegisterUncreatableMetaObject(
