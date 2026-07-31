@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QFutureWatcher>
 #include <QList>
 #include "Lr2SkinParser.h"
 
@@ -70,6 +71,7 @@ public:
     };
 
     explicit Lr2SkinModel(QObject* parent = nullptr);
+    ~Lr2SkinModel() override;
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
@@ -141,7 +143,15 @@ signals:
 
 private:
     void loadSkin();
+    void requestAsyncLoad();
+    void startAsyncLoad();
+    void handleAsyncLoadFinished();
+    void applySkinData(Lr2SkinData skinData);
+    void applyElements(QList<Lr2Element> elements);
+
     QList<Lr2Element> m_elements;
+    Lr2SkinDefinition m_definition;
+    QFutureWatcher<Lr2SkinData> m_loadWatcher;
     QString m_csvPath;
     QVariantMap m_settingValues;
     QVariantList m_activeOptions;
@@ -196,6 +206,10 @@ private:
     QVariantList m_lineSources;
     QVariantList m_lineDsts;
     bool m_hasLoadedSkin = false;
+    quint64 m_requestedLoadGeneration = 0;
+    quint64 m_runningLoadGeneration = 0;
+    bool m_loadActive = false;
+    bool m_reloadPending = false;
 };
 
 } // namespace gameplay_logic::lr2_skin

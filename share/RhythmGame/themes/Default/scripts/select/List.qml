@@ -8,17 +8,48 @@ PathView {
 
     property var current: model[currentIndex]
     property var folderContents: []
+    property var pendingScoreDbReplies: []
     readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
+    readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
+        || Rg.arenaSession.state === ArenaSession.Reconnecting
     onOpenedFolder: refresh()
+
+    function trackScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingScoreDbReplies.push(reply);
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            let index = pendingScoreDbReplies.indexOf(reply);
+            if (index >= 0) {
+                pendingScoreDbReplies.splice(index, 1);
+                pendingScoreDbReplies = pendingScoreDbReplies.slice();
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelScoreDbReplies() {
+        let replies = pendingScoreDbReplies;
+        pendingScoreDbReplies = [];
+        for (let reply of replies) {
+            if (reply && !reply.resultAvailable) {
+                reply.cancel();
+            }
+        }
+    }
+
     function refresh() {
         refreshScores();
         refreshFolderClearStats();
     }
     Component.onDestruction: {
-        Rg.profileList?.mainProfile?.scoreDb?.cancelPending();
+        cancelScoreDbReplies();
     }
     function refreshScores() {
-        Rg.profileList.mainProfile.scoreDb.cancelPending();
+        cancelScoreDbReplies();
         if (historyStack[historyStack.length - 1] === "SEARCH") {
             let md5s = [];
             for (let item of folderContents) {
@@ -26,11 +57,16 @@ PathView {
                     md5s.push(item.md5);
                 }
             }
-            Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s).then((result) => {
+            trackScoreDbReply(
+                Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s)
+            ).then((result) => {
                 scores = result.scores;
             });
         } else {
-            Rg.profileList.mainProfile.scoreDb.getScores(historyStack[historyStack.length - 1]).then((result) => {
+            trackScoreDbReply(
+                Rg.profileList.mainProfile.scoreDb.getScores(
+                    historyStack[historyStack.length - 1])
+            ).then((result) => {
                 if (result instanceof tableQueryResult) {
                     let newScores = result.scores.scores;
                     for (let [key, value] of Object.entries(result.courseScores.scores)) {
@@ -79,7 +115,9 @@ PathView {
             if (folder instanceof ChartData || folder instanceof entry || folder instanceof course || folder === null) {
                 continue;
             }
-            Rg.profileList.mainProfile.scoreDb.getScoreSummary(folder).then((result) => {
+            trackScoreDbReply(
+                Rg.profileList.mainProfile.scoreDb.getScoreSummary(folder)
+            ).then((result) => {
                 folderClearStats.push([folder, clearStatsFromScoreSummary(result)]);
                 folderClearStats = folderClearStats.slice();
             });
@@ -414,6 +452,12 @@ PathView {
     }
     function openPlayable(item, autoplay = false, replay = false, replayScore = null) {
         if (item instanceof ChartData) {
+            if (arenaSeated) {
+                if (!autoplay && !replay && !replayScore) {
+                    Rg.arenaSession.selectChart(item);
+                }
+                return true;
+            }
             console.info("Opening chart " + item.path);
             let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
@@ -424,6 +468,9 @@ PathView {
             return true;
         }
         if (item instanceof course) {
+            if (arenaSeated) {
+                return true;
+            }
             let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
                 globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
@@ -685,6 +732,9 @@ PathView {
         goBack();
     }
     Keys.onReturnPressed: {
+        goForward(current);
+    }
+    Keys.onEnterPressed: {
         goForward(current);
     }
     Keys.onRightPressed: {

@@ -6,7 +6,7 @@ Row {
     required property var scoreWithBestPoints
     required property var bestStats
     required property var current
-    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
+    property string fontFile: "file:NotoSans-VariableFont_wdth,wght.ttf"
     readonly property int lineWidth: 264
 
 

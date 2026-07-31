@@ -10,6 +10,8 @@ import "./options"
 FocusScope {
     id: selectScreen
 
+    readonly property bool arenaNativeSelectPresentation: true
+
     function reloadCurrentFolderOrTable() {
         return root.reloadCurrentFolderOrTable();
     }
@@ -31,6 +33,14 @@ FocusScope {
         readonly property string commonImagesUrl: Qt.resolvedUrl("../common/") + "images/"
         readonly property bool selectShortcutEnabled: root.enabled && !searchEdit.activeFocus && !options.visible
         readonly property bool selectOverlayShortcutEnabled: root.enabled && !searchEdit.activeFocus
+        readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
+            || Rg.arenaSession.state === ArenaSession.Reconnecting
+        readonly property real contentScale: Math.min(width / 1920,
+                                                       height / 1080)
+        readonly property real contentLeft:
+            (width - 1920 * contentScale) / 2
+        readonly property real contentTop:
+            (height - 1080 * contentScale) / 2
         readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
         readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.select || {})[QmlUtils.themeName] || ({})
         readonly property int replayType: replayTypeIndex(generalVars ? generalVars.replayType : 0)
@@ -38,7 +48,7 @@ FocusScope {
         ThemeFont {
             id: scoreInfoFont
             fileName: root.themeVars.scoreInfoFont
-            fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+            fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
         }
 
         ThemeFont {
@@ -80,6 +90,9 @@ FocusScope {
         }
 
         function openReplay(type, button) {
+            if (arenaSeated) {
+                return false;
+            }
             let score = getScore(type);
             if (!score) {
                 return false;
@@ -135,10 +148,16 @@ FocusScope {
         }
 
         function openSelectedAutoplay() {
+            if (arenaSeated) {
+                return true;
+            }
             return songList.openPlayable(songList.current, true, false, null);
         }
 
         function openSelectedReplay(button) {
+            if (arenaSeated) {
+                return true;
+            }
             let target = songList.current;
             if (!(target instanceof ChartData || target instanceof course)) {
                 return false;
@@ -245,7 +264,7 @@ FocusScope {
         Item {
             anchors.centerIn: parent
             height: 1080
-            scale: Math.min(parent.width / 1920, parent.height / 1080)
+            scale: root.contentScale
             width: 1920
             clip: true
 
@@ -278,8 +297,31 @@ FocusScope {
                     leftMargin: 80
                     topMargin: 120
                 }
+                fillMode: Image.Stretch
                 height: 480
                 width: 640
+            }
+            Loader {
+                id: arenaPanelLoader
+
+                objectName: "arenaNativeSelectPanelLoader"
+                active: root.arenaSeated
+                anchors.fill: parent
+                enabled: !options.visible
+                parent: root
+                sourceComponent: ArenaSelectOverlay {
+                    defaultPixelRectHint: Qt.rect(root.contentLeft + 728 * root.contentScale,
+                                                  root.contentTop + 120 * root.contentScale,
+                                                  520 * root.contentScale,
+                                                  480 * root.contentScale)
+                    navigationFocusTarget: songList
+                    presentationActive: root.enabled && root.visible
+                    readyShortcutDescription: qsTr("Press Start twice to toggle ready.")
+                    session: Rg.arenaSession
+                    themeVars: root.themeVars
+                    viewport: root
+                }
+                z: options.visible ? 0 : 3
             }
             Banner {
                 id: banner
@@ -408,6 +450,10 @@ FocusScope {
                 enabled: root.enabled
 
                 onActivated: {
+                    if (root.arenaSeated) {
+                        Rg.arenaSession.leaveRoom();
+                        return;
+                    }
                     sceneStack.pop();
                 }
             }
@@ -551,11 +597,12 @@ FocusScope {
             Text {
                 anchors.bottom: scoreInfo.top
                 anchors.horizontalCenter: scoreInfo.horizontalCenter
-                font.family: scoreInfoFont.fontFamily
-                font.weight: scoreInfoFont.fontWeight
-                font.variableAxes: scoreInfoFont.variableAxes
-                font.italic: scoreInfoFont.italic
-                font.pixelSize: 19
+                font: scoreInfoFont.uiFont({
+                    weight: scoreInfoFont.fontWeight,
+                    variableAxes: scoreInfoFont.variableAxes,
+                    italic: scoreInfoFont.italic,
+                    pixelSize: 19
+                })
                 clip: true
                 elide: Text.ElideRight
                 fontSizeMode: Text.Fit
@@ -602,11 +649,12 @@ FocusScope {
                     anchors.left: parent.left
                     anchors.leftMargin: 51
                     color: "white"
-                    font.family: songInfoFont.fontFamily
-                    font.weight: songInfoFont.fontWeight
-                    font.variableAxes: songInfoFont.variableAxes
-                    font.italic: songInfoFont.italic
-                    font.pixelSize: 20
+                    font: songInfoFont.uiFont({
+                        weight: songInfoFont.fontWeight,
+                        variableAxes: songInfoFont.variableAxes,
+                        italic: songInfoFont.italic,
+                        pixelSize: 20
+                    })
                     height: 25
                     width: 540
                     wrapMode: TextEdit.NoWrap
@@ -744,4 +792,6 @@ FocusScope {
             onActivated: root.handleSelectDigitShortcut(9)
         }
     }
+
+    TransientInputFocusDismissLayer {}
 }

@@ -7,7 +7,7 @@ Item {
 
     property alias source: image.source
     property alias text: text.text
-    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
+    property string fontFile: "file:NotoSans-VariableFont_wdth,wght.ttf"
     property real valueLeftMargin: Math.max(0, image.width - 40)
 
     height: image.height
@@ -16,7 +16,7 @@ Item {
     ThemeFont {
         id: scoreInfoLineFont
         fileName: scoreInfoLine.fontFile
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     Image {
@@ -34,11 +34,12 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: 1
         height: parent.height + 10
-        font.family: scoreInfoLineFont.fontFamily
-        font.weight: scoreInfoLineFont.fontWeight
-        font.variableAxes: scoreInfoLineFont.variableAxes
-        font.italic: scoreInfoLineFont.italic
-        font.pixelSize: 25
+        font: scoreInfoLineFont.uiFont({
+            weight: scoreInfoLineFont.fontWeight,
+            variableAxes: scoreInfoLineFont.variableAxes,
+            italic: scoreInfoLineFont.italic,
+            pixelSize: 25
+        })
         fontSizeMode: Text.HorizontalFit
         clip: true
         horizontalAlignment: Text.AlignRight

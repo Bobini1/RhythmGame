@@ -6,12 +6,15 @@
 #define RHYTHMGAME_SCOREDB_H
 
 #include <functional>
-#include <QIfPendingReply>
+#include <QThreadPool>
 #include <QVariantMap>
 #include "db/SqliteCppDb.h"
 #include "gameplay_logic/BmsScore.h"
 #include "resource_managers/Tables.h"
+#include "support/PendingReply.h"
 namespace qml_components {
+class ScoreObjectOwner;
+
 class ScoreQueryResult
 {
     Q_GADGET
@@ -55,50 +58,47 @@ class ScoreStatsResult
 };
 
 /**
- * @brief Provides access to the score database of a profile.
- * @details All methods are asynchronous and return a QIfPendingReply.
- * The queries are executed in a thread pool, so multiple queries can be
- * executed in parallel. Use cancelPending() to stop all pending queries.
+ * @brief Provides asynchronous access to a profile's score database.
+ * @details Queries execute in the thread pool. Each returned PendingReply owns
+ * its cancellation; callers retain and cancel only the work they started.
  */
 class ScoreDb final : public QObject
 {
     Q_OBJECT
 
     db::SqliteCppDb* scoreDb;
-    mutable QThreadPool threadPool;
-    std::stop_source stopSource;
-    auto getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult;
-    auto getScoresForCourseIdImpl(const QList<QString>& courseIds) const
+    QThreadPool threadPool;
+    bool stopping = false;
+    auto getScoresForMd5Impl(QList<QString> md5s,
+                             ScoreObjectOwner& objects) const
+      -> ScoreQueryResult;
+    auto getScoresForCourseIdImpl(const QList<QString>& courseIds,
+                                  ScoreObjectOwner& objects) const
       -> ScoreQueryResult;
     auto getScoreSummaryForMd5Impl(const QList<QString>& md5s) const
       -> QVariantMap;
     auto getFolderScoreSummaryImpl(const QString& folder) const -> QVariantMap;
+    auto makeStoppedReply() -> support::PendingReply*;
 
   public:
     explicit ScoreDb(db::SqliteCppDb* scoreDb);
-    Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScoresForMd5(
-      const QList<QString>& md5s) const;
-    Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScoresForCourseId(
-      const QList<QString>& courseIds) const;
-    Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScores(
-      const QString& folder) const;
-    Q_INVOKABLE QIfPendingReply<TableQueryResult> getScores(
-      const resource_managers::Table& table) const;
-    Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScores(
-      const resource_managers::Level& level) const;
-    Q_INVOKABLE QIfPendingReply<QVariantMap> getScoreSummary(
-      const QString& folder) const;
-    Q_INVOKABLE QIfPendingReply<QVariantMap> getScoreSummary(
-      const resource_managers::Table& table) const;
-    Q_INVOKABLE QIfPendingReply<QVariantMap> getScoreSummary(
-      const resource_managers::Level& level) const;
-    Q_INVOKABLE QIfPendingReply<ScoreStatsResult> getTotalStats() const;
-    /**
-     * @brief Stop all pending queries and fail them.
-     * @details This is useful when quickly browsing directories (faster than
-     * the queries can finish) to avoid a backlog of queries.
-     */
-    Q_INVOKABLE void cancelPending();
+    ~ScoreDb() override;
+    Q_INVOKABLE support::PendingReply* getScoresForMd5(
+      const QList<QString>& md5s);
+    Q_INVOKABLE support::PendingReply* getScoresForCourseId(
+      const QList<QString>& courseIds);
+    Q_INVOKABLE support::PendingReply* getScores(const QString& folder);
+    Q_INVOKABLE support::PendingReply* getScores(
+      const resource_managers::Table& table);
+    Q_INVOKABLE support::PendingReply* getScores(
+      const resource_managers::Level& level);
+    Q_INVOKABLE support::PendingReply* getScoreSummary(
+      const QString& folder);
+    Q_INVOKABLE support::PendingReply* getScoreSummary(
+      const resource_managers::Table& table);
+    Q_INVOKABLE support::PendingReply* getScoreSummary(
+      const resource_managers::Level& level);
+    Q_INVOKABLE support::PendingReply* getTotalStats();
 
     Q_INVOKABLE int getTotalScoreCount() const;
 };

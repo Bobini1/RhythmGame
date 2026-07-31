@@ -49,6 +49,7 @@ QtObject {
     readonly property int gameplayOptionInitialRepeatMillis: 300
     readonly property int gameplayOptionRepeatMillis: 50
     readonly property int gameplayLaneCoverDoublePressMillis: 500
+    readonly property int arenaReadyDoublePressMillis: 500
     property int gameplayOptionRepeatKey: -1
     property bool gameplayOptionRepeating: false
     property var gameplayLastStartPressMs: ({})
@@ -64,6 +65,16 @@ QtObject {
         : controller.anySelectHeld ? 2
         : 0
     property bool startHoldSuppressed: false
+
+    property Timer arenaReadyStart1Timer: Timer {
+        interval: controller.arenaReadyDoublePressMillis
+        repeat: false
+    }
+
+    property Timer arenaReadyStart2Timer: Timer {
+        interval: controller.arenaReadyDoublePressMillis
+        repeat: false
+    }
 
     property Timer selectPanelCloseTimer: Timer {
         id: selectPanelCloseTimer
@@ -1466,6 +1477,33 @@ QtObject {
         next[sideKey] = now;
         controller.gameplayLastStartPressMs = next;
         return false;
+    }
+
+    function handleArenaReadyStartPress(key: var) : var {
+        if (!root.arenaSeated
+                || !root.selectInputReady()
+                || (key !== BmsKey.Start1 && key !== BmsKey.Start2)) {
+            return false;
+        }
+
+        const timer = key === BmsKey.Start2
+            ? controller.arenaReadyStart2Timer
+            : controller.arenaReadyStart1Timer;
+        if (!timer.running) {
+            timer.restart();
+            return false;
+        }
+
+        timer.stop();
+        const session = root.arenaSession;
+        const preparingRound =
+            String(session.currentRoundId || "").length > 0;
+        if (session.roundsAvailable !== false
+                && !preparingRound
+                && (session.ready === true || session.canReady === true)) {
+            session.setReady(session.ready !== true);
+        }
+        return true;
     }
 
     function handleLr2GameplayOptionKey(key: var) : var {

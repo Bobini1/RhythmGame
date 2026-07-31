@@ -15,19 +15,19 @@ Image {
     ThemeFont {
         id: mainTitleFont
         fileName: screen.themeVars.mainTitleFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     ThemeFont {
         id: mainMenuFont
         fileName: screen.themeVars.mainMenuFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     ThemeFont {
         id: mainDialogFont
         fileName: screen.themeVars.mainDialogFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     source: imagesUrl + "RGBArtboard_2"
@@ -90,10 +90,11 @@ Image {
                     width: scrollView.width
                     onLinkActivated: Qt.openUrlExternally(link)
                     color: palette.text
-                    font.family: mainDialogFont.fontFamily
-                    font.weight: mainDialogFont.fontWeight
-                    font.variableAxes: mainDialogFont.variableAxes
-                    font.italic: mainDialogFont.italic
+                    font: mainDialogFont.uiFont({
+                        weight: mainDialogFont.fontWeight,
+                        variableAxes: mainDialogFont.variableAxes,
+                        italic: mainDialogFont.italic
+                    })
                 }
 
                 Label {
@@ -105,10 +106,11 @@ Image {
                     width: scrollView.width
                     onLinkActivated: Qt.openUrlExternally(link)
                     color: palette.text
-                    font.family: mainDialogFont.fontFamily
-                    font.weight: mainDialogFont.fontWeight
-                    font.variableAxes: mainDialogFont.variableAxes
-                    font.italic: mainDialogFont.italic
+                    font: mainDialogFont.uiFont({
+                        weight: mainDialogFont.fontWeight,
+                        variableAxes: mainDialogFont.variableAxes,
+                        italic: mainDialogFont.italic
+                    })
                 }
             }
         }
@@ -130,11 +132,12 @@ Image {
             anchors.topMargin: 160
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.horizontalCenterOffset: 280
-            font.family: mainTitleFont.fontFamily
-            font.weight: mainTitleFont.fontWeight
-            font.variableAxes: mainTitleFont.variableAxes
-            font.italic: mainTitleFont.italic
-            font.pixelSize: 200
+            font: mainTitleFont.uiFont({
+                weight: mainTitleFont.fontWeight,
+                variableAxes: mainTitleFont.variableAxes,
+                italic: mainTitleFont.italic,
+                pixelSize: 200
+            })
             text: "RhythmGame"
         }
 
@@ -143,11 +146,12 @@ Image {
             anchors.bottom: parent.bottom
             color: "#202020"
             elide: Text.ElideRight
-            font.family: mainMenuFont.fontFamily
-            font.weight: mainMenuFont.fontWeight
-            font.variableAxes: mainMenuFont.variableAxes
-            font.italic: mainMenuFont.italic
-            font.pixelSize: 28
+            font: mainMenuFont.uiFont({
+                weight: mainMenuFont.fontWeight,
+                variableAxes: mainMenuFont.variableAxes,
+                italic: mainMenuFont.italic,
+                pixelSize: 28
+            })
             fontSizeMode: Text.HorizontalFit
             horizontalAlignment: Text.AlignRight
             maximumLineCount: 1
@@ -178,12 +182,13 @@ Image {
 
                 Button {
                     width: parent.width
-                    height: 100
-                    font.family: mainMenuFont.fontFamily
-                    font.weight: mainMenuFont.fontWeight
-                    font.variableAxes: mainMenuFont.variableAxes
-                    font.italic: mainMenuFont.italic
-                    font.pixelSize: 30
+                    height: 84
+                    font: mainMenuFont.uiFont({
+                        weight: mainMenuFont.fontWeight,
+                        variableAxes: mainMenuFont.variableAxes,
+                        italic: mainMenuFont.italic,
+                        pixelSize: 30
+                    })
 
                     text: qsTr("Song Selection")
                     onClicked: {
@@ -193,13 +198,29 @@ Image {
 
                 Button {
                     width: parent.width
-                    height: 100
+                    height: 84
+                    text: qsTr("Online Arena")
+                    font: mainMenuFont.uiFont({
+                        weight: mainMenuFont.fontWeight,
+                        variableAxes: mainMenuFont.variableAxes,
+                        italic: mainMenuFont.italic,
+                        pixelSize: 30
+                    })
+                    onClicked: {
+                        globalRoot.openArenaBrowser();
+                    }
+                }
+
+                Button {
+                    width: parent.width
+                    height: 84
                     text: qsTr("Settings")
-                    font.family: mainMenuFont.fontFamily
-                    font.weight: mainMenuFont.fontWeight
-                    font.variableAxes: mainMenuFont.variableAxes
-                    font.italic: mainMenuFont.italic
-                    font.pixelSize: 30
+                    font: mainMenuFont.uiFont({
+                        weight: mainMenuFont.fontWeight,
+                        variableAxes: mainMenuFont.variableAxes,
+                        italic: mainMenuFont.italic,
+                        pixelSize: 30
+                    })
                     onClicked: {
                         globalRoot.openSettings();
                     }
@@ -207,13 +228,14 @@ Image {
 
                 Button {
                     width: parent.width
-                    height: 100
+                    height: 84
                     text: qsTr("Attributions")
-                    font.family: mainMenuFont.fontFamily
-                    font.weight: mainMenuFont.fontWeight
-                    font.variableAxes: mainMenuFont.variableAxes
-                    font.italic: mainMenuFont.italic
-                    font.pixelSize: 30
+                    font: mainMenuFont.uiFont({
+                        weight: mainMenuFont.fontWeight,
+                        variableAxes: mainMenuFont.variableAxes,
+                        italic: mainMenuFont.italic,
+                        pixelSize: 30
+                    })
                     onClicked: {
                         dlg.open();
                     }
@@ -221,13 +243,14 @@ Image {
 
                 Button {
                     width: parent.width
-                    height: 100
+                    height: 84
                     text: qsTr("Quit")
-                    font.family: mainMenuFont.fontFamily
-                    font.weight: mainMenuFont.fontWeight
-                    font.variableAxes: mainMenuFont.variableAxes
-                    font.italic: mainMenuFont.italic
-                    font.pixelSize: 30
+                    font: mainMenuFont.uiFont({
+                        weight: mainMenuFont.fontWeight,
+                        variableAxes: mainMenuFont.variableAxes,
+                        italic: mainMenuFont.italic,
+                        pixelSize: 30
+                    })
                     onClicked: {
                         Qt.quit();
                     }

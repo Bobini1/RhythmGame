@@ -28,6 +28,7 @@ Item {
     property int barCenter: 0
     property bool colorKeyEnabled: false
     property color transColor: "black"
+    property bool asynchronousLoading: false
     x: fastBarScrollActive ? fastBarScrollX * scaleOverride : 0
     y: fastBarScrollActive ? fastBarScrollY * scaleOverride : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
@@ -115,6 +116,7 @@ Item {
                 timerFire: -2147483648
                 sourceTimerFire: root.numberSourceAnimates ? root.sourceTimerFire : -2147483648
                 scaleOverride: root.scaleOverride
+                asynchronousLoading: root.asynchronousLoading
                 colorKeyEnabled: root.colorKeyEnabled
                 transColor: root.transColor
                 stateOverride: root.staticTimelineState

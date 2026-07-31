@@ -15,6 +15,20 @@ Image {
     property bool scrollingText: false
     property bool isCurrentItem: false
     readonly property bool isCourse: modelData instanceof course
+    readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
+        || Rg.arenaSession.state === ArenaSession.Reconnecting
+    readonly property int arenaAvailability: {
+        if (!image.arenaSeated || !(modelData instanceof ChartData)) {
+            return ArenaAvailabilityIndex.NotApplicable;
+        }
+        const availability = Rg.arenaSession.availability;
+        const revision = availability.revision;
+        return revision >= 0
+            ? availability.availabilityFor(modelData.sha256 || "")
+            : ArenaAvailabilityIndex.NotApplicable;
+    }
+    readonly property bool arenaSyncing: arenaAvailability === ArenaAvailabilityIndex.Syncing
+    readonly property bool arenaUnavailable: arenaAvailability === ArenaAvailabilityIndex.UnavailableToSome
 
     asynchronous: true
     source: root.iniImagesUrl + "folders.png/" + (isCourse ? "folder_pink" : "white")
@@ -66,7 +80,20 @@ Image {
     NameLabel {
         anchors.right: parent.right
         anchors.rightMargin: 30
-        color: (modelData instanceof ChartData || modelData instanceof course) ? "black" : "red"
+        color: {
+            if (image.arenaUnavailable) {
+                return "red";
+            }
+            if (image.arenaSyncing) {
+                return "dimgray";
+            }
+            if (image.arenaSeated && image.isCourse) {
+                return "dimgray";
+            }
+            return (modelData instanceof ChartData || modelData instanceof course)
+                ? "black"
+                : "red";
+        }
         height: parent.height
         scrolling: image.isCurrentItem && image.scrollingText
         fontFile: root.themeVars.songListFont

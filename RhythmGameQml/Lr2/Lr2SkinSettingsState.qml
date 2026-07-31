@@ -165,7 +165,8 @@ QtObject {
                 ? family.path + "/" + item.path
                 : "";
             if (directory.length > 0) {
-                let files = Rg.fileQuery.getSelectableFilesForDirectory(directory) || [];
+                let filters = item.filters || [];
+                let files = Rg.fileQuery.getSelectableFilesForDirectory(directory, filters) || [];
                 for (let j = 0; j < files.length; ++j) {
                     result.choices.push(String(files[j]));
                     result.labels.push(String(files[j]));
@@ -183,24 +184,36 @@ QtObject {
         return result;
     }
 
-    function buildItems() : var {
-        let screen = root.currentPreviewScreen();
+    function settingsObjectForScreen(screen: var) : var {
         if (screen === "soundset") {
-            return [];
+            return null;
         }
         let screenObject = root.screenObject(screen);
         if (!screenObject || !screenObject.settingsData || screenObject.settingsData.length === 0) {
-            return [];
+            return null;
         }
 
-        let parsed = null;
         try {
-            parsed = JSON.parse(screenObject.settingsData);
+            return JSON.parse(screenObject.settingsData);
         } catch (error) {
             console.warn("Failed to parse LR2 settings data for " + screen + ": " + error);
+            return null;
+        }
+    }
+
+    function titleForScreen(screen: var) : var {
+        let parsed = root.settingsObjectForScreen(screen);
+        return parsed ? (parsed.title || "") : "";
+    }
+
+    function buildItemsForScreen(screen: var, updateMetadata: var) : var {
+        let parsed = root.settingsObjectForScreen(screen);
+        if (!parsed) {
             return [];
         }
-        root.metadata = parsed || {};
+        if (updateMetadata !== false) {
+            root.metadata = parsed;
+        }
 
         let family = root.themeFamilyForScreen(screen);
         let sourceItems = parsed.items || [];
@@ -212,6 +225,10 @@ QtObject {
             }
         }
         return result;
+    }
+
+    function buildItems() : var {
+        return root.buildItemsForScreen(root.currentPreviewScreen(), true);
     }
 
     function refreshItems() : void {
@@ -244,8 +261,8 @@ QtObject {
         return index >= 0 && index < root.items.length ? root.items[index] : null;
     }
 
-    function currentValue(item: var) : var {
-        let destination = root.settingDestinationForScreen(root.currentPreviewScreen());
+    function currentValueForScreen(screen: var, item: var) : var {
+        let destination = root.settingDestinationForScreen(screen);
         let value = destination && destination[item.id] !== undefined ? destination[item.id] : undefined;
         if ((value === undefined || value === null || value === "") && root.host.skinSettings) {
             value = root.host.skinSettings[item.id];
@@ -254,6 +271,10 @@ QtObject {
             value = item.defaultValue;
         }
         return value === undefined || value === null ? "" : String(value);
+    }
+
+    function currentValue(item: var) : var {
+        return root.currentValueForScreen(root.currentPreviewScreen(), item);
     }
 
     function settingName(row: var) : var {
@@ -271,19 +292,17 @@ QtObject {
         return index >= 0 && index < item.labels.length ? item.labels[index] : value;
     }
 
-    function changeSetting(row: var, delta: var) : var {
-        let item = root.settingAtVisibleRow(row);
-        if (!item || item.choices.length <= 0) {
+    function setSettingValueForScreen(screen: var, item: var, nextValue: var) : var {
+        if (!item) {
             return false;
         }
 
-        let current = root.currentValue(item);
-        let nextValue = root.choiceAfterDelta(item.choices, current, delta);
+        let current = root.currentValueForScreen(screen, item);
+        nextValue = String(nextValue);
         if (nextValue === current) {
             return false;
         }
 
-        let screen = root.currentPreviewScreen();
         let destination = root.settingDestinationForScreen(screen);
         if (destination) {
             destination[item.id] = nextValue;
@@ -296,6 +315,18 @@ QtObject {
         }
         root.items = root.items.slice();
         return true;
+    }
+
+    function changeSetting(row: var, delta: var) : var {
+        let item = root.settingAtVisibleRow(row);
+        if (!item || item.choices.length <= 0) {
+            return false;
+        }
+
+        let current = root.currentValue(item);
+        let nextValue = root.choiceAfterDelta(item.choices, current, delta);
+        return root.setSettingValueForScreen(
+                    root.currentPreviewScreen(), item, nextValue);
     }
 
     function changeSoundset(delta: var) : var {

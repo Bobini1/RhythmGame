@@ -129,10 +129,15 @@ Translations are described in [DEV_LANG.md](DEV_LANG.md).
   },
   "translations": {
     "en": "en.qm",
-    "pl": "pl.qm"
+    "pl": "pl.qm",
+    "zh-Hans": "zh_Hans.qm",
+    "zh-Hant-HK": "zh_Hant_HK.qm"
   }
 }
 ```
+
+Translation keys use BCP 47 language tags with optional script and territory
+subtags. See [DEV_LANG.md](DEV_LANG.md) for matching and compatibility details.
 
 ## Theme loading
 

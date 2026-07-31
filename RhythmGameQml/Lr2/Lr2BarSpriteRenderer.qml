@@ -35,6 +35,7 @@ Item {
     property var barLampVariants: []
     property color transColor: "black"
     property bool colorKeyEnabled: false
+    property bool asynchronousLoading: false
     property int selectedOffset: 0
     property bool rankingMode: false
     readonly property var barBaseStates: barBaseStateResolver ? barBaseStateResolver.baseStates : []
@@ -273,6 +274,7 @@ Item {
                 timerFire: -2147483648
                 sourceTimerFire: bodyDelegate.bodySourceAnimates ? root.sourceTimerFire : -2147483648
                 chartAssetSource: bodyDelegate.bodyChartAssetSource
+                asynchronousLoading: root.asynchronousLoading
                 scaleOverride: root.scaleOverride
                 transColor: root.transColor
                 colorKeyEnabled: root.colorKeyEnabled
@@ -381,6 +383,7 @@ Item {
                 timers: root.timers
                 timerFire: -2147483648
                 sourceTimerFire: overlayDelegate.overlaySourceAnimates ? root.sourceTimerFire : -2147483648
+                asynchronousLoading: root.asynchronousLoading
                 chartAssetSource: overlayDelegate.overlayChartAssetSource
                 scaleOverride: root.scaleOverride
                 transColor: root.transColor

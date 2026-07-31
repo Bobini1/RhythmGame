@@ -299,6 +299,27 @@ resource_managers::GeneralVars::resetReplayType()
 }
 
 auto
+resource_managers::GeneralVars::getArenaOverlayHintVersion() const -> int
+{
+    return arenaOverlayHintVersion;
+}
+void
+resource_managers::GeneralVars::setArenaOverlayHintVersion(int value)
+{
+    value = std::max(0, value);
+    if (arenaOverlayHintVersion == value) {
+        return;
+    }
+    arenaOverlayHintVersion = value;
+    emit arenaOverlayHintVersionChanged();
+}
+void
+resource_managers::GeneralVars::resetArenaOverlayHintVersion()
+{
+    setArenaOverlayHintVersion(0);
+}
+
+auto
 resource_managers::GeneralVars::getNoteOrderAlgorithm() const
   -> NoteOrderAlgorithm
 {
@@ -546,7 +567,7 @@ resource_managers::GeneralVars::setLanguage(QString value)
 void
 resource_managers::GeneralVars::resetLanguage()
 {
-    setLanguage(QLocale::system().name());
+    setLanguage(QLocale::system().bcp47Name());
 }
 auto
 resource_managers::GeneralVars::getOffset() const -> double
@@ -1064,6 +1085,33 @@ jsonValueToString(const QJsonValue& value) -> std::string
     return QJsonDocument(value.toObject()).toJson().toStdString();
 }
 
+auto
+fileFilters(const QJsonObject& object) -> QStringList
+{
+    const auto filtersValue = object["filters"];
+    if (filtersValue.isUndefined()) {
+        return {};
+    }
+    if (!filtersValue.isArray()) {
+        throw support::Exception(
+          std::format("filters field of property of type file is not an array: "
+                      "{}",
+                      jsonValueToString(object)));
+    }
+
+    auto filters = QStringList{};
+    for (const auto& filter : filtersValue.toArray()) {
+        if (!filter.isString() || filter.toString().isEmpty()) {
+            throw support::Exception(
+              std::format("filters field of property of type file contains an "
+                          "empty or non-string filter: {}",
+                          jsonValueToString(object)));
+        }
+        filters.append(filter.toString());
+    }
+    return filters;
+}
+
 void
 createFileProperty(QHash<QString, QVariant>& screenVars,
                    const QJsonObject& object,
@@ -1088,6 +1136,10 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
           "default field of property of type file is not a string: {}",
           jsonValueToString(object)));
     }
+    const auto filters = fileFilters(object);
+    const auto files =
+      qml_components::FileQuery().getSelectableFilesForDirectory(
+        support::pathToQString(themePath / stdPath), filters);
     if (object["default"].isString()) {
         const auto defaultPath =
           support::qStringToPath(object["default"].toString());
@@ -1097,10 +1149,15 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
                           "relative path: {}",
                           jsonValueToString(object)));
         }
-        if (!exists(themePath / stdPath / defaultPath)) {
+        const auto defaultMatchesFilters =
+          filters.isEmpty() ||
+          files.contains(support::pathToQString(defaultPath),
+                         Qt::CaseInsensitive);
+        if (!exists(themePath / stdPath / defaultPath) ||
+            !defaultMatchesFilters) {
             spdlog::debug("default file of property of type file does not "
-                          "exist, will pick the "
-                          "first one available instead: {}",
+                          "exist or does not match its filters, will pick the "
+                          "first available matching file instead: {}",
                           jsonValueToString(object));
         } else {
             screenVars[object["id"].toString()] =
@@ -1108,10 +1165,7 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
             return;
         }
     }
-    if (const auto files =
-          qml_components::FileQuery().getSelectableFilesForDirectory(
-            support::pathToQString(themePath / stdPath));
-        !files.empty()) {
+    if (!files.empty()) {
         screenVars[object["id"].toString()] = QVariant(files.first());
     } else {
         spdlog::debug("No files found for property of type file: {}",
@@ -1446,7 +1500,12 @@ createHiddenProperty(QHash<QString, QVariant>& screenVars,
 struct ScreenVarsPopulationResult
 {
     QHash<QString, QVariant> screenVars;
-    QHash<QString, QString> fileTypeProperties;
+    struct FileTypeProperty
+    {
+        QString path;
+        QStringList filters;
+    };
+    QHash<QString, FileTypeProperty> fileTypeProperties;
     struct FontTypeProperty
     {
         QString path;
@@ -1496,8 +1555,9 @@ createProperty(ScreenVarsPopulationResult& result,
     }
     if (object["type"] == "file") {
         createFileProperty(result.screenVars, object, themePath);
-        result.fileTypeProperties.insert(object["id"].toString(),
-                                         object["path"].toString());
+        result.fileTypeProperties.insert(
+          object["id"].toString(),
+          { object["path"].toString(), fileFilters(object) });
     } else if (object["type"] == "font") {
         createFontProperty(result.screenVars, object, themePath);
         result.fontTypeProperties.insert(
@@ -1701,22 +1761,28 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
                 if (value.isNull()) {
                     continue;
                 }
+                const auto& fileProperty = vars[screen].fileTypeProperties[key];
+                const auto selectableFiles =
+                  qml_components::FileQuery().getSelectableFilesForDirectory(
+                    support::pathToQString(
+                      themePath / support::qStringToPath(fileProperty.path)),
+                    fileProperty.filters);
                 if (exists(themePath /
-                           support::qStringToPath(
-                             vars[screen].fileTypeProperties[key]) /
-                           support::qStringToPath(value.toString()))) {
+                           support::qStringToPath(fileProperty.path) /
+                           support::qStringToPath(value.toString())) &&
+                    (fileProperty.filters.isEmpty() ||
+                     selectableFiles.contains(value.toString(),
+                                              Qt::CaseInsensitive))) {
                     result[screen][key] = value;
                 } else {
                     spdlog::debug(
                       "The saved file property {} of screen {} of theme {} "
-                      "({}) does not point to an existing file, will use "
-                      "the default instead ({}).",
+                      "({}) does not point to an existing file matching its "
+                      "filters, will use the default instead ({}).",
                       key.toStdString(),
                       screen.toStdString(),
                       themePath.string(),
-                      (themePath /
-                       support::qStringToPath(
-                         vars[screen].fileTypeProperties[key]) /
+                      (themePath / support::qStringToPath(fileProperty.path) /
                        support::qStringToPath(value.toString()))
                         .string(),
                       result[screen][key].toString().toStdString());
@@ -1780,6 +1846,80 @@ readThemeVars(const std::filesystem::path& profileFolder,
         }
     }
     return vars;
+}
+
+void
+ensureArenaOverlayThemeVars(
+  QHash<QString, QHash<QString, QHash<QString, QVariant>>>& vars,
+  const QMap<QString, qml_components::ThemeFamily>& themeFamilies)
+{
+    const auto addOverlayState = [](QHash<QString, QVariant>& screenVars,
+                                    const QString& variant) {
+        const auto prefix = QStringLiteral("arenaOverlay") + variant;
+        for (const auto& suffix : { QStringLiteral("XNormalized"),
+                                    QStringLiteral("YNormalized"),
+                                    QStringLiteral("WidthNormalized"),
+                                    QStringLiteral("HeightNormalized") }) {
+            const auto key = prefix + suffix;
+            if (!screenVars.contains(key)) {
+                screenVars.insert(key, -1.0);
+            }
+        }
+        const auto addDefault = [&screenVars, &prefix](const QString& suffix,
+                                                       const QVariant& value) {
+            const auto key = prefix + suffix;
+            if (!screenVars.contains(key)) {
+                screenVars.insert(key, value);
+            }
+        };
+        addDefault(QStringLiteral("Visible"), true);
+        addDefault(QStringLiteral("Expanded"),
+                   variant == QStringLiteral("Result"));
+        addDefault(QStringLiteral("ChatSelected"), false);
+    };
+
+    for (const auto& [themeName, themeFamily] :
+         themeFamilies.asKeyValueRange()) {
+        for (const auto& [screenName, screen] :
+             themeFamily.getScreens().asKeyValueRange()) {
+            if (screen.isAliased()) {
+                continue;
+            }
+            if (screenName != QStringLiteral("k5") &&
+                screenName != QStringLiteral("k7") &&
+                screenName != QStringLiteral("k10") &&
+                screenName != QStringLiteral("k14") &&
+                screenName != QStringLiteral("result") &&
+                screenName != QStringLiteral("select")) {
+                continue;
+            }
+            auto& screenVars = vars[screenName][themeName];
+            if (screenName == QStringLiteral("k7")) {
+                addOverlayState(screenVars, QStringLiteral("K7"));
+                const auto k5 =
+                  themeFamily.getScreens().constFind(QStringLiteral("k5"));
+                if (k5 != themeFamily.getScreens().cend() && k5->isAliased()) {
+                    addOverlayState(screenVars, QStringLiteral("K5"));
+                }
+            } else if (screenName == QStringLiteral("k14")) {
+                addOverlayState(screenVars, QStringLiteral("K14"));
+                const auto k10 =
+                  themeFamily.getScreens().constFind(QStringLiteral("k10"));
+                if (k10 != themeFamily.getScreens().cend() &&
+                    k10->isAliased()) {
+                    addOverlayState(screenVars, QStringLiteral("K10"));
+                }
+            } else if (screenName == QStringLiteral("k5")) {
+                addOverlayState(screenVars, QStringLiteral("K5"));
+            } else if (screenName == QStringLiteral("k10")) {
+                addOverlayState(screenVars, QStringLiteral("K10"));
+            } else if (screenName == QStringLiteral("result")) {
+                addOverlayState(screenVars, QStringLiteral("Result"));
+            } else if (screenName == QStringLiteral("select")) {
+                addOverlayState(screenVars, QStringLiteral("Select"));
+            }
+        }
+    }
 }
 
 // I got this from cppreference
@@ -1934,6 +2074,7 @@ resource_managers::Vars::Vars(
 {
     generalVars.setParent(this);
     writePool.setMaxThreadCount(1);
+    ensureArenaOverlayThemeVars(loadedThemeVars, this->availableThemeFamilies);
     writeThemeVars(loadedThemeVars, profile->getPath().parent_path());
     populateThemePropertyMap(
       *themeVars, loadedThemeVars, profile->getPath().parent_path());

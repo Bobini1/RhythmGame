@@ -16,18 +16,18 @@ defining the settings for the k7 screen, you will notice that the name and descr
 of each setting are defined in the file itself.
 Simply add new languages next to "en" and "pl" (English and Polish).
 
-The identifier of the language can be either a two-letter ISO 639-1 code (e.g. "fr" for French, "zh" for Chinese)
-or a combination of the ISO 639-1 code and the ISO 3166-1 alpha-2 country code (e.g. "fr_CA" for Canadian French,
-"zh_HK" for Traditional Chinese as used in Hong Kong).
+Locale identifiers use a supported subset of BCP 47: an ISO 639 language code,
+an optional ISO 15924 script code, and an optional ISO 3166-1 territory code.
+For example, `fr-CA` is Canadian French, `zh-Hans` is Simplified Chinese,
+`zh-Hant-TW` is Traditional Chinese for Taiwan, and `zh-Hant-HK` is
+Traditional Chinese for Hong Kong. Hyphens are preferred. Existing identifiers
+with underscores, such as `fr_CA`, remain accepted and are normalized at load
+time.
 
----
-**NOTE**
-
-Distinguishing between different scripts of the same langauge based on
-ISO 15924 identifiers is currently unsupported.
-Please use country codes instead if possible.
-
----
+Script subtags matter when a language uses more than one writing system. The
+game first looks for the same language, script, and territory, then the same
+language and script, and finally a generic language entry. It does not select
+an explicitly incompatible script while a compatible generic entry exists.
 
 For example, here is a property with an added Canadian French translation:
 
@@ -37,12 +37,12 @@ For example, here is a property with an added Canadian French translation:
   "name": {
     "en": "Vertical Gauge",
     "pl": "Pionowy wskaźnik",
-    "fr_CA": "Jauge verticale"
+    "fr-CA": "Jauge verticale"
   },
   "description": {
     "en": "Whether the life gauge is vertical (fills upwards).",
     "pl": "Pionowy wskaźnić życia (wypełnia się w górę).",
-    "fr_CA": "Si la jauge de vie est verticale (se remplit vers le haut)."
+    "fr-CA": "Si la jauge de vie est verticale (se remplit vers le haut)."
   },
   "type": "boolean",
   "default": false
@@ -57,7 +57,9 @@ This can look like this:
   "translations": {
     "en": "translations/Default_en.qm",
     "pl": "translations/Default_pl.qm",
-    "fr_CA": ""
+    "fr-CA": "",
+    "zh-Hans": "translations/Default_zh_Hans.qm",
+    "zh-Hant-TW": "translations/Default_zh_Hant_TW.qm"
   }
 }
 ```

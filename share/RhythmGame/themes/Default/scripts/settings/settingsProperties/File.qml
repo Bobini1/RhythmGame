@@ -18,6 +18,7 @@ RowLayout {
     property alias description: strLabel.description
     property var default_
     property string path
+    property var filters: []
 
     SettingsLabel {
         id: strLabel
@@ -26,7 +27,9 @@ RowLayout {
 
     ComboBox {
         id: fileComboBox
-        property var files: Rg.fileQuery.getSelectableFilesForDirectory(Rg.themes.availableThemeFamilies[Rg.profileList.mainProfile.themeConfig[screen]].path + "/" + path)
+        property var files: Rg.fileQuery.getSelectableFilesForDirectory(
+                                Rg.themes.availableThemeFamilies[Rg.profileList.mainProfile.themeConfig[screen]].path + "/" + path,
+                                file.filters || [])
         model: files
         Layout.fillWidth: true
         Layout.preferredWidth: 460

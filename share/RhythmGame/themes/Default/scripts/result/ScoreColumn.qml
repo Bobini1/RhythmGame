@@ -1,7 +1,6 @@
 import QtQuick
 import RhythmGameQml
 import QtQuick.Effects
-import QtQuick.Controls
 
 Column {
     id: scoreColumn
@@ -16,12 +15,18 @@ Column {
     required property var clearType
     required property var oldBestClear
     required property string websiteUrl
+    required property bool arenaSelected
+    required property bool arenaFinalized
+    required property bool arenaLocalDnf
+    required property int arenaLocalRank
+    required property int arenaParticipantCount
     property alias oldRankingPosition: rankingPosition.oldRankingPosition
     property alias newRankingPosition: rankingPosition.newRankingPosition
     property alias totalEntries: rankingPosition.totalEntries
     property alias loading: rankingPosition.loading
     property alias scoreSubmissionFailed: rankingPosition.scoreSubmissionFailed
     property string rankingUrl
+    property string rankingSource: "rhythmGame"
     property var provider
 
     signal leftClicked()
@@ -73,8 +78,14 @@ Column {
                 id: rankingPosition
                 anchors.fill: parent
                 anchors.margins: -14
+                arenaSelected: scoreColumn.arenaSelected
+                arenaFinalized: scoreColumn.arenaFinalized
+                arenaLocalDnf: scoreColumn.arenaLocalDnf
+                arenaLocalRank: scoreColumn.arenaLocalRank
+                arenaParticipantCount: scoreColumn.arenaParticipantCount
 
                 Image {
+                    visible: !scoreColumn.arenaSelected
                     source: {
                         switch (scoreColumn.provider) {
                             case OnlineRankingModel.RhythmGame:
@@ -97,6 +108,18 @@ Column {
                     sourceSize.width: 64
                     sourceSize.height: 64
                     fillMode: Image.PreserveAspectFit
+                }
+
+                Text {
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.margins: 20
+                    color: "#20242c"
+                    font.bold: true
+                    font.pixelSize: 16
+                    text: qsTr("Arena")
+                    textFormat: Text.PlainText
+                    visible: scoreColumn.arenaSelected
                 }
 
                 MouseArea {

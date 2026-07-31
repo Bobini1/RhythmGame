@@ -19,6 +19,7 @@
 #include "resource_managers/DefineDb.h"
 #include "input/GamepadManager.h"
 #include "input/InputTranslator.h"
+#include "input/MidiManager.h"
 #include "qml_components/RootSongFoldersConfig.h"
 #include "qml_components/SongFolderFactory.h"
 #include "support/PathToQString.h"
@@ -55,11 +56,52 @@
 #include "support/QStringToPath.h"
 #include "qml_components/OnlineScores.h"
 #include "gameplay_logic/lr2_skin/Lr2SkinModel.h"
+#include "arena/ArenaSession.h"
+#include "arena/ProfileArenaIdentityProvider.h"
+#include "arena/QtArenaGameplaySource.h"
+#include "arena/QtArenaRoundLoader.h"
+#include "arena/QtArenaScheduler.h"
+#include "arena/QtWebSocketArenaTransport.h"
+#include "arena/SqliteArenaInventorySource.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 Q_IMPORT_PLUGIN(TgaPlugin)
 Q_IMPORT_PLUGIN(CimPlugin)
 Q_IMPORT_PLUGIN(DdsPlugin)
+
+namespace {
+
+auto
+arenaEndpointFromEnvironment() -> QUrl
+{
+    const auto defaultEndpoint =
+      QUrl(QStringLiteral("wss://arena.rhythmgame.eu/ws"));
+    if (!qEnvironmentVariableIsSet("RHYTHMGAME_ARENA_ENDPOINT")) {
+        return defaultEndpoint;
+    }
+
+    const auto value = qEnvironmentVariable("RHYTHMGAME_ARENA_ENDPOINT");
+    const QUrl endpoint(value, QUrl::StrictMode);
+    const auto scheme = endpoint.scheme().toLower();
+    const auto host = endpoint.host().toLower();
+    const auto localHost = host == QStringLiteral("localhost") ||
+                           host == QStringLiteral("127.0.0.1") ||
+                           host == QStringLiteral("::1");
+    const auto port = endpoint.port(-1);
+    const auto validPort = port == -1 || (port >= 1 && port <= 65'535);
+    if (!endpoint.isValid() || endpoint.isRelative() ||
+        (scheme != QStringLiteral("ws") && scheme != QStringLiteral("wss")) ||
+        !localHost ||
+        endpoint.path(QUrl::FullyDecoded) != QStringLiteral("/ws") ||
+        !endpoint.userName().isEmpty() || !endpoint.password().isEmpty() ||
+        endpoint.hasQuery() || endpoint.hasFragment() || !validPort) {
+        throw std::runtime_error(
+          "RHYTHMGAME_ARENA_ENDPOINT must be a local ws/wss /ws endpoint");
+    }
+    return endpoint;
+}
+
+} // namespace
 
 bool
 shouldSuppressQtLog(QtMsgType type,
@@ -240,6 +282,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           qml_components::ProgramSettings{ avatarPath, screenshotsPath };
 
         qRegisterMetaType<input::Gamepad>("input::Gamepad");
+        qRegisterMetaType<input::MidiDevice>("input::MidiDevice");
         qRegisterMetaType<gameplay_logic::BmsPoints>(
           "gameplay_logic::BmsPoints");
 
@@ -255,6 +298,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             throw std::runtime_error("No themes available");
         }
         auto gamepadManager = input::GamepadManager{};
+        auto midiManager = input::MidiManager{};
 
         auto themes = qml_components::Themes{ availableThemes };
 
@@ -272,6 +316,12 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             dataFolder / "song_db.sqlite", &db,           availableThemes,
             dataFolder / "profiles",       assetsFolders, &networkManager
         };
+        auto arenaTransport = arena::QtWebSocketArenaTransport{};
+        auto arenaIdentityProvider =
+          arena::ProfileArenaIdentityProvider{ &profileList };
+        auto arenaScheduler = arena::QtArenaScheduler{};
+        auto arenaInventorySource =
+          arena::SqliteArenaInventorySource{ dataFolder / "song_db.sqlite" };
 
         QObject::connect(&gamepadManager,
                          &input::GamepadManager::axisMoved,
@@ -285,6 +335,22 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          &input::GamepadManager::buttonReleased,
                          &inputTranslator,
                          &input::InputTranslator::handleRelease);
+        QObject::connect(&midiManager,
+                         &input::MidiManager::noteChanged,
+                         &inputTranslator,
+                         &input::InputTranslator::handleMidiNote);
+        QObject::connect(&midiManager,
+                         &input::MidiManager::controlChanged,
+                         &inputTranslator,
+                         &input::InputTranslator::handleMidiControl);
+        QObject::connect(&midiManager,
+                         &input::MidiManager::pitchBendChanged,
+                         &inputTranslator,
+                         &input::InputTranslator::handleMidiPitchBend);
+        QObject::connect(&midiManager,
+                         &input::MidiManager::deviceRemoved,
+                         &inputTranslator,
+                         &input::InputTranslator::handleMidiDeviceRemoved);
 
         auto audioEngine = sounds::AudioEngine{};
         auto chartFactory =
@@ -338,6 +404,26 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             &chartFactory,
             &db
         };
+        auto arenaRoundLoader =
+          arena::QtArenaRoundLoader{ &profileList, &db, &chartLoader };
+        auto arenaGameplaySource = arena::QtArenaGameplaySource{};
+        auto arenaSession =
+          arena::ArenaSession{ &arenaTransport,
+                               &arenaIdentityProvider,
+                               &arenaScheduler,
+                               arenaEndpointFromEnvironment(),
+                               QCoreApplication::applicationVersion(),
+                               &arenaInventorySource,
+                               &arenaRoundLoader,
+                               &arenaGameplaySource };
+        const auto applyArenaBattlePolicy = [&] {
+            profileList.setBattleAllowed(!arenaSession.getActive());
+        };
+        QObject::connect(&arenaSession,
+                         &arena::ArenaSession::activeChanged,
+                         &profileList,
+                         applyArenaBattlePolicy);
+        applyArenaBattlePolicy();
 
         auto scanningQueue =
           qml_components::ScanningQueue{ &db, songDbScanner };
@@ -346,6 +432,16 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto rootSongFoldersConfig =
           qml_components::RootSongFoldersConfig{ &folders, &scanningQueue };
+        QObject::connect(
+          &scanningQueue,
+          &qml_components::ScanningQueue::queueDrained,
+          &arenaInventorySource,
+          &arena::SqliteArenaInventorySource::commitLibraryMutation);
+        QObject::connect(
+          &folders,
+          &qml_components::RootSongFolders::chartSetMutationCommitted,
+          &arenaInventorySource,
+          &arena::SqliteArenaInventorySource::commitLibraryMutation);
 
         auto songFolderFactory = qml_components::SongFolderFactory{ &db };
         auto songDirectoryFilePathFetcher =
@@ -387,19 +483,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          setLang);
         setLang();
 
-        auto rg = Rg{ &programSettings,
-                      &inputTranslator,
-                      &chartLoader,
-                      &rootSongFoldersConfig,
-                      &songFolderFactory,
-                      &songDirectoryFilePathFetcher,
-                      &fileQuery,
-                      &themes,
-                      &gamepadManager,
-                      &profileList,
-                      &tables,
-                      &languages,
-                      &audioEngine,
+        auto rg = Rg{ &programSettings,   &inputTranslator,
+                      &chartLoader,       &rootSongFoldersConfig,
+                      &songFolderFactory, &songDirectoryFilePathFetcher,
+                      &fileQuery,         &themes,
+                      &gamepadManager,    &profileList,
+                      &arenaSession,      &tables,
+                      &languages,         &audioEngine,
                       &onlineScores };
 
         Rg::instance = &rg;
@@ -464,6 +554,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BgaContainer");
         qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "key");
         qmlRegisterType<input::Gamepad>("RhythmGameQml", 1, 0, "gamepad");
+        qmlRegisterType<input::MidiDevice>("RhythmGameQml", 1, 0, "midiDevice");
         qmlRegisterType<qml_components::OnlineProfileInfo>(
           "RhythmGameQml", 1, 0, "onlineProfileInfo");
         qmlRegisterUncreatableMetaObject(

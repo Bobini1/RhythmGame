@@ -6,7 +6,7 @@ Item {
 
     property int difficulty: 0
     property int playLevel: 0
-    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
+    property string fontFile: "file:NotoSans-VariableFont_wdth,wght.ttf"
     property bool contentVisible: true
 
     ThemeFont {
@@ -28,11 +28,12 @@ Item {
         id: diffSizer
         visible: false
         text: difficultyDisplay.difficultyName
-        font.pixelSize: 100
-        font.family: difficultyDisplayFont.fontFamily
-        font.weight: difficultyDisplayFont.boldFontWeight
-        font.variableAxes: difficultyDisplayFont.boldVariableAxes
-        font.italic: difficultyDisplayFont.italic
+        font: difficultyDisplayFont.uiFont({
+            pixelSize: 100,
+            weight: difficultyDisplayFont.boldFontWeight,
+            variableAxes: difficultyDisplayFont.boldVariableAxes,
+            italic: difficultyDisplayFont.italic
+        })
     }
 
     // Natural badge dimensions at the 100 px reference font.
@@ -66,11 +67,12 @@ Item {
         Text {
             anchors.fill: parent
             text: difficultyDisplay.difficultyName
-            font.pixelSize: Math.max(1, difficultyDisplay.badgeFontSize)
-            font.family: difficultyDisplayFont.fontFamily
-            font.weight: difficultyDisplayFont.boldFontWeight
-            font.variableAxes: difficultyDisplayFont.boldVariableAxes
-            font.italic: difficultyDisplayFont.italic
+            font: difficultyDisplayFont.uiFont({
+                pixelSize: Math.max(1, difficultyDisplay.badgeFontSize),
+                weight: difficultyDisplayFont.boldFontWeight,
+                variableAxes: difficultyDisplayFont.boldVariableAxes,
+                italic: difficultyDisplayFont.italic
+            })
             color: "white"
             textFormat: Text.PlainText
             verticalAlignment: Text.AlignVCenter
@@ -86,11 +88,12 @@ Item {
         width: parent.width
         height: difficultyDisplay.badgeActualHeight * 1.5
         text: "Lv." + difficultyDisplay.playLevel
-        font.pixelSize: Math.max(1, difficultyDisplay.badgeFontSize * 1.3)
-        font.family: difficultyDisplayFont.fontFamily
-        font.weight: difficultyDisplayFont.boldFontWeight
-        font.variableAxes: difficultyDisplayFont.boldVariableAxes
-        font.italic: difficultyDisplayFont.italic
+        font: difficultyDisplayFont.uiFont({
+            pixelSize: Math.max(1, difficultyDisplay.badgeFontSize * 1.3),
+            weight: difficultyDisplayFont.boldFontWeight,
+            variableAxes: difficultyDisplayFont.boldVariableAxes,
+            italic: difficultyDisplayFont.italic
+        })
         color: "white"
         textFormat: Text.PlainText
         verticalAlignment: Text.AlignVCenter

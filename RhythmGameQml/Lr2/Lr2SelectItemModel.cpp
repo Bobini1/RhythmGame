@@ -382,6 +382,7 @@ QHash<int, QByteArray> Lr2SelectItemModel::roleNames() const {
 		{RawItemRole, "rawItem"},
 		{ChartDataRole, "chartData"},
 		{ActivationObjectRole, "activationObject"},
+		{ArenaAvailabilityRole, "arenaAvailability"},
 	};
 }
 
@@ -545,6 +546,58 @@ void Lr2SelectItemModel::setLevelFolderParentSymbol(const QString& symbol) {
 	}
 	m_levelFolderParentSymbol = symbol;
 	emit levelFolderParentChanged();
+	refreshDerivedItems();
+}
+
+arena::ArenaAvailabilityIndex* Lr2SelectItemModel::arenaAvailability() const {
+	return m_arenaAvailability;
+}
+
+void Lr2SelectItemModel::setArenaAvailability(arena::ArenaAvailabilityIndex* availability) {
+	if (m_arenaAvailability == availability) {
+		return;
+	}
+	if (m_arenaAvailability) {
+		disconnect(m_arenaAvailability, nullptr, this, nullptr);
+	}
+	m_arenaAvailability = availability;
+	if (m_arenaAvailability) {
+		connect(m_arenaAvailability,
+			&arena::ArenaAvailabilityIndex::changed,
+			this,
+			&Lr2SelectItemModel::refreshArenaAvailability);
+		connect(m_arenaAvailability, &QObject::destroyed, this, [this] {
+			m_arenaAvailability = nullptr;
+			emit arenaAvailabilityChanged();
+			refreshArenaAvailability();
+		});
+	}
+	emit arenaAvailabilityChanged();
+	refreshArenaAvailability();
+}
+
+void Lr2SelectItemModel::refreshArenaAvailability() {
+	if (m_items.isEmpty()) {
+		return;
+	}
+	emit dataChanged(index(0, 0),
+		index(m_items.size() - 1, 0),
+		{ DisplayTextRole,
+		  TitleTypeRole,
+		  TitleRole,
+		  ArenaAvailabilityRole });
+}
+
+QString Lr2SelectItemModel::unavailableSongPrefix() const {
+	return m_unavailableSongPrefix;
+}
+
+void Lr2SelectItemModel::setUnavailableSongPrefix(const QString& prefix) {
+	if (m_unavailableSongPrefix == prefix) {
+		return;
+	}
+	m_unavailableSongPrefix = prefix;
+	emit unavailableSongPrefixChanged();
 	refreshDerivedItems();
 }
 
@@ -1039,8 +1092,8 @@ bool Lr2SelectItemModel::populateBarCell(int sourceRow, int visualRow, Lr2Select
 	cell->setEntry(item.raw);
 	cell->setCore(visualRow,
 				  true,
-				  item.displayText,
-				  item.titleType,
+				  effectiveDisplayText(item),
+				  effectiveTitleType(item),
 				  item.bodyType,
 				  item.playLevel,
 				  item.difficulty,
@@ -1366,7 +1419,7 @@ QString Lr2SelectItemModel::displayTextForItem(const QVariant& value, const QVar
 		const QString title = stringField(value, map, "title");
 		const QString subtitle = stringField(value, map, "subtitle");
 		const QString prefix = kind == EntryKind && !m_useBeatorajaBarTextTypes
-			? QStringLiteral("(missing) ")
+			? m_unavailableSongPrefix
 			: QString();
 		return prefix + (subtitle.isEmpty() ? title : title + QLatin1Char(' ') + subtitle);
 	}
@@ -1382,7 +1435,7 @@ QString Lr2SelectItemModel::titleForItem(const QVariant& value, const QVariantMa
 	}
 	if (kind == ChartKind || kind == EntryKind) {
 		const QString prefix = kind == EntryKind && !m_useBeatorajaBarTextTypes
-			? QStringLiteral("(missing) ")
+			? m_unavailableSongPrefix
 			: QString();
 		return prefix + stringField(value, map, "title");
 	}
@@ -1570,12 +1623,12 @@ QString Lr2SelectItemModel::keyFor(const QVariant& value, const QVariantMap& map
 QVariant Lr2SelectItemModel::roleData(const Item& item, int role) const {
 	switch (role) {
 	case Qt::DisplayRole:
-	case DisplayTextRole: return item.displayText;
+	case DisplayTextRole: return effectiveDisplayText(item);
 	case KeyRole: return item.key;
 	case KindRole: return item.kind;
-	case TitleTypeRole: return item.titleType;
+	case TitleTypeRole: return effectiveTitleType(item);
 	case BodyTypeRole: return item.bodyType;
-	case TitleRole: return item.title;
+	case TitleRole: return effectiveTitle(item);
 	case SubtitleRole: return item.subtitle;
 	case ArtistRole: return item.artist;
 	case SubartistRole: return item.subartist;
@@ -1612,6 +1665,40 @@ QVariant Lr2SelectItemModel::roleData(const Item& item, int role) const {
 	case RawItemRole:
 	case ActivationObjectRole: return item.raw;
 	case ChartDataRole: return item.kind == ChartKind ? item.raw : QVariant();
+	case ArenaAvailabilityRole:
+		return static_cast<int>(arenaAvailabilityForItem(item));
 	default: return {};
 	}
+}
+
+arena::ArenaAvailabilityIndex::Availability Lr2SelectItemModel::arenaAvailabilityForItem(const Item& item) const {
+	if (item.kind != ChartKind || item.sha256.isEmpty() || !m_arenaAvailability) {
+		return arena::ArenaAvailabilityIndex::Availability::NotApplicable;
+	}
+	return m_arenaAvailability->availability(item.sha256);
+}
+
+QString Lr2SelectItemModel::effectiveDisplayText(const Item& item) const {
+	if (!m_useBeatorajaBarTextTypes
+		&& arenaAvailabilityForItem(item) == arena::ArenaAvailabilityIndex::Availability::UnavailableToSome) {
+		return m_unavailableSongPrefix + item.displayText;
+	}
+	return item.displayText;
+}
+
+QString Lr2SelectItemModel::effectiveTitle(const Item& item) const {
+	if (!m_useBeatorajaBarTextTypes
+		&& arenaAvailabilityForItem(item) == arena::ArenaAvailabilityIndex::Availability::UnavailableToSome) {
+		return m_unavailableSongPrefix + item.title;
+	}
+	return item.title;
+}
+
+int Lr2SelectItemModel::effectiveTitleType(const Item& item) const {
+	if (m_useBeatorajaBarTextTypes
+		&& arenaAvailabilityForItem(item) == arena::ArenaAvailabilityIndex::Availability::UnavailableToSome
+		&& variantListContainsInt(m_barTitleTypes, 8)) {
+		return 8;
+	}
+	return item.titleType;
 }

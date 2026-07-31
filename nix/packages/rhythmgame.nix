@@ -15,10 +15,10 @@
   fmt,
   libxml2,
   qtdeclarative,
+  qtwebsockets,
   qtmultimedia,
   qtsvg,
   qtkeychain,
-  qtinterfaceframework,
   ned14-llfio,
   lexy,
   mimalloc,
@@ -38,6 +38,7 @@
   libwebp,
   libtiff,
   zlib-ng,
+  libremidi,
 }:
 stdenv.mkDerivation rec {
   pname = "RhythmGame";
@@ -64,10 +65,10 @@ stdenv.mkDerivation rec {
     fmt
     libxml2
     qtdeclarative
+    qtwebsockets
     qtmultimedia
     qtsvg
     qtkeychain
-    qtinterfaceframework
     ned14-llfio
     lexy
     mimalloc
@@ -85,6 +86,7 @@ stdenv.mkDerivation rec {
     libwebp
     libtiff
     zlib-ng
+    libremidi
   ];
 
   cmakeFlags = [

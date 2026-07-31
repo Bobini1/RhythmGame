@@ -4,10 +4,6 @@
 <context>
     <name>AnalogAxisSettings</name>
     <message>
-        <source>Player %1 Turntable</source>
-        <translation type="vanished">Płyta gracza %1</translation>
-    </message>
-    <message>
         <location filename="../scripts/settings/AnalogAxisSettings.qml" line="12"/>
         <source>Analog axis P%1</source>
         <translation>Oś analogowa P%1</translation>
@@ -39,6 +35,1049 @@
     </message>
 </context>
 <context>
+    <name>ArenaBrowser</name>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="34"/>
+        <source>Log in to create or join a room.</source>
+        <translation>Zaloguj się, aby utworzyć pokój lub do niego dołączyć.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="36"/>
+        <source>You are already in a room.</source>
+        <translation>Jesteś już w pokoju.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="38"/>
+        <source>That room no longer exists.</source>
+        <translation>Ten pokój już nie istnieje.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="40"/>
+        <source>The room password was rejected.</source>
+        <translation>Hasło do pokoju jest nieprawidłowe.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="42"/>
+        <source>That room is full.</source>
+        <translation>Ten pokój jest pełny.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="44"/>
+        <source>You cannot rejoin that room.</source>
+        <translation>Nie możesz ponownie dołączyć do tego pokoju.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="46"/>
+        <source>This account already has a seat in that room.</source>
+        <translation>To konto ma już miejsce w tym pokoju.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="48"/>
+        <source>Your login expired. Please try the room request again.</source>
+        <translation>Sesja logowania wygasła. Ponów żądanie dołączenia do pokoju.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="51"/>
+        <source>This Arena server requires a newer game version.</source>
+        <translation>Ten serwer Areny wymaga nowszej wersji gry.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="53"/>
+        <source>Your reserved seat could not be restored.</source>
+        <translation>Nie udało się przywrócić zarezerwowanego miejsca.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="55"/>
+        <source>Arena is restarting. Please try again shortly.</source>
+        <translation>Arena jest ponownie uruchamiana. Spróbuj ponownie za chwilę.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="57"/>
+        <source>A secure connection to Arena could not be established.</source>
+        <translation>Nie udało się nawiązać bezpiecznego połączenia z Areną.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="60"/>
+        <source>The ranking service could not authorize Arena right now.</source>
+        <translation>Usługa rankingowa nie może teraz autoryzować dostępu do Areny.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="64"/>
+        <source>Arena is unavailable right now.</source>
+        <translation>Arena jest teraz niedostępna.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="66"/>
+        <source>You were removed from the room.</source>
+        <translation>Usunięto cię z pokoju.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="68"/>
+        <source>Please wait for the current room request to finish.</source>
+        <translation>Poczekaj na zakończenie bieżącego żądania.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="70"/>
+        <source>Arena request failed. Please try again.</source>
+        <translation>Żądanie Areny nie powiodło się. Spróbuj ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="77"/>
+        <source>Selecting</source>
+        <translation>Wybór utworu</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="79"/>
+        <source>Unknown</source>
+        <translation>Nieznany</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="136"/>
+        <source>Exit Arena</source>
+        <translation>Wyjdź z Areny</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="380"/>
+        <source>%n player reconnecting</source>
+        <translation>
+            <numerusform>Ponowne łączenie: %n gracz</numerusform>
+            <numerusform>Ponowne łączenie: %n graczy</numerusform>
+            <numerusform>Ponowne łączenie: %n graczy</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="144"/>
+        <source>Online Arena</source>
+        <translation>Arena online</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="151"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="263"/>
+        <source>Create room</source>
+        <translation>Utwórz pokój</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="182"/>
+        <source>Update RhythmGame to create or join Arena rooms.</source>
+        <translation>Zaktualizuj RhythmGame, aby tworzyć pokoje Areny lub do nich dołączać.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="188"/>
+        <source>Connecting with your online account...</source>
+        <translation>Łączenie przy użyciu konta online...</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="191"/>
+        <source>Completing room request...</source>
+        <translation>Kończenie żądania dołączenia do pokoju...</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="193"/>
+        <source>Connecting to Arena...</source>
+        <translation>Łączenie z Areną...</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="200"/>
+        <source>Retry</source>
+        <translation>Spróbuj ponownie</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="254"/>
+        <source>No Arena rooms are open.</source>
+        <translation>Brak otwartych pokojów Areny.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="366"/>
+        <source>%1 / %2 players</source>
+        <translation>%1 / %2 graczy</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="373"/>
+        <source>%1 · %2</source>
+        <translation>%1 · %2</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="373"/>
+        <source>Password required</source>
+        <translation>Wymagane hasło</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="373"/>
+        <source>Public</source>
+        <translation>Publiczny</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="399"/>
+        <source>Full</source>
+        <translation>Pełny</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="399"/>
+        <source>Join</source>
+        <translation>Dołącz</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="441"/>
+        <source>Create Arena room</source>
+        <translation>Utwórz pokój Areny</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="455"/>
+        <source>%1&apos;s room</source>
+        <translation>Pokój gracza %1</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="474"/>
+        <source>Room name</source>
+        <translation>Nazwa pokoju</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="492"/>
+        <source>Password (optional)</source>
+        <translation>Hasło (opcjonalne)</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="518"/>
+        <source>Join password-protected room</source>
+        <translation>Dołącz do pokoju chronionego hasłem</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="541"/>
+        <source>Password</source>
+        <translation>Hasło</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaChatView</name>
+    <message numerus="yes">
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaChatView.qml" line="78"/>
+        <source>%n unread message(s)</source>
+        <comment>Arena chat unread count</comment>
+        <translation>
+            <numerusform>%n nieprzeczytana wiadomość</numerusform>
+            <numerusform>%n nieprzeczytane wiadomości</numerusform>
+            <numerusform>%n nieprzeczytanych wiadomości</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaChatView.qml" line="84"/>
+        <source>Newest</source>
+        <translation>Najnowsza</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaChatView.qml" line="222"/>
+        <source>Message</source>
+        <translation>Wiadomość</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaChatView.qml" line="245"/>
+        <source>Send</source>
+        <translation>Wyślij</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaCompetitionText</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="14"/>
+        <source>Disconnected</source>
+        <translation>Rozłączono</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="18"/>
+        <source>Loading</source>
+        <translation>Wczytywanie</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="20"/>
+        <source>Playing</source>
+        <translation>Gra</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="7"/>
+        <source>Finished</source>
+        <translation>Ukończono</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="9"/>
+        <source>DNF</source>
+        <translation>DNF</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="22"/>
+        <source>Waiting</source>
+        <translation>Czeka</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="41"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="66"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="85"/>
+        <source>Unknown</source>
+        <translation>Nieznany</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="73"/>
+        <source>Aborted</source>
+        <translation>Przerwano</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="75"/>
+        <source>Result unavailable</source>
+        <translation>Wynik niedostępny</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="77"/>
+        <source>Left the room</source>
+        <translation>Opuszczono pokój</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="79"/>
+        <source>Kicked</source>
+        <translation>Wyrzucono z pokoju</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="81"/>
+        <source>Reconnect grace expired</source>
+        <translation>Minął czas na ponowne połączenie</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="83"/>
+        <source>Play deadline expired</source>
+        <translation>Minął czas na grę</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="91"/>
+        <source>%n win(s)</source>
+        <comment>Arena lobby wins</comment>
+        <translation>
+            <numerusform>%n wygrana</numerusform>
+            <numerusform>%n wygrane</numerusform>
+            <numerusform>%n wygranych</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="91"/>
+        <source>Wins —</source>
+        <translation>Wygrane: —</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="97"/>
+        <source>No winner</source>
+        <translation>Brak zwycięzcy</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="99"/>
+        <source>Winner: %1</source>
+        <comment>Arena result winner count</comment>
+        <translation>
+            <numerusform>Zwycięzca: %1</numerusform>
+            <numerusform>Zwycięzcy: %1</numerusform>
+            <numerusform>Zwycięzcy: %1</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="104"/>
+        <source>%1 · %2%</source>
+        <translation>%1 · %2%</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="167"/>
+        <source>%1 %2</source>
+        <translation>%1 %2</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="175"/>
+        <source>%1 clear</source>
+        <translation>%1 Clear</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="180"/>
+        <source> · </source>
+        <translation> · </translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="185"/>
+        <source>Did not finish · %1</source>
+        <translation>Nie ukończono · %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="187"/>
+        <source>Combo %1 · %2</source>
+        <translation>Combo %1 · %2</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaGameplayOverlay</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="18"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="18"/>
+        <source>Arena</source>
+        <translation>Arena</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="210"/>
+        <source>Compact</source>
+        <translation>Zwiń</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="210"/>
+        <source>Expand</source>
+        <translation>Rozwiń</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="441"/>
+        <source>EX</source>
+        <translation>EX</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="472"/>
+        <source>Combo</source>
+        <translation>Combo</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaJudgementBreakdown</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="20"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="173"/>
+        <source>PG</source>
+        <translation>PG</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="21"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="179"/>
+        <source>GR</source>
+        <translation>GR</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="22"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="185"/>
+        <source>GD</source>
+        <translation>GD</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="23"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="191"/>
+        <source>BD</source>
+        <translation>BD</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="24"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="197"/>
+        <source>PR</source>
+        <translation>PR</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="25"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="203"/>
+        <source>EP</source>
+        <translation>EP</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaLegacySelectOverlay</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaLegacySelectOverlay.qml" line="30"/>
+        <source>Press Start twice to toggle ready.</source>
+        <translation>Naciśnij start dwa razy, żeby zmienić stan gotowości</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaLoginPanel</name>
+    <message>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="63"/>
+        <source>Log in to continue with the selected room.</source>
+        <translation>Zaloguj się, aby przejść do wybranego pokoju.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="64"/>
+        <source>Log in to create or join rooms.</source>
+        <translation>Zaloguj się, aby tworzyć pokoje i do nich dołączać.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="83"/>
+        <source>Email</source>
+        <translation>E-mail</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="96"/>
+        <source>Password</source>
+        <translation>Hasło</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="109"/>
+        <source>Login</source>
+        <translation>Zaloguj się</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="136"/>
+        <source>Login failed. Check your email and password.</source>
+        <translation>Logowanie nie powiodło się. Sprawdź adres e-mail i hasło.</translation>
+    </message>
+    <message>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="137"/>
+        <source>Logging in...</source>
+        <translation>Logowanie...</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaOverlayHost</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayHost.qml" line="99"/>
+        <source>Arena gameplay panel</source>
+        <translation>Panel areny w grze</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayHost.qml" line="156"/>
+        <source>Arena result panel</source>
+        <translation>Panel wyniku areny</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaOverlayPlacementFrame</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="18"/>
+        <source>Arena panel</source>
+        <translation>Panel areny</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="399"/>
+        <source>%1 is hidden</source>
+        <translation>%1 jest ukryty</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="420"/>
+        <source>Show Arena panel</source>
+        <translation>Pokaż panel areny</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaPanelTabs</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaPanelTabs.qml" line="61"/>
+        <source>Details</source>
+        <translation>Szczegóły</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaPanelTabs.qml" line="74"/>
+        <source>Chat</source>
+        <translation>Czat</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaResultOverlay</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="26"/>
+        <source>Arena result unavailable</source>
+        <translation>Wynik Areny jest niedostępny</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="28"/>
+        <source>Waiting for players…</source>
+        <translation>Oczekiwanie na graczy…</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="32"/>
+        <source>Waiting for final standings</source>
+        <translation>Oczekiwanie na końcową klasyfikację</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="40"/>
+        <source>DNF / %1</source>
+        <translation>DNF / %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="43"/>
+        <source>#%1 / %2</source>
+        <translation>#%1 / %2</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="43"/>
+        <source>— / %1</source>
+        <translation>— / %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="47"/>
+        <source>DNF</source>
+        <translation>DNF</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="49"/>
+        <source>#%1</source>
+        <translation>#%1</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="144"/>
+        <source>Compact</source>
+        <translation>Zwiń</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="18"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="18"/>
+        <source>Arena</source>
+        <translation>Arena</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="144"/>
+        <source>Expand</source>
+        <translation>Rozwiń</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="357"/>
+        <source>EX</source>
+        <translation>EX</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="381"/>
+        <source>Combo</source>
+        <translation>Combo</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaResultPanel</name>
+    <message>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="26"/>
+        <source>Waiting for final standings</source>
+        <translation>Oczekiwanie na końcową klasyfikację</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="34"/>
+        <source>DNF / %1</source>
+        <translation>DNF / %1</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="37"/>
+        <source>#%1 / %2</source>
+        <translation>#%1 / %2</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="37"/>
+        <source>— / %1</source>
+        <translation>— / %1</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="41"/>
+        <source>DNF</source>
+        <translation>DNF</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="43"/>
+        <source>#%1</source>
+        <translation>#%1</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="126"/>
+        <source>Waiting for players…</source>
+        <translation>Oczekiwanie na graczy…</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="137"/>
+        <source>Compact</source>
+        <translation>Zwiń</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="20"/>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="20"/>
+        <source>Arena</source>
+        <translation>Arena</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="137"/>
+        <source>Expand</source>
+        <translation>Rozwiń</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="319"/>
+        <source>You · %1</source>
+        <translation>Ty · %1</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="349"/>
+        <source>EX</source>
+        <translation>EX</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="377"/>
+        <source>Combo</source>
+        <translation>Combo</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaRoom</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="27"/>
+        <source>Room membership changed. Please try again.</source>
+        <translation>Skład pokoju uległ zmianie. Spróbuj ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="29"/>
+        <source>That room action is no longer available.</source>
+        <translation>Ta czynność nie jest już dostępna w tym pokoju.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="31"/>
+        <source>That chat message could not be sent.</source>
+        <translation>Nie udało się wysłać tej wiadomości na czacie.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="33"/>
+        <source>You are sending messages too quickly.</source>
+        <translation>Wysyłasz wiadomości zbyt szybko.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="35"/>
+        <source>Room state changed. Please try again.</source>
+        <translation>Stan pokoju uległ zmianie. Spróbuj ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="37"/>
+        <source>A secure connection to Arena could not be established.</source>
+        <translation>Nie udało się nawiązać bezpiecznego połączenia z Areną.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="41"/>
+        <source>The Arena connection was interrupted.</source>
+        <translation>Połączenie z Areną zostało przerwane.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="43"/>
+        <source>Arena request failed. Please try again.</source>
+        <translation>Żądanie Areny nie powiodło się. Spróbuj ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="100"/>
+        <source>Leave room</source>
+        <translation>Opuść pokój</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="114"/>
+        <source>Exit Arena</source>
+        <translation>Wyjdź z Areny</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="143"/>
+        <source>Reconnecting... Your seat is reserved for up to 60 seconds.</source>
+        <translation>Ponowne łączenie... Miejsce jest zarezerwowane przez maksymalnie 60 sekund.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="150"/>
+        <source>Retry</source>
+        <translation>Spróbuj ponownie</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="174"/>
+        <source>Players</source>
+        <translation>Gracze</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="268"/>
+        <source>%1 (you)</source>
+        <translation>%1 (ty)</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="280"/>
+        <source>Connected</source>
+        <translation>Połączony</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="281"/>
+        <source>Reserved (reconnecting)</source>
+        <translation>Miejsce zarezerwowane (ponowne łączenie)</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="283"/>
+        <source>Owner · %1</source>
+        <translation>Właściciel · %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="294"/>
+        <source>Kick</source>
+        <translation>Wyrzuć</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="317"/>
+        <source>Chat</source>
+        <translation>Czat</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="430"/>
+        <source>Message</source>
+        <translation>Wiadomość</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="439"/>
+        <source>Send</source>
+        <translation>Wyślij</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="470"/>
+        <source>Remove player</source>
+        <translation>Usuń gracza</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="477"/>
+        <source>Remove %1 from this room?</source>
+        <translation>Usunąć gracza %1 z tego pokoju?</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaRosterView</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="27"/>
+        <source>you</source>
+        <translation>TY</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="30"/>
+        <source>owner</source>
+        <translation>właściciel</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="33"/>
+        <source>selected</source>
+        <translation>wybrano</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="41"/>
+        <source>Waiting</source>
+        <translation>Czeka</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="43"/>
+        <source>Checking chart</source>
+        <translation>Sprawdzanie chartu</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="45"/>
+        <source>Loading</source>
+        <translation>Wczytywanie</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="47"/>
+        <source>Loaded</source>
+        <translation>Wczytano</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="49"/>
+        <source>Playing</source>
+        <translation>Gra</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="57"/>
+        <source>Connected</source>
+        <translation>Połączony</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="57"/>
+        <source>Reserved</source>
+        <translation>Miejsce zarezerwowane</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="59"/>
+        <source>Library unavailable</source>
+        <translation>Biblioteka utworów niedostępna</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="61"/>
+        <source>Syncing library</source>
+        <translation>Synchronizowanie biblioteki utworów</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="63"/>
+        <source>Updating availability</source>
+        <translation>Aktualizowanie dostępności utworów</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="69"/>
+        <source>Ready</source>
+        <translation>Gotowy</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="69"/>
+        <source>Not ready</source>
+        <translation>Niegotowy</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="219"/>
+        <source>%n win(s)</source>
+        <comment>Arena lobby wins</comment>
+        <translation>
+            <numerusform>%n wygrana</numerusform>
+            <numerusform>%n wygrane</numerusform>
+            <numerusform>%n wygranych</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="230"/>
+        <source>Kick</source>
+        <translation>Wyrzuć</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaSelectOverlay</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectOverlay.qml" line="25"/>
+        <source>Arena song-select panel</source>
+        <translation>Panel areny ekranu wyboru</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaSelectPanel</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="31"/>
+        <source>Update required to play in this room.</source>
+        <translation>Aby zagrać w tym pokoju, musisz zaktualizować grę.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="34"/>
+        <source>Song libraries are still being compared.</source>
+        <translation>Biblioteki utworów są nadal porównywane.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="37"/>
+        <source>The synchronized round is already being prepared.</source>
+        <translation>Trwa już przygotowywanie zsynchronizowanej rundy.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="40"/>
+        <source>Choose a chart available to everyone before becoming ready.</source>
+        <translation>Przed zgłoszeniem gotowości wybierz chart dostępny dla wszystkich.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="137"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="138"/>
+        <source>Arena room</source>
+        <translation>Pokój Areny</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="202"/>
+        <source>Ready</source>
+        <translation>Gotowy</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaSelectStrip</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="23"/>
+        <source>That chart is not available to every player.</source>
+        <translation>Nie wszyscy gracze mają ten chart.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="25"/>
+        <source>The room library changed. Please try again.</source>
+        <translation>Biblioteka utworów w pokoju uległa zmianie. Spróbuj ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="27"/>
+        <source>This chart configuration is not supported by Arena.</source>
+        <translation>Arena nie obsługuje konfiguracji tego chartu.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="38"/>
+        <source>Update required</source>
+        <translation>Wymagana aktualizacja</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="41"/>
+        <source>Comparing libraries…</source>
+        <translation>Porównywanie bibliotek…</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="44"/>
+        <source>Preparing synchronized start…</source>
+        <translation>Przygotowywanie zsynchronizowanego startu…</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="74"/>
+        <source>Arena room</source>
+        <translation>Pokój Areny</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="80"/>
+        <source>%1 connected · %2 reserved</source>
+        <translation>%1 połączonych · %2 zarezerwowanych</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="89"/>
+        <source>Choose any chart available to everyone.</source>
+        <translation>Wybierz dowolny chart dostępny dla wszystkich.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="89"/>
+        <source>Selected: %1</source>
+        <translation>Wybrano: %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="137"/>
+        <source>Leave</source>
+        <translation>Wyjdź</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="46"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="127"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="128"/>
+        <source>Ready</source>
+        <translation>Gotowy</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="46"/>
+        <source>Not ready</source>
+        <translation>Niegotowy</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="128"/>
+        <source>Unready</source>
+        <translation>Odwołaj gotowość</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaSelectionSummary</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="41"/>
+        <source>Comparing song libraries…</source>
+        <translation>Porównywanie bibliotek utworów…</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="44"/>
+        <source>Preparing the synchronized start…</source>
+        <translation>Przygotowywanie zsynchronizowanego startu…</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="48"/>
+        <source>The room library changed. Select the chart again.</source>
+        <translation>Biblioteka pokoju uległa zmianie. Wybierz chart ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="96"/>
+        <source>No chart selected</source>
+        <translation>Nie wybrano chartu</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="141"/>
+        <source>Selected by %1</source>
+        <translation>Wybrane przez: %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="137"/>
+        <source>Choose any chart available to everyone.</source>
+        <translation>Wybierz dowolny chart dostępny dla wszystkich.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="142"/>
+        <source>Selected by another player</source>
+        <translation>Wybrał inny gracz</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="179"/>
+        <source>Last winner: %1</source>
+        <comment>Arena last round winner count</comment>
+        <translation>
+            <numerusform>Ostatni zwycięzca: %1</numerusform>
+            <numerusform>Ostatni zwycięzcy: %1</numerusform>
+            <numerusform>Ostatni zwycięzcy: %1</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
     <name>BgaPopup</name>
     <message>
         <location filename="../scripts/gameplay/popups/BgaPopup.qml" line="9"/>
@@ -64,17 +1103,17 @@
 <context>
     <name>BpmDisplay</name>
     <message>
-        <location filename="../scripts/gameplay/BpmDisplay.qml" line="47"/>
+        <location filename="../scripts/gameplay/BpmDisplay.qml" line="48"/>
         <source>MIN</source>
         <translation>MIN</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/BpmDisplay.qml" line="60"/>
+        <location filename="../scripts/gameplay/BpmDisplay.qml" line="62"/>
         <source>BPM</source>
         <translation>BPM</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/BpmDisplay.qml" line="73"/>
+        <location filename="../scripts/gameplay/BpmDisplay.qml" line="76"/>
         <source>MAX</source>
         <translation>MAX</translation>
     </message>
@@ -110,7 +1149,7 @@
 <context>
     <name>ChartInfo</name>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="86"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="88"/>
         <source>TOTAL</source>
         <translation>TOTAL</translation>
     </message>
@@ -315,9 +1354,17 @@
         <translation>Brak</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/FontSelection.qml" line="169"/>
+        <location filename="../scripts/gameplay/popups/FontSelection.qml" line="170"/>
         <source>Search fonts</source>
         <translation>Szukaj czcionek</translation>
+    </message>
+</context>
+<context>
+    <name>Gameplay</name>
+    <message>
+        <location filename="../scripts/gameplay/Gameplay.qml" line="857"/>
+        <source>Arena gameplay panel</source>
+        <translation>Panel areny w grze</translation>
     </message>
 </context>
 <context>
@@ -357,264 +1404,238 @@
 <context>
     <name>GeneralSettings</name>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="43"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="44"/>
         <source>Language</source>
         <translation>Język</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="52"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="60"/>
         <source>Windowed;Fullscreen</source>
         <translation>Okno;Pełny ekran</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="53"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="61"/>
         <source>Display Mode</source>
         <translation>Tryb wyświetlania</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="62"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="70"/>
         <source>RhythmGame;LR2IR;Bokutachi</source>
         <translation>RhythmGame;LR2IR;Bokutachi</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="63"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="71"/>
         <source>Ranking Provider</source>
         <translation>Dostawca rankingu</translation>
     </message>
     <message>
-        <source>Gameplay Settings</source>
-        <translation type="vanished">Ustawienia gry</translation>
-    </message>
-    <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="123"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="131"/>
         <source>Note Screen Time (ms)</source>
         <translation>Czas widoczności notki (ms)</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="133"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="141"/>
         <source>Offset (ms)</source>
         <translation>Offset (ms)</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="143"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="151"/>
         <source>Debounce (ms)</source>
         <translation>Debounce (ms)</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="154"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="162"/>
         <source>Lane Cover</source>
         <translation>Zasłona od góry</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="162"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="170"/>
         <source>Lane Cover Ratio</source>
         <translation>Poziom zasłony</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="172"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="180"/>
         <source>Lift</source>
         <translation>Podniesienie</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="180"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="188"/>
         <source>Lift Ratio</source>
         <translation>Poziom podniesienia</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="190"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="198"/>
         <source>Hidden</source>
         <translation>Ukrycie od dołu</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="198"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="206"/>
         <source>Hidden Ratio</source>
         <translation>Poziom ukrycia</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="214"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="222"/>
         <source>Display and score</source>
         <translation>Obraz i wynik</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="221"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="229"/>
         <source>BGA On</source>
         <translation>BGA</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="230"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="238"/>
         <source>Normal;Extend</source>
         <translation>Normalny;Rozszerzony</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="231"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="239"/>
         <source>LR2 BGA Size</source>
         <translation>Rozmiar BGA LR2</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="239"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="247"/>
         <source>Score Graph</source>
         <translation>Graf punktów</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="248"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="256"/>
         <source>Off;Type A;Type B;Type C</source>
         <translation>Wyłącz;Typ A;Typ B;Typ C</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="249"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="257"/>
         <source>Ghost Position</source>
         <translation>Podgląd celu</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="279"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="287"/>
         <source>Play defaults</source>
         <translation>Domyślne dla gry</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="287"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="295"/>
         <source>Newest;Best Score;Best Clear;Best Combo</source>
         <translation>Najnowszy;Najlepszy wynik;Najlepszy clear;Najlepsze combo</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="288"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="296"/>
         <source>Replay Type</source>
         <translation>Rodzaj powtórki</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="258"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="266"/>
         <source>Percentage;Best Score;Last Score;Next Rank</source>
         <translation>Procent;Najlepszy wynik;Ostatni wynik;Następna ranga</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="34"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="35"/>
         <source>System and audio</source>
         <translation>System i audio</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="116"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="124"/>
         <source>Timing and modifiers</source>
         <translation>Timing i modyfikatory</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="259"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="267"/>
         <source>Score Target Type</source>
         <translation>Typ celu punktowego</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="267"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="275"/>
         <source>Target Score Percentage</source>
         <translation>Cel Punktowy</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="297"/>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="308"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="305"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="316"/>
         <source>Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+</source>
         <translation>Normalne;Lustrzane;Losowe;S-Losowe;R-Losowe;Losowe+;S-Losowe+</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="298"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="306"/>
         <source>Note Order Algorithm</source>
         <translation>Ułożenie notek</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="309"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="317"/>
         <source>Note Order Algorithm P2</source>
         <translation>Ułożenie notek P2</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="319"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="327"/>
         <source>Off;Main;Start;Min;Max;Average</source>
         <translation>Wyłącz;Główne;Początkowe;Min;Max;Średnie</translation>
     </message>
     <message>
-        <source>Off;Main;Start;Min;Max</source>
-        <translation type="vanished">Wyłączony;Główny;Początkowy;Min;Max</translation>
-    </message>
-    <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="320"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="328"/>
         <source>Hi-Speed Fix</source>
         <translation>Tryb ustawień prędkości</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="330"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="338"/>
         <source>Off;Flip;Battle</source>
         <translation>Wyłączony;Przerzuć;Bitwa</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="331"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="339"/>
         <source>DP Options</source>
         <translation>Opcje DP</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="341"/>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="363"/>
-        <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
-        <translation>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</translation>
-    </message>
-    <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="342"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="350"/>
         <source>Gauge Type</source>
         <translation>Typ gajgi</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="351"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="359"/>
         <source>Exclusive;Best;Select to Under</source>
         <translation>Wyłączny;Najlepszy;Wybór do najgorszego</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="352"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="360"/>
         <source>Gauge Mode</source>
         <translation>Tryb gajgi</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="361"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="369"/>
         <source>Bottom Shiftable Gauge</source>
         <translation>Najniższa gajga</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="71"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="79"/>
         <source>BGM</source>
         <translation>BGM</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="18"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="19"/>
         <source>General Settings</source>
         <translation>Ustawienia Ogólne</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="19"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="20"/>
         <source>System, gameplay, display, audio, replay, and gauge defaults.</source>
         <translation>Domyślne ustawienia systemu, rozgrywki, obrazu, audio, powtórek i gajgi.</translation>
     </message>
     <message>
-        <source>System Settings</source>
-        <translation type="vanished">Ustawienia systemowe</translation>
-    </message>
-    <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="80"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="88"/>
         <source>Soundset</source>
         <translation>Zestaw dźwięków</translation>
     </message>
     <message>
-        <source>Use System Timestamps</source>
-        <translation type="vanished">Używaj systemowych timingów</translation>
-    </message>
-    <message>
-        <source>Broken on some systems but more accurate in theory.</source>
-        <translation type="vanished">Bardziej dokładne, ale mogą nie działać prawidłowo na niektórych systemach.</translation>
-    </message>
-    <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="89"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="97"/>
         <source>Audio Backend</source>
         <translation>Backend audio</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="98"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="106"/>
         <source>Audio Device</source>
         <translation>Urządzenie audio</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="104"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="112"/>
         <source>Default</source>
         <translation>Domyślne</translation>
     </message>
@@ -774,11 +1795,6 @@
         <translation>Konfiguracja klawiszy</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="28"/>
-        <source>Configure keyboard and controller bindings for each player.</source>
-        <translation>Skonfiguruj przypisania klawiatury i kontrolera dla każdego gracza.</translation>
-    </message>
-    <message>
         <location filename="../scripts/settings/KeySettings.qml" line="102"/>
         <source>Key 1</source>
         <translation>Przycisk 1</translation>
@@ -834,55 +1850,75 @@
         <translation>Select</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="172"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="176"/>
+        <source>MIDI Ch%1 N%2</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="178"/>
+        <source>MIDI Ch%1 Pedal</source>
+        <translation>MIDI Ch%1 Pedał</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="180"/>
+        <source>MIDI Ch%1 Bend%2</source>
+        <translation>MIDI Ch%1 Bend%2</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="188"/>
         <source> axis</source>
         <translation> oś</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="175"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="191"/>
         <source> down</source>
         <translation> -</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="177"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="193"/>
         <source> up</source>
         <translation> +</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="183"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="198"/>
         <source>Keyboard</source>
         <translation>Klawiatura</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="189"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="204"/>
         <source>Not Configured</source>
         <translation>Nie skonfigurowano</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="196"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="211"/>
         <source>DOWN</source>
         <translation>Aktywny</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="196"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="211"/>
         <source>UP</source>
         <translation>Nieaktywny</translation>
     </message>
     <message>
         <location filename="../scripts/settings/KeySettings.qml" line="110"/>
-        <location filename="../scripts/settings/KeySettings.qml" line="203"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="218"/>
         <source>Configure</source>
         <translation>Skonfiguruj</translation>
     </message>
     <message>
+        <location filename="../scripts/settings/KeySettings.qml" line="28"/>
+        <source>Configure keyboard, controller, and MIDI bindings for each player.</source>
+        <translation>Skonfiguruj klawisze klawiatury, kontrolera lub MIDI</translation>
+    </message>
+    <message>
         <location filename="../scripts/settings/KeySettings.qml" line="117"/>
-        <location filename="../scripts/settings/KeySettings.qml" line="203"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="218"/>
         <source>Listening</source>
         <translation>Nasłuchiwanie</translation>
     </message>
     <message>
         <location filename="../scripts/settings/KeySettings.qml" line="124"/>
-        <location filename="../scripts/settings/KeySettings.qml" line="219"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="234"/>
         <source>Reset</source>
         <translation>Reset</translation>
     </message>
@@ -934,9 +1970,13 @@
         <source>14 keys</source>
         <translation>14 klawiszy</translation>
     </message>
+</context>
+<context>
+    <name>LegacySkinCustomizeOverlay</name>
     <message>
-        <source>%1 keys</source>
-        <translation type="vanished">%1 klawiszy</translation>
+        <location filename="../../../../../RhythmGameQml/LegacySkinCustomizeOverlay.qml" line="106"/>
+        <source>No options are exposed by this skin.</source>
+        <translation>Ten motyw nie ma opcji do ustawienia.</translation>
     </message>
 </context>
 <context>
@@ -964,10 +2004,6 @@
 </context>
 <context>
     <name>Lr2OptionState</name>
-    <message>
-        <source>Enter search text</source>
-        <translation type="vanished">Szukaj</translation>
-    </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Lr2/Lr2OptionState.qml" line="162"/>
         <source>Search...</source>
@@ -1012,12 +2048,12 @@
 <context>
     <name>Lr2SkinScreenWrapper</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2809"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2921"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation>Zapisano zrzut ekranu do %1 i schowka.</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2811"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2923"/>
         <source>Failed to save screenshot.</source>
         <translation>Nie udało się zapisać zrzutu ekranu.</translation>
     </message>
@@ -1025,27 +2061,32 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../scripts/main/Main.qml" line="155"/>
+        <location filename="../scripts/main/Main.qml" line="159"/>
         <source>%1 %2</source>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="188"/>
+        <location filename="../scripts/main/Main.qml" line="193"/>
         <source>Song Selection</source>
         <translation>Wybór piosenek</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="197"/>
+        <location filename="../scripts/main/Main.qml" line="202"/>
+        <source>Online Arena</source>
+        <translation>Arena online</translation>
+    </message>
+    <message>
+        <location filename="../scripts/main/Main.qml" line="217"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="211"/>
+        <location filename="../scripts/main/Main.qml" line="232"/>
         <source>Attributions</source>
         <translation>Atrybucje</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="225"/>
+        <location filename="../scripts/main/Main.qml" line="247"/>
         <source>Quit</source>
         <translation>Wyjdź</translation>
     </message>
@@ -1058,7 +2099,7 @@
         <translation>ŚREDNIA</translation>
     </message>
     <message>
-        <location filename="../scripts/result/MeanSd.qml" line="68"/>
+        <location filename="../scripts/result/MeanSd.qml" line="70"/>
         <source>SD</source>
         <translation>SD</translation>
     </message>
@@ -1066,17 +2107,9 @@
 <context>
     <name>PlayAreaPopup</name>
     <message>
-        <source>Green Number</source>
-        <translation type="vanished">Zielona liczba</translation>
-    </message>
-    <message>
         <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="27"/>
         <source>Offset</source>
         <translation>Offset</translation>
-    </message>
-    <message>
-        <source>Judgements Offset</source>
-        <translation type="vanished">Pozycja ocen</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="36"/>
@@ -1117,10 +2150,6 @@
         <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="148"/>
         <source>Notes</source>
         <translation>Notki</translation>
-    </message>
-    <message>
-        <source>Fast/Slow</source>
-        <translation type="vanished">Szybko/wolno</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="95"/>
@@ -1256,11 +2285,6 @@
         <translation>Tryb ustawień prędkości</translation>
     </message>
     <message>
-        <location filename="../scripts/select/options/PlayOptionsBattle.qml" line="123"/>
-        <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
-        <translation>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</translation>
-    </message>
-    <message>
         <location filename="../scripts/select/options/PlayOptionsBattle.qml" line="136"/>
         <source>MAIN BPM;START BPM;MAX BPM;MIN BPM;AVG BPM;OFF</source>
         <translation>GŁÓWNE BPM;POCZĄTKOWE BPM;MAX BPM;MIN BPM;ŚREDNIE BPM;WYŁĄCZONE</translation>
@@ -1300,11 +2324,6 @@
         <translation>Tryb ustawień prędkości</translation>
     </message>
     <message>
-        <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="128"/>
-        <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
-        <translation>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</translation>
-    </message>
-    <message>
         <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="144"/>
         <source>OFF;FLIP;BATTLE</source>
         <translation>WYŁĄCZ;PRZERZUĆ;BITWA</translation>
@@ -1328,10 +2347,6 @@
         <translation>Wybierz folder z powtórkami</translation>
     </message>
     <message>
-        <source>Select Profile</source>
-        <translation type="vanished">Wybierz profil</translation>
-    </message>
-    <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="133"/>
         <source>Scores: %1</source>
         <translation>Wyniki: %1</translation>
@@ -1345,10 +2360,6 @@
         <location filename="../scripts/settings/PlayerSettings.qml" line="101"/>
         <source>Add profile</source>
         <translation>Dodaj profil</translation>
-    </message>
-    <message>
-        <source>Edit Profile</source>
-        <translation type="vanished">Edytuj profil</translation>
     </message>
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="80"/>
@@ -1374,10 +2385,6 @@
         <location filename="../scripts/settings/PlayerSettings.qml" line="206"/>
         <source>Open profile folder</source>
         <translation>Otwórz folder profilu</translation>
-    </message>
-    <message>
-        <source>Online Login</source>
-        <translation type="vanished">Logowanie online</translation>
     </message>
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="159"/>
@@ -1459,20 +2466,6 @@
         <source>Imported: %1, errors: %2, skipped: %3, total: %4</source>
         <translation>Zaimportowano: %1, błędy: %2, pominięto: %3, łącznie: %4</translation>
     </message>
-    <message>
-        <source>Select…</source>
-        <translation type="vanished">Wybierz...</translation>
-    </message>
-    <message>
-        <source>Change…</source>
-        <translation type="vanished">Zmień...</translation>
-    </message>
-    <message>
-        <source>Imported: %1, errors: %2,
-skipped: %3, total: %4</source>
-        <translation type="vanished">Zamportowano: %1, błędy: %2
-pominięto: %3, łącznie: %4</translation>
-    </message>
 </context>
 <context>
     <name>Ranking</name>
@@ -1482,30 +2475,43 @@ pominięto: %3, łącznie: %4</translation>
         <translation>Ranking</translation>
     </message>
     <message>
-        <location filename="../scripts/select/Ranking.qml" line="159"/>
+        <location filename="../scripts/select/Ranking.qml" line="160"/>
         <source>Stats</source>
         <translation>Statystyki</translation>
     </message>
 </context>
 <context>
+    <name>RankingPosition</name>
+    <message>
+        <location filename="../scripts/result/RankingPosition.qml" line="216"/>
+        <source>— / %1</source>
+        <translation>— / %1</translation>
+    </message>
+    <message>
+        <location filename="../scripts/result/RankingPosition.qml" line="218"/>
+        <source>#%1 / %2</source>
+        <translation>#%1 / %2</translation>
+    </message>
+</context>
+<context>
     <name>ReplayAutoplay</name>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="46"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="49"/>
         <source>NEWEST</source>
         <translation>NOWY</translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="48"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="51"/>
         <source>BEST SCORE</source>
         <translation>WYNIK</translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="50"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="53"/>
         <source>BEST CLEAR</source>
         <translation>CLEAR</translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="52"/>
+        <location filename="../scripts/select/ReplayAutoplay.qml" line="55"/>
         <source>BEST COMBO</source>
         <translation>COMBO</translation>
     </message>
@@ -1521,18 +2527,22 @@ pominięto: %3, łącznie: %4</translation>
 <context>
     <name>Result</name>
     <message>
-        <location filename="../scripts/result/Result.qml" line="149"/>
+        <location filename="../scripts/result/Result.qml" line="191"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation>Zapisano zrzut ekranu do %1 i schowka.</translation>
     </message>
     <message>
-        <location filename="../scripts/result/Result.qml" line="151"/>
+        <location filename="../scripts/result/Result.qml" line="193"/>
         <source>Failed to save screenshot.</source>
         <translation>Nie udało się zapisać zrzutu ekranu.</translation>
     </message>
+</context>
+<context>
+    <name>ScoreColumn</name>
     <message>
-        <source>Failed to save screenshot</source>
-        <translation type="vanished">Nie udało się zapisać zrzutu ekranu</translation>
+        <location filename="../scripts/result/ScoreColumn.qml" line="120"/>
+        <source>Arena</source>
+        <translation>Arena</translation>
     </message>
 </context>
 <context>
@@ -1685,12 +2695,17 @@ pominięto: %3, łącznie: %4</translation>
 <context>
     <name>Select</name>
     <message>
-        <location filename="../scripts/select/Select.qml" line="570"/>
+        <location filename="../scripts/select/Select.qml" line="319"/>
+        <source>Press Start twice to toggle ready.</source>
+        <translation>Naciśnij dwukrotnie start, żeby przełączyć stan gotowości</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/Select.qml" line="617"/>
         <source>Score Details</source>
         <translation>Szczegóły wyniku</translation>
     </message>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="615"/>
+        <location filename="../scripts/select/Select.qml" line="663"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>Znaleziono %n chart</numerusform>
@@ -1702,12 +2717,12 @@ pominięto: %3, łącznie: %4</translation>
 <context>
     <name>Selector</name>
     <message>
-        <location filename="../scripts/select/Selector.qml" line="83"/>
+        <location filename="../scripts/select/Selector.qml" line="84"/>
         <source>BPM</source>
         <translation>BPM</translation>
     </message>
     <message>
-        <location filename="../scripts/select/Selector.qml" line="132"/>
+        <location filename="../scripts/select/Selector.qml" line="135"/>
         <source>KEYS</source>
         <translation>KLAWISZE</translation>
     </message>
@@ -1715,37 +2730,37 @@ pominięto: %3, łącznie: %4</translation>
 <context>
     <name>Settings</name>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="148"/>
+        <location filename="../scripts/settings/Settings.qml" line="153"/>
         <source>Back</source>
         <translation>Wstecz</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="255"/>
+        <location filename="../scripts/settings/Settings.qml" line="260"/>
         <source>Player settings</source>
         <translation>Ustawienia gracza</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="263"/>
+        <location filename="../scripts/settings/Settings.qml" line="268"/>
         <source>Song directories</source>
         <translation>Foldery z piosenkami</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="271"/>
+        <location filename="../scripts/settings/Settings.qml" line="276"/>
         <source>Tables</source>
         <translation>Tabele</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="279"/>
+        <location filename="../scripts/settings/Settings.qml" line="284"/>
         <source>Themes</source>
         <translation>Motywy</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="287"/>
+        <location filename="../scripts/settings/Settings.qml" line="292"/>
         <source>General Settings</source>
         <translation>Ustawienia Ogólne</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="295"/>
+        <location filename="../scripts/settings/Settings.qml" line="300"/>
         <source>Key config</source>
         <translation>Konfiguracja klawiszy</translation>
     </message>
@@ -1816,10 +2831,6 @@ pominięto: %3, łącznie: %4</translation>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="77"/>
         <source>Scan all</source>
         <translation>Skanuj wszystkie</translation>
-    </message>
-    <message>
-        <source>Scanning queue</source>
-        <translation type="vanished">Kolejka skanowania</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="148"/>
@@ -2096,10 +3107,6 @@ pominięto: %3, łącznie: %4</translation>
         <translation>Zmień filtry lub tekst wyszukiwania.</translation>
     </message>
     <message>
-        <source>Failed to load table list: %1</source>
-        <translation type="vanished">Nie udało się załadować listy tabel: %1</translation>
-    </message>
-    <message>
         <location filename="../scripts/settings/TableSettings.qml" line="476"/>
         <location filename="../scripts/settings/TableSettings.qml" line="567"/>
         <source>Add</source>
@@ -2165,31 +3172,36 @@ pominięto: %3, łącznie: %4</translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="65"/>
+        <source>Multiplayer</source>
+        <translation>Tryb wieloosobowy</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="66"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="66"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="67"/>
         <source>Select</source>
         <translation>Wybór piosenek</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="67"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="68"/>
         <source>Decide</source>
         <translation>Decyzja</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="68"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="69"/>
         <source>Result</source>
         <translation>Ekran wyników</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="69"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="70"/>
         <source>Course Result</source>
         <translation>Ekran wyników serii</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="149"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="150"/>
         <source>Theme family for this screen.</source>
         <translation>Rodzina motywów dla tego ekranu.</translation>
     </message>

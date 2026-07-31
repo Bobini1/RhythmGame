@@ -16,11 +16,20 @@
 #include "qml_components/SongDirectoryFilePathFetcher.h"
 #include "qml_components/SongFolderFactory.h"
 #include "qml_components/Themes.h"
+#include "support/PendingReply.h"
 #include "resource_managers/Languages.h"
 #include "resource_managers/Profile.h"
 #include "resource_managers/ChartFolderModel.h"
 #include "resource_managers/Tables.h"
 #include "sounds/AudioEngine.h"
+#include "arena/ArenaChatModel.h"
+#include "arena/ArenaAvailabilityIndex.h"
+#include "arena/ArenaMemberListModel.h"
+#include "arena/ArenaOpponentTarget.h"
+#include "arena/ArenaResultModel.h"
+#include "arena/ArenaRoomListModel.h"
+#include "arena/ArenaSession.h"
+#include "arena/ArenaStandingsModel.h"
 
 #include <QQmlEngine>
 #include <QtCore/qassert.h>
@@ -67,6 +76,46 @@ struct ProfileForeign
     QML_FOREIGN(resource_managers::Profile)
     QML_NAMED_ELEMENT(Profile)
     QML_UNCREATABLE("Profile is managed by ProfileList")
+};
+
+struct ArenaSessionForeign
+{
+    Q_GADGET
+    QML_FOREIGN(arena::ArenaSession)
+    QML_NAMED_ELEMENT(ArenaSession)
+    QML_UNCREATABLE("ArenaSession is provided by Rg.arenaSession")
+};
+
+struct ArenaAvailabilityIndexForeign
+{
+    Q_GADGET
+    QML_FOREIGN(arena::ArenaAvailabilityIndex)
+    QML_NAMED_ELEMENT(ArenaAvailabilityIndex)
+    QML_UNCREATABLE("Arena availability is provided by ArenaSession")
+};
+
+struct ArenaStandingsModelForeign
+{
+    Q_GADGET
+    QML_FOREIGN(arena::ArenaStandingsModel)
+    QML_NAMED_ELEMENT(ArenaStandingsModel)
+    QML_UNCREATABLE("ArenaStandingsModel is provided by ArenaSession")
+};
+
+struct ArenaResultModelForeign
+{
+    Q_GADGET
+    QML_FOREIGN(arena::ArenaResultModel)
+    QML_NAMED_ELEMENT(ArenaResultModel)
+    QML_UNCREATABLE("ArenaResultModel is provided by ArenaSession")
+};
+
+struct ArenaOpponentTargetForeign
+{
+    Q_GADGET
+    QML_FOREIGN(arena::ArenaOpponentTarget)
+    QML_NAMED_ELEMENT(ArenaOpponentTarget)
+    QML_UNCREATABLE("ArenaOpponentTarget is provided by ArenaSession")
 };
 
 struct ChartFolderModelForeign
@@ -118,6 +167,31 @@ RHYTHMGAME_QML_ANONYMOUS_FOREIGN(LanguagesForeign,
 RHYTHMGAME_QML_ANONYMOUS_FOREIGN(AudioEngineForeign, sounds::AudioEngine);
 RHYTHMGAME_QML_ANONYMOUS_FOREIGN(OnlineScoresForeign,
                                  qml_components::OnlineScores);
+RHYTHMGAME_QML_ANONYMOUS_FOREIGN(PendingReplyForeign,
+                                 support::PendingReply);
+struct ArenaRoomListModelForeign
+{
+    Q_GADGET
+    QML_FOREIGN(arena::ArenaRoomListModel)
+    QML_ANONYMOUS
+    QML_UNCREATABLE("Arena room models are provided by ArenaSession")
+};
+
+struct ArenaMemberListModelForeign
+{
+    Q_GADGET
+    QML_FOREIGN(arena::ArenaMemberListModel)
+    QML_ANONYMOUS
+    QML_UNCREATABLE("Arena member models are provided by ArenaSession")
+};
+
+struct ArenaChatModelForeign
+{
+    Q_GADGET
+    QML_FOREIGN(arena::ArenaChatModel)
+    QML_ANONYMOUS
+    QML_UNCREATABLE("Arena chat models are provided by ArenaSession")
+};
 
 #undef RHYTHMGAME_QML_ANONYMOUS_FOREIGN
 

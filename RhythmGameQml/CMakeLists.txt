@@ -123,6 +123,8 @@ set(LR2_SKIN_SHADERS
 )
 
 set(RHYTHM_GAME_QML_SOURCES
+        FontResolver.h
+        FontResolver.cpp
         Rg.h
         Rg.cpp
         QmlForeignTypes.h
@@ -132,6 +134,35 @@ set(RHYTHM_GAME_QML_FILES
         ContentFrame.qml
         Log.qml
         ColorChanger.qml
+        LegacySkinCustomizeHost.qml
+        LegacySkinCustomizeOverlay.qml
+        LegacySkinCustomizePlacementFrame.qml
+        OverlayResizeHandle.qml
+        Arena/ArenaRoom.qml
+        Arena/ArenaAvatar.qml
+        Arena/ArenaSelectStrip.qml
+        Arena/ArenaRosterView.qml
+        TransientInputFocus.qml
+        TransientInputFocusDismissLayer.qml
+        Arena/ArenaChatView.qml
+        Arena/ArenaChatActivityRail.qml
+        Arena/ArenaPanelTabs.qml
+        Arena/ArenaTypography.qml
+        Arena/ArenaSelectionSummary.qml
+        Arena/ArenaSelectPanel.qml
+        Arena/ArenaSelectOverlay.qml
+        Arena/ArenaLegacySelectOverlay.qml
+        Arena/ArenaOverlayHost.qml
+        Arena/ArenaGameplayOverlay.qml
+        Arena/ArenaJudgementBreakdown.qml
+        Arena/ArenaCompetitionText.qml
+        Arena/ArenaResultOverlay.qml
+        Arena/ArenaOverlayPlacementFrame.qml
+        Arena/ArenaOverlayResizeHandle.qml
+)
+
+set_source_files_properties(TransientInputFocus.qml PROPERTIES
+        QT_QML_SINGLETON_TYPE TRUE
 )
 
 set(RHYTHM_GAME_QML_SHADERS
@@ -197,3 +228,5 @@ qt6_add_shaders(RhythmGame_lr2_qml "lr2_shaders"
         FILES
         ${LR2_SKIN_SHADERS}
 )
+
+include(${PROJECT_SOURCE_DIR}/src/CMakeLists.txt)

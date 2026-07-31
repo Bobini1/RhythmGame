@@ -505,6 +505,8 @@ Item {
                                 lineArea.lineSource)
 
                             srcData: lineArea.lineSource
+                            asynchronousLoading: !!root.screenRoot
+                                && root.screenRoot.customizeMode === true
                             stateData: root.spriteState(
                                 lineArea.dstState,
                                 root.lineLocalY(display, lineArea.multiplier),
@@ -685,10 +687,14 @@ Item {
                                     && display.note.type === note.Type.LongNoteBegin
                                     && !!noteItem.lnBodySource
                                     && root.nextNotePosition(display, lane.notes) < Infinity
+                                asynchronous: !!root.screenRoot
+                                    && root.screenRoot.customizeMode === true
 
                                 sourceComponent: Component {
                                     Lr2FastSprite {
                                         srcData: noteItem.lnBodySource
+                                        asynchronousLoading: !!root.screenRoot
+                                            && root.screenRoot.customizeMode === true
                                         skinTime: root.sourceSkinTimeFor(
                                             noteItem.lnBodySource,
                                             noteItem.lnBodySourceTimerFire,
@@ -710,6 +716,8 @@ Item {
 
                             Lr2FastSprite {
                                 srcData: noteItem.noteSource
+                                asynchronousLoading: !!root.screenRoot
+                                    && root.screenRoot.customizeMode === true
                                 stateData: noteItem.noteState
                                 skinTime: root.sourceSkinTimeFor(
                                     noteItem.noteSource,

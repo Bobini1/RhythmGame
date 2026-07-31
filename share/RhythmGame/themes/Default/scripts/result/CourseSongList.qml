@@ -9,7 +9,7 @@ Column {
     ThemeFont {
         id: courseSongListFont
         fileName: root.themeVars.resultTitleFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     Repeater {
@@ -32,11 +32,12 @@ Column {
         }
         delegate: Text {
             text: modelData
-            font.family: courseSongListFont.fontFamily
-            font.weight: courseSongListFont.fontWeight
-            font.variableAxes: courseSongListFont.variableAxes
-            font.italic: courseSongListFont.italic
-            font.pixelSize: 30
+            font: courseSongListFont.songMetadataFont({
+                weight: courseSongListFont.fontWeight,
+                variableAxes: courseSongListFont.variableAxes,
+                italic: courseSongListFont.italic,
+                pixelSize: 30
+            }, modelData)
             style: Text.Outline
             color: "white"
             width: parent.width

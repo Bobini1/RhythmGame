@@ -6,7 +6,7 @@ Item {
 
     property string title: ""
     property string subtitle: ""
-    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
+    property string fontFile: "file:NotoSans-VariableFont_wdth,wght.ttf"
     property bool contentVisible: true
 
     ThemeFont {
@@ -24,11 +24,12 @@ Item {
             width: parent.width
             height: titleDisplay.subtitle !== "" ? parent.height * 0.58 : parent.height
             text: titleDisplay.title
-            font.pixelSize: height * 0.85
-            font.family: titleDisplayFont.fontFamily
-            font.weight: titleDisplayFont.boldFontWeight
-            font.variableAxes: titleDisplayFont.boldVariableAxes
-            font.italic: titleDisplayFont.italic
+            font: titleDisplayFont.songMetadataFont({
+                pixelSize: height * 0.85,
+                weight: titleDisplayFont.boldFontWeight,
+                variableAxes: titleDisplayFont.boldVariableAxes,
+                italic: titleDisplayFont.italic
+            }, titleDisplay.title)
             fontSizeMode: Text.Fit
             minimumPixelSize: 6
             color: "white"
@@ -43,11 +44,12 @@ Item {
             width: parent.width
             height: parent.height * 0.38
             text: titleDisplay.subtitle
-            font.pixelSize: height * 0.8
-            font.family: titleDisplayFont.fontFamily
-            font.weight: titleDisplayFont.fontWeight
-            font.variableAxes: titleDisplayFont.variableAxes
-            font.italic: titleDisplayFont.italic
+            font: titleDisplayFont.songMetadataFont({
+                pixelSize: height * 0.8,
+                weight: titleDisplayFont.fontWeight,
+                variableAxes: titleDisplayFont.variableAxes,
+                italic: titleDisplayFont.italic
+            }, titleDisplay.subtitle)
             fontSizeMode: Text.Fit
             minimumPixelSize: 6
             color: "#cccccc"

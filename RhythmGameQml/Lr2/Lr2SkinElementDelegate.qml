@@ -9,6 +9,7 @@ Loader {
     width: skinW * skinScale
     height: skinH * skinScale
     z: selectSearchInputElement ? 100260 : elementState.z || 0
+    asynchronous: !!screenRoot && screenRoot.customizeMode === true
     required property var screenRoot
     required property var skinModel
     required property var selectContext
@@ -187,6 +188,42 @@ Loader {
             : elemLoader.screenRoot.renderSkinTime;
     }
 
+    function resolvedImageSetSource(src: var) : var {
+        return elemLoader.valueResolver
+            ? elemLoader.valueResolver.imageSetSourceFor(src)
+            : src;
+    }
+
+    function resolvedNumberValue(src: var) : int {
+        return elemLoader.valueResolver
+            ? elemLoader.valueResolver.numberValue(src)
+            : 0;
+    }
+
+    function resolvedGameplayNumberDependencyMask(src: var) : int {
+        return elemLoader.valueResolver
+            ? elemLoader.valueResolver.gameplayNumberDependencyMask(src)
+            : 0;
+    }
+
+    function resolvedOptionOnlyRankId(id: var) : bool {
+        return elemLoader.valueResolver
+            ? elemLoader.valueResolver.optionOnlyRankId(id)
+            : false;
+    }
+
+    function resolvedNumberSourceFrameGroupSize(src: var) : int {
+        return elemLoader.valueResolver
+            ? elemLoader.valueResolver.numberSourceFrameGroupSize(src)
+            : 0;
+    }
+
+    function resolvedBarGraph(type: var) : real {
+        return elemLoader.valueResolver
+            ? elemLoader.valueResolver.resolveBarGraph(type)
+            : 0;
+    }
+
     function componentForElement() : var {
         switch (elemLoader.elementData.type) {
         case elemLoader.elementTypeImage:
@@ -337,7 +374,7 @@ Loader {
             Lr2SpriteRenderer {
                 anchors.fill: parent
                 dsts: elemLoader.elementData.dsts
-                srcData: elemLoader.valueResolver.imageSetSourceFor(elemLoader.elementData.src)
+                srcData: elemLoader.resolvedImageSetSource(elemLoader.elementData.src)
                 sourceHasFrameAnimation: imageComponentRoot.sourceAnimates
                 skinTime: imageComponentRoot.useDirectSkinClock ? 0 : imageComponentRoot.spriteSkinClock
                 sourceSkinTime: imageComponentRoot.useDirectSkinClock ? 0 : imageComponentRoot.spriteSourceSkinClock
@@ -349,6 +386,7 @@ Loader {
                 sourceTimerFire: elemLoader.srcTimerFire
                 chartAssetSource: elemLoader.directChartAssetSource
                 preferAtlasImagePath: elemLoader.screenRoot.effectiveScreenKey === "select"
+                asynchronousLoading: elemLoader.screenRoot.customizeMode === true
                 scaleOverride: skinScale
                 mediaActive: elemLoader.screenRoot.enabled && elemLoader.screenUpdatesActive
                 transColor: skinModel.transColor
@@ -554,7 +592,7 @@ Loader {
             readonly property int valueResolverNumberDependencyMask: valueResolverNumberNeeded
                 && elemLoader.screenRoot.gameplayScreenActive
                 && !valueResolverNumberUsesSelectSnapshot
-                ? elemLoader.valueResolver.gameplayNumberDependencyMask(numberSrc)
+                ? elemLoader.resolvedGameplayNumberDependencyMask(numberSrc)
                 : 0
             readonly property int valueResolverNumberSnapshotRevision: valueResolverNumberUsesSelectSnapshot
                 ? selectContext.focusedSelectNumberRevisionForId(numberId)
@@ -569,7 +607,7 @@ Loader {
                         ? selectContext.focusedSelectNumberSnapshotValueForId(
                             numberId,
                             valueResolverNumberSnapshotRevision)
-                        : elemLoader.valueResolver.numberValue(numberSrc);
+                        : elemLoader.resolvedNumberValue(numberSrc);
                 }
                 if (valueResolverNumber !== nextValue) {
                     valueResolverNumber = nextValue;
@@ -585,7 +623,7 @@ Loader {
                     }
                     return;
                 }
-                const nextValue = elemLoader.valueResolver.numberValue(numberSrc);
+                const nextValue = elemLoader.resolvedNumberValue(numberSrc);
                 if (gameplayValueResolverNumber !== nextValue) {
                     gameplayValueResolverNumber = nextValue;
                 }
@@ -743,9 +781,9 @@ Loader {
             readonly property int currentNumberValue: usesFpsNumber
                 ? elemLoader.screenRoot.lr2CurrentFps
                 : (usesFocusedSelectNumber ? focusedSelectNumber : valueResolverNumber)
-            readonly property bool hiddenByOptionOnlyRank: elemLoader.valueResolver.optionOnlyRankId(numberId)
+            readonly property bool hiddenByOptionOnlyRank: elemLoader.resolvedOptionOnlyRankId(numberId)
             readonly property bool numberUsesNegativeSelectHide: selectNumberScreen
-                && elemLoader.valueResolver.numberSourceFrameGroupSize(numberSrc) !== 24
+                && elemLoader.resolvedNumberSourceFrameGroupSize(numberSrc) !== 24
             readonly property bool hiddenByNegativeSelectValue: numberUsesNegativeSelectHide
                 && currentNumberValue < 0
             readonly property bool numberUsesNowCombo: !!numberSrc
@@ -771,6 +809,7 @@ Loader {
             timerFire: elemLoader.dstTimerFire
             sourceTimerFire: elemLoader.srcTimerFire
             scaleOverride: skinScale
+            asynchronousLoading: elemLoader.screenRoot.customizeMode === true
             value: numberRenderer.currentNumberValue
             forceHidden: numberRenderer.hiddenByOptionOnlyRank
                 || numberRenderer.hiddenByNegativeSelectValue
@@ -861,6 +900,7 @@ Loader {
             bannerSource: elemLoader.sourceTreeUsesChartAsset ? elemLoader.bannerSource : ""
             transColor: skinModel.transColor
             colorKeyEnabled: skinModel.hasTransColor
+            asynchronousLoading: elemLoader.screenRoot.customizeMode === true
         }
     }
 
@@ -909,6 +949,7 @@ Loader {
             selectedFastBarDrawX: elemLoader.screenRoot.selectedFastBarDrawX
             selectedFastBarDrawY: elemLoader.screenRoot.selectedFastBarDrawY
             barCenter: skinModel.barCenter
+            asynchronousLoading: elemLoader.screenRoot.customizeMode === true
             colorKeyEnabled: skinModel.hasTransColor
             transColor: skinModel.transColor
         }
@@ -934,6 +975,7 @@ Loader {
             timerFire: elemLoader.dstTimerFire
             sourceTimerFire: elemLoader.srcTimerFire
             chartAssetSource: elemLoader.directChartAssetSource
+            asynchronousLoading: elemLoader.screenRoot.customizeMode === true
             scaleOverride: skinScale
             colorKeyEnabled: skinModel.hasTransColor
             transColor: skinModel.transColor
@@ -941,7 +983,7 @@ Loader {
                 let graphType = elemLoader.elementData.src ? elemLoader.elementData.src.graphType || 0 : 0;
                 return elemLoader.screenRoot.effectiveScreenKey === "select"
                     ? selectContext.barGraphValue(graphType)
-                    : elemLoader.valueResolver.resolveBarGraph(graphType);
+                    : elemLoader.resolvedBarGraph(graphType);
             }
             animateValue: elemLoader.screenRoot.effectiveScreenKey === "select"
                 && elemLoader.elementData.src
@@ -975,6 +1017,7 @@ Loader {
             colorKeyEnabled: skinModel.hasTransColor
             transColor: skinModel.transColor
             chartAssetSource: elemLoader.directChartAssetSource
+            asynchronousLoading: elemLoader.screenRoot.customizeMode === true
         }
     }
 }

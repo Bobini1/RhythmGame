@@ -48,12 +48,17 @@ Item {
     property alias barMoveStartMs: nativeNavigation.barMoveStartMs
     property alias barMoveEndMs: nativeNavigation.barMoveEndMs
     property bool componentReady: false
+    readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
+        || Rg.arenaSession.state === ArenaSession.Reconnecting
+    readonly property string unavailableSongPrefix: "\u00d7 "
     property bool updatesActive: true
     property alias suppressVisualIndexPublish: nativeNavigation.suppressVisualIndexPublish
     property alias scrollDirection: nativeNavigation.scrollDirection
     property int listGeneration: 0
     property int scoreGeneration: 0
     property int folderLampRequestToken: 0
+    property var pendingScoreDbReplies: []
+    property var pendingFolderLampScoreDbReplies: []
     property alias suppressNextSelectionSound: nativeNavigation.suppressNextSelectionSound
     property bool scrollFixedPointDragging: false
     property string searchText: ""
@@ -186,6 +191,61 @@ Item {
     onRankingPlayerCountChanged: advanceNumberValueRankingStatsRevision()
     onRankingTotalPlayCountChanged: advanceNumberValueRankingStatsRevision()
 
+    function trackScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingScoreDbReplies.push(reply);
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            let index = pendingScoreDbReplies.indexOf(reply);
+            if (index >= 0) {
+                pendingScoreDbReplies.splice(index, 1);
+                pendingScoreDbReplies = pendingScoreDbReplies.slice();
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelScoreDbReplies() {
+        let replies = pendingScoreDbReplies;
+        pendingScoreDbReplies = [];
+        for (let reply of replies) {
+            if (reply && !reply.resultAvailable) {
+                reply.cancel();
+            }
+        }
+    }
+
+    function trackFolderLampScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingFolderLampScoreDbReplies.push(reply);
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            let index = pendingFolderLampScoreDbReplies.indexOf(reply);
+            if (index >= 0) {
+                pendingFolderLampScoreDbReplies.splice(index, 1);
+                pendingFolderLampScoreDbReplies =
+                    pendingFolderLampScoreDbReplies.slice();
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelFolderLampScoreDbReplies() {
+        let replies = pendingFolderLampScoreDbReplies;
+        pendingFolderLampScoreDbReplies = [];
+        for (let reply of replies) {
+            if (reply && !reply.resultAvailable) {
+                reply.cancel();
+            }
+        }
+    }
+
     function advanceNumberValueRevision(value: int) : int {
         return value > root.numberValueRevisionLimit ? 1 : value + 1;
     }
@@ -309,6 +369,8 @@ Item {
 
     Lr2SelectItemModel {
         id: selectItemModel
+        arenaAvailability: root.arenaSeated ? Rg.arenaSession.availability : null
+        unavailableSongPrefix: root.unavailableSongPrefix
         useBeatorajaBarTextTypes: root.useBeatorajaBarTextTypes
         useBeatorajaSelectOptions: root.useBeatorajaSelectOptions
         barBodyTypes: root.barBodyTypes
@@ -897,6 +959,7 @@ Item {
     }
 
     function refreshFolderLamps() {
+        cancelFolderLampScoreDbReplies();
         let db = Rg.profileList?.mainProfile?.scoreDb;
         if (!db) {
             clearFolderLampState();
@@ -915,7 +978,7 @@ Item {
                 continue;
             }
 
-            db.getScoreSummary(item).then((result) => {
+            trackFolderLampScoreDbReply(db.getScoreSummary(item)).then((result) => {
                 if (requestToken !== folderLampRequestToken) {
                     return;
                 }
@@ -991,7 +1054,8 @@ Item {
     }
 
     Component.onDestruction: {
-        Rg.profileList?.mainProfile?.scoreDb?.cancelPending();
+        cancelFolderLampScoreDbReplies();
+        cancelScoreDbReplies();
     }
 
     function addToMinimumCount(input: var) : var {
@@ -1294,7 +1358,7 @@ Item {
     function refreshScores() : var {
         let folder = historyStack.length > 0 ? historyStack[historyStack.length - 1] : "";
         let scoreDb = Rg.profileList.mainProfile.scoreDb;
-        scoreDb.cancelPending();
+        cancelScoreDbReplies();
         if (!folderContentsNeedFullScores()) {
             scores = ({});
             handleScoresLoaded();
@@ -1312,13 +1376,13 @@ Item {
                     courseIds.push(item.identifier);
                 }
             }
-            scoreDb.getScoresForMd5(md5s).then((result) => {
+            trackScoreDbReply(scoreDb.getScoresForMd5(md5s)).then((result) => {
                 if (courseIds.length <= 0) {
                     scores = result.scores;
                     handleScoresLoaded();
                     return;
                 }
-                scoreDb.getScoresForCourseId(courseIds).then((courseResult) => {
+                trackScoreDbReply(scoreDb.getScoresForCourseId(courseIds)).then((courseResult) => {
                     let newScores = Object.assign({}, result.scores || {});
                     for (let [key, value] of Object.entries(courseResult.scores || {})) {
                         newScores[key] = value;
@@ -1331,7 +1395,7 @@ Item {
             refreshFolderLamps();
             return;
         }
-        scoreDb.getScores(folder).then((result) => {
+        trackScoreDbReply(scoreDb.getScores(folder)).then((result) => {
             if (result && result.courseScores !== undefined) {
                 let newScores = result.scores.scores;
                 for (let [key, value] of Object.entries(result.courseScores.scores)) {
@@ -1352,7 +1416,7 @@ Item {
         if (!db) {
             return;
         }
-        db.getTotalStats().then((result) => {
+        trackScoreDbReply(db.getTotalStats()).then((result) => {
             playerStats = result || playerStats;
         });
     }
@@ -1635,11 +1699,20 @@ Item {
 
     function goForward(item: var, autoplay: var, replay: var, replayScore: var) : var {
         if (isRankingEntry(item)) {
+            if (root.arenaSeated) {
+                return;
+            }
             let baseItem = rankingBaseItem;
             hideRanking();
             item = baseItem;
         }
         if (isChart(item)) {
+            if (root.arenaSeated) {
+                if (!autoplay && !replay && !replayScore) {
+                    Rg.arenaSession.selectChart(item);
+                }
+                return;
+            }
             let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
                 globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
@@ -1649,6 +1722,9 @@ Item {
             return;
         }
         if (isCourse(item)) {
+            if (root.arenaSeated) {
+                return;
+            }
             let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
                 globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
@@ -1722,7 +1798,7 @@ Item {
         if (isChart(item) || isEntry(item)) {
             let title = item.title || "";
             let subtitle = item.subtitle || "";
-            let prefix = isMissingTableEntry(item) && !root.useBeatorajaBarTextTypes ? "(missing) " : "";
+            let prefix = root.entryTitlePrefix(item);
             return prefix + (includeSubtitle && subtitle ? title + " " + subtitle : title);
         }
         if (isLevel(item)) {
@@ -1746,10 +1822,29 @@ Item {
             return item.title || "";
         }
         if (isChart(item) || isEntry(item)) {
-            let prefix = isMissingTableEntry(item) && !root.useBeatorajaBarTextTypes ? "(missing) " : "";
+            let prefix = root.entryTitlePrefix(item);
             return prefix + (item.title || "");
         }
         return entryDisplayName(item, false);
+    }
+
+    function entryTitlePrefix(item: var) : string {
+        if (root.useBeatorajaBarTextTypes) {
+            return "";
+        }
+        if (isMissingTableEntry(item)) {
+            return root.unavailableSongPrefix;
+        }
+        if (!root.arenaSeated || !isChart(item)) {
+            return "";
+        }
+        const availability = Rg.arenaSession.availability;
+        const revision = availability.revision;
+        return revision >= 0
+                && availability.availabilityFor(item.sha256 || "")
+                    === ArenaAvailabilityIndex.UnavailableToSome
+            ? root.unavailableSongPrefix
+            : "";
     }
 
     function currentFolderDisplayName() : var {

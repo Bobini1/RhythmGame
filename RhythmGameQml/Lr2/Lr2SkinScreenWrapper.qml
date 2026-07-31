@@ -9,6 +9,8 @@ Item {
     focus: true
     property string csvPath
     property string screenKey: ""
+    property string arenaRoundId: ""
+    property bool arenaManagedRunner: false
     property var chart
     property var scores: []
     property var profiles: []
@@ -19,6 +21,23 @@ Item {
     property string skinSettingsData: ""
     property var selectContextRef: null
     property bool componentReady: false
+    property bool customizeMode: false
+    property var legacySkinCustomizeItems: []
+    readonly property bool legacySkinCustomizeAvailable: true
+    readonly property var arenaSession: Rg.arenaSession
+    readonly property bool arenaSeated: arenaSession.state === ArenaSession.InRoom
+        || arenaSession.state === ArenaSession.Reconnecting
+    readonly property bool arenaGameplayOwned: root.gameplayScreenActive
+        && arenaSession.arenaGameplayActive === true
+        && arenaSession.arenaRunner === root.chart
+    readonly property var legacySkinCustomizeThemeVars:
+        root.lr2SettingDestinationForScreen(root.effectiveScreenKey)
+    readonly property string legacySkinCustomizeTitle:
+        String(skinSettingsState.titleForScreen(root.effectiveScreenKey)
+               || root.lr2ConfiguredThemeName(root.effectiveScreenKey)
+               || root.effectiveScreenKey)
+    readonly property string legacySkinCustomizeSubtitle:
+        root.effectiveScreenKey.toUpperCase()
     property bool decideTransitionRequested: false
     property bool screenEntrySoundPlayed: false
     property bool selectScoreRefreshQueued: false
@@ -109,6 +128,7 @@ Item {
     property alias selectRuntimeActiveOptions: selectUpdateController.selectRuntimeActiveOptions
     property int gameplayReadySkinTime: -1
     property int gameplayStartSkinTime: -1
+    property int gameplayTargetScoreSkinTime: -1
     property int gameplayGaugeUpSkinTime1: -1
     property int gameplayGaugeUpSkinTime2: -1
     property int gameplayGaugeMaxSkinTime1: -1
@@ -187,6 +207,7 @@ Item {
     property var gameplayScores1: []
     property int gameplayScoresRevision: 0
     property int gameplayScoreRequest: 0
+    property var pendingGameplayScoreDbReply: null
     property var gameplayHeldButtonTimerStarts: ({})
     property var gameplayOffButtonTimerStarts: ({})
     property var gameplayPreviousPressedTimers: ({})
@@ -468,7 +489,9 @@ Item {
         case 5:
             return root.toggleSelectPanel(3);
         case 6:
-            globalRoot.openSettings(5);
+            if (!root.arenaSeated) {
+                globalRoot.openSettings(5);
+            }
             return true;
         case 8:
             return selectContext.showAllChartsForCurrentSong();
@@ -480,16 +503,25 @@ Item {
     }
 
     Shortcut {
-        enabled: root.screenUpdatesActive && !selectSearchState.focused
+        enabled: root.screenUpdatesActive
+            && !selectSearchState.focused
         sequence: "Esc"
 
         onActivated: {
+            if (root.customizeMode) {
+                root.customizeMode = false;
+                return;
+            }
             if (root.effectiveScreenKey === "select" && root.lr2ReadmeMode > 0) {
                 root.closeReadme();
                 return;
             }
             if (root.effectiveScreenKey === "select" && root.selectPanel > 0) {
                 root.closeSelectPanel();
+                return;
+            }
+            if (root.effectiveScreenKey === "select" && root.arenaSeated) {
+                Rg.arenaSession.leaveRoom();
                 return;
             }
             if (root.gameplayScreenActive && root.handleGameplayEscape()) {
@@ -505,6 +537,14 @@ Item {
             }
             sceneStack.pop();
         }
+    }
+
+    Shortcut {
+        autoRepeat: false
+        enabled: root.screenUpdatesActive
+        sequence: "F2"
+
+        onActivated: root.toggleCustomizeMode()
     }
 
     Timer {
@@ -611,10 +651,23 @@ Item {
         }
         root.activateGameplayIfNeeded();
     }
-    
+
     readonly property string effectiveScreenKey: screenState.effectiveKey
     readonly property bool gameplayScreenActive: screenState.gameplayScreen
     readonly property bool resultScreenActive: screenState.resultScreen
+    readonly property bool arenaResultMatches: root.resultScreenActive
+        && root.arenaRoundId.length > 0
+        && root.arenaSession.resultPresentationActive === true
+        && root.arenaSession.presentedResult !== null
+        && root.arenaSession.presentedResult.valid === true
+        && root.arenaRoundId
+            === String(root.arenaSession.presentedResult.roundId || "")
+
+    function presentArenaResult(roundId: string) : bool {
+        root.arenaRoundId = roundId;
+        return root.arenaRoundId.length > 0;
+    }
+
     readonly property bool decideScreenActive: root.enabled
         && root.visible
         && root.effectiveScreenKey === "decide"
@@ -714,19 +767,32 @@ Item {
         root.appendParseOption(options, root.resultRankOptionForResult(root.resultOldBestResult(1), 320));
         root.appendParseOption(options, root.resultRankOptionForResult(current1, 340));
 
-        if (root.resultScoreImproved(1)) {
+        let oldBest = root.resultOldBestResult(1);
+        let scoreDifference = root.resultExScore(current1) - root.resultExScore(oldBest);
+        if (scoreDifference > 0) {
             root.appendParseOption(options, 330);
-            if (root.resultRawRank(current1) > root.resultRawRank(root.resultOldBestResult(1))) {
-                root.appendParseOption(options, 335);
-            }
-        } else {
+            root.appendParseOption(options, 335);
+        } else if (scoreDifference === 0) {
             root.appendParseOption(options, 1330);
-            if (root.resultRawRank(current1) === root.resultRawRank(root.resultOldBestResult(1))) {
-                root.appendParseOption(options, 1335);
-            }
+            root.appendParseOption(options, 1335);
         }
-        root.appendParseOption(options, root.resultComboImproved(1) ? 331 : 1331);
-        root.appendParseOption(options, root.resultBadPoorImproved(1) ? 332 : 1332);
+
+        let comboDifference = (current1 ? (current1.maxCombo || 0) : 0)
+            - (oldBest ? (oldBest.maxCombo || 0) : 0);
+        if (comboDifference > 0) {
+            root.appendParseOption(options, 331);
+        } else if (comboDifference === 0) {
+            root.appendParseOption(options, 1331);
+        }
+
+        let badPoorDifference = oldBest
+            ? root.resultBadPoor(oldBest) - root.resultBadPoor(current1)
+            : (current1 ? 1 : 0);
+        if (badPoorDifference > 0) {
+            root.appendParseOption(options, 332);
+        } else if (badPoorDifference === 0) {
+            root.appendParseOption(options, 1332);
+        }
 
         let targetDiff = root.resultExScore(current1) - root.resultTargetPoints(1);
         if (targetDiff > 0) {
@@ -1176,6 +1242,37 @@ Item {
     function changeLr2SelectedTheme(delta: var) : var { return skinSettingsState.changeSelectedTheme(delta); }
     function queueSkinClockRestartAfterLoad() : void { skinSettingsState.queueSkinClockRestartAfterLoad(); }
 
+    function refreshLegacySkinCustomizeItems() : void {
+        root.legacySkinCustomizeItems =
+            skinSettingsState.buildItemsForScreen(
+                root.effectiveScreenKey, false);
+    }
+
+    function legacySkinCustomizeValue(item: var) : var {
+        return skinSettingsState.currentValueForScreen(
+                    root.effectiveScreenKey, item);
+    }
+
+    function setLegacySkinCustomizeValue(item: var, value: var) : var {
+        let changed = skinSettingsState.setSettingValueForScreen(
+                    root.effectiveScreenKey, item, value);
+        if (changed) {
+            root.legacySkinCustomizeItems =
+                root.legacySkinCustomizeItems.slice();
+            root.queueSelectRuntimeActiveOptionsRefresh(
+                        false, true, root.selectOptionResolvedTextIds);
+        }
+        return changed;
+    }
+
+    function toggleCustomizeMode() : var {
+        root.customizeMode = !root.customizeMode;
+        if (root.customizeMode) {
+            root.refreshLegacySkinCustomizeItems();
+        }
+        return true;
+    }
+
     function setArrayValue(array: var, index: var, value: var) : var { return optionState.setArrayValue(array, index, value); }
     function sliderInitialValue(type: var) : var { return optionState.sliderInitialValue(type); }
     function sliderRawValue(type: var) : var { return optionState.sliderRawValue(type); }
@@ -1414,6 +1511,11 @@ Item {
     }
 
     function lr2TargetText(sourceCount: var) : var {
+        if (root.arenaGameplayOwned) {
+            return root.arenaOpponentTargetAvailable()
+                ? String(root.arenaSession.opponentTarget.displayName || "")
+                : "";
+        }
         let count = root.selectOptionSourceCount(77, sourceCount);
         return optionState.lr2TargetText(count);
     }
@@ -1497,9 +1599,15 @@ Item {
     }
     function closeLr2Ranking() : var { return lr2Ranking.closeRanking(); }
     function launchLr2RankingReplayType(replayType: var, mouseButton: var) : var {
+        if (root.arenaSeated) {
+            return false;
+        }
         return lr2Ranking.launchReplayType(replayType, mouseButton);
     }
     function launchLr2RankingScoreAction(mouseButton: var) : var {
+        if (root.arenaSeated) {
+            return false;
+        }
         return lr2Ranking.launchSelectedScoreAction(mouseButton);
     }
     function isLr2RankingKey(key: var) : var { return key === BmsKey.Col14 || key === BmsKey.Col24; }
@@ -2541,10 +2649,14 @@ Item {
     }
 
     function handleGameplayEscape() : var {
+        if (root.arenaGameplayOwned && root.arenaSession.chatOpen === true) {
+            root.arenaSession.setChatOpen(false);
+            return true;
+        }
         if (!root.chart || root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
             return false;
         }
-        if (root.gameplayNothingWasHit) {
+        if (root.gameplayNothingWasHit && !root.arenaGameplayOwned) {
             sceneStack.pop();
             return true;
         }
@@ -3172,7 +3284,19 @@ Item {
         return root.gameplaySavedScorePoints(root.gameplayBestSavedScore());
     }
 
+    function arenaOpponentTargetAvailable() : bool {
+        return root.arenaGameplayOwned
+            && root.arenaSession.opponentTarget !== undefined
+            && root.arenaSession.opponentTarget !== null
+            && root.arenaSession.opponentTarget.available === true;
+    }
+
     function gameplayTargetScorePoints(side: var) : var {
+        if (root.arenaGameplayOwned) {
+            return root.arenaOpponentTargetAvailable()
+                ? Number(root.arenaSession.opponentTarget.exScore || 0)
+                : 0;
+        }
         root.gameplayScoresRevision;
         side = side === 2 ? 2 : 1;
         if (root.battleModeActive()) {
@@ -3193,6 +3317,11 @@ Item {
     }
 
     function gameplayTargetFinalPoints(side: var) : var {
+        if (root.arenaGameplayOwned) {
+            return root.arenaOpponentTargetAvailable()
+                ? Number(root.arenaSession.opponentTarget.exScore || 0)
+                : 0;
+        }
         if (root.battleModeActive()) {
             side = side === 2 ? 2 : 1;
             let opponent = root.gameplayScore(side === 2 ? 1 : 2);
@@ -3214,12 +3343,72 @@ Item {
         return Math.floor((score.maxPoints || 0) * root.gameplayTargetFraction());
     }
 
+    function gameplayTargetScoreTimerActive() : bool {
+        if (!root.lr2SkinUsesBeatorajaSemantics || !root.gameplayScreenActive) {
+            return false;
+        }
+        if (root.arenaGameplayOwned && !root.arenaOpponentTargetAvailable()) {
+            return false;
+        }
+        let score = root.gameplayScore(1);
+        return score !== null
+            && score !== undefined
+            && root.gameplayExScore(score) >= root.gameplayTargetFinalPoints(1);
+    }
+
+    function updateGameplayTargetScoreTimer() : void {
+        if (root.gameplayTargetScoreTimerActive()) {
+            if (root.gameplayTargetScoreSkinTime >= 0) {
+                return;
+            }
+            root.gameplayTargetScoreSkinTime = Math.max(0, root.renderSkinTime);
+            root.setGameplayTimerValue(352, root.gameplayTargetScoreSkinTime);
+            return;
+        }
+        if (root.gameplayTargetScoreSkinTime < 0) {
+            return;
+        }
+        root.gameplayTargetScoreSkinTime = -1;
+        root.clearGameplayTimerValue(352);
+    }
+
+    function refreshArenaGameplayTargetPresentation() : void {
+        root.gameplayRevision++;
+        root.requestGameplayNumberRefresh(0);
+        root.queueResolvedTextRefresh([1, 3]);
+        root.updateGameplayTargetScoreTimer();
+    }
+
     function resetGameplayScoreReplayers() : void {
         gameplayTargetScoreReplayer.resetPoints();
         gameplayBestScoreReplayer.resetPoints();
     }
 
+    function trackGameplayScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingGameplayScoreDbReply = reply;
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            if (pendingGameplayScoreDbReply === reply) {
+                pendingGameplayScoreDbReply = null;
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelGameplayScoreDbReply() {
+        let reply = pendingGameplayScoreDbReply;
+        pendingGameplayScoreDbReply = null;
+        if (reply && !reply.resultAvailable) {
+            reply.cancel();
+        }
+    }
+
     function updateGameplaySavedScores() : var {
+        cancelGameplayScoreDbReply();
         root.gameplayScoreRequest += 1;
         let request = root.gameplayScoreRequest;
         root.gameplayScores1 = [];
@@ -3238,7 +3427,7 @@ Item {
             return;
         }
 
-        scoreDb.getScoresForMd5([md5]).then(result => {
+        trackGameplayScoreDbReply(scoreDb.getScoresForMd5([md5])).then(result => {
             if (request !== root.gameplayScoreRequest) {
                 return;
             }
@@ -3776,6 +3965,7 @@ Item {
         root.stopLr2GameplayOptionRepeat();
         root.gameplayReadySkinTime = -1;
         root.gameplayStartSkinTime = -1;
+        root.gameplayTargetScoreSkinTime = -1;
         root.gameplayGaugeUpSkinTime1 = -1;
         root.gameplayGaugeUpSkinTime2 = -1;
         root.gameplayGaugeMaxSkinTime1 = -1;
@@ -5036,9 +5226,11 @@ Item {
         }
         function onScoreTargetChanged() : void {
             root.queueResolvedTextRefresh();
+            root.updateGameplayTargetScoreTimer();
         }
         function onTargetScoreFractionChanged() : void {
             root.queueResolvedTextRefresh();
+            root.updateGameplayTargetScoreTimer();
         }
         function onGaugeTypeChanged() : void {
             root.queueResolvedTextRefresh();
@@ -5094,8 +5286,11 @@ Item {
         root.updateGameplaySavedScores();
         root.handleScreenContextChanged();
         root.queueResolvedTextRefresh();
+        root.refreshLegacySkinCustomizeItems();
         Qt.callLater(root.playScreenEntrySound);
     }
+    onArenaGameplayOwnedChanged: root.refreshArenaGameplayTargetPresentation()
+    onGameplayScoresRevisionChanged: root.updateGameplayTargetScoreTimer()
     onChartChanged: {
         root.gameplayRevision++;
         root.queueResolvedTextRefresh();
@@ -5171,7 +5366,13 @@ Item {
             root.updateGameplayStaticNumberRevision();
             root.refreshGameplayRuntimeActiveOptions();
             root.handleGameplayStatusChanged();
+            root.updateGameplayTargetScoreTimer();
         }
+    }
+    Connections {
+        target: root.arenaGameplayOwned ? root.arenaSession.opponentTarget : null
+
+        function onChanged() : void { root.refreshArenaGameplayTargetPresentation(); }
     }
     Connections {
         target: root.gameplayScreenActive ? root.gameplayScore(1) : null
@@ -5190,6 +5391,7 @@ Item {
         }
         function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(1);
+            root.updateGameplayTargetScoreTimer();
             root.requestGameplayNumberRefresh(1);
         }
         function onComboChanged() : void {
@@ -5219,6 +5421,7 @@ Item {
         }
         function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(2);
+            root.updateGameplayTargetScoreTimer();
             root.requestGameplayNumberRefresh(2);
         }
         function onComboChanged() : void {
@@ -5589,6 +5792,7 @@ Item {
             root.openSelectIfNeeded();
             root.activateGameplayIfNeeded();
             root.refreshLr2SkinSettingItems();
+            root.refreshLegacySkinCustomizeItems();
             selectUpdateController.refreshBaseActiveOptions();
             root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
@@ -5600,6 +5804,7 @@ Item {
     onCsvPathChanged: root.openSelectIfNeeded()
     onSkinSettingsChanged: {
         root.refreshLr2SkinSettingItems();
+        root.refreshLegacySkinCustomizeItems();
         selectUpdateController.refreshBaseActiveOptions();
         root.refreshSelectRuntimeActiveOptions();
     }
@@ -5607,6 +5812,7 @@ Item {
         root.openSelectIfNeeded();
         root.activateGameplayIfNeeded();
         root.refreshLr2SkinSettingItems();
+        root.refreshLegacySkinCustomizeItems();
         selectUpdateController.refreshBaseActiveOptions();
         root.refreshSelectRuntimeActiveOptions();
     }
@@ -5621,12 +5827,21 @@ Item {
         Qt.callLater(root.playScreenEntrySound);
         root.updateGameplaySavedScores();
         root.refreshLr2SkinSettingItems();
+        root.refreshLegacySkinCustomizeItems();
         selectUpdateController.refreshBaseActiveOptions();
         root.refreshSelectRuntimeActiveOptions();
         root.refreshGameplayRuntimeActiveOptions();
     }
 
     Component.onDestruction: {
+        root.cancelGameplayScoreDbReply();
+        const arenaSession = root.arenaSession;
+        if (arenaSession && root.arenaManagedRunner && root.chart) {
+            arenaSession.releasePreparedGameplay(root.chart);
+        }
+        if (root.arenaRoundId.length > 0 && arenaSession) {
+            arenaSession.endResultPresentation(root.arenaRoundId);
+        }
         root.destroyOwnedChartRunner();
     }
 
@@ -5773,7 +5988,7 @@ Item {
 
     function selectGoForward(item: var, autoplay: var, replay: var, replayScore: var) : void {
         let targetItem = item === undefined ? selectContext.activationItem() : item;
-        if (!autoplay && !replay && !replayScore
+        if (!root.arenaSeated && !autoplay && !replay && !replayScore
                 && lr2Ranking.launchEntryReplay(targetItem, 1, Qt.LeftButton)) {
             return;
         }
@@ -5785,6 +6000,9 @@ Item {
     }
 
     function launchSelectedReplayShortcut(mouseButton: var) : var {
+        if (root.arenaSeated) {
+            return true;
+        }
         if (!root.selectNavigationReady() || root.selectPanel > 0) {
             return false;
         }
@@ -5953,6 +6171,27 @@ Item {
 
     function submitSelectSearch() : void { selectSearchState.submit(); }
 
+    function handleConfirmKey(event: var) : void {
+        if (root.lr2ReadmeMode > 0) {
+            event.accepted = true;
+            root.closeReadme();
+            return;
+        }
+        if (root.effectiveScreenKey === "decide") {
+            event.accepted = true;
+            root.skipDecideScreen();
+            return;
+        }
+        if (root.closeResultScreen()) {
+            event.accepted = true;
+            return;
+        }
+        if (!root.selectNavigationReady())
+            return;
+        event.accepted = true;
+        root.selectGoForward();
+    }
+
     Keys.onUpPressed: (event) => {
         if (root.lr2ReadmeMode === 1) {
             event.accepted = true;
@@ -6007,31 +6246,8 @@ Item {
         event.accepted = true;
         root.selectGoForward();
     }
-    Keys.onReturnPressed: (event) => {
-        if (root.lr2ReadmeMode > 0) {
-            event.accepted = true;
-            root.closeReadme();
-            return;
-        }
-        if (root.effectiveScreenKey === "decide") {
-            event.accepted = true;
-            root.skipDecideScreen();
-            return;
-        }
-        if (root.closeResultScreen()) {
-            event.accepted = true;
-            return;
-        }
-        if (!root.selectNavigationReady()) return;
-        event.accepted = true;
-        root.selectGoForward();
-    }
-    Keys.onEnterPressed: (event) => {
-        if (root.effectiveScreenKey === "decide") {
-            event.accepted = true;
-            root.skipDecideScreen();
-        }
-    }
+    Keys.onReturnPressed: event => root.handleConfirmKey(event)
+    Keys.onEnterPressed: event => root.handleConfirmKey(event)
 
     property var lastNavigateKey: []
     property int selectWheelScratchDirection: 0
@@ -6230,6 +6446,9 @@ Item {
     }
     Input.onButtonPressed: (key) => {
         if (root.handleDecideButtonPress(key)) {
+            return;
+        }
+        if (selectPanelController.handleArenaReadyStartPress(key)) {
             return;
         }
         if (root.handleLr2GameplayOptionKey(key)) {

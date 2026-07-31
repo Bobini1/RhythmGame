@@ -1,0 +1,327 @@
+From 24205cda961ca1138e60e715c5334e344a8e9373 Mon Sep 17 00:00:00 2001
+From: Tomasz Kalisiak <tomasz.kalisiak3@gmail.com>
+Date: Fri, 15 May 2026 15:17:12 +0200
+Subject: [PATCH] QQuickWindow: Avoid full item-tree scans for child window stacking
+
+Keep a list of QQuickWindowContainer items per QQuickWindow and use
+that list when child windows need to be restacked.
+
+This avoids scheduling updateChildWindowStackingOrder() for ordinary
+ChildrenStackingChanged dirtiness in scenes that do not contain any
+WindowContainer items. Such scenes do not need child-window restacking,
+so walking the whole QQuickItem tree only adds polish-time overhead.
+
+When containers are present, sort the registered containers by
+paint order before raising their contained windows. This keeps the
+existing stacking behavior while making the common no-container case
+constant time.
+
+Add tests for visibility changes with and without WindowContainer items
+so the dirty flag is only set when restacking can actually be needed.
+
+[ChangeLog][QtQuick][QQuickWindowContainer] Avoided unnecessary
+child-window stacking updates in windows that do not contain any
+WindowContainer items. This can reduce polish time in large Qt Quick
+scenes when item visibility or stacking changes.
+
+Fixes: QTBUG-134949
+Change-Id: Ib4b98ebac020b33ca2067f321046df68802d1792
+---
+
+diff --git a/src/quick/items/qquickwindow.cpp b/src/quick/items/qquickwindow.cpp
+index a8bbb72..60b1086 100644
+--- a/src/quick/items/qquickwindow.cpp
++++ b/src/quick/items/qquickwindow.cpp
+@@ -58,6 +58,7 @@
+ 
+ #include <rhi/qrhi.h>
+ 
++#include <algorithm>
+ #include <utility>
+ #include <mutex>
+ 
+@@ -883,8 +884,10 @@
+     Q_Q(QQuickWindow);
+ 
+     QQuickItemPrivate *itemPriv = QQuickItemPrivate::get(item);
+-    if (itemPriv->dirtyAttributes & QQuickItemPrivate::ChildrenStackingChanged)
++    if (!childWindowContainers.isEmpty()
++        && (itemPriv->dirtyAttributes & QQuickItemPrivate::ChildrenStackingChanged)) {
+         needsChildWindowStackingOrderUpdate = true;
++    }
+ 
+     q->maybeUpdate();
+ }
+@@ -1767,32 +1770,92 @@
+     QWindowPrivate::maybeSynthesizeContextMenuEvent(event);
+ }
+ 
+-void QQuickWindowPrivate::updateChildWindowStackingOrder(QQuickItem *item)
++void QQuickWindowPrivate::addChildWindowContainer(QQuickWindowContainer *windowContainer)
++{
++    Q_ASSERT(windowContainer);
++
++    if (childWindowContainers.contains(windowContainer))
++        return;
++
++    childWindowContainers.append(windowContainer);
++    needsChildWindowStackingOrderUpdate = true;
++}
++
++void QQuickWindowPrivate::removeChildWindowContainer(QQuickWindowContainer *windowContainer)
++{
++    childWindowContainers.removeOne(windowContainer);
++
++    if (childWindowContainers.isEmpty())
++        needsChildWindowStackingOrderUpdate = false;
++}
++
++static QList<QQuickItem *> itemAncestorChain(QQuickItem *item)
++{
++    QList<QQuickItem *> ancestors;
++    for (auto *ancestor = item; ancestor; ancestor = ancestor->parentItem())
++        ancestors.prepend(ancestor);
++    return ancestors;
++}
++
++static bool itemPaintOrderLess(QQuickItem *lhs, QQuickItem *rhs)
++{
++    if (lhs == rhs)
++        return false;
++
++    const auto lhsAncestors = itemAncestorChain(lhs);
++    const auto rhsAncestors = itemAncestorChain(rhs);
++    qsizetype commonAncestorCount = 0;
++    const qsizetype ancestorCount = qMin(lhsAncestors.size(), rhsAncestors.size());
++    while (commonAncestorCount < ancestorCount
++           && lhsAncestors.at(commonAncestorCount) == rhsAncestors.at(commonAncestorCount)) {
++        ++commonAncestorCount;
++    }
++
++    if (commonAncestorCount == lhsAncestors.size())
++        return true;
++    if (commonAncestorCount == rhsAncestors.size())
++        return false;
++    if (commonAncestorCount == 0)
++        return false;
++
++    auto *commonAncestor = lhsAncestors.at(commonAncestorCount - 1);
++    auto *lhsChild = lhsAncestors.at(commonAncestorCount);
++    auto *rhsChild = rhsAncestors.at(commonAncestorCount);
++    const auto siblings = QQuickItemPrivate::get(commonAncestor)->paintOrderChildItems();
++
++    return siblings.indexOf(lhsChild) < siblings.indexOf(rhsChild);
++}
++
++void QQuickWindowPrivate::updateChildWindowStackingOrder()
+ {
+     Q_Q(QQuickWindow);
+ 
+-    if (!item) {
+-        qCDebug(lcQuickWindow) << "Updating child window stacking order for" << q;
+-        item = contentItem;
+-    }
+-    auto *itemPrivate = QQuickItemPrivate::get(item);
+-    const auto paintOrderChildItems = itemPrivate->paintOrderChildItems();
+-    for (auto *child : paintOrderChildItems) {
+-        if (auto *windowContainer = qobject_cast<QQuickWindowContainer*>(child)) {
+-            auto *window = windowContainer->containedWindow();
+-            if (!window) {
+-                qCDebug(lcQuickWindow) << windowContainer << "has no contained window yet";
+-                continue;
+-            }
+-            if (window->parent() != q) {
+-                qCDebug(lcQuickWindow) << window << "is not yet child of this window";
+-                continue;
+-            }
+-            qCDebug(lcQuickWindow) << "Raising" << window << "owned by" << windowContainer;
+-            window->raise();
+-        }
++    if (childWindowContainers.isEmpty())
++        return;
+ 
+-        updateChildWindowStackingOrder(child);
++    qCDebug(lcQuickWindow) << "Updating child window stacking order for" << q;
++
++    auto childWindowContainersInPaintOrder = childWindowContainers;
++    std::stable_sort(childWindowContainersInPaintOrder.begin(),
++                     childWindowContainersInPaintOrder.end(),
++                     [](QQuickWindowContainer *lhs, QQuickWindowContainer *rhs) {
++                         return itemPaintOrderLess(lhs, rhs);
++                     });
++
++    for (auto *windowContainer : childWindowContainersInPaintOrder) {
++        Q_ASSERT(windowContainer->window() == q);
++
++        auto *window = windowContainer->containedWindow();
++        if (!window) {
++            qCDebug(lcQuickWindow) << windowContainer << "has no contained window yet";
++            continue;
++        }
++        if (window->parent() != q) {
++            qCDebug(lcQuickWindow) << window << "is not yet child of this window";
++            continue;
++        }
++        qCDebug(lcQuickWindow) << "Raising" << window << "owned by" << windowContainer;
++        window->raise();
+     }
+ }
+ 
+diff --git a/src/quick/items/qquickwindow_p.h b/src/quick/items/qquickwindow_p.h
+index 48d4267..e869d6c 100644
+--- a/src/quick/items/qquickwindow_p.h
++++ b/src/quick/items/qquickwindow_p.h
+@@ -47,6 +47,7 @@
+ class QQuickItemPrivate;
+ class QPointingDevice;
+ class QQuickRenderControl;
++class QQuickWindowContainer;
+ class QQuickWindowIncubationController;
+ class QQuickWindowPrivate;
+ class QSGRenderLoop;
+@@ -209,7 +210,10 @@
+     void fireAboutToStop() { Q_EMIT q_func()->sceneGraphAboutToStop(); }
+ 
+     bool needsChildWindowStackingOrderUpdate = false;
+-    void updateChildWindowStackingOrder(QQuickItem *item = nullptr);
++    void addChildWindowContainer(QQuickWindowContainer *windowContainer);
++    void removeChildWindowContainer(QQuickWindowContainer *windowContainer);
++    void updateChildWindowStackingOrder();
++    QList<QQuickWindowContainer *> childWindowContainers;
+ 
+     int multiViewCount();
+     QRhiRenderTarget *activeCustomRhiRenderTarget();
+diff --git a/src/quick/items/qquickwindowcontainer.cpp b/src/quick/items/qquickwindowcontainer.cpp
+index 282abd4..bf364b5 100644
+--- a/src/quick/items/qquickwindowcontainer.cpp
++++ b/src/quick/items/qquickwindowcontainer.cpp
+@@ -8,9 +8,12 @@
+ 
+ #include <QtQuick/private/qquickitem_p.h>
+ #include <QtQuick/private/qquickrectangle_p.h>
++#include <QtQuick/private/qquickwindow_p.h>
+ #include <QtQuick/private/qquickwindowmodule_p.h>
+ #include <QtQuick/private/qquickimplicitsizeitem_p_p.h>
+ 
++#include <QtCore/qpointer.h>
++
+ QT_BEGIN_NAMESPACE
+ 
+ Q_STATIC_LOGGING_CATEGORY(lcWindowContainer, "qt.quick.window.container")
+@@ -91,10 +94,29 @@
+     bool transformChanged(QQuickItem *transformedItem) override;
+ 
+ public:
++    void setParentWindow(QQuickWindow *parentWindow);
++
+     QWindow *window = nullptr;
++    QPointer<QQuickWindow> parentWindow;
+     QQuickWindowContainer::ContainerMode containerMode;
+ };
+ 
++void QQuickWindowContainerPrivate::setParentWindow(QQuickWindow *newParentWindow)
++{
++    Q_Q(QQuickWindowContainer);
++
++    if (parentWindow == newParentWindow)
++        return;
++
++    if (parentWindow)
++        QQuickWindowPrivate::get(parentWindow.data())->removeChildWindowContainer(q);
++
++    parentWindow = newParentWindow;
++
++    if (parentWindow)
++        QQuickWindowPrivate::get(parentWindow.data())->addChildWindowContainer(q);
++}
++
+ /*!
+     \internal
+ 
+@@ -123,6 +145,9 @@
+     connect(this, &QQuickItem::windowChanged,
+             this, &QQuickWindowContainer::parentWindowChanged);
+ 
++    if (auto *currentWindow = window())
++        d->setParentWindow(currentWindow);
++
+     if (lcWindowContainer().isDebugEnabled()) {
+         auto *debugRectangle = new QQuickRectangle(this);
+         debugRectangle->setColor(QColor(255, 0, 255, 20));
+@@ -136,9 +161,11 @@
+ 
+ QQuickWindowContainer::~QQuickWindowContainer()
+ {
+-    Q_D(const QQuickWindowContainer);
++    Q_D(QQuickWindowContainer);
+     qCDebug(lcWindowContainer) << "Destructing window container" << this;
+ 
++    d->setParentWindow(nullptr);
++
+     disconnect(this);
+     if (d->window) {
+         auto ownership = QJSEngine::objectOwnership(d->window);
+@@ -557,6 +584,7 @@
+     qCDebug(lcWindowContainer) << this << "parent window changed to" << parentWindow;
+ 
+     Q_D(QQuickWindowContainer);
++    d->setParentWindow(parentWindow);
+ 
+     if (!parentWindow) {
+         // We have been removed from the window we were part of,
+diff --git a/tests/auto/quick/qquickwindowcontainer/tst_qquickwindowcontainer.cpp b/tests/auto/quick/qquickwindowcontainer/tst_qquickwindowcontainer.cpp
+index 7306256..18fde30 100644
+--- a/tests/auto/quick/qquickwindowcontainer/tst_qquickwindowcontainer.cpp
++++ b/tests/auto/quick/qquickwindowcontainer/tst_qquickwindowcontainer.cpp
+@@ -47,6 +47,8 @@
+ 
+     void invisibleChildWindowFocus();
+ 
++    void visibilityChangeWithoutWindowContainerDoesNotRequestStackingUpdate();
++    void visibilityChangeWithWindowContainerRequestsStackingUpdate();
+     void updateStackingOrderPerformance();
+ 
+ private:
+@@ -273,6 +275,32 @@
+     QCOMPARE(QGuiApplication::focusWindow(), &quickWindow);
+ }
+ 
++void tst_QQuickWindowContainer::visibilityChangeWithoutWindowContainerDoesNotRequestStackingUpdate()
++{
++    QQuickWindow quickWindow;
++    QQuickItem parentItem(quickWindow.contentItem());
++    QQuickItem childItem(&parentItem);
++
++    auto *windowPrivate = QQuickWindowPrivate::get(&quickWindow);
++    windowPrivate->needsChildWindowStackingOrderUpdate = false;
++    childItem.setVisible(false);
++    QVERIFY(!windowPrivate->needsChildWindowStackingOrderUpdate);
++}
++
++void tst_QQuickWindowContainer::visibilityChangeWithWindowContainerRequestsStackingUpdate()
++{
++    QQuickWindow quickWindow;
++    QQuickItem parentItem(quickWindow.contentItem());
++    QQuickWindowContainer windowContainer(&parentItem);
++    QQuickItem childItem(&parentItem);
++    Q_UNUSED(windowContainer);
++
++    auto *windowPrivate = QQuickWindowPrivate::get(&quickWindow);
++    windowPrivate->needsChildWindowStackingOrderUpdate = false;
++    childItem.setVisible(false);
++    QVERIFY(windowPrivate->needsChildWindowStackingOrderUpdate);
++}
++
+ void tst_QQuickWindowContainer::updateStackingOrderPerformance()
+ {
+     QQuickWindow quickWindow;
+@@ -288,8 +316,7 @@
+     auto *windowPrivate = QQuickWindowPrivate::get(&quickWindow);
+ 
+     QBENCHMARK {
+-        contentItem->polish();
+-        windowPrivate->polishItems();
++        windowPrivate->updateChildWindowStackingOrder();
+     }
+ }
+ 

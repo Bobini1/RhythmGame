@@ -8,6 +8,9 @@ Row {
     id: replayAutoplay
     required property var current
     required property var currentItem
+    readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
+        || Rg.arenaSession.state === ArenaSession.Reconnecting
+    visible: !arenaSeated
     Image {
         id: auto
         source: root.iniImagesUrl + "parts.png/auto"

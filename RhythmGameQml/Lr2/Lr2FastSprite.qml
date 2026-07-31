@@ -5,6 +5,7 @@ import "Lr2SkinUtils.js" as Lr2SkinUtils
 
 Image {
     id: root
+    property bool asynchronousLoading: false
 
     property var srcData
     property var stateData
@@ -60,7 +61,8 @@ Image {
     sourceClipRect: useAtlasShader ? Qt.rect(0, 0, 0, 0) : animationFrameState.sourceClipRect
     fillMode: tileVertically ? Image.TileVertically : Image.Stretch
     cache: true
-    asynchronous: false
+    asynchronous: root.asynchronousLoading
+    retainWhileLoading: true
     smooth: stateFilter !== 0
     mipmap: false
 
@@ -69,7 +71,7 @@ Image {
 
         source: root.hasDrawableTexture && root.useAtlasShader ? root.resolvedSource : ""
         cache: true
-        asynchronous: false
+        asynchronous: root.asynchronousLoading
         retainWhileLoading: true
         mipmap: false
         visible: false

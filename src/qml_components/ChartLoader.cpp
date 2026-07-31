@@ -14,6 +14,7 @@
 #include "support/TimingWindowsFromHash.h"
 
 #include <ranges>
+#include <stdexcept>
 
 #include <spdlog/spdlog.h>
 
@@ -29,7 +30,8 @@ ChartLoader::createChart(
   bool player2AutoPlay,
   bool player2Replay,
   gameplay_logic::BmsScore* replayedScore2,
-  resource_managers::ChartDataFactory::ChartComponents chartComponents) const
+  resource_managers::ChartDataFactory::ChartComponents chartComponents,
+  const resource_managers::ChartPlayConfig* playConfig) const
   -> std::unique_ptr<gameplay_logic::ChartRunner>
 {
     if (isDp(chartComponents.chartData->getKeymode()) && player2) {
@@ -97,12 +99,23 @@ ChartLoader::createChart(
         p2DpOptions = resource_managers::DpOptions::Off;
     }
 
+    if (playConfig != nullptr) {
+        p1NoteOrderAlgorithm = playConfig->noteOrderP1;
+        p1NoteOrderAlgorithmP2 = playConfig->noteOrderP2;
+        p1DpOptions = playConfig->dpMode;
+        p1Pre130 = false;
+        player2 = nullptr;
+    }
+
     // If either player's dp option is Battle, we must not use player2
     if (p1DpOptions == resource_managers::DpOptions::Battle ||
         p2DpOptions == resource_managers::DpOptions::Battle) {
         player2 = nullptr;
     }
     const auto randomSeed1 = [&] {
+        if (playConfig != nullptr) {
+            return playConfig->laneSeed;
+        }
         if (replayedScore1) {
             return replayedScore1->getResult()->getRandomSeed();
         }
@@ -317,6 +330,57 @@ ChartLoader::loadChart(const QString& filename,
           .release();
     } catch (const std::exception& e) {
         spdlog::error("Failed to load chart: {}", e.what());
+        return nullptr;
+    }
+}
+
+auto
+ChartLoader::loadChartWithConfig(
+  const QString& filename,
+  resource_managers::Profile* player,
+  const resource_managers::ChartPlayConfig& playConfig) const
+  -> gameplay_logic::ChartRunner*
+{
+    if (player == nullptr || !playConfig.isSupported() || filename.isEmpty()) {
+        return nullptr;
+    }
+
+    try {
+        const auto file = support::qStringToPath(filename);
+        auto exactRandom =
+          resource_managers::ExactRandomSequence(playConfig.randomSequence);
+        auto chartComponents = [&] {
+            if (file.extension() == ".bmson") {
+                if (!playConfig.randomSequence.isEmpty()) {
+                    throw std::invalid_argument(
+                      "bmson cannot consume a BMS random sequence");
+                }
+                return chartDataFactory->loadBmsonChartData(file);
+            }
+            auto randomGenerator =
+              [&exactRandom](charts::ParsedBmsChart::RandomRange range) {
+                  return static_cast<charts::ParsedBmsChart::RandomRange>(
+                    exactRandom.next(static_cast<qint64>(range)));
+              };
+            return chartDataFactory->loadChartData(file,
+                                                   std::move(randomGenerator));
+        }();
+        if (!exactRandom.complete()) {
+            return nullptr;
+        }
+        return createChart(player,
+                           false,
+                           false,
+                           nullptr,
+                           nullptr,
+                           false,
+                           false,
+                           nullptr,
+                           std::move(chartComponents),
+                           &playConfig)
+          .release();
+    } catch (const std::exception&) {
+        spdlog::error("Failed to load chart with explicit play configuration");
         return nullptr;
     }
 }

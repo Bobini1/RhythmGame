@@ -6,6 +6,7 @@
 #define GAMEPADINPUTTRANSLATOR_H
 #include "BmsKeys.h"
 #include "GamepadManager.h"
+#include "MidiManager.h"
 
 #include <QKeyEvent>
 #include <QObject>
@@ -13,7 +14,11 @@
 #include <QTimer>
 #include <magic_enum/magic_enum.hpp>
 #include <array>
+#include <chrono>
+#include <cstdint>
 #include <functional>
+#include <limits>
+#include <optional>
 
 namespace db {
 class SqliteCppDb;
@@ -28,6 +33,7 @@ class Key
      * @see input::Gamepad
      */
     Q_PROPERTY(QVariant gamepad MEMBER gamepad)
+    Q_PROPERTY(QVariant midi READ getMidi)
     Q_PROPERTY(Device device MEMBER device)
     Q_PROPERTY(quint32 code MEMBER code)
     Q_PROPERTY(Direction direction MEMBER direction)
@@ -37,7 +43,10 @@ class Key
     {
         Keyboard,
         Button,
-        Axis
+        Axis,
+        MidiNote,
+        MidiControl,
+        MidiPitchBend
     };
     Q_ENUM(Device)
     enum class Direction
@@ -52,6 +61,8 @@ class Key
     Device device;
     quint32 code;
     Direction direction{};
+
+    auto getMidi() const -> QVariant;
 
     friend auto operator>>(QDataStream& stream, Key& key) -> QDataStream&;
     friend auto operator<<(QDataStream& stream, const Key& key) -> QDataStream&;
@@ -70,7 +81,11 @@ struct std::hash<input::Key>
         auto gp = s.gamepad.canConvert<input::Gamepad>()
                     ? std::optional{ s.gamepad.value<input::Gamepad>() }
                     : std::nullopt;
+        auto midi = s.gamepad.canConvert<input::MidiDevice>()
+                      ? std::optional{ s.gamepad.value<input::MidiDevice>() }
+                      : std::nullopt;
         return std::hash<std::optional<input::Gamepad>>{}(gp) ^
+               std::hash<std::optional<input::MidiDevice>>{}(midi) ^
                std::hash<int>{}(s.code) ^
                std::hash<int>{}(static_cast<int>(s.device)) ^
                std::hash<int>{}(static_cast<int>(s.direction));
@@ -219,6 +234,26 @@ class InputTranslator final : public QObject
     Q_ENUM(TickType)
 
   private:
+    enum class ReleaseMode
+    {
+        Debounced,
+        Immediate
+    };
+
+    struct PendingRelease
+    {
+        int64_t timestamp;
+        std::optional<int64_t> inputDeadline;
+    };
+
+    struct ButtonState
+    {
+        bool physicallyPressed{};
+        bool logicallyPressed{};
+        std::optional<PendingRelease> pendingRelease;
+        QTimer debounceTimer;
+    };
+
     struct PairHash
     {
         template<typename T, typename U>
@@ -234,19 +269,23 @@ class InputTranslator final : public QObject
       axisConfig;
     QHash<Key, BmsKey> config;
     db::SqliteCppDb* db;
-    std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{ {} };
+    std::array<ButtonState, magic_enum::enum_count<BmsKey>()> buttons;
     std::array<QTimer, magic_enum::enum_count<BmsKey>()> tickTimers;
     std::array<int, magic_enum::enum_count<BmsKey>()> tickNumbers{ {} };
     std::array<TickType, magic_enum::enum_count<BmsKey>()> tickTypes{ {} };
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis1;
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis2;
-    std::array<uint64_t, magic_enum::enum_count<BmsKey>()> lastRelease{ {} };
     double debounceMs = 5.0;
 
-    void pressButton(BmsKey button, uint64_t time);
-    void releaseButton(BmsKey button, uint64_t time);
-    void unpressAndUnbind(const Key& key, uint64_t time);
-    void bindKeyToButton(const Key& key, BmsKey button, uint64_t time);
+    void pressButton(BmsKey button, int64_t time);
+    void releaseButton(BmsKey button,
+                       int64_t time,
+                       ReleaseMode mode = ReleaseMode::Debounced);
+    void commitPendingRelease(BmsKey button);
+    void finishRelease(BmsKey button, int64_t time);
+    auto debounceInterval() const -> std::chrono::milliseconds;
+    void unpressAndUnbind(const Key& key, int64_t time);
+    void bindKeyToButton(const Key& key, BmsKey button, int64_t time);
     void saveKeyConfig() const;
     void saveAnalogAxisConfig() const;
     void handleAxisChange(Gamepad gamepad,
@@ -267,6 +306,21 @@ class InputTranslator final : public QObject
     void handleAxis(Gamepad gamepad, Uint8 axis, double value, int64_t time);
     void handlePress(Gamepad gamepad, Uint8 button, int64_t time);
     void handleRelease(Gamepad gamepad, Uint8 button, int64_t time);
+    void handleMidiNote(MidiDevice device,
+                        int channel,
+                        int note,
+                        int velocity,
+                        int64_t time);
+    void handleMidiControl(MidiDevice device,
+                           int channel,
+                           int control,
+                           int value,
+                           int64_t time);
+    void handleMidiPitchBend(MidiDevice device,
+                             int channel,
+                             int value,
+                             int64_t time);
+    void handleMidiDeviceRemoved(MidiDevice device, int64_t time);
     // Handles a single physical keyboard key event identified by its native
     // scan code.  Called by the platform-specific input path (LL hook on
     // Windows, CustomNotifyApp::notify on other platforms).

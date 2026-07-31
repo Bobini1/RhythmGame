@@ -70,11 +70,12 @@ Image {
                             id: bpmText
 
                             clip: true
-                            font.pixelSize: infoRows.parent.infoFontSize
-                            font.family: selectorFont.fontFamily
-                            font.weight: selectorFont.fontWeight
-                            font.variableAxes: selectorFont.variableAxes
-                            font.italic: selectorFont.italic
+                            font: selectorFont.uiFont({
+                                pixelSize: infoRows.parent.infoFontSize,
+                                weight: selectorFont.fontWeight,
+                                variableAxes: selectorFont.variableAxes,
+                                italic: selectorFont.italic
+                            })
                             fontSizeMode: Text.Fit
                             height: parent.height
                             horizontalAlignment: Text.AlignLeft
@@ -91,11 +92,12 @@ Image {
                             anchors.left: bpmText.right
                             anchors.leftMargin: 4
                             clip: true
-                            font.pixelSize: infoRows.parent.infoFontSize
-                            font.family: selectorFont.fontFamily
-                            font.weight: selectorFont.fontWeight
-                            font.variableAxes: selectorFont.variableAxes
-                            font.italic: selectorFont.italic
+                            font: selectorFont.uiFont({
+                                pixelSize: infoRows.parent.infoFontSize,
+                                weight: selectorFont.fontWeight,
+                                variableAxes: selectorFont.variableAxes,
+                                italic: selectorFont.italic
+                            })
                             fontSizeMode: Text.Fit
                             height: parent.height
                             horizontalAlignment: Text.AlignHCenter
@@ -119,11 +121,12 @@ Image {
                             id: keysText
 
                             clip: true
-                            font.pixelSize: infoRows.parent.infoFontSize
-                            font.family: selectorFont.fontFamily
-                            font.weight: selectorFont.fontWeight
-                            font.variableAxes: selectorFont.variableAxes
-                            font.italic: selectorFont.italic
+                            font: selectorFont.uiFont({
+                                pixelSize: infoRows.parent.infoFontSize,
+                                weight: selectorFont.fontWeight,
+                                variableAxes: selectorFont.variableAxes,
+                                italic: selectorFont.italic
+                            })
                             fontSizeMode: Text.Fit
                             height: parent.height
                             horizontalAlignment: Text.AlignLeft
@@ -140,11 +143,12 @@ Image {
                             anchors.left: keysText.right
                             anchors.leftMargin: 4
                             clip: true
-                            font.pixelSize: infoRows.parent.infoFontSize
-                            font.family: selectorFont.fontFamily
-                            font.weight: selectorFont.fontWeight
-                            font.variableAxes: selectorFont.variableAxes
-                            font.italic: selectorFont.italic
+                            font: selectorFont.uiFont({
+                                pixelSize: infoRows.parent.infoFontSize,
+                                weight: selectorFont.fontWeight,
+                                variableAxes: selectorFont.variableAxes,
+                                italic: selectorFont.italic
+                            })
                             fontSizeMode: Text.Fit
                             height: parent.height
                             horizontalAlignment: Text.AlignHCenter
@@ -201,7 +205,7 @@ Image {
 
                         anchors.right: parent.right
                         fontFile: root.themeVars.songInfoFont
-                        font.pixelSize: 20
+                        fontPixelSize: 20
                         height: metrics.height
                         scrolling: selector.scrollingText
                         text: currentItem.artist
@@ -212,7 +216,7 @@ Image {
 
                         anchors.right: parent.right
                         fontFile: root.themeVars.songInfoFont
-                        font.pixelSize: 15
+                        fontPixelSize: 15
                         height: metricsSmall.height
                         scrolling: selector.scrollingText
                         text: currentItem.subartist

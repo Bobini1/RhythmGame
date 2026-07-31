@@ -9,7 +9,16 @@ Column {
     required property Profile profile
     required property bool isBattle
     required property var chartKeymode
+    property string arenaRoundId: ""
+    property bool arenaResultActive: false
     property bool mirrored: false
+    readonly property var presentedResult: Rg.arenaSession.presentedResult
+    readonly property bool arenaResultMatches: side.arenaResultActive
+        && side.arenaRoundId.length > 0
+        && Rg.arenaSession.resultPresentationActive === true
+        && side.presentedResult && side.presentedResult.valid === true
+        && side.arenaRoundId
+            === String(side.presentedResult.roundId || "")
     readonly property var earlyLate: Helpers.getEarlyLate(score.replayData)
     readonly property var stddevAndMean: Helpers.getStddevAndMean(score.replayData)
     readonly property var stddev: stddevAndMean.stddev
@@ -18,16 +27,41 @@ Column {
     readonly property var oldBestPointsScore: Helpers.getScoreWithBestPoints(scores)
     readonly property var oldBestStats: Helpers.getBestStats(scores)
     property var scores: []
+    property var pendingScoreDbReply: null
+
+    function trackScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingScoreDbReply = reply;
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            if (pendingScoreDbReply === reply) {
+                pendingScoreDbReply = null;
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelScoreDbReply() {
+        let reply = pendingScoreDbReply;
+        pendingScoreDbReply = null;
+        if (reply && !reply.resultAvailable) {
+            reply.cancel();
+        }
+    }
+
     Component.onCompleted: {
         if (root.course) {
-            profile.scoreDb.getScoresForCourseId([root.course.identifier]).then((dbScores) => {
+            trackScoreDbReply(profile.scoreDb.getScoresForCourseId([root.course.identifier])).then((dbScores) => {
                 if (dbScores.scores[root.course.identifier] === undefined) {
                     return;
                 }
                 scores =  dbScores.scores[root.course.identifier].filter((oldScore) => oldScore.result.guid !== score.result.guid);
             });
         } else {
-            profile.scoreDb.getScoresForMd5([root.chartData.md5]).then((dbScores) => {
+            trackScoreDbReply(profile.scoreDb.getScoresForMd5([root.chartData.md5])).then((dbScores) => {
                 if (dbScores.scores[root.chartData.md5] === undefined) {
                     return;
                 }
@@ -35,6 +69,8 @@ Column {
             });
         }
     }
+    Component.onDestruction: cancelScoreDbReply();
+
     function cycleGauge() {
         lifeGraph.incrementIndex();
         return true;
@@ -80,6 +116,7 @@ Column {
             anchors.left: side.isBattle ? scoreColumn.right : undefined
             scale: side.isBattle ? 350 / implicitWidth : 1
             transformOrigin: Item.TopLeft
+            visible: !side.arenaResultMatches
             anchors.rightMargin: 90
             anchors.top: side.isBattle ? meanSd.bottom : scoreColumn.top
             transform: Scale {
@@ -124,7 +161,7 @@ Column {
             }
 
             property var ranking: {
-                switch (rankingProvider) {
+                switch (effectiveRankingProvider) {
                     case OnlineRankingModel.RhythmGame:
                         return rhythmGame;
                     case OnlineRankingModel.LR2IR:
@@ -132,25 +169,90 @@ Column {
                     case OnlineRankingModel.Tachi:
                         return tachi;
                 }
+                return rhythmGame;
             }
 
             readonly property var generalVars: side.profile.vars.generalVars
-            property var rankingProvider: OnlineRankingModel.RhythmGame
+            readonly property bool arenaMode: side.arenaResultMatches
+            readonly property bool arenaSourceSelected: arenaMode
+                && effectiveResultSource === "arena"
+            readonly property int effectiveRankingProvider:
+                providerForSource(effectiveResultSource)
+            property string effectiveResultSource: "rhythmGame"
+
+            // Screen-local order: Arena -> RhythmGame -> Tachi -> LR2IR.
+            function providerForSource(source) {
+                switch (source) {
+                case "tachi":
+                    return OnlineRankingModel.Tachi;
+                case "lr2ir":
+                    return OnlineRankingModel.LR2IR;
+                default:
+                    return OnlineRankingModel.RhythmGame;
+                }
+            }
+
+            function sourceForProvider(providerValue) {
+                switch (providerValue) {
+                case OnlineRankingModel.Tachi:
+                    return "tachi";
+                case OnlineRankingModel.LR2IR:
+                    return "lr2ir";
+                default:
+                    return "rhythmGame";
+                }
+            }
 
             function syncRankingProviderFromGeneralVars() {
-                scoreColumn.rankingProvider = scoreColumn.generalVars
-                    ? scoreColumn.generalVars.rankingProvider
-                    : OnlineRankingModel.RhythmGame;
-            }
-
-            function setRankingProvider(providerValue) {
-                if (scoreColumn.generalVars) {
-                    scoreColumn.generalVars.rankingProvider = providerValue;
+                if (scoreColumn.arenaMode) {
+                    return;
                 }
-                scoreColumn.rankingProvider = providerValue;
+                scoreColumn.effectiveResultSource = sourceForProvider(
+                    scoreColumn.generalVars
+                        ? scoreColumn.generalVars.rankingProvider
+                        : OnlineRankingModel.RhythmGame);
             }
 
-            Component.onCompleted: syncRankingProviderFromGeneralVars()
+            function setEffectiveResultSource(source) {
+                const accepted = ["arena", "rhythmGame", "tachi", "lr2ir"];
+                if (accepted.indexOf(source) < 0
+                        || (!side.arenaResultMatches && source === "arena")) {
+                    return;
+                }
+                scoreColumn.effectiveResultSource = source;
+                if (!side.arenaResultMatches) {
+                    if (scoreColumn.generalVars) {
+                        scoreColumn.generalVars.rankingProvider =
+                            providerForSource(source);
+                    }
+                }
+            }
+
+            function resetEffectiveResultSource() {
+                if (scoreColumn.arenaMode) {
+                    scoreColumn.effectiveResultSource = "arena";
+                } else {
+                    scoreColumn.syncRankingProviderFromGeneralVars();
+                }
+            }
+
+            function cycleEffectiveResultSource(step) {
+                const sources = scoreColumn.arenaMode
+                    ? ["arena", "rhythmGame", "tachi", "lr2ir"]
+                    : ["rhythmGame", "tachi", "lr2ir"];
+                let index = sources.indexOf(
+                    scoreColumn.effectiveResultSource);
+                if (index < 0) {
+                    index = 0;
+                }
+                const next = (index + step + sources.length)
+                    % sources.length;
+                scoreColumn.setEffectiveResultSource(sources[next]);
+            }
+
+            Component.onCompleted: resetEffectiveResultSource()
+
+            onArenaModeChanged: resetEffectiveResultSource()
 
             Connections {
                 target: scoreColumn.generalVars
@@ -160,25 +262,9 @@ Column {
                 }
             }
 
-            onLeftClicked: {
-                if (scoreColumn.rankingProvider === OnlineRankingModel.RhythmGame) {
-                    scoreColumn.setRankingProvider(OnlineRankingModel.Tachi);
-                } else if (scoreColumn.rankingProvider === OnlineRankingModel.Tachi) {
-                    scoreColumn.setRankingProvider(OnlineRankingModel.LR2IR);
-                } else if (scoreColumn.rankingProvider === OnlineRankingModel.LR2IR) {
-                    scoreColumn.setRankingProvider(OnlineRankingModel.RhythmGame);
-                }
-            }
+            onLeftClicked: cycleEffectiveResultSource(1)
 
-            onRightClicked: {
-                if (scoreColumn.rankingProvider === OnlineRankingModel.RhythmGame) {
-                    scoreColumn.setRankingProvider(OnlineRankingModel.LR2IR);
-                } else if (scoreColumn.rankingProvider === OnlineRankingModel.LR2IR) {
-                    scoreColumn.setRankingProvider(OnlineRankingModel.Tachi);
-                } else if (scoreColumn.rankingProvider === OnlineRankingModel.Tachi) {
-                    scoreColumn.setRankingProvider(OnlineRankingModel.RhythmGame);
-                }
-            }
+            onRightClicked: cycleEffectiveResultSource(-1)
 
             Connections {
                 target: side.score
@@ -212,17 +298,40 @@ Column {
             clearType: side.score.result.clearType
             oldBestClear: side.oldBestClear
             // Course rankings are not implemented atm
-            oldRankingPosition: root.course ? 0 : ranking.oldPosition
-            newRankingPosition: root.course ? 0 : ranking.position
+            oldRankingPosition: scoreColumn.arenaSourceSelected || root.course
+                ? 0 : ranking.oldPosition
+            newRankingPosition: scoreColumn.arenaSourceSelected
+                ? (side.presentedResult.finalized
+                    ? side.presentedResult.localRank : 0)
+                : (root.course ? 0 : ranking.position)
             websiteUrl: side.profile.vars.generalVars.websiteBaseUrl
             provider: ranking.provider
-            totalEntries: root.course ? 0 : ranking.size
-            loading: ranking.loading || ranking.positionLoading || side.score.submissionState === BmsScore.Submitting
-            scoreSubmissionFailed: side.score.submissionState === BmsScore.Failed ||
+            rankingSource: scoreColumn.effectiveResultSource
+            arenaSelected: scoreColumn.arenaSourceSelected
+            arenaFinalized: scoreColumn.arenaSourceSelected
+                && side.presentedResult.finalized
+            arenaLocalDnf: scoreColumn.arenaSourceSelected
+                && side.presentedResult.localDnf
+            arenaLocalRank: scoreColumn.arenaSourceSelected
+                ? side.presentedResult.localRank : 0
+            arenaParticipantCount: scoreColumn.arenaSourceSelected
+                ? side.presentedResult.participantCount : 0
+            totalEntries: scoreColumn.arenaSourceSelected
+                ? side.presentedResult.participantCount
+                : (root.course ? 0 : ranking.size)
+            loading: scoreColumn.arenaSourceSelected
+                ? !side.presentedResult.finalized
+                : (ranking.loading || ranking.positionLoading
+                   || side.score.submissionState === BmsScore.Submitting)
+            scoreSubmissionFailed: !scoreColumn.arenaSourceSelected && (
+                side.score.submissionState === BmsScore.Failed ||
                 side.score.submissionState === BmsScore.NotSubmitting || root.course ||
                 (ranking.provider === OnlineRankingModel.RhythmGame && !side.profile.onlineUserData) ||
-                (ranking.provider === OnlineRankingModel.Tachi && !side.profile.tachiData)
+                (ranking.provider === OnlineRankingModel.Tachi && !side.profile.tachiData))
             rankingUrl: {
+                if (scoreColumn.arenaSourceSelected) {
+                    return "";
+                }
                 if (root.course || !totalEntries || (ranking.provider === OnlineRankingModel.LR2IR && totalEntries <= 1)) {
                     return "";
                 }

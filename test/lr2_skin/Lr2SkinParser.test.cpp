@@ -6,12 +6,16 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <QCoreApplication>
+#include <QEventLoop>
 #include <QFile>
 #include <QString>
 #include <QTemporaryDir>
+#include <QTimer>
 #include <QVariant>
 
 #include <filesystem>
+#include <memory>
 
 using gameplay_logic::lr2_skin::Lr2Dst;
 using gameplay_logic::lr2_skin::Lr2SkinModel;
@@ -19,6 +23,38 @@ using gameplay_logic::lr2_skin::Lr2SkinParser;
 using gameplay_logic::lr2_skin::Lr2SrcImage;
 
 namespace {
+
+void
+ensureCoreApplication()
+{
+    if (QCoreApplication::instance() != nullptr) {
+        return;
+    }
+    static auto argc = 1;
+    static char appName[] = "RhythmGame_test";
+    static char* argv[] = { appName, nullptr };
+    static auto application = std::make_unique<QCoreApplication>(argc, argv);
+}
+
+void
+waitForSkinLoadCount(Lr2SkinModel& model, const int& loadCount, int expected)
+{
+    if (loadCount >= expected) {
+        return;
+    }
+    auto loop = QEventLoop{};
+    const auto connection = QObject::connect(&model,
+                                             &Lr2SkinModel::skinLoaded,
+                                             &loop,
+                                             [&loop, &loadCount, expected]() {
+                                                 if (loadCount >= expected) {
+                                                     loop.quit();
+                                                 }
+                                             });
+    QTimer::singleShot(1'000, &loop, &QEventLoop::quit);
+    loop.exec();
+    QObject::disconnect(connection);
+}
 
 void
 writeSkinFile(const std::filesystem::path& path, const QString& text)
@@ -47,9 +83,9 @@ fullScreenSprite(const int time = 0) -> QString
 auto
 runtimeGatedSprite(const int option) -> QString
 {
-    return QStringLiteral(
-             "#SRC_IMAGE,0,0,0,0,640,480,1,1,0,0,0,0,0\n"
-             "#DST_IMAGE,0,0,0,0,320,320,0,255,255,255,255,1,0,0,0,0,0,%1,0,0\n")
+    return QStringLiteral("#SRC_IMAGE,0,0,0,0,640,480,1,1,0,0,0,0,0\n"
+                          "#DST_IMAGE,0,0,0,0,320,320,0,255,255,255,255,1,0,0,"
+                          "0,0,0,%1,0,0\n")
       .arg(option);
 }
 
@@ -212,8 +248,7 @@ TEST_CASE("LR2 skin model keeps DST-only runtime option changes hot",
     const auto path = tempSkinPath(tempDir);
 
     writeSkinFile(path,
-                  QStringLiteral("#IMAGE,full.png\n") +
-                    runtimeGatedSprite(39));
+                  QStringLiteral("#IMAGE,full.png\n") + runtimeGatedSprite(39));
 
     Lr2SkinModel model;
     int loadCount = 0;
@@ -233,6 +268,7 @@ TEST_CASE("LR2 skin model keeps DST-only runtime option changes hot",
 TEST_CASE("LR2 skin model reloads when conditional options change",
           "[lr2][skin]")
 {
+    ensureCoreApplication();
     QTemporaryDir tempDir;
     const auto path = tempSkinPath(tempDir);
 
@@ -253,6 +289,7 @@ TEST_CASE("LR2 skin model reloads when conditional options change",
     REQUIRE(model.conditionOptions().contains(QVariant(34)));
 
     model.setActiveOptions(QVariantList{ 35, 39 });
+    waitForSkinLoadCount(model, loadCount, 2);
 
     CHECK(loadCount == 2);
 }

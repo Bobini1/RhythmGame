@@ -31,7 +31,6 @@ Item {
     readonly property bool selectScreen: rootReady && root.effectiveScreenKey === "select"
     readonly property bool selectScreenActive: screenUpdatesActive && selectScreen
     readonly property var gameplayFrameState: rootReady ? root.gameplayFrameStateRef : null
-
     Lr2SelectPointerController {
         id: selectPointer
         screenRoot: sceneRoot.root

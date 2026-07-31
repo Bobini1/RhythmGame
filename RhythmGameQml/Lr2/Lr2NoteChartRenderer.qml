@@ -307,12 +307,26 @@ Item {
         return root.hitDeviationNanos(hit) < 0 ? base : base + 4;
     }
 
+    function replayBucketForNoteOffset(offset: var) : var {
+        let histogramBucketCount = root.chartSnapshot.normalDensityData.length;
+        let chartLength = Number(root.chartSnapshot.length || 0);
+        if (histogramBucketCount > 0 && chartLength > 0) {
+            let bucket = Math.floor(offset / chartLength * histogramBucketCount);
+            return Math.max(0, Math.min(histogramBucketCount - 1, bucket));
+        }
+        return Math.max(0, Math.floor(offset / 1000000000));
+    }
+
     function appendReplayDataHit(data: var, bucketSize: var, type: var, hit: var) : void {
-        let offset = root.replayEventOffset(hit, 0);
-        if (offset < 0) {
+        let eventOffset = root.replayEventOffset(hit, 0);
+        if (eventOffset < 0) {
             return;
         }
-        let second = Math.max(0, Math.floor(offset / 1000000000));
+        let offset = eventOffset - root.hitDeviationNanos(hit);
+        if (!isFinite(offset) || offset < 0) {
+            offset = eventOffset;
+        }
+        let second = root.replayBucketForNoteOffset(offset);
         while (second >= data.length) {
             data.push(root.emptyReplayBucket(bucketSize));
         }

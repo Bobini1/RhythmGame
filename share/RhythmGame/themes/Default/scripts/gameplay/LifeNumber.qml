@@ -5,7 +5,7 @@ Text {
     id: lifeText
 
     required property var score
-    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
+    property string fontFile: "file:NotoSans-VariableFont_wdth,wght.ttf"
 
     ThemeFont {
         id: lifeNumberFont
@@ -29,11 +29,12 @@ Text {
     }
     readonly property real hundredPercentWidth: textMetrics.width
     color: "white"
-    font.family: lifeNumberFont.fontFamily
-    font.weight: lifeNumberFont.fontWeight
-    font.variableAxes: lifeNumberFont.variableAxes
-    font.italic: lifeNumberFont.italic
-    font.pixelSize: 32
+    font: lifeNumberFont.uiFont({
+        weight: lifeNumberFont.fontWeight,
+        variableAxes: lifeNumberFont.variableAxes,
+        italic: lifeNumberFont.italic,
+        pixelSize: 32
+    })
     fontSizeMode: Text.Fit
     text: lifeText.getLifeText()
     horizontalAlignment: Text.AlignHCenter

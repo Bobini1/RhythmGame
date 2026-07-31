@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 include(cmake/prelude.cmake)
 project(
         RhythmGame
-        VERSION 1.3.13
+        VERSION 1.3.14
         DESCRIPTION "A customizable BMS player for Windows and Linux. "
         HOMEPAGE_URL "https://github.com/Bobini1/RhythmGame"
         LANGUAGES C CXX
@@ -65,8 +65,8 @@ message(STATUS "miniaudio include dirs: ${MINIAUDIO_INCLUDE_DIRS}")
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg InterfaceFramework LinguistTools QuickControls2 REQUIRED)
-qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp)
+find_package(Qt6 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg LinguistTools QuickControls2 WebSockets REQUIRED)
+qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp zh_CN)
 
 # <------------ QtKeychain (storing login data) --------------->
 find_package(Qt6Keychain CONFIG REQUIRED)
@@ -79,6 +79,10 @@ find_package(zstd REQUIRED)
 
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
+
+# <------------ libremidi (MIDI input handling) -------------->
+
+find_package(libremidi CONFIG REQUIRED)
 
 # <------------ magic_enum (enum reflection) --------------->
 
@@ -93,6 +97,45 @@ find_package(zlib-ng CONFIG REQUIRED)
 # ---- Load library ----
 
 qt_add_library(RhythmGame_lib OBJECT
+        src/arena/ArenaTypes.h
+        src/arena/ArenaBinaryProtocol.h
+        src/arena/ArenaBinaryProtocol.cpp
+        src/arena/ArenaAvailabilityIndex.h
+        src/arena/ArenaAvailabilityIndex.cpp
+        src/arena/ArenaInventorySource.h
+        src/arena/SqliteArenaInventorySource.h
+        src/arena/SqliteArenaInventorySource.cpp
+        src/arena/ArenaRoundLoader.h
+        src/arena/QtArenaRoundLoader.h
+        src/arena/QtArenaRoundLoader.cpp
+        src/arena/ArenaGameplaySource.h
+        src/arena/QtArenaGameplaySource.h
+        src/arena/QtArenaGameplaySource.cpp
+        src/arena/ArenaProtocol.h
+        src/arena/ArenaProtocol.cpp
+        src/arena/ArenaTransport.h
+        src/arena/ArenaIdentityProvider.h
+        src/arena/ArenaScheduler.h
+        src/arena/ArenaSession.h
+        src/arena/ArenaSession.cpp
+        src/arena/QtArenaScheduler.h
+        src/arena/QtArenaScheduler.cpp
+        src/arena/QtWebSocketArenaTransport.h
+        src/arena/QtWebSocketArenaTransport.cpp
+        src/arena/ProfileArenaIdentityProvider.h
+        src/arena/ProfileArenaIdentityProvider.cpp
+        src/arena/ArenaRoomListModel.h
+        src/arena/ArenaRoomListModel.cpp
+        src/arena/ArenaMemberListModel.h
+        src/arena/ArenaMemberListModel.cpp
+        src/arena/ArenaChatModel.h
+        src/arena/ArenaChatModel.cpp
+        src/arena/ArenaStandingsModel.h
+        src/arena/ArenaStandingsModel.cpp
+        src/arena/ArenaResultModel.h
+        src/arena/ArenaResultModel.cpp
+        src/arena/ArenaOpponentTarget.h
+        src/arena/ArenaOpponentTarget.cpp
         src/db/SqliteCppDb.cpp
         src/db/SqliteCppDb.h
         src/charts/ReadBmsFile.cpp
@@ -136,12 +179,14 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/BmsGameReferee.h
         src/gameplay_logic/ChartData.cpp
         src/gameplay_logic/ChartData.h
+        src/gameplay_logic/ChartStartGate.h
         src/gameplay_logic/ChartRunner.cpp
         src/gameplay_logic/ChartRunner.h
         src/gameplay_logic/HitEvent.cpp
         src/gameplay_logic/HitEvent.h
         src/resource_managers/ChartDataFactory.cpp
         src/resource_managers/ChartDataFactory.h
+        src/resource_managers/ChartPlayConfig.h
         src/resource_managers/ChartFolderModel.cpp
         src/resource_managers/ChartFolderModel.h
         src/gameplay_logic/BmsNotes.cpp
@@ -224,6 +269,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/resource_managers/SerializeConfig.h
         src/input/GamepadManager.cpp
         src/input/GamepadManager.h
+        src/input/MidiManager.cpp
+        src/input/MidiManager.h
         src/input/InputTranslator.cpp
         src/input/InputTranslator.h
         src/resource_managers/DefineDb.cpp
@@ -258,6 +305,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/BmsScoreCourse.h
         src/support/QtSink.cpp
         src/support/QtSink.h
+        src/support/PendingReply.cpp
+        src/support/PendingReply.h
         src/sounds/AudioEngine.cpp
         src/sounds/AudioEngine.h
         src/sounds/MiniaudioBackend.cpp
@@ -343,7 +392,7 @@ if (NOT Stb_FOUND)
 else ()
     target_link_libraries(RhythmGame_lib PUBLIC ${Stb_LIBRARIES})
 endif ()
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog_header_only foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 libremidi Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::WebSockets Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog_header_only foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
 target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
 
 if (WIN32)
@@ -381,58 +430,14 @@ target_include_directories(
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
 )
 
-# ---- Declare QML module ----
-add_subdirectory(RhythmGameQml)
-qt_import_qml_plugins(RhythmGame_qmlplugin)
-qt_import_qml_plugins(RhythmGame_lr2_qmlplugin)
-
-# ---- Declare executable ----
-
-if (WIN32)
-    enable_language("RC")
-    qt_add_executable(RhythmGame_exe
-            src/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/staticAssets/RhythmGame.rc
-    )
-    set_target_properties(RhythmGame_exe PROPERTIES
-            WIN32_EXECUTABLE $<IF:$<CONFIG:Debug,RelWithDebInfo>,FALSE,TRUE>
-            OUTPUT_NAME RhythmGame
-    )
-    # use main() as entry point
-    set_target_properties(RhythmGame_exe PROPERTIES
-            LINK_FLAGS "/ENTRY:mainCRTStartup"
-    )
-else ()
-    qt_add_executable(RhythmGame_exe
-            src/main.cpp
-    )
-endif ()
-add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
-
-qt_add_resources(
-        RhythmGame_exe
-        "text_files"
-        BASE
-        "${CMAKE_SOURCE_DIR}"
-        FILES
-        ${CMAKE_SOURCE_DIR}/ATTRIBUTIONS.md ${CMAKE_SOURCE_DIR}/LICENSE.md
-)
-
-set_target_properties(
-        RhythmGame_exe PROPERTIES
-        OUTPUT_NAME RhythmGame
-        EXPORT_NAME exe
-        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
-)
-
-qt_import_qml_plugins(RhythmGame_exe)
-
-target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
-
 add_subdirectory(src/tgaplugin)
 add_subdirectory(src/cimplugin)
 add_subdirectory(src/ddsplugin)
 
-target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin RhythmGame_lr2_qmlplugin tga cim dds)
+# ---- Declare QML modules and executable ----
+add_subdirectory(RhythmGameQml)
+qt_import_qml_plugins(RhythmGame_qmlplugin)
+qt_import_qml_plugins(RhythmGame_lr2_qmlplugin)
 
 if (NOT APPLE)
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
@@ -452,8 +457,6 @@ if (WIN32)
     target_compile_options(RhythmGame_lib PRIVATE /bigobj)
     set_target_properties(RhythmGame_exe PROPERTIES LINK_FLAGS "/STACK:8388608")
 endif ()
-
-include(cmake/translations.cmake)
 
 # ---- Developer mode ----
 

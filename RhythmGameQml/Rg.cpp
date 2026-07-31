@@ -14,6 +14,7 @@ Rg::Rg(qml_components::ProgramSettings* programSettings,
        qml_components::Themes* themes,
        input::GamepadManager* gamepadManager,
        qml_components::ProfileList* profileList,
+       arena::ArenaSession* arenaSession,
        resource_managers::Tables* tables,
        resource_managers::Languages* languages,
        sounds::AudioEngine* audioEngine,
@@ -30,6 +31,7 @@ Rg::Rg(qml_components::ProgramSettings* programSettings,
   , themes(themes)
   , gamepadManager(gamepadManager)
   , profileList(profileList)
+  , arenaSession(arenaSession)
   , tables(tables)
   , languages(languages)
   , audioEngine(audioEngine)

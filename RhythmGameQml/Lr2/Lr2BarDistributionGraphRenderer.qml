@@ -27,6 +27,7 @@ Item {
     property real fastBarScrollY: 0
     property color transColor: "black"
     property bool colorKeyEnabled: false
+    property bool asynchronousLoading: false
 
     x: fastBarScrollActive ? fastBarScrollX * scaleOverride : 0
     y: fastBarScrollActive ? fastBarScrollY * scaleOverride : 0
@@ -214,6 +215,7 @@ Item {
                             colorKeyEnabled: root.colorKeyEnabled
                             transColor: root.transColor
                             chartAssetSource: root.chartAssetSource
+                            asynchronousLoading: root.asynchronousLoading
                         }
                     }
                 }

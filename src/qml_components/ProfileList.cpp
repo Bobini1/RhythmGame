@@ -259,6 +259,9 @@ qml_components::ProfileList::getBattleActive() const -> bool
 void
 qml_components::ProfileList::setBattleActive(bool active)
 {
+    if (active && !battleAllowed) {
+        return;
+    }
     if (active == battleActive) {
         return;
     }
@@ -269,6 +272,25 @@ qml_components::ProfileList::setBattleActive(bool active)
     }
     battleActive = active;
     emit battleActiveChanged();
+}
+
+auto
+qml_components::ProfileList::getBattleAllowed() const -> bool
+{
+    return battleAllowed;
+}
+
+void
+qml_components::ProfileList::setBattleAllowed(bool allowed)
+{
+    if (battleAllowed == allowed) {
+        return;
+    }
+    battleAllowed = allowed;
+    if (!allowed) {
+        setBattleActive(false);
+    }
+    emit battleAllowedChanged();
 }
 
 void

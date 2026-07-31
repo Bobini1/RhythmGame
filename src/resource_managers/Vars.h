@@ -239,6 +239,15 @@ class GeneralVars final : public QObject
     Q_PROPERTY(int replayType READ getReplayType WRITE setReplayType NOTIFY
                  replayTypeChanged RESET resetReplayType)
     /**
+     * @brief Version of the profile-wide Arena overlay placement hint
+     * already
+     * acknowledged by the player.
+     */
+    Q_PROPERTY(
+      int arenaOverlayHintVersion READ getArenaOverlayHintVersion WRITE
+        setArenaOverlayHintVersion NOTIFY arenaOverlayHintVersionChanged RESET
+          resetArenaOverlayHintVersion)
+    /**
      * @brief The note order algorithm used for reordering notes in charts.
      */
     Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
@@ -441,6 +450,7 @@ class GeneralVars final : public QObject
     bool scoreGraphEnabled = true;
     int ghostPosition = 0;
     int replayType = 0;
+    int arenaOverlayHintVersion = 0;
     NoteOrderAlgorithm noteOrderAlgorithm = NoteOrderAlgorithm::Normal;
     NoteOrderAlgorithm noteOrderAlgorithmP2 = NoteOrderAlgorithm::Normal;
     HiSpeedFix hiSpeedFix = HiSpeedFix::Main;
@@ -450,7 +460,7 @@ class GeneralVars final : public QObject
     QString bottomShiftableGauge = "AEASY";
     QString avatar = "image://avatar/mascot.png";
     QString name = "Default";
-    QString language = QLocale::system().name();
+    QString language = QLocale::system().bcp47Name();
     double offset = 0.0; // Offset in milliseconds
     ScoreTarget scoreTarget = ScoreTarget::BestScore;
     double targetScoreFraction = 8.0 / 9.0; // 0.888...
@@ -516,6 +526,9 @@ class GeneralVars final : public QObject
     auto getReplayType() const -> int;
     void setReplayType(int value);
     void resetReplayType();
+    auto getArenaOverlayHintVersion() const -> int;
+    void setArenaOverlayHintVersion(int value);
+    void resetArenaOverlayHintVersion();
     auto getNoteOrderAlgorithm() const -> NoteOrderAlgorithm;
     void setNoteOrderAlgorithm(NoteOrderAlgorithm value);
     void resetNoteOrderAlgorithm();
@@ -600,6 +613,7 @@ class GeneralVars final : public QObject
     void scoreGraphEnabledChanged();
     void ghostPositionChanged();
     void replayTypeChanged();
+    void arenaOverlayHintVersionChanged();
     void noteOrderAlgorithmChanged();
     void noteOrderAlgorithmP2Changed();
     void hiSpeedFixChanged();

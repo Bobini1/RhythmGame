@@ -32,7 +32,6 @@ if (ENABLE_INCLUDE_WHAT_YOU_USE)
     include(cmake/include-what-you-use.cmake)
 endif ()
 
-include(cmake/build-dir-setup.cmake)
 include(cmake/lint-targets.cmake)
 include(cmake/spell-targets.cmake)
 

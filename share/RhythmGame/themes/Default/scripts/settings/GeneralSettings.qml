@@ -8,6 +8,7 @@ import RhythmGameQml
 Item {
     id: root
 
+    required property var uiFont
     readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
 
     SettingsPageScaffold {
@@ -41,7 +42,14 @@ Item {
                     choices: Rg.languages.languages
                     displayStrings: Rg.languages.languages.map(lang => Rg.languages.getLanguageName(lang))
                     name: qsTr("Language")
-                    default_: Qt.locale().name
+                    default_: Rg.languages.getClosestLanguage(Rg.languages.systemLanguage, choices)
+                    fontForIndex: function(index) {
+                        return root.uiFont.fontForLocale({
+                            weight: root.uiFont.fontWeight,
+                            variableAxes: root.uiFont.variableAxes,
+                            italic: root.uiFont.italic
+                        }, choices[index] || "");
+                    }
                     Layout.fillWidth: true
                 }
 
@@ -338,7 +346,7 @@ Item {
                     destination: root.generalVars
                     id_: "gaugeType"
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-                    displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
+                    displayStrings: ["ASSIST EASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
                     name: qsTr("Gauge Type")
                     default_: "FC"
                     Layout.fillWidth: true
@@ -360,7 +368,7 @@ Item {
                     id_: "bottomShiftableGauge"
                     name: qsTr("Bottom Shiftable Gauge")
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-                    displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
+                    displayStrings: ["ASSIST EASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
                     default_: "AEASY"
                     Layout.fillWidth: true
                 }

@@ -12,6 +12,7 @@ Rectangle {
     id: root
 
     property bool customizeMode: false
+    readonly property bool arenaNativeGameplayPresentation: true
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     readonly property Profile mainProfile: Rg.profileList.mainProfile
@@ -28,10 +29,67 @@ Rectangle {
     readonly property bool isBattle: screen === "k7battle" || screen === "k5battle"
     readonly property bool isCourse: chart instanceof CourseRunner
     property var chart
+    property bool arenaManagedRunner: false
+    readonly property var arenaSession: Rg.arenaSession
+    readonly property bool arenaGameplayOwned: arenaSession.arenaGameplayActive === true
+        && arenaSession.arenaRunner === chart
+    readonly property bool arenaOpponentTargetAvailable: root.arenaGameplayOwned
+        && root.arenaSession.opponentTarget !== undefined
+        && root.arenaSession.opponentTarget !== null
+        && root.arenaSession.opponentTarget.available === true
+    readonly property bool arenaPointTargetAvailable: !root.arenaGameplayOwned
+        || root.arenaOpponentTargetAvailable
+    property var pendingScoreDbReply: null
+
+    function trackScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingScoreDbReply = reply;
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            if (pendingScoreDbReply === reply) {
+                pendingScoreDbReply = null;
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelScoreDbReply() {
+        let reply = pendingScoreDbReply;
+        pendingScoreDbReply = null;
+        if (reply && !reply.resultAvailable) {
+            reply.cancel();
+        }
+    }
+
     function closeActivePopup() {
         if (root.popup !== null) {
             root.popup.close();
             root.popup = null;
+        }
+    }
+
+    function restoreArenaPresentation() {
+        if (!root.arenaGameplayOwned) {
+            return;
+        }
+        Qt.callLater(function() {
+            if (root.arenaGameplayOwned) {
+                arenaGameplayPlacementFrame.restoreChatSelection(
+                            root.arenaSession);
+            }
+        });
+    }
+
+    function rememberArenaChatSelection(chatSelected) {
+        arenaGameplayPlacementFrame.setChatSelected(chatSelected);
+    }
+
+    onArenaGameplayOwnedChanged: {
+        if (root.arenaGameplayOwned) {
+            restoreArenaPresentation();
         }
     }
     function isPlayerScratchRightSide(player) {
@@ -78,6 +136,11 @@ Rectangle {
     }
     property real p1MaxPointsNow: chart.player1.score.maxPointsNow
     property real targetPoints1: {
+        if (root.arenaGameplayOwned) {
+            return root.arenaOpponentTargetAvailable
+                ? Number(root.arenaSession.opponentTarget.exScore || 0)
+                : 0;
+        }
         if (isBattle) {
             return chart.player2.score.points;
         }
@@ -88,6 +151,11 @@ Rectangle {
     }
     property real targetPoints2: chart.player1.score.points
     readonly property real targetFinalPoints1: {
+        if (root.arenaGameplayOwned) {
+            return root.arenaOpponentTargetAvailable
+                ? Number(root.arenaSession.opponentTarget.exScore || 0)
+                : 0;
+        }
         if (isBattle) return 0;
         if (targetScore1) return targetScore1.result.points;
         if (chart.player1.profile.vars.generalVars.scoreTarget === ScoreTarget.NextRank) {
@@ -122,6 +190,7 @@ Rectangle {
         }
     }
     StackView.onActivated: {
+        cancelScoreDbReply();
         escapeShortcut.nothingWasHit = true;
         escapeShortcut.used = false;
         if (chart.status === ChartRunner.Finished) {
@@ -138,13 +207,23 @@ Rectangle {
             if (playReadySound.length === 0) {
                 startTimer.start();
             }
-            chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
+            trackScoreDbReply(chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5)).then(scores => {
                 scores1 = scores.scores[chartData.md5] || [];
             });
         }
     }
-    StackView.onDeactivating: closeActivePopup()
-    Component.onDestruction: closeActivePopup()
+    StackView.onDeactivating: {
+        cancelScoreDbReply();
+        closeActivePopup();
+    }
+    Component.onDestruction: {
+        cancelScoreDbReply();
+        closeActivePopup();
+        const arenaSession = root.arenaSession;
+        if (arenaSession && root.arenaManagedRunner && root.chart) {
+            arenaSession.releasePreparedGameplay(root.chart);
+        }
+    }
     Timer {
         id: startTimer
         interval: 1000
@@ -647,6 +726,7 @@ Rectangle {
             dpSuffix: root.isDp ? "1" : ""
             index: 0
             pointTarget: root.targetPoints1
+            pointTargetAvailable: root.arenaPointTargetAvailable
             bestFinalPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.points : 0
             bestMaxPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.maxPoints : 0
             bestPoints: bestScoreReplayer1.points
@@ -674,6 +754,7 @@ Rectangle {
                 mirrored: !root.isDp
                 index: 1
                 pointTarget: root.isDp ? root.targetPoints1 : root.targetPoints2
+                pointTargetAvailable: root.arenaPointTargetAvailable
                 bestFinalPoints: root.isDp ? (root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.points : 0) : 0
                 bestMaxPoints: root.isDp ? (root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.maxPoints : 0) : 0
                 bestPoints: root.isDp ? bestScoreReplayer1.points : 0
@@ -769,6 +850,47 @@ Rectangle {
             }
         }
     }
+    ArenaOverlayPlacementFrame {
+        id: arenaGameplayPlacementFrame
+
+        enabled: arenaGameplayPlacementFrame.visible
+        customizationLabel: qsTr("Arena gameplay panel")
+        customizeMode: root.customizeMode
+        defaultExpanded: false
+        layoutVariant: root.screen
+        minimumPixelSize: Qt.size(320, 240)
+        moveHandle: arenaGameplayPanel.dragHandle
+        placementKind: "gameplayLeaderboard"
+        themeVars: root.mainProfileVars
+        viewport: root
+        visible: root.arenaGameplayOwned
+            && (arenaGameplayPlacementFrame.overlayVisible
+                || root.customizeMode)
+        z: 2000000
+
+        onOverlayVisibilityCommitted: visible => {
+            if (!visible && root.arenaSession.chatOpen === true) {
+                root.arenaSession.setChatOpen(false);
+            }
+        }
+        onPresentationStateReloaded: root.restoreArenaPresentation()
+
+        ArenaGameplayOverlay {
+            id: arenaGameplayPanel
+
+            anchors.fill: parent
+            expanded: arenaGameplayPlacementFrame.expanded
+            session: root.arenaSession
+
+            onChatSelected: chat => {
+                arenaGameplayPlacementFrame.setChatSelected(chat);
+            }
+            onExpandedChanged: {
+                arenaGameplayPlacementFrame.setExpanded(
+                            arenaGameplayPanel.expanded);
+            }
+        }
+    }
     AudioPlayer {
         id: playstopSound
         source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playstop"
@@ -781,7 +903,11 @@ Rectangle {
         property bool used: false
 
         onActivated: {
-            if (nothingWasHit) {
+            if (root.arenaGameplayOwned && root.arenaSession.chatOpen === true) {
+                root.arenaSession.setChatOpen(false);
+                return;
+            }
+            if (nothingWasHit && !root.arenaGameplayOwned) {
                 root.closeActivePopup();
                 sceneStack.pop();
             } else {
@@ -805,4 +931,8 @@ Rectangle {
             root.closeActivePopup();
         }
     }
+
+    Component.onCompleted: restoreArenaPresentation()
+
+    TransientInputFocusDismissLayer {}
 }

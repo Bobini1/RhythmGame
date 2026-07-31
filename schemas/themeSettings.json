@@ -44,14 +44,14 @@
   "$defs": {
     "i18nString": {
       "type": "object",
-      "description": "Map of language tags (e.g. en, en_US, jp, fr_CA) to localized strings.",
-      "patternProperties": {
-        "^[a-z]{2}([_-][A-Z]{2})?$": {
-          "type": "string"
-        }
+      "description": "Map of locale tags (for example en, fr-CA, zh-Hans, or zh-Hant-HK) to localized strings. Hyphens are preferred; underscores are accepted for compatibility.",
+      "propertyNames": {
+        "pattern": "^[A-Za-z]{2,3}(?:[-_][A-Za-z]{4})?(?:[-_](?:[A-Za-z]{2}|[0-9]{3}))?$"
       },
       "minProperties": 1,
-      "additionalProperties": false
+      "additionalProperties": {
+        "type": "string"
+      }
     },
     "baseItem": {
       "type": "object",
@@ -201,6 +201,15 @@
             },
             "path": {
               "type": "string"
+            },
+            "filters": {
+              "type": "array",
+              "description": "Optional case-insensitive filename wildcard filters. A file is selectable when it matches at least one filter.",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
             },
             "default": {
               "type": "string"

@@ -2,12 +2,14 @@
 
 #include <QAbstractListModel>
 #include <QHash>
+#include <QPointer>
 #include <QVariant>
 #include <QVariantList>
 #include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
 
 #include "resource_managers/ChartFolderModel.h"
+#include "arena/ArenaAvailabilityIndex.h"
 
 class Lr2SelectBarCell;
 
@@ -27,6 +29,8 @@ class Lr2SelectItemModel : public QAbstractListModel {
 	Q_PROPERTY(resource_managers::ChartFolderModel* chartFolderModel READ chartFolderModel WRITE setChartFolderModel NOTIFY chartFolderModelChanged)
 	Q_PROPERTY(QString levelFolderParentKey READ levelFolderParentKey WRITE setLevelFolderParentKey NOTIFY levelFolderParentChanged)
 	Q_PROPERTY(QString levelFolderParentSymbol READ levelFolderParentSymbol WRITE setLevelFolderParentSymbol NOTIFY levelFolderParentChanged)
+	Q_PROPERTY(arena::ArenaAvailabilityIndex* arenaAvailability READ arenaAvailability WRITE setArenaAvailability NOTIFY arenaAvailabilityChanged)
+	Q_PROPERTY(QString unavailableSongPrefix READ unavailableSongPrefix WRITE setUnavailableSongPrefix NOTIFY unavailableSongPrefixChanged)
 
 public:
 	enum ItemKind {
@@ -82,7 +86,8 @@ public:
 		IsRankingEntryRole,
 		RawItemRole,
 		ChartDataRole,
-		ActivationObjectRole
+		ActivationObjectRole,
+		ArenaAvailabilityRole
 	};
 	Q_ENUM(Roles)
 
@@ -116,6 +121,10 @@ public:
 	void setLevelFolderParentKey(const QString& key);
 	QString levelFolderParentSymbol() const;
 	void setLevelFolderParentSymbol(const QString& symbol);
+	arena::ArenaAvailabilityIndex* arenaAvailability() const;
+	void setArenaAvailability(arena::ArenaAvailabilityIndex* availability);
+	QString unavailableSongPrefix() const;
+	void setUnavailableSongPrefix(const QString& prefix);
 
 	Q_INVOKABLE void moveRowTo(int from, int to);
 	Q_INVOKABLE QVariantMap setFolderItems(resource_managers::ChartFolderModel* folderModel,
@@ -148,6 +157,8 @@ signals:
 	void selectSkinOptionsChanged();
 	void chartFolderModelChanged();
 	void levelFolderParentChanged();
+	void arenaAvailabilityChanged();
+	void unavailableSongPrefixChanged();
 
 private:
 	struct Item {
@@ -227,6 +238,11 @@ private:
 	void replaceItems(const QVariantList& items);
 	void updateExistingItems(const QVariantList& items);
 	void refreshDerivedItems();
+	void refreshArenaAvailability();
+	arena::ArenaAvailabilityIndex::Availability arenaAvailabilityForItem(const Item& item) const;
+	QString effectiveDisplayText(const Item& item) const;
+	QString effectiveTitle(const Item& item) const;
+	int effectiveTitleType(const Item& item) const;
 
 	QList<Item> m_items;
 	QHash<QString, FolderSummary> m_folderSummaries;
@@ -236,6 +252,8 @@ private:
 	QVariantList m_barTitleTypes;
 	QVariantList m_barLampVariants;
 	resource_managers::ChartFolderModel* m_chartFolderModel = nullptr;
+	QPointer<arena::ArenaAvailabilityIndex> m_arenaAvailability;
+	QString m_unavailableSongPrefix{ QStringLiteral("\u00D7 ") };
 	QString m_levelFolderParentKey;
 	QString m_levelFolderParentSymbol;
 	int m_currentIndex = 0;

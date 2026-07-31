@@ -44,7 +44,8 @@ public:
 		LabelMaskRole,
 		GraphLampsRole,
 		GraphRanksRole,
-		RawItemRole
+		RawItemRole,
+		ArenaAvailabilityRole
 	};
 	Q_ENUM(Roles)
 

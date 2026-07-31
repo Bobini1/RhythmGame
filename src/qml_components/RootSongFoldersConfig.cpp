@@ -207,6 +207,9 @@ RootSongFolders::remove(const int index)
     beginRemoveRows(QModelIndex(), index, index);
     folders.erase(folders.begin() + index);
     endRemoveRows();
+    if (scanningQueue->rowCount() == 0) {
+        emit chartSetMutationCommitted();
+    }
 }
 auto
 RootSongFolders::at(const int index) const -> QVariant
@@ -241,6 +244,8 @@ ScanningQueue::ScanningQueue(db::SqliteCppDb* db,
         setCurrentScannedFolder({});
         if (!scanItems.empty()) {
             performTask();
+        } else {
+            emit queueDrained();
         }
     });
 }
@@ -306,7 +311,8 @@ ScanningQueue::clear(const QString& which)
 {
     const auto folderNameStd = which.toStdString();
 
-    removeSongsStartingWith.reset();
+    auto removeSongsStartingWith =
+      db->createStatement("DELETE FROM charts WHERE path LIKE :dir || '%'");
     removeSongsStartingWith.bind(":dir", folderNameStd);
     removeSongsStartingWith.execute();
     db->execute("WITH RECURSIVE "

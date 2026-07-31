@@ -17,7 +17,11 @@ Item {
 
     required property var scores
     required property list<Profile> profiles
+    property string arenaRoundId: ""
 
+    readonly property bool arenaNativeResultPresentation: true
+    readonly property var arenaResult: Rg.arenaSession.presentedResult
+    readonly property bool arenaResultMatches: root.arenaRoundId.length > 0 && Rg.arenaSession.resultPresentationActive === true && root.arenaResult && root.arenaResult.valid === true && root.arenaRoundId === String(root.arenaResult.roundId || "")
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     readonly property string commonImagesUrl: Qt.resolvedUrl("../common/") + "images/"
@@ -32,10 +36,50 @@ Item {
     readonly property int startInputMillis: 500
     property bool acceptsInput: startInputMillis <= 0
 
+    function presentArenaResult(roundId: string): bool {
+        root.arenaRoundId = roundId;
+        return root.arenaRoundId.length > 0;
+    }
+
+    function restoreArenaPresentation() {
+        if (!root.arenaResultMatches || root.isBattle) {
+            return;
+        }
+        Qt.callLater(function() {
+            if (root.arenaResultMatches && !root.isBattle) {
+                arenaResultPlacementFrame.restoreChatSelection(
+                            Rg.arenaSession);
+            }
+        });
+    }
+
+    function rememberArenaChatSelection(chatSelected) {
+        arenaResultPlacementFrame.setChatSelected(chatSelected);
+    }
+
+    onArenaResultMatchesChanged: {
+        if (root.arenaResultMatches) {
+            restoreArenaPresentation();
+        }
+    }
+
+    Component.onDestruction: {
+        const arenaSession = Rg.arenaSession;
+        if (root.arenaRoundId.length > 0 && arenaSession) {
+            arenaSession.endResultPresentation(root.arenaRoundId);
+        }
+    }
+
     ThemeFont {
         id: resultStatsFont
         fileName: root.themeVars.resultStatsFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
+    }
+
+    ThemeFont {
+        id: resultTitleFont
+        fileName: root.themeVars.resultTitleFont
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     function cycleGaugeForKey(key) {
@@ -58,20 +102,21 @@ Item {
         onTriggered: root.acceptsInput = true
     }
 
-    Input.onButtonPressed: (key) => {
+    Input.onButtonPressed: key => {
         if (!root.acceptsInput) {
             return;
         }
         if (cycleGaugeForKey(key)) {
             return;
         }
-        if ([BmsKey.Col11, BmsKey.Col12, BmsKey.Col13, BmsKey.Col14, BmsKey.Col15, BmsKey.Col16, BmsKey.Col17,
-            BmsKey.Col21, BmsKey.Col22, BmsKey.Col23, BmsKey.Col24, BmsKey.Col25, BmsKey.Col26, BmsKey.Col27].includes(key)) {
+        if ([BmsKey.Col11, BmsKey.Col12, BmsKey.Col13, BmsKey.Col14, BmsKey.Col15, BmsKey.Col16, BmsKey.Col17, BmsKey.Col21, BmsKey.Col22, BmsKey.Col23, BmsKey.Col24, BmsKey.Col25, BmsKey.Col26, BmsKey.Col27].includes(key)) {
             sceneStack.pop();
         }
     }
 
     Image {
+        id: resultBackground
+
         fillMode: Image.PreserveAspectCrop
         height: parent.height
         source: root.imagesUrl + (root.score1.result.clearType === "FAILED" ? "failed.png" : "clear.png")
@@ -104,6 +149,7 @@ Item {
         }
         Shortcut {
             enabled: root.enabled && root.acceptsInput
+                && !(root.arenaResultMatches && Rg.arenaSession.chatOpen)
             sequence: "Return"
 
             onActivated: {
@@ -118,8 +164,7 @@ Item {
                 let date = new Date();
                 let timestamp = Qt.formatDateTime(date, "yyyyMMdd_HHmmss");
 
-                let g = Helpers.getGrade(root.score1.result.points,
-                                         root.score1.result.maxPoints).toUpperCase();
+                let g = Helpers.getGrade(root.score1.result.points, root.score1.result.maxPoints).toUpperCase();
                 let clearType = root.score1.result.clearType;
 
                 let prefix = "";
@@ -134,14 +179,11 @@ Item {
                     }
                 }
 
-                let rawTitle = root.chartData
-                    ? root.chartData.title + (root.chartData.subtitle ? " " + root.chartData.subtitle : "")
-                    : root.course?.name ?? "";
+                let rawTitle = root.chartData ? root.chartData.title + (root.chartData.subtitle ? " " + root.chartData.subtitle : "") : root.course?.name ?? "";
 
                 let title = Helpers.sanitizeFilename(rawTitle);
 
-                let filename = timestamp + "_" + prefix + title
-                               + " " + clearType + " " + g + ".png";
+                let filename = timestamp + "_" + prefix + title + " " + clearType + " " + g + ".png";
                 root.grabToImage(function (grabResult) {
                     let filepath = Rg.programSettings.screenshotsFolder + "/" + filename;
                     if (grabResult.saveToFile(filepath)) {
@@ -181,11 +223,12 @@ Item {
                 z: 10
                 opacity: 0
                 color: "white"
-                font.family: resultStatsFont.fontFamily
-                font.weight: resultStatsFont.boldFontWeight
-                font.variableAxes: resultStatsFont.boldVariableAxes
-                font.italic: resultStatsFont.italic
-                font.pixelSize: 28
+                font: resultStatsFont.uiFont({
+                    weight: resultStatsFont.boldFontWeight,
+                    variableAxes: resultStatsFont.boldVariableAxes,
+                    italic: resultStatsFont.italic,
+                    pixelSize: 28
+                })
                 fontSizeMode: Text.HorizontalFit
                 minimumPixelSize: 10
                 horizontalAlignment: Text.AlignHCenter
@@ -199,9 +242,21 @@ Item {
 
                 SequentialAnimation {
                     id: fadeAnim
-                    NumberAnimation { target: screenshotMessage; property: "opacity"; to: 1.0; duration: 150 }
-                    PauseAnimation { duration: 3000 }
-                    NumberAnimation { target: screenshotMessage; property: "opacity"; to: 0.0; duration: 600 }
+                    NumberAnimation {
+                        target: screenshotMessage
+                        property: "opacity"
+                        to: 1.0
+                        duration: 150
+                    }
+                    PauseAnimation {
+                        duration: 3000
+                    }
+                    NumberAnimation {
+                        target: screenshotMessage
+                        property: "opacity"
+                        to: 0.0
+                        duration: 600
+                    }
                 }
             }
 
@@ -248,6 +303,8 @@ Item {
                 width: parent.width
                 anchors.top: chartInfoRow.bottom
                 chartKeymode: root.chartKeymode
+                arenaRoundId: root.arenaRoundId
+                arenaResultActive: root.arenaResultMatches
             }
 
             Loader {
@@ -262,17 +319,67 @@ Item {
                     profile: root.profile2
                     mirrored: true
                     chartKeymode: root.chartKeymode
+                    arenaRoundId: root.arenaRoundId
+                    arenaResultActive: root.arenaResultMatches
                 }
             }
 
-        CourseSongList {
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 20
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 10
-            width: parent.width
-            chartDatas: root.chartDatas
+            CourseSongList {
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 20
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 10
+                width: parent.width
+                chartDatas: root.chartDatas
+            }
+        }
+
+        ArenaOverlayPlacementFrame {
+            id: arenaResultPlacementFrame
+
+            parent: resultBackground
+            enabled: visible
+            defaultExpanded: true
+            layoutVariant: "result"
+            minimumPixelSize: Qt.size(360, 240)
+            moveHandle: arenaResultPanel.dragHandle
+            placementKind: "resultStandings"
+            themeVars: root.themeVars
+            viewport: resultBackground
+            visible: root.arenaResultMatches && !root.isBattle
+                && arenaResultPlacementFrame.overlayVisible
+            z: 20
+
+            onOverlayVisibilityCommitted: visible => {
+                if (!visible && Rg.arenaSession.chatOpen === true) {
+                    Rg.arenaSession.setChatOpen(false);
+                }
+            }
+            onPresentationStateReloaded: root.restoreArenaPresentation()
+
+            ArenaResultPanel {
+                id: arenaResultPanel
+
+                anchors.fill: parent
+                localMemberId: String(Rg.arenaSession.selfMemberId || "")
+                result: root.arenaResult
+                session: Rg.arenaSession
+                statsFontFamily: resultStatsFont.fontFamily
+                textFontFamily: resultTitleFont.fontFamily
+                expanded: arenaResultPlacementFrame.expanded
+
+                onChatSelected: chat => {
+                    arenaResultPlacementFrame.setChatSelected(chat);
+                }
+                onExpandedChanged: {
+                    arenaResultPlacementFrame.setExpanded(
+                                arenaResultPanel.expanded);
+                }
+            }
         }
     }
-}
+
+    Component.onCompleted: restoreArenaPresentation()
+
+    TransientInputFocusDismissLayer {}
 }

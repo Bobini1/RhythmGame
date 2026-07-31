@@ -303,14 +303,16 @@ QtObject {
         if (title.length <= 0) {
             title = String(hash || "----");
         }
-        return (root.lr2SkinUsesBeatorajaSemantics ? "(no song) " : "(missing) ") + title;
+        return (root.lr2SkinUsesBeatorajaSemantics
+                ? "(no song) "
+                : selectContext.unavailableSongPrefix) + title;
     }
 
     function missingTableEntryPrefix(chart: var) : var {
         return !root.lr2SkinUsesBeatorajaSemantics
             && selectContext
             && selectContext.isMissingTableEntry(chart)
-            ? "(missing) "
+            ? selectContext.unavailableSongPrefix
             : "";
     }
 
@@ -1647,6 +1649,11 @@ QtObject {
             return resolver.resolveResultTargetSideNumber(num - 120, 1);
         }
 
+        const arenaResultMatches = root.arenaResultMatches === true
+            && root.arenaRoundId.length > 0
+            && root.arenaRoundId
+                === String(root.arenaSession.presentedResult.roundId || "");
+
         switch (num) {
         case 20:
         case 21:
@@ -1909,9 +1916,14 @@ QtObject {
         case 178:
             return root.resultBadPoor(current) - root.resultBadPoor(old);
         case 179:
-            return rankingState.playerRank();
+            return arenaResultMatches
+                ? (root.arenaSession.presentedResult.finalized
+                    ? root.arenaSession.presentedResult.localRank : 0)
+                : rankingState.playerRank();
         case 180:
-            return rankingState.currentPlayerCount;
+            return arenaResultMatches
+                ? root.arenaSession.presentedResult.participantCount
+                : rankingState.currentPlayerCount;
         case 181:
             return rankingState.clearPercentValue(false, "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX");
         case 182:

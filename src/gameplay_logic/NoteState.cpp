@@ -209,6 +209,7 @@ Filter::Filter(ColumnState* columnState, QObject* parent)
             });
 }
 BarlineFilter::BarlineFilter(BarLinesState* barLinesState, QObject* parent)
+  : QAbstractProxyModel(parent)
 {
     setSourceModel(barLinesState);
     // forward dataChanged from source to proxy with row offset

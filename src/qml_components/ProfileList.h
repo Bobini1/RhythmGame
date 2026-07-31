@@ -80,6 +80,8 @@ class ProfileList final : public QObject
      */
     Q_PROPERTY(bool battleActive READ getBattleActive WRITE setBattleActive
                  NOTIFY battleActiveChanged FINAL)
+    Q_PROPERTY(bool battleAllowed READ getBattleAllowed NOTIFY
+                 battleAllowedChanged FINAL)
 
     std::filesystem::path profilesFolder;
     std::filesystem::path mainDbPath;
@@ -89,6 +91,7 @@ class ProfileList final : public QObject
     resource_managers::Profile* mainProfile{};
     BattleProfiles battleProfiles;
     bool battleActive{};
+    bool battleAllowed{ true };
     QList<QString> assetsPaths;
     QNetworkAccessManager* networkAccessManager;
 
@@ -119,11 +122,14 @@ class ProfileList final : public QObject
 
     auto getBattleActive() const -> bool;
     void setBattleActive(bool active);
+    [[nodiscard]] auto getBattleAllowed() const -> bool;
+    void setBattleAllowed(bool allowed);
 
   signals:
     void mainProfileChanged();
     void profilesChanged();
     void battleActiveChanged();
+    void battleAllowedChanged();
 };
 } // namespace qml_components
 

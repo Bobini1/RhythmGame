@@ -15,7 +15,7 @@ RowLayout {
     ThemeFont {
         id: rankingStatsFont
         fileName: root.themeVars.rankingFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     readonly property real percentLaneWidth: 56
@@ -23,11 +23,12 @@ RowLayout {
 
     TextMetrics {
         id: percentWidthMetrics
-        font.family: rankingStatsFont.fontFamily
-        font.weight: rankingStatsFont.fontWeight
-        font.variableAxes: rankingStatsFont.variableAxes
-        font.italic: rankingStatsFont.italic
-        font.pixelSize: 12
+        font: rankingStatsFont.uiFont({
+            weight: rankingStatsFont.fontWeight,
+            variableAxes: rankingStatsFont.variableAxes,
+            italic: rankingStatsFont.italic,
+            pixelSize: 12
+        })
         text: "100.0%"
     }
 
@@ -53,11 +54,12 @@ RowLayout {
             anchors.rightMargin: statLineItem.reservedPercentWidth + statLineItem.countPercentGap
             anchors.verticalCenter: parent.verticalCenter
             height: parent.height
-            font.family: rankingStatsFont.fontFamily
-            font.weight: rankingStatsFont.boldFontWeight
-            font.variableAxes: rankingStatsFont.boldVariableAxes
-            font.italic: rankingStatsFont.italic
-            font.pixelSize: 21
+            font: rankingStatsFont.uiFont({
+                weight: rankingStatsFont.boldFontWeight,
+                variableAxes: rankingStatsFont.boldVariableAxes,
+                italic: rankingStatsFont.italic,
+                pixelSize: 21
+            })
             fontSizeMode: Text.HorizontalFit
             horizontalAlignment: Text.AlignRight
             minimumPixelSize: 8
@@ -65,17 +67,18 @@ RowLayout {
         }
         Text {
             id: textTwo
-            font.pixelSize: 12
+            font: rankingStatsFont.uiFont({
+                pixelSize: 12,
+                weight: rankingStatsFont.fontWeight,
+                variableAxes: rankingStatsFont.variableAxes,
+                italic: rankingStatsFont.italic
+            })
             width: statLineItem.percentLaneWidth
             horizontalAlignment: Text.AlignRight
             verticalAlignment: Text.AlignVCenter
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             height: parent.height
-            font.family: rankingStatsFont.fontFamily
-            font.weight: rankingStatsFont.fontWeight
-            font.variableAxes: rankingStatsFont.variableAxes
-            font.italic: rankingStatsFont.italic
             fontSizeMode: Text.HorizontalFit
             minimumPixelSize: 7
         }

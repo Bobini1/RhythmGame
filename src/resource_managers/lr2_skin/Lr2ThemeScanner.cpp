@@ -275,10 +275,22 @@ pathOrWildcardParentExists(const std::filesystem::path& path) -> bool
 }
 
 auto
+stripLr2WildcardMarkers(QString wildcard) -> QString
+{
+    wildcard.remove(QRegularExpression(QStringLiteral("\\|[^|]*\\|")));
+    return wildcard;
+}
+
+auto
 customFileDefault(const std::filesystem::path& directory,
+                  const QString& wildcard,
                   const QString& defaultStem) -> QString
 {
     QString firstSelectable;
+    const auto filter =
+      QRegularExpression(QRegularExpression::wildcardToRegularExpression(
+                           stripLr2WildcardMarkers(wildcard)),
+                         QRegularExpression::CaseInsensitiveOption);
     std::error_code ec;
     if (!std::filesystem::exists(directory, ec)) {
         return {};
@@ -298,7 +310,8 @@ customFileDefault(const std::filesystem::path& directory,
 
         const auto filename =
           support::pathToQString(fileEntry.path().filename());
-        if (filename.startsWith('.') || filename.endsWith(".ini")) {
+        if (filename.startsWith('.') || filename.endsWith(".ini") ||
+            !filter.match(filename).hasMatch()) {
             continue;
         }
         if (firstSelectable.isEmpty()) {
@@ -478,6 +491,8 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
             const auto absolutePattern =
               resolveLr2RawPath(lr2SkinPath.parent_path(), parts[2].trimmed());
             const auto absoluteDir = absolutePattern.parent_path();
+            const auto wildcard = stripLr2WildcardMarkers(
+              support::pathToQString(absolutePattern.filename()));
             auto rel = support::pathToQString(
               relative(absoluteDir, lr2SkinPath.parent_path()));
             if (rel == ".") {
@@ -497,14 +512,17 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
             nameObj["en"] = name;
             item["name"] = nameObj;
             item["path"] = rel;
+            QJsonArray filters;
+            filters.append(wildcard);
+            item["filters"] = filters;
 
             QString defaultFile;
             if (parts.size() >= 4) {
                 defaultFile =
-                  customFileDefault(absoluteDir, parts[3].trimmed());
+                  customFileDefault(absoluteDir, wildcard, parts[3].trimmed());
             }
             if (defaultFile.isEmpty()) {
-                defaultFile = customFileDefault(absoluteDir, {});
+                defaultFile = customFileDefault(absoluteDir, wildcard, {});
             }
             if (!defaultFile.isEmpty()) {
                 item["default"] = defaultFile;
