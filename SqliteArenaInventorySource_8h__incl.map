@@ -1,0 +1,17 @@
+<map id="src/arena/SqliteArenaInventorySource.h" name="src/arena/SqliteArenaInventorySource.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="297,5,520,45"/>
+<area shape="rect" id="Node000002" href="$ArenaInventorySource_8h.html" title=" " alt="" coords="75,93,254,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="351,48,214,92,213,86,349,43"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="279,93,405,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="395,47,363,84,359,81,391,44"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="430,93,521,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="427,44,459,81,455,84,423,47"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="545,93,619,119"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="451,43,545,85,543,90,449,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,103,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="148,121,85,161,82,157,145,116"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="127,167,202,192"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="167,119,167,153,162,153,162,119"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="226,167,301,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="182,117,238,156,235,161,179,121"/>
+</map>

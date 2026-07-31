@@ -12,13 +12,15 @@ var searchData=
   ['elementdescriptors_9',['elementDescriptors',['../classLr2SkinRuntime.html#af1ebd0cf5fd55aea8c64a201ca4e0ff9',1,'Lr2SkinRuntime']]],
   ['elementskinclockmode_10',['elementSkinClockMode',['../classLr2SkinElementDescriptorValue.html#ad7417d656b6ce7d6685e44f7a61dd7aa',1,'Lr2SkinElementDescriptorValue']]],
   ['elementtimerstates_11',['elementTimerStates',['../classLr2SkinRuntime.html#adff5b289036e29dd2a0a97fa5c2aeac1',1,'Lr2SkinRuntime']]],
-  ['enabled_12',['enabled',['../classLr2AnimationFrameState.html#a61cac8202c29d65dad02bad73ca8498f',1,'Lr2AnimationFrameState::enabled'],['../classLr2BarInterpolatedState.html#ae2e2f3056fd302736230621494d7ef5c',1,'Lr2BarInterpolatedState::enabled'],['../classLr2TimelineState.html#a7b317fe7448353da499e291e4f5fc3dc',1,'Lr2TimelineState::enabled']]],
+  ['enabled_12',['enabled',['../classLr2BarInterpolatedState.html#ae2e2f3056fd302736230621494d7ef5c',1,'Lr2BarInterpolatedState::enabled'],['../classLr2TimelineState.html#a7b317fe7448353da499e291e4f5fc3dc',1,'Lr2TimelineState::enabled'],['../classLr2AnimationFrameState.html#a61cac8202c29d65dad02bad73ca8498f',1,'Lr2AnimationFrameState::enabled']]],
   ['end_13',['end',['../structgameplay__logic_1_1lr2__skin_1_1Lr2SrcNoteChart.html#a2e1fc9b241c9aaafebb35276fc90caf1',1,'gameplay_logic::lr2_skin::Lr2SrcNoteChart']]],
   ['enddensity_14',['endDensity',['../classgameplay__logic_1_1ChartData.html#ac113fc896ec5b378e1c7e2f3887f95ac',1,'gameplay_logic::ChartData']]],
   ['entries_15',['entries',['../structresource__managers_1_1Level.html#a644067b38d4de3952257601279bf10a8',1,'resource_managers::Level']]],
   ['entry_16',['entry',['../structresource__managers_1_1TableInfo.html#a54ccdf1703d3d4d50cf8eb8e871a9147',1,'resource_managers::TableInfo::entry'],['../classLr2SelectBarCell.html#a4ba7aedf33065dd579a63fcfb99c8185',1,'Lr2SelectBarCell::entry']]],
   ['entrylike_17',['entryLike',['../classLr2SelectBarCell.html#a88efdec9a543f9e2b4bb07721ecd338f',1,'Lr2SelectBarCell']]],
-  ['errored_18',['errored',['../classqml__components_1_1ReplayImportOperation.html#a26c37046fa895ceef74569b4e96fa44d',1,'qml_components::ReplayImportOperation']]],
-  ['exhard_19',['exhard',['../classLr2SelectScoreCounts.html#a446fd089b63563c8fff12a94f9bec0ce',1,'Lr2SelectScoreCounts']]],
-  ['exscore_20',['exscore',['../classLr2SelectScoreStats.html#a5d351f82ec0fb1414875c20c6c8dfe70',1,'Lr2SelectScoreStats']]]
+  ['errorcode_18',['errorCode',['../classarena_1_1ArenaSession.html#af16207a6b8900818853e6f720d1c2ea2',1,'arena::ArenaSession']]],
+  ['errored_19',['errored',['../classqml__components_1_1ReplayImportOperation.html#a26c37046fa895ceef74569b4e96fa44d',1,'qml_components::ReplayImportOperation']]],
+  ['errormessagekey_20',['errorMessageKey',['../classarena_1_1ArenaSession.html#ae797c4bfd509ebfa62e4dba317d8477f',1,'arena::ArenaSession']]],
+  ['exhard_21',['exhard',['../classLr2SelectScoreCounts.html#a446fd089b63563c8fff12a94f9bec0ce',1,'Lr2SelectScoreCounts']]],
+  ['exscore_22',['exscore',['../classLr2SelectScoreStats.html#a5d351f82ec0fb1414875c20c6c8dfe70',1,'Lr2SelectScoreStats::exscore'],['../classarena_1_1ArenaOpponentTarget.html#aec8d7949e2d1d5128032c8bbd212dd1e',1,'arena::ArenaOpponentTarget::exScore']]]
 ];

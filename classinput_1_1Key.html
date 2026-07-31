@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.13</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.14</span>
    </div>
   </td>
  </tr>
@@ -87,9 +87,15 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a015a64c0ae6491d8bd329f95d2fe0290" id="r_a015a64c0ae6491d8bd329f95d2fe0290"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290">Device</a> { <a class="el" href="classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290a6ce4d85a628a88bbdb3ac24a8e5a9c2e">Keyboard</a>
+<tr class="memitem:a015a64c0ae6491d8bd329f95d2fe0290" id="r_a015a64c0ae6491d8bd329f95d2fe0290"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290">Device</a> { <br />
+&#160;&#160;<a class="el" href="classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290a6ce4d85a628a88bbdb3ac24a8e5a9c2e">Keyboard</a>
 , <a class="el" href="classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290a87b7760f14fbff78d8819291f36ab9a0">Button</a>
 , <a class="el" href="classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290a39e6b4ab3e4adecf031d3aa8410bb3ce">Axis</a>
+, <a class="el" href="classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290af9ccf217a15b81bb27ee7d003be129a6">MidiNote</a>
+, <br />
+&#160;&#160;<a class="el" href="classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290a3a43ea82b0de1ff076c5dbd7abe91773">MidiControl</a>
+, <a class="el" href="classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290afcdeb82128d312de8e7357c4e7ec1d5d">MidiPitchBend</a>
+<br />
  }</td></tr>
 <tr class="separator:a015a64c0ae6491d8bd329f95d2fe0290"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa22750d74ed901350411d2145c92c32a" id="r_aa22750d74ed901350411d2145c92c32a"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Key.html#aa22750d74ed901350411d2145c92c32a">Direction</a> { <a class="el" href="classinput_1_1Key.html#aa22750d74ed901350411d2145c92c32aa6adf97f83acf6453d4a6a4b1070f3754">None</a>
@@ -100,6 +106,8 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:ad87beb4ed354c97bfa405a8a86a22df9" id="r_ad87beb4ed354c97bfa405a8a86a22df9"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Key.html#ad87beb4ed354c97bfa405a8a86a22df9">getMidi</a> () const -&gt; QVariant</td></tr>
+<tr class="separator:ad87beb4ed354c97bfa405a8a86a22df9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0e659bee795ee9d10758d59e2e38ef44" id="r_a0e659bee795ee9d10758d59e2e38ef44"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Key.html#a0e659bee795ee9d10758d59e2e38ef44">operator&lt;=&gt;</a> (const <a class="el" href="classinput_1_1Key.html">Key</a> &amp;key) const -&gt; std::weak_ordering</td></tr>
 <tr class="separator:a0e659bee795ee9d10758d59e2e38ef44"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab979aa94e5caed5a7fe2e134a218afd8" id="r_ab979aa94e5caed5a7fe2e134a218afd8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Key.html#ab979aa94e5caed5a7fe2e134a218afd8">operator==</a> (const <a class="el" href="classinput_1_1Key.html">Key</a> &amp;key) const -&gt; bool</td></tr>
@@ -112,6 +120,8 @@ Properties</h2></td></tr>
 <tr class="memitem:a802652a68e36fe02d7339e0c9624ebd6" id="r_a802652a68e36fe02d7339e0c9624ebd6"><td class="memItemLeft" align="right" valign="top">QVariant&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Key.html#a802652a68e36fe02d7339e0c9624ebd6">gamepad</a> = QVariant::fromValue(nullptr)</td></tr>
 <tr class="memdesc:a802652a68e36fe02d7339e0c9624ebd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The gamepad this key belongs to. Null if the key is from the keyboard.  <br /></td></tr>
 <tr class="separator:a802652a68e36fe02d7339e0c9624ebd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93df3bb6fe856cedd3fc04cc39465c59" id="r_a93df3bb6fe856cedd3fc04cc39465c59"><td class="memItemLeft" align="right" valign="top">QVariant&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Key.html#a93df3bb6fe856cedd3fc04cc39465c59">midi</a></td></tr>
+<tr class="separator:a93df3bb6fe856cedd3fc04cc39465c59"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ddf7a5c8ea1860aa44588c9adc7c1d5" id="r_a1ddf7a5c8ea1860aa44588c9adc7c1d5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290">Device</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Key.html#a1ddf7a5c8ea1860aa44588c9adc7c1d5">device</a></td></tr>
 <tr class="separator:a1ddf7a5c8ea1860aa44588c9adc7c1d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c57c8218b0d733add43c1d1933198fb" id="r_a3c57c8218b0d733add43c1d1933198fb"><td class="memItemLeft" align="right" valign="top">quint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1Key.html#a3c57c8218b0d733add43c1d1933198fb">code</a></td></tr>
@@ -150,6 +160,9 @@ Friends</h2></td></tr>
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a015a64c0ae6491d8bd329f95d2fe0290a6ce4d85a628a88bbdb3ac24a8e5a9c2e" name="a015a64c0ae6491d8bd329f95d2fe0290a6ce4d85a628a88bbdb3ac24a8e5a9c2e"></a>Keyboard&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a015a64c0ae6491d8bd329f95d2fe0290a87b7760f14fbff78d8819291f36ab9a0" name="a015a64c0ae6491d8bd329f95d2fe0290a87b7760f14fbff78d8819291f36ab9a0"></a>Button&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a015a64c0ae6491d8bd329f95d2fe0290a39e6b4ab3e4adecf031d3aa8410bb3ce" name="a015a64c0ae6491d8bd329f95d2fe0290a39e6b4ab3e4adecf031d3aa8410bb3ce"></a>Axis&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a015a64c0ae6491d8bd329f95d2fe0290af9ccf217a15b81bb27ee7d003be129a6" name="a015a64c0ae6491d8bd329f95d2fe0290af9ccf217a15b81bb27ee7d003be129a6"></a>MidiNote&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a015a64c0ae6491d8bd329f95d2fe0290a3a43ea82b0de1ff076c5dbd7abe91773" name="a015a64c0ae6491d8bd329f95d2fe0290a3a43ea82b0de1ff076c5dbd7abe91773"></a>MidiControl&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a015a64c0ae6491d8bd329f95d2fe0290afcdeb82128d312de8e7357c4e7ec1d5d" name="a015a64c0ae6491d8bd329f95d2fe0290afcdeb82128d312de8e7357c4e7ec1d5d"></a>MidiPitchBend&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
 </div>
@@ -182,6 +195,23 @@ Friends</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="ad87beb4ed354c97bfa405a8a86a22df9" name="ad87beb4ed354c97bfa405a8a86a22df9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad87beb4ed354c97bfa405a8a86a22df9">&#9670;&#160;</a></span>getMidi()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto input::Key::getMidi </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; QVariant</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a185d147c74b756a39220fbd5726141da" name="a185d147c74b756a39220fbd5726141da"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a185d147c74b756a39220fbd5726141da">&#9670;&#160;</a></span>operator!=()</h2>
 
@@ -366,6 +396,28 @@ Friends</h2></td></tr>
 
 <p>The gamepad this key belongs to. Null if the key is from the keyboard. </p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="classinput_1_1Gamepad.html">input::Gamepad</a> </dd></dl>
+
+</div>
+</div>
+<a id="a93df3bb6fe856cedd3fc04cc39465c59" name="a93df3bb6fe856cedd3fc04cc39465c59"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a93df3bb6fe856cedd3fc04cc39465c59">&#9670;&#160;</a></span>midi</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QVariant input::Key::midi</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>

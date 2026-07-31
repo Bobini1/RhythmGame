@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.13</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.14</span>
    </div>
   </td>
  </tr>
@@ -81,23 +81,20 @@ $(function() {
 <h1><a class="anchor" id="autotoc_md41"></a>
 Theme settings strings</h1>
 <p>Those are quite straightforward. If you take a look at <a href="https://github.com/Bobini1/RhythmGame/blob/master/share/RhythmGame/themes/Default/settings/k7.json">the json file</a> defining the settings for the k7 screen, you will notice that the name and description of each setting are defined in the file itself. Simply add new languages next to "en" and "pl" (English and Polish).</p>
-<p>The identifier of the language can be either a two-letter ISO 639-1 code (e.g. "fr" for French, "zh" for Chinese) or a combination of the ISO 639-1 code and the ISO 3166-1 alpha-2 country code (e.g. "fr_CA" for Canadian French, "zh_HK" for Traditional Chinese as used in Hong Kong).</p>
-<hr  />
-<p> <b>NOTE</b></p>
-<p>Distinguishing between different scripts of the same langauge based on ISO 15924 identifiers is currently unsupported. Please use country codes instead if possible.</p>
-<hr  />
+<p>Locale identifiers use a supported subset of BCP 47: an ISO 639 language code, an optional ISO 15924 script code, and an optional ISO 3166-1 territory code. For example, <code>fr-CA</code> is Canadian French, <code>zh-Hans</code> is Simplified Chinese, <code>zh-Hant-TW</code> is Traditional Chinese for Taiwan, and <code>zh-Hant-HK</code> is Traditional Chinese for Hong Kong. Hyphens are preferred. Existing identifiers with underscores, such as <code>fr_CA</code>, remain accepted and are normalized at load time.</p>
+<p>Script subtags matter when a language uses more than one writing system. The game first looks for the same language, script, and territory, then the same language and script, and finally a generic language entry. It does not select an explicitly incompatible script while a compatible generic entry exists.</p>
 <p>For example, here is a property with an added Canadian French translation:</p>
 <div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;id&quot;: &quot;verticalGauge&quot;,</div>
 <div class="line">  &quot;name&quot;: {</div>
 <div class="line">    &quot;en&quot;: &quot;Vertical Gauge&quot;,</div>
 <div class="line">    &quot;pl&quot;: &quot;Pionowy wskaźnik&quot;,</div>
-<div class="line">    &quot;fr_CA&quot;: &quot;Jauge verticale&quot;</div>
+<div class="line">    &quot;fr-CA&quot;: &quot;Jauge verticale&quot;</div>
 <div class="line">  },</div>
 <div class="line">  &quot;description&quot;: {</div>
 <div class="line">    &quot;en&quot;: &quot;Whether the life gauge is vertical (fills upwards).&quot;,</div>
 <div class="line">    &quot;pl&quot;: &quot;Pionowy wskaźnić życia (wypełnia się w górę).&quot;,</div>
-<div class="line">    &quot;fr_CA&quot;: &quot;Si la jauge de vie est verticale (se remplit vers le haut).&quot;</div>
+<div class="line">    &quot;fr-CA&quot;: &quot;Si la jauge de vie est verticale (se remplit vers le haut).&quot;</div>
 <div class="line">  },</div>
 <div class="line">  &quot;type&quot;: &quot;boolean&quot;,</div>
 <div class="line">  &quot;default&quot;: false</div>
@@ -107,13 +104,15 @@ Theme settings strings</h1>
 <div class="line">  &quot;translations&quot;: {</div>
 <div class="line">    &quot;en&quot;: &quot;translations/Default_en.qm&quot;,</div>
 <div class="line">    &quot;pl&quot;: &quot;translations/Default_pl.qm&quot;,</div>
-<div class="line">    &quot;fr_CA&quot;: &quot;&quot;</div>
+<div class="line">    &quot;fr-CA&quot;: &quot;&quot;,</div>
+<div class="line">    &quot;zh-Hans&quot;: &quot;translations/Default_zh_Hans.qm&quot;,</div>
+<div class="line">    &quot;zh-Hant-TW&quot;: &quot;translations/Default_zh_Hant_TW.qm&quot;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md44"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md42"></a>
 Translating a theme</h1>
 <p>The qm file is a compiled Qt translation file. Those are used for translating strings in QML files, which is explained in the next section. Providing a qm file is optional, you can leave the value empty if your theme does not contain any translatable strings in QML files.</p>
-<h2><a class="anchor" id="autotoc_md45"></a>
+<h2><a class="anchor" id="autotoc_md43"></a>
 Strings in QML files</h2>
 <p>To mark a string in a QML file as translatable, you need to wrap it in the <code>qsTr()</code> function. An in-depth explanation of how to use it can be found in the <a href="https://doc.qt.io/qt-6/i18n-source-translation.html#qml-use-qstr">Qt documentation</a>.</p>
 <p>For translating strings in QML files, you will need to use the Qt Linguist toolchain. There are three essential tools:</p>

@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.13</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.14</span>
    </div>
   </td>
  </tr>
@@ -152,10 +152,13 @@ Translations</h3>
 <div class="line">  },</div>
 <div class="line">  &quot;translations&quot;: {</div>
 <div class="line">    &quot;en&quot;: &quot;en.qm&quot;,</div>
-<div class="line">    &quot;pl&quot;: &quot;pl.qm&quot;</div>
+<div class="line">    &quot;pl&quot;: &quot;pl.qm&quot;,</div>
+<div class="line">    &quot;zh-Hans&quot;: &quot;zh_Hans.qm&quot;,</div>
+<div class="line">    &quot;zh-Hant-HK&quot;: &quot;zh_Hant_HK.qm&quot;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md33"></a>
+</div><!-- fragment --><p>Translation keys use BCP 47 language tags with optional script and territory subtags. See <a class="el" href="md_DEV__LANG.html">DEV_LANG.md</a> for matching and compatibility details.</p>
+<h2><a class="anchor" id="autotoc_md33"></a>
 Theme loading</h2>
 <p>Themes are loaded and validated when the game starts. If there are any critical errors in configuration files, the game will fail to start. Don't share broken themes! Look at log.txt in the data folder to find out what went wrong.</p>
 <p>The part of the game that manages the theme most directly is <a href="https://github.com/Bobini1/RhythmGame/blob/master/RhythmGameQml/ContentFrame.qml">RhythmGameQml/ContentFrame.qml</a>. That qml file is compiled into the executable and is not part of any theme. It contains the window of the entire game and the <code>sceneStack</code>. <code>sceneStack</code> is a globally accessible <a href="https://doc.qt.io/qt-6/qml-qtquick-controls-stackview.html">StackView</a> that contains screens, like <code>main</code>, <code>select</code>, <code>k7</code>, one on top of the other. You can go to another screen by pushing it to the stack. You can exit a screen by popping it from the stack.</p>

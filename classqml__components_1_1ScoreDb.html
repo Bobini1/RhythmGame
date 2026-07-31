@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.13</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.14</span>
    </div>
   </td>
  </tr>
@@ -80,7 +80,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Provides access to the score database of a profile.  
+<p>Provides asynchronous access to a profile's score database.  
  <a href="classqml__components_1_1ScoreDb.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="ScoreDb_8h_source.html">ScoreDb.h</a>&gt;</code></p>
@@ -89,7 +89,7 @@ Inheritance diagram for qml_components::ScoreDb:</div>
 <div class="dyncontent">
 <div class="center"><img src="classqml__components_1_1ScoreDb__inherit__graph.png" border="0" usemap="#aqml__components_1_1ScoreDb_inherit__map" alt="Inheritance graph"/></div>
 <map name="aqml__components_1_1ScoreDb_inherit__map" id="aqml__components_1_1ScoreDb_inherit__map">
-<area shape="rect" title="Provides access to the score database of a profile." alt="" coords="5,79,201,104"/>
+<area shape="rect" title="Provides asynchronous access to a profile&#39;s score database." alt="" coords="5,79,201,104"/>
 <area shape="rect" title=" " alt="" coords="66,5,141,31"/>
 <area shape="poly" title=" " alt="" coords="106,44,106,79,101,79,101,44"/>
 </map>
@@ -99,7 +99,7 @@ Collaboration diagram for qml_components::ScoreDb:</div>
 <div class="dyncontent">
 <div class="center"><img src="classqml__components_1_1ScoreDb__coll__graph.png" border="0" usemap="#aqml__components_1_1ScoreDb_coll__map" alt="Collaboration graph"/></div>
 <map name="aqml__components_1_1ScoreDb_coll__map" id="aqml__components_1_1ScoreDb_coll__map">
-<area shape="rect" title="Provides access to the score database of a profile." alt="" coords="5,79,201,104"/>
+<area shape="rect" title="Provides asynchronous access to a profile&#39;s score database." alt="" coords="5,79,201,104"/>
 <area shape="rect" title=" " alt="" coords="66,5,141,31"/>
 <area shape="poly" title=" " alt="" coords="106,44,106,79,101,79,101,44"/>
 </map>
@@ -109,33 +109,32 @@ Collaboration diagram for qml_components::ScoreDb:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aaf888958bee0ca9475989553cbbc11f3" id="r_aaf888958bee0ca9475989553cbbc11f3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#aaf888958bee0ca9475989553cbbc11f3">ScoreDb</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> *scoreDb)</td></tr>
 <tr class="separator:aaf888958bee0ca9475989553cbbc11f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac454349bcbe2973ea8b8389180f3c357" id="r_ac454349bcbe2973ea8b8389180f3c357"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QIfPendingReply&lt; <a class="el" href="classqml__components_1_1ScoreQueryResult.html">ScoreQueryResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#ac454349bcbe2973ea8b8389180f3c357">getScoresForMd5</a> (const QList&lt; QString &gt; &amp;md5s) const</td></tr>
-<tr class="separator:ac454349bcbe2973ea8b8389180f3c357"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8ecc7b64cfc784f95912e5a1ee5344a7" id="r_a8ecc7b64cfc784f95912e5a1ee5344a7"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QIfPendingReply&lt; <a class="el" href="classqml__components_1_1ScoreQueryResult.html">ScoreQueryResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a8ecc7b64cfc784f95912e5a1ee5344a7">getScoresForCourseId</a> (const QList&lt; QString &gt; &amp;courseIds) const</td></tr>
-<tr class="separator:a8ecc7b64cfc784f95912e5a1ee5344a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a192597c04eb9bf0429f9eb9ad19a5a44" id="r_a192597c04eb9bf0429f9eb9ad19a5a44"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QIfPendingReply&lt; <a class="el" href="classqml__components_1_1ScoreQueryResult.html">ScoreQueryResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a192597c04eb9bf0429f9eb9ad19a5a44">getScores</a> (const QString &amp;folder) const</td></tr>
-<tr class="separator:a192597c04eb9bf0429f9eb9ad19a5a44"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aba17463f59d092c8e6cdf5fe4faf7253" id="r_aba17463f59d092c8e6cdf5fe4faf7253"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QIfPendingReply&lt; <a class="el" href="classqml__components_1_1TableQueryResult.html">TableQueryResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#aba17463f59d092c8e6cdf5fe4faf7253">getScores</a> (const <a class="el" href="structresource__managers_1_1Table.html">resource_managers::Table</a> &amp;table) const</td></tr>
-<tr class="separator:aba17463f59d092c8e6cdf5fe4faf7253"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8d237f07e5db731f517ccd549710333a" id="r_a8d237f07e5db731f517ccd549710333a"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QIfPendingReply&lt; <a class="el" href="classqml__components_1_1ScoreQueryResult.html">ScoreQueryResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a8d237f07e5db731f517ccd549710333a">getScores</a> (const <a class="el" href="structresource__managers_1_1Level.html">resource_managers::Level</a> &amp;level) const</td></tr>
-<tr class="separator:a8d237f07e5db731f517ccd549710333a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a866ae9672ab80bf3db6824421eaf0ac8" id="r_a866ae9672ab80bf3db6824421eaf0ac8"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QIfPendingReply&lt; QVariantMap &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a866ae9672ab80bf3db6824421eaf0ac8">getScoreSummary</a> (const QString &amp;folder) const</td></tr>
-<tr class="separator:a866ae9672ab80bf3db6824421eaf0ac8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64d1fcba1cc8118a09fba9764da9a4dd" id="r_a64d1fcba1cc8118a09fba9764da9a4dd"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QIfPendingReply&lt; QVariantMap &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a64d1fcba1cc8118a09fba9764da9a4dd">getScoreSummary</a> (const <a class="el" href="structresource__managers_1_1Table.html">resource_managers::Table</a> &amp;table) const</td></tr>
-<tr class="separator:a64d1fcba1cc8118a09fba9764da9a4dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f842fa83267b87939ac0571306fceca" id="r_a5f842fa83267b87939ac0571306fceca"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QIfPendingReply&lt; QVariantMap &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a5f842fa83267b87939ac0571306fceca">getScoreSummary</a> (const <a class="el" href="structresource__managers_1_1Level.html">resource_managers::Level</a> &amp;level) const</td></tr>
-<tr class="separator:a5f842fa83267b87939ac0571306fceca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a059e9dd96cfa5d82891993a75e6999af" id="r_a059e9dd96cfa5d82891993a75e6999af"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QIfPendingReply&lt; <a class="el" href="classqml__components_1_1ScoreStatsResult.html">ScoreStatsResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a059e9dd96cfa5d82891993a75e6999af">getTotalStats</a> () const</td></tr>
-<tr class="separator:a059e9dd96cfa5d82891993a75e6999af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac9eb21f5c3b9415011d140b881575a69" id="r_ac9eb21f5c3b9415011d140b881575a69"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#ac9eb21f5c3b9415011d140b881575a69">cancelPending</a> ()</td></tr>
-<tr class="memdesc:ac9eb21f5c3b9415011d140b881575a69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stop all pending queries and fail them.  <br /></td></tr>
-<tr class="separator:ac9eb21f5c3b9415011d140b881575a69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5dcc6ce34100f08c5838abf668ce53ac" id="r_a5dcc6ce34100f08c5838abf668ce53ac"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a5dcc6ce34100f08c5838abf668ce53ac">~ScoreDb</a> () override</td></tr>
+<tr class="separator:a5dcc6ce34100f08c5838abf668ce53ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae1b4a92da8dbb3736a3649f04f32cb48" id="r_ae1b4a92da8dbb3736a3649f04f32cb48"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#ae1b4a92da8dbb3736a3649f04f32cb48">getScoresForMd5</a> (const QList&lt; QString &gt; &amp;md5s)</td></tr>
+<tr class="separator:ae1b4a92da8dbb3736a3649f04f32cb48"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7783b7bf0f0119b62e6b0f1e797c0d91" id="r_a7783b7bf0f0119b62e6b0f1e797c0d91"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a7783b7bf0f0119b62e6b0f1e797c0d91">getScoresForCourseId</a> (const QList&lt; QString &gt; &amp;courseIds)</td></tr>
+<tr class="separator:a7783b7bf0f0119b62e6b0f1e797c0d91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afee865ef9150387c16915e1ce2f496fa" id="r_afee865ef9150387c16915e1ce2f496fa"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#afee865ef9150387c16915e1ce2f496fa">getScores</a> (const QString &amp;folder)</td></tr>
+<tr class="separator:afee865ef9150387c16915e1ce2f496fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0a12a820bf4c33c164cde3a14979b76" id="r_af0a12a820bf4c33c164cde3a14979b76"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#af0a12a820bf4c33c164cde3a14979b76">getScores</a> (const <a class="el" href="structresource__managers_1_1Table.html">resource_managers::Table</a> &amp;table)</td></tr>
+<tr class="separator:af0a12a820bf4c33c164cde3a14979b76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae39112cbe771dadb8e02dfee1feb220d" id="r_ae39112cbe771dadb8e02dfee1feb220d"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#ae39112cbe771dadb8e02dfee1feb220d">getScores</a> (const <a class="el" href="structresource__managers_1_1Level.html">resource_managers::Level</a> &amp;level)</td></tr>
+<tr class="separator:ae39112cbe771dadb8e02dfee1feb220d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6003157010e778821f6de3745e647118" id="r_a6003157010e778821f6de3745e647118"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a6003157010e778821f6de3745e647118">getScoreSummary</a> (const QString &amp;folder)</td></tr>
+<tr class="separator:a6003157010e778821f6de3745e647118"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a078812994e8c20a300237669486af253" id="r_a078812994e8c20a300237669486af253"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a078812994e8c20a300237669486af253">getScoreSummary</a> (const <a class="el" href="structresource__managers_1_1Table.html">resource_managers::Table</a> &amp;table)</td></tr>
+<tr class="separator:a078812994e8c20a300237669486af253"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab538c25c145a03ced0b16a86456e5769" id="r_ab538c25c145a03ced0b16a86456e5769"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#ab538c25c145a03ced0b16a86456e5769">getScoreSummary</a> (const <a class="el" href="structresource__managers_1_1Level.html">resource_managers::Level</a> &amp;level)</td></tr>
+<tr class="separator:ab538c25c145a03ced0b16a86456e5769"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8cfca4d8e197d5d9f987759c7c0b24c" id="r_af8cfca4d8e197d5d9f987759c7c0b24c"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#af8cfca4d8e197d5d9f987759c7c0b24c">getTotalStats</a> ()</td></tr>
+<tr class="separator:af8cfca4d8e197d5d9f987759c7c0b24c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1c64c6ad001561d1e92218a195ca441" id="r_ac1c64c6ad001561d1e92218a195ca441"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#ac1c64c6ad001561d1e92218a195ca441">getTotalScoreCount</a> () const</td></tr>
 <tr class="separator:ac1c64c6ad001561d1e92218a195ca441"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Provides access to the score database of a profile. </p>
-<p>All methods are asynchronous and return a QIfPendingReply. The queries are executed in a thread pool, so multiple queries can be executed in parallel. Use <a class="el" href="classqml__components_1_1ScoreDb.html#ac9eb21f5c3b9415011d140b881575a69" title="Stop all pending queries and fail them.">cancelPending()</a> to stop all pending queries. </p>
+<div class="textblock"><p>Provides asynchronous access to a profile's score database. </p>
+<p>Queries execute in the thread pool. Each returned PendingReply owns its cancellation; callers retain and cancel only the work they started. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aaf888958bee0ca9475989553cbbc11f3" name="aaf888958bee0ca9475989553cbbc11f3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaf888958bee0ca9475989553cbbc11f3">&#9670;&#160;</a></span>ScoreDb()</h2>
@@ -163,29 +162,34 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<h2 class="groupheader">Member Function Documentation</h2>
-<a id="ac9eb21f5c3b9415011d140b881575a69" name="ac9eb21f5c3b9415011d140b881575a69"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac9eb21f5c3b9415011d140b881575a69">&#9670;&#160;</a></span>cancelPending()</h2>
+<a id="a5dcc6ce34100f08c5838abf668ce53ac" name="a5dcc6ce34100f08c5838abf668ce53ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5dcc6ce34100f08c5838abf668ce53ac">&#9670;&#160;</a></span>~ScoreDb()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void qml_components::ScoreDb::cancelPending </td>
+          <td class="memname">qml_components::ScoreDb::~ScoreDb </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
-<p>Stop all pending queries and fail them. </p>
-<p>This is useful when quickly browsing directories (faster than the queries can finish) to avoid a backlog of queries. </p>
-
 </div>
 </div>
-<a id="a192597c04eb9bf0429f9eb9ad19a5a44" name="a192597c04eb9bf0429f9eb9ad19a5a44"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a192597c04eb9bf0429f9eb9ad19a5a44">&#9670;&#160;</a></span>getScores() <span class="overload">[1/3]</span></h2>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="afee865ef9150387c16915e1ce2f496fa" name="afee865ef9150387c16915e1ce2f496fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afee865ef9150387c16915e1ce2f496fa">&#9670;&#160;</a></span>getScores() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -195,15 +199,15 @@ Public Member Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">const QString &amp;&#160;</td>
           <td class="paramname"><em>folder</em></td><td>)</td>
-          <td> const</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a8d237f07e5db731f517ccd549710333a" name="a8d237f07e5db731f517ccd549710333a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8d237f07e5db731f517ccd549710333a">&#9670;&#160;</a></span>getScores() <span class="overload">[2/3]</span></h2>
+<a id="ae39112cbe771dadb8e02dfee1feb220d" name="ae39112cbe771dadb8e02dfee1feb220d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae39112cbe771dadb8e02dfee1feb220d">&#9670;&#160;</a></span>getScores() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -213,15 +217,15 @@ Public Member Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="structresource__managers_1_1Level.html">resource_managers::Level</a> &amp;&#160;</td>
           <td class="paramname"><em>level</em></td><td>)</td>
-          <td> const</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="aba17463f59d092c8e6cdf5fe4faf7253" name="aba17463f59d092c8e6cdf5fe4faf7253"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aba17463f59d092c8e6cdf5fe4faf7253">&#9670;&#160;</a></span>getScores() <span class="overload">[3/3]</span></h2>
+<a id="af0a12a820bf4c33c164cde3a14979b76" name="af0a12a820bf4c33c164cde3a14979b76"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0a12a820bf4c33c164cde3a14979b76">&#9670;&#160;</a></span>getScores() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -231,33 +235,33 @@ Public Member Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="structresource__managers_1_1Table.html">resource_managers::Table</a> &amp;&#160;</td>
           <td class="paramname"><em>table</em></td><td>)</td>
-          <td> const</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a8ecc7b64cfc784f95912e5a1ee5344a7" name="a8ecc7b64cfc784f95912e5a1ee5344a7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8ecc7b64cfc784f95912e5a1ee5344a7">&#9670;&#160;</a></span>getScoresForCourseId()</h2>
+<a id="a7783b7bf0f0119b62e6b0f1e797c0d91" name="a7783b7bf0f0119b62e6b0f1e797c0d91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7783b7bf0f0119b62e6b0f1e797c0d91">&#9670;&#160;</a></span>getScoresForCourseId()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">QIfPendingReply&lt; <a class="el" href="classqml__components_1_1ScoreQueryResult.html">ScoreQueryResult</a> &gt; qml_components::ScoreDb::getScoresForCourseId </td>
+          <td class="memname">auto qml_components::ScoreDb::getScoresForCourseId </td>
           <td>(</td>
           <td class="paramtype">const QList&lt; QString &gt; &amp;&#160;</td>
           <td class="paramname"><em>courseIds</em></td><td>)</td>
-          <td> const</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="ac454349bcbe2973ea8b8389180f3c357" name="ac454349bcbe2973ea8b8389180f3c357"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac454349bcbe2973ea8b8389180f3c357">&#9670;&#160;</a></span>getScoresForMd5()</h2>
+<a id="ae1b4a92da8dbb3736a3649f04f32cb48" name="ae1b4a92da8dbb3736a3649f04f32cb48"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae1b4a92da8dbb3736a3649f04f32cb48">&#9670;&#160;</a></span>getScoresForMd5()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -267,15 +271,15 @@ Public Member Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">const QList&lt; QString &gt; &amp;&#160;</td>
           <td class="paramname"><em>md5s</em></td><td>)</td>
-          <td> const</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a866ae9672ab80bf3db6824421eaf0ac8" name="a866ae9672ab80bf3db6824421eaf0ac8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a866ae9672ab80bf3db6824421eaf0ac8">&#9670;&#160;</a></span>getScoreSummary() <span class="overload">[1/3]</span></h2>
+<a id="a6003157010e778821f6de3745e647118" name="a6003157010e778821f6de3745e647118"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6003157010e778821f6de3745e647118">&#9670;&#160;</a></span>getScoreSummary() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -285,15 +289,15 @@ Public Member Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">const QString &amp;&#160;</td>
           <td class="paramname"><em>folder</em></td><td>)</td>
-          <td> const</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a5f842fa83267b87939ac0571306fceca" name="a5f842fa83267b87939ac0571306fceca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f842fa83267b87939ac0571306fceca">&#9670;&#160;</a></span>getScoreSummary() <span class="overload">[2/3]</span></h2>
+<a id="ab538c25c145a03ced0b16a86456e5769" name="ab538c25c145a03ced0b16a86456e5769"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab538c25c145a03ced0b16a86456e5769">&#9670;&#160;</a></span>getScoreSummary() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -303,15 +307,15 @@ Public Member Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="structresource__managers_1_1Level.html">resource_managers::Level</a> &amp;&#160;</td>
           <td class="paramname"><em>level</em></td><td>)</td>
-          <td> const</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a64d1fcba1cc8118a09fba9764da9a4dd" name="a64d1fcba1cc8118a09fba9764da9a4dd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a64d1fcba1cc8118a09fba9764da9a4dd">&#9670;&#160;</a></span>getScoreSummary() <span class="overload">[3/3]</span></h2>
+<a id="a078812994e8c20a300237669486af253" name="a078812994e8c20a300237669486af253"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a078812994e8c20a300237669486af253">&#9670;&#160;</a></span>getScoreSummary() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -321,7 +325,7 @@ Public Member Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="structresource__managers_1_1Table.html">resource_managers::Table</a> &amp;&#160;</td>
           <td class="paramname"><em>table</em></td><td>)</td>
-          <td> const</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -345,8 +349,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a059e9dd96cfa5d82891993a75e6999af" name="a059e9dd96cfa5d82891993a75e6999af"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a059e9dd96cfa5d82891993a75e6999af">&#9670;&#160;</a></span>getTotalStats()</h2>
+<a id="af8cfca4d8e197d5d9f987759c7c0b24c" name="af8cfca4d8e197d5d9f987759c7c0b24c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af8cfca4d8e197d5d9f987759c7c0b24c">&#9670;&#160;</a></span>getTotalStats()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -355,7 +359,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto qml_components::ScoreDb::getTotalStats </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> const</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">

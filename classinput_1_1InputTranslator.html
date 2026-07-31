@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.13</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.14</span>
    </div>
   </td>
  </tr>
@@ -235,6 +235,14 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:abb370eff2a1ce77dc121a41dc576e7aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a54e569f89aee21a961e9f98c7d5505b0" id="r_a54e569f89aee21a961e9f98c7d5505b0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1InputTranslator.html#a54e569f89aee21a961e9f98c7d5505b0">handleRelease</a> (<a class="el" href="classinput_1_1Gamepad.html">Gamepad</a> gamepad, Uint8 button, int64_t time)</td></tr>
 <tr class="separator:a54e569f89aee21a961e9f98c7d5505b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e05f1c296d0f8dbffc28441df6357bd" id="r_a1e05f1c296d0f8dbffc28441df6357bd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1InputTranslator.html#a1e05f1c296d0f8dbffc28441df6357bd">handleMidiNote</a> (<a class="el" href="classinput_1_1MidiDevice.html">MidiDevice</a> device, int channel, int note, int velocity, int64_t time)</td></tr>
+<tr class="separator:a1e05f1c296d0f8dbffc28441df6357bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad358952c78fc3cf0c5815d9a3bd61114" id="r_ad358952c78fc3cf0c5815d9a3bd61114"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1InputTranslator.html#ad358952c78fc3cf0c5815d9a3bd61114">handleMidiControl</a> (<a class="el" href="classinput_1_1MidiDevice.html">MidiDevice</a> device, int channel, int control, int <a class="el" href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">value</a>, int64_t time)</td></tr>
+<tr class="separator:ad358952c78fc3cf0c5815d9a3bd61114"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab7d7367f174741d2056877a46735face" id="r_ab7d7367f174741d2056877a46735face"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1InputTranslator.html#ab7d7367f174741d2056877a46735face">handleMidiPitchBend</a> (<a class="el" href="classinput_1_1MidiDevice.html">MidiDevice</a> device, int channel, int <a class="el" href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">value</a>, int64_t time)</td></tr>
+<tr class="separator:ab7d7367f174741d2056877a46735face"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a840e3b04addb1f58e623460bebcedac9" id="r_a840e3b04addb1f58e623460bebcedac9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1InputTranslator.html#a840e3b04addb1f58e623460bebcedac9">handleMidiDeviceRemoved</a> (<a class="el" href="classinput_1_1MidiDevice.html">MidiDevice</a> device, int64_t time)</td></tr>
+<tr class="separator:a840e3b04addb1f58e623460bebcedac9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3173d93f19979aca497c27cffeb74760" id="r_a3173d93f19979aca497c27cffeb74760"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1InputTranslator.html#a3173d93f19979aca497c27cffeb74760">handleKeyEvent</a> (quint32 nativeScanCode, bool isPress, int64_t time)</td></tr>
 <tr class="separator:a3173d93f19979aca497c27cffeb74760"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae3a9192affdce96289470c16ecc4351e" id="r_ae3a9192affdce96289470c16ecc4351e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1InputTranslator.html#ae3a9192affdce96289470c16ecc4351e">loadKeyConfig</a> ()</td></tr>
@@ -2288,6 +2296,166 @@ Properties</h2></td></tr>
           <td></td>
           <td class="paramtype">bool&#160;</td>
           <td class="paramname"><em>isPress</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&#160;</td>
+          <td class="paramname"><em>time</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad358952c78fc3cf0c5815d9a3bd61114" name="ad358952c78fc3cf0c5815d9a3bd61114"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad358952c78fc3cf0c5815d9a3bd61114">&#9670;&#160;</a></span>handleMidiControl()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void input::InputTranslator::handleMidiControl </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classinput_1_1MidiDevice.html">MidiDevice</a>&#160;</td>
+          <td class="paramname"><em>device</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>channel</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>control</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&#160;</td>
+          <td class="paramname"><em>time</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a840e3b04addb1f58e623460bebcedac9" name="a840e3b04addb1f58e623460bebcedac9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a840e3b04addb1f58e623460bebcedac9">&#9670;&#160;</a></span>handleMidiDeviceRemoved()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void input::InputTranslator::handleMidiDeviceRemoved </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classinput_1_1MidiDevice.html">MidiDevice</a>&#160;</td>
+          <td class="paramname"><em>device</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&#160;</td>
+          <td class="paramname"><em>time</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1e05f1c296d0f8dbffc28441df6357bd" name="a1e05f1c296d0f8dbffc28441df6357bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e05f1c296d0f8dbffc28441df6357bd">&#9670;&#160;</a></span>handleMidiNote()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void input::InputTranslator::handleMidiNote </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classinput_1_1MidiDevice.html">MidiDevice</a>&#160;</td>
+          <td class="paramname"><em>device</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>channel</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>note</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>velocity</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&#160;</td>
+          <td class="paramname"><em>time</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab7d7367f174741d2056877a46735face" name="ab7d7367f174741d2056877a46735face"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab7d7367f174741d2056877a46735face">&#9670;&#160;</a></span>handleMidiPitchBend()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void input::InputTranslator::handleMidiPitchBend </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classinput_1_1MidiDevice.html">MidiDevice</a>&#160;</td>
+          <td class="paramname"><em>device</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>channel</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

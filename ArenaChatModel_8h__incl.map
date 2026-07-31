@@ -1,0 +1,23 @@
+<map id="src/arena/ArenaChatModel.h" name="src/arena/ArenaChatModel.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="380,5,587,31"/>
+<area shape="rect" id="Node000002" href="$ArenaTypes_8h.html" title=" " alt="" coords="275,79,385,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="460,33,368,75,366,70,458,28"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="409,79,558,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="486,31,486,65,481,65,481,31"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="582,79,635,104"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="505,28,578,69,575,74,502,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,76,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="284,107,90,154,88,149,283,101"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="101,152,194,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="302,107,191,149,189,144,300,102"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="218,152,269,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="318,106,270,145,266,141,314,102"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="293,152,367,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="333,104,333,138,327,138,327,104"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="391,152,466,177"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="347,102,403,142,400,146,344,106"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="490,152,565,177"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="363,102,483,145,481,150,361,107"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="589,152,657,177"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="378,101,576,149,575,154,377,107"/>
+</map>

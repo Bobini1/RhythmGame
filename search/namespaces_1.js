@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['db_0',['db',['../namespacedb.html',1,'']]],
-  ['dxa_1',['dxa',['../namespacedxa.html',1,'']]]
+  ['charts_0',['charts',['../namespacecharts.html',1,'']]]
 ];

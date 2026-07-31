@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['gaugemode_0',['GaugeMode',['../namespaceresource__managers_1_1gauge__mode.html#ac121e2691e7e4d13551d18c7618e8d73',1,'resource_managers::gauge_mode']]]
+  ['fatalerrorcode_0',['FatalErrorCode',['../namespacearena.html#a91dd963eac2b98e4ff3dfcdc35a51447',1,'arena']]],
+  ['frozenroundstage_1',['FrozenRoundStage',['../namespacearena.html#a1737a5b8ca74ae6c37f5fc4920430901',1,'arena']]]
 ];

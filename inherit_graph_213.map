@@ -1,0 +1,207 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,13,187,38"/>
+<area shape="rect" id="Node000001" href="$classqml__components_1_1RootSongFolder.html" title=" " alt="" coords="258,5,462,45"/>
+<area shape="poly" id="edge19_Node000000_Node000001" title=" " alt="" coords="200,23,258,23,258,28,200,28"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="59,2265,133,2290"/>
+<area shape="poly" id="edge99_Node000002_Node000001" title=" " alt="" coords="94,2251,95,1832,99,1499,108,1131,124,766,148,441,165,305,184,192,206,108,219,77,233,56,256,37,259,41,237,59,224,80,211,109,189,193,170,306,154,442,129,767,113,1131,104,1499,100,1833,100,2251"/>
+<area shape="rect" id="Node000003" href="$classFontResolver.html" title=" " alt="" coords="307,70,413,95"/>
+<area shape="poly" id="edge20_Node000002_Node000003" title=" " alt="" coords="94,2251,94,1841,98,1514,107,1154,123,797,147,480,164,347,183,237,206,155,219,126,233,105,248,92,267,83,306,76,307,82,268,88,251,96,237,108,224,128,211,157,189,238,169,348,153,480,128,798,112,1154,103,1514,100,1841,100,2251"/>
+<area shape="rect" id="Node000004" href="$classLr2AnimationFrameState.html" title=" " alt="" coords="268,119,452,145"/>
+<area shape="poly" id="edge21_Node000002_Node000004" title=" " alt="" coords="94,2251,95,1849,99,1529,108,1178,124,830,149,520,165,390,184,283,207,203,219,175,233,154,248,141,267,133,269,138,251,146,237,158,224,177,212,205,190,284,170,391,154,521,130,830,113,1178,104,1529,100,1849,100,2251"/>
+<area shape="rect" id="Node000005" href="$classLr2BarBaseStateResolver.html" title=" " alt="" coords="267,169,453,194"/>
+<area shape="poly" id="edge22_Node000002_Node000005" title=" " alt="" coords="95,2251,96,1856,100,1544,110,1201,126,862,150,560,167,434,185,329,207,251,219,223,233,204,248,191,265,182,268,187,251,195,237,207,224,226,212,253,191,331,172,434,156,561,131,862,115,1202,105,1544,101,1856,100,2251"/>
+<area shape="rect" id="Node000006" href="$classLr2BarInterpolatedState.html" title=" " alt="" coords="271,218,449,243"/>
+<area shape="poly" id="edge23_Node000002_Node000006" title=" " alt="" coords="95,2251,96,1865,101,1561,111,1226,127,895,152,601,168,477,186,376,208,300,220,272,233,253,250,239,270,230,272,235,253,244,237,256,224,275,213,301,192,377,173,478,157,601,133,896,116,1227,106,1561,102,1865,100,2251"/>
+<area shape="rect" id="Node000007" href="$classLr2BarPositionMap.html" title=" " alt="" coords="288,267,432,293"/>
+<area shape="poly" id="edge24_Node000002_Node000007" title=" " alt="" coords="95,2250,97,1873,102,1576,112,1250,129,927,153,641,169,521,187,422,208,348,220,321,233,302,258,284,287,276,288,281,260,289,237,306,225,324,213,349,193,423,174,521,159,641,134,928,118,1250,108,1576,102,1873,100,2250"/>
+<area shape="rect" id="Node000008" href="$classLr2ChartDataSnapshot.html" title=" " alt="" coords="276,317,444,342"/>
+<area shape="poly" id="edge25_Node000002_Node000008" title=" " alt="" coords="95,2251,98,1883,103,1593,114,1276,131,961,155,681,170,564,188,468,209,396,220,370,233,352,252,336,274,328,276,333,255,341,237,355,225,373,214,398,193,469,176,565,160,682,136,961,119,1276,109,1593,103,1883,100,2251"/>
+<area shape="rect" id="Node000009" href="$classLr2GameplayFrameState.html" title=" " alt="" coords="268,366,452,391"/>
+<area shape="poly" id="edge26_Node000002_Node000009" title=" " alt="" coords="95,2251,98,1891,104,1609,115,1300,132,994,156,722,172,608,189,514,209,444,221,419,233,401,248,388,267,379,269,384,251,392,237,404,225,421,214,446,194,515,177,609,162,722,138,994,121,1300,110,1609,104,1891,100,2251"/>
+<area shape="rect" id="Node000010" href="$classLr2ResolvedText.html" title=" " alt="" coords="295,415,425,441"/>
+<area shape="poly" id="edge27_Node000002_Node000010" title=" " alt="" coords="95,2250,99,1898,106,1624,117,1323,134,1026,158,762,173,651,190,560,210,492,221,468,233,450,246,439,261,431,294,423,295,428,263,436,249,443,237,454,226,470,215,494,195,561,178,652,163,762,139,1026,122,1323,111,1624,104,1898,100,2251"/>
+<area shape="rect" id="Node000011" href="$classLr2ResolvedTextRegistry.html" title=" " alt="" coords="269,465,451,490"/>
+<area shape="poly" id="edge28_Node000002_Node000011" title=" " alt="" coords="95,2251,100,1907,107,1640,118,1348,135,1059,159,802,174,695,191,606,211,540,233,500,249,486,267,478,270,483,252,491,237,503,216,542,196,608,180,696,165,803,141,1059,124,1348,112,1640,105,1907,100,2251"/>
+<area shape="rect" id="Node000012" href="$classLr2SelectBarCell.html" title=" " alt="" coords="295,514,425,539"/>
+<area shape="poly" id="edge29_Node000002_Node000012" title=" " alt="" coords="95,2251,100,1916,108,1656,120,1372,137,1092,161,843,176,738,192,653,211,588,233,549,246,538,261,530,294,522,295,527,263,535,249,542,237,552,216,590,197,654,181,739,166,843,142,1092,125,1372,113,1656,106,1916,100,2251"/>
+<area shape="rect" id="Node000013" href="$classLr2SelectDetailState.html" title=" " alt="" coords="283,563,437,589"/>
+<area shape="poly" id="edge30_Node000002_Node000013" title=" " alt="" coords="95,2251,101,1925,109,1673,121,1397,139,1125,162,883,177,782,193,699,212,636,233,598,255,582,282,573,283,578,258,586,237,602,217,638,198,700,182,783,168,884,144,1125,127,1397,114,1673,106,1925,100,2251"/>
+<area shape="rect" id="Node000014" href="$classLr2SelectInfoTimerBridge.html" title=" " alt="" coords="267,613,453,638"/>
+<area shape="poly" id="edge31_Node000002_Node000014" title=" " alt="" coords="95,2251,102,1934,123,1422,140,1158,164,924,178,826,194,745,212,685,233,648,248,635,265,627,267,632,251,640,237,651,217,687,199,746,183,827,169,924,146,1158,128,1422,107,1934,100,2251"/>
+<area shape="rect" id="Node000015" href="$classLr2SelectKeyNavigationFilter.html" title=" " alt="" coords="255,662,465,687"/>
+<area shape="poly" id="edge32_Node000002_Node000015" title=" " alt="" coords="95,2251,103,1941,124,1445,142,1190,165,964,179,869,195,791,213,733,233,697,253,682,256,686,237,700,218,735,200,792,185,870,171,964,147,1191,130,1446,108,1942,100,2251"/>
+<area shape="rect" id="Node000016" href="$classLr2SelectNavigationController.html" title=" " alt="" coords="251,711,469,737"/>
+<area shape="poly" id="edge33_Node000002_Node000016" title=" " alt="" coords="95,2251,103,1951,126,1470,144,1223,167,1004,181,913,196,837,213,781,233,746,249,733,252,737,237,750,218,783,201,839,186,914,172,1005,149,1224,131,1471,109,1951,100,2251"/>
+<area shape="rect" id="Node000017" href="$classLr2SelectScoreCounts.html" title=" " alt="" coords="279,761,441,786"/>
+<area shape="poly" id="edge34_Node000002_Node000017" title=" " alt="" coords="95,2250,104,1959,127,1494,145,1256,168,1045,182,956,197,883,214,829,233,796,253,780,277,771,279,776,256,785,237,799,219,831,202,885,187,957,174,1045,151,1256,132,1495,110,1959,101,2251"/>
+<area shape="rect" id="Node000018" href="$classLr2SelectScoreStats.html" title=" " alt="" coords="285,810,435,835"/>
+<area shape="poly" id="edge35_Node000002_Node000018" title=" " alt="" coords="95,2251,105,1968,129,1519,147,1289,170,1085,183,1000,198,930,215,877,233,845,256,828,283,819,285,824,258,833,237,848,219,879,203,931,189,1001,175,1086,152,1290,134,1520,110,1968,101,2251"/>
+<area shape="rect" id="Node000019" href="$classLr2SelectScoreSummary.html" title=" " alt="" coords="269,859,451,885"/>
+<area shape="poly" id="edge36_Node000002_Node000019" title=" " alt="" coords="95,2251,106,1976,130,1543,149,1322,171,1125,185,1043,199,976,215,925,233,894,249,881,268,873,270,878,252,886,237,898,220,927,204,977,190,1044,177,1126,154,1322,135,1544,111,1976,101,2251"/>
+<area shape="rect" id="Node000020" href="$classLr2SelectUpdateController.html" title=" " alt="" coords="263,909,457,934"/>
+<area shape="poly" id="edge37_Node000002_Node000020" title=" " alt="" coords="96,2251,107,1986,132,1569,150,1355,173,1166,200,1022,216,973,233,944,246,932,262,924,264,929,249,937,237,947,221,976,205,1024,178,1167,155,1356,137,1569,112,1986,101,2251"/>
+<area shape="rect" id="Node000021" href="$classLr2SelectVisualState.html" title=" " alt="" coords="282,958,438,983"/>
+<area shape="poly" id="edge38_Node000002_Node000021" title=" " alt="" coords="96,2251,107,1994,133,1593,152,1388,174,1207,201,1068,216,1022,233,993,255,977,281,968,282,973,257,981,237,996,221,1024,206,1070,180,1207,157,1389,139,1594,113,1995,101,2251"/>
+<area shape="rect" id="Node000022" href="$classLr2SkinClock.html" title=" " alt="" coords="307,1007,413,1033"/>
+<area shape="poly" id="edge39_Node000002_Node000022" title=" " alt="" coords="96,2251,108,2003,135,1619,154,1422,176,1248,202,1116,217,1071,233,1044,248,1031,267,1022,306,1015,307,1020,269,1027,251,1035,237,1047,222,1073,207,1117,181,1249,159,1423,140,1619,114,2004,101,2251"/>
+<area shape="rect" id="Node000023" href="$classLr2SkinElementActiveOptionsState.html" title=" " alt="" coords="253,1057,467,1097"/>
+<area shape="poly" id="edge40_Node000002_Node000023" title=" " alt="" coords="96,2251,110,2015,138,1651,157,1466,179,1302,204,1177,218,1134,233,1108,251,1093,254,1097,237,1111,223,1136,209,1178,184,1303,162,1466,143,1652,115,2015,101,2251"/>
+<area shape="rect" id="Node000024" href="$classLr2SkinElementTimerState.html" title=" " alt="" coords="262,1122,458,1147"/>
+<area shape="poly" id="edge41_Node000002_Node000024" title=" " alt="" coords="96,2251,110,2024,138,1675,157,1498,179,1341,204,1222,218,1182,233,1157,260,1138,263,1143,237,1160,223,1184,210,1223,185,1342,163,1498,144,1676,115,2024,101,2251"/>
+<area shape="rect" id="Node000025" href="$classLr2SkinFrameDriver.html" title=" " alt="" coords="285,1171,435,1197"/>
+<area shape="poly" id="edge42_Node000002_Node000025" title=" " alt="" coords="96,2251,111,2033,140,1700,159,1531,181,1382,205,1268,219,1230,233,1206,256,1190,284,1181,285,1186,259,1194,237,1210,223,1232,211,1270,186,1383,164,1532,145,1701,116,2033,102,2251"/>
+<area shape="rect" id="Node000026" href="$classLr2SkinOptionRules.html" title=" " alt="" coords="285,1221,435,1246"/>
+<area shape="poly" id="edge43_Node000002_Node000026" title=" " alt="" coords="94,2251,95,2055,100,1912,110,1755,126,1599,151,1454,167,1391,186,1336,208,1290,233,1255,257,1239,284,1230,286,1235,259,1244,237,1259,212,1293,191,1338,172,1393,156,1456,131,1599,115,1756,105,1912,101,2055,100,2251"/>
+<area shape="rect" id="Node000027" href="$classLr2SkinRuntime.html" title=" " alt="" coords="297,1270,423,1295"/>
+<area shape="poly" id="edge44_Node000002_Node000027" title=" " alt="" coords="94,2251,97,2064,102,1927,113,1779,129,1630,154,1493,170,1433,188,1381,209,1338,233,1305,246,1294,262,1286,296,1278,297,1283,264,1291,249,1298,237,1309,213,1340,193,1383,175,1435,159,1494,135,1631,118,1779,108,1927,102,2064,100,2251"/>
+<area shape="rect" id="Node000028" href="$classLr2SkinSliderGeometry.html" title=" " alt="" coords="274,1319,446,1345"/>
+<area shape="poly" id="edge45_Node000002_Node000028" title=" " alt="" coords="95,2251,98,2072,105,1943,116,1802,133,1661,157,1532,172,1475,190,1426,210,1385,233,1354,251,1340,273,1332,275,1337,254,1345,237,1358,214,1388,195,1428,177,1477,162,1533,138,1662,121,1802,110,1943,104,2072,100,2251"/>
+<area shape="rect" id="Node000029" href="$classLr2SkinTimerState.html" title=" " alt="" coords="289,1369,431,1394"/>
+<area shape="poly" id="edge46_Node000002_Node000029" title=" " alt="" coords="95,2251,100,2081,107,1958,119,1825,136,1693,160,1571,175,1518,192,1471,211,1433,233,1403,258,1386,288,1378,289,1383,261,1391,237,1407,216,1435,197,1473,180,1519,165,1572,141,1694,124,1826,113,1959,105,2081,100,2251"/>
+<area shape="rect" id="Node000030" href="$classLr2TimelineFrameState.html" title=" " alt="" coords="273,1418,447,1443"/>
+<area shape="poly" id="edge47_Node000002_Node000030" title=" " alt="" coords="95,2251,102,2088,110,1973,122,1848,139,1724,163,1610,194,1516,212,1480,233,1453,251,1439,271,1431,273,1436,253,1444,237,1457,217,1483,199,1518,168,1611,145,1725,127,1849,115,1974,107,2089,101,2251"/>
+<area shape="rect" id="Node000031" href="$classLr2TimelineState.html" title=" " alt="" coords="293,1467,427,1493"/>
+<area shape="poly" id="edge48_Node000002_Node000031" title=" " alt="" coords="95,2251,104,2097,125,1872,143,1755,166,1649,196,1561,213,1528,233,1502,261,1484,292,1476,294,1481,263,1489,236,1506,218,1530,201,1563,171,1650,148,1756,130,1872,109,2098,101,2251"/>
+<area shape="rect" id="Node000032" href="$classRg.html" title="The main singleton class that provides access to various components of the application." alt="" coords="341,1517,379,1542"/>
+<area shape="poly" id="edge49_Node000002_Node000032" title=" " alt="" coords="96,2251,106,2107,129,1896,146,1788,169,1689,198,1608,214,1577,233,1553,258,1536,288,1527,340,1525,341,1530,288,1532,260,1541,236,1557,219,1579,203,1610,174,1691,152,1789,134,1897,111,2107,101,2251"/>
+<area shape="rect" id="Node000033" href="$classarena_1_1ArenaAvailabilityIndex.html" title=" " alt="" coords="271,1567,449,1607"/>
+<area shape="poly" id="edge50_Node000002_Node000033" title=" " alt="" coords="97,2250,109,2118,134,1928,152,1830,174,1741,201,1667,216,1639,233,1617,250,1603,269,1594,272,1599,253,1608,237,1621,221,1641,206,1669,179,1742,157,1831,139,1928,114,2118,102,2251"/>
+<area shape="rect" id="Node000034" href="$classarena_1_1ArenaGameplaySource.html" title=" " alt="" coords="252,1631,468,1657"/>
+<area shape="poly" id="edge51_Node000002_Node000034" title=" " alt="" coords="97,2251,110,2127,136,1951,154,1861,176,1779,202,1712,217,1686,233,1666,250,1654,253,1658,236,1670,221,1689,207,1714,181,1780,159,1862,141,1952,115,2127,102,2251"/>
+<area shape="rect" id="Node000036" href="$classarena_1_1ArenaIdentityProvider.html" title=" " alt="" coords="255,1681,465,1706"/>
+<area shape="poly" id="edge53_Node000002_Node000036" title=" " alt="" coords="97,2251,112,2136,139,1975,157,1893,179,1818,204,1757,218,1733,233,1715,254,1701,257,1706,236,1719,222,1736,209,1759,184,1820,163,1894,144,1976,117,2137,103,2252"/>
+<area shape="rect" id="Node000038" href="$classarena_1_1ArenaInventorySource.html" title=" " alt="" coords="255,1730,465,1755"/>
+<area shape="poly" id="edge55_Node000002_Node000038" title=" " alt="" coords="98,2250,114,2144,143,1998,161,1924,182,1857,206,1802,233,1765,253,1751,256,1756,237,1769,211,1804,187,1859,166,1925,148,1999,119,2145,103,2251"/>
+<area shape="rect" id="Node000040" href="$classarena_1_1ArenaOpponentTarget.html" title=" " alt="" coords="256,1779,464,1805"/>
+<area shape="poly" id="edge57_Node000002_Node000040" title=" " alt="" coords="94,2251,97,2166,103,2110,113,2048,131,1984,155,1922,189,1864,233,1814,254,1800,257,1805,236,1818,193,1867,160,1924,136,1986,119,2049,108,2110,102,2167,99,2251"/>
+<area shape="rect" id="Node000041" href="$classarena_1_1ArenaResultModel.html" title=" " alt="" coords="267,1829,453,1854"/>
+<area shape="poly" id="edge58_Node000002_Node000041" title=" " alt="" coords="95,2251,101,2174,108,2123,120,2069,137,2013,161,1958,193,1907,233,1863,265,1845,267,1850,236,1867,197,1910,166,1960,142,2014,125,2070,113,2124,106,2175,100,2251"/>
+<area shape="rect" id="Node000042" href="$classarena_1_1ArenaRoundLoader.html" title=" " alt="" coords="265,1878,455,1903"/>
+<area shape="poly" id="edge59_Node000002_Node000042" title=" " alt="" coords="96,2251,105,2182,127,2090,144,2041,167,1994,197,1950,233,1913,263,1896,266,1900,236,1917,201,1954,172,1997,149,2043,132,2092,110,2183,102,2251"/>
+<area shape="rect" id="Node000044" href="$classarena_1_1ArenaScheduler.html" title=" " alt="" coords="275,1927,445,1953"/>
+<area shape="poly" id="edge61_Node000002_Node000044" title=" " alt="" coords="98,2250,110,2190,134,2111,151,2070,173,2030,201,1993,233,1962,253,1950,274,1942,276,1947,255,1955,236,1966,205,1997,178,2033,156,2072,139,2113,115,2191,103,2251"/>
+<area shape="rect" id="Node000046" href="$classarena_1_1ArenaSession.html" title=" " alt="" coords="283,1977,437,2002"/>
+<area shape="poly" id="edge63_Node000002_Node000046" title=" " alt="" coords="100,2250,115,2199,141,2134,179,2067,204,2037,233,2011,256,1998,281,1991,283,1996,258,2003,236,2016,208,2041,184,2070,146,2136,120,2201,106,2252"/>
+<area shape="rect" id="Node000047" href="$classarena_1_1ArenaTransport.html" title=" " alt="" coords="277,2026,443,2051"/>
+<area shape="poly" id="edge64_Node000002_Node000047" title=" " alt="" coords="104,2250,122,2208,149,2157,186,2105,208,2082,233,2062,254,2051,276,2043,278,2048,256,2056,236,2066,212,2086,190,2108,153,2159,126,2210,109,2252"/>
+<area shape="rect" id="Node000049" href="$classgameplay__logic_1_1BmsGaugeHistory.html" title="The history of all gauges used in a BMS score." alt="" coords="258,2076,462,2116"/>
+<area shape="poly" id="edge66_Node000002_Node000049" title=" " alt="" coords="111,2252,160,2188,194,2154,233,2126,258,2114,260,2119,236,2130,198,2159,164,2192,115,2255"/>
+<area shape="rect" id="Node000050" href="$classgameplay__logic_1_1BmsLiveScore.html" title="The score that gets updated during gameplay." alt="" coords="247,2141,473,2166"/>
+<area shape="poly" id="edge67_Node000002_Node000050" title=" " alt="" coords="119,2253,169,2213,200,2192,234,2175,267,2164,269,2169,236,2180,203,2197,172,2217,122,2258"/>
+<area shape="rect" id="Node000051" href="$classgameplay__logic_1_1BmsNotes.html" title=" " alt="" coords="260,2190,460,2215"/>
+<area shape="poly" id="edge68_Node000002_Node000051" title=" " alt="" coords="139,2257,234,2224,282,2213,283,2218,235,2229,141,2262"/>
+<area shape="rect" id="Node000052" href="$classgameplay__logic_1_1BmsReplayData.html" title=" " alt="" coords="241,2239,479,2265"/>
+<area shape="poly" id="edge69_Node000002_Node000052" title=" " alt="" coords="147,2270,240,2261,241,2266,147,2275"/>
+<area shape="rect" id="Node000053" href="$classgameplay__logic_1_1BmsResult.html" title="The aggregated info about a score." alt="" coords="259,2289,461,2314"/>
+<area shape="poly" id="edge70_Node000002_Node000053" title=" " alt="" coords="148,2279,259,2289,258,2295,147,2285"/>
+<area shape="rect" id="Node000054" href="$classgameplay__logic_1_1BmsResultCourse.html" title=" " alt="" coords="259,2339,461,2379"/>
+<area shape="poly" id="edge71_Node000002_Node000054" title=" " alt="" coords="145,2292,235,2323,281,2336,280,2341,234,2328,143,2297"/>
+<area shape="rect" id="Node000055" href="$classgameplay__logic_1_1BmsScore.html" title="The result of playing a chart." alt="" coords="261,2403,459,2429"/>
+<area shape="poly" id="edge72_Node000002_Node000055" title=" " alt="" coords="120,2298,170,2345,202,2368,236,2388,270,2401,269,2406,234,2393,199,2373,166,2349,116,2302"/>
+<area shape="rect" id="Node000056" href="$classgameplay__logic_1_1BmsScoreCourse.html" title="The result of playing a course." alt="" coords="261,2453,459,2493"/>
+<area shape="poly" id="edge73_Node000002_Node000056" title=" " alt="" coords="114,2300,162,2369,196,2406,236,2438,262,2451,260,2456,233,2442,193,2410,158,2373,109,2303"/>
+<area shape="rect" id="Node000057" href="$classgameplay__logic_1_1ChartData.html" title="Metadata and basic stats of a chart." alt="" coords="261,2518,459,2543"/>
+<area shape="poly" id="edge74_Node000002_Node000057" title=" " alt="" coords="108,2302,124,2347,151,2402,188,2457,211,2482,236,2503,262,2516,259,2521,233,2508,207,2486,184,2461,146,2404,119,2349,103,2304"/>
+<area shape="rect" id="Node000058" href="$classgameplay__logic_1_1ChartRunner.html" title="The main class responsible for running a chart during gameplay." alt="" coords="253,2567,467,2593"/>
+<area shape="poly" id="edge75_Node000002_Node000058" title=" " alt="" coords="105,2303,119,2357,144,2425,161,2460,182,2494,207,2526,236,2553,258,2565,255,2570,233,2557,203,2529,178,2497,157,2463,139,2427,114,2358,100,2304"/>
+<area shape="rect" id="Node000059" href="$classgameplay__logic_1_1CoursePlayer.html" title="Contains course&#45;related data for a player." alt="" coords="251,2617,469,2642"/>
+<area shape="poly" id="edge76_Node000002_Node000059" title=" " alt="" coords="103,2303,114,2365,137,2447,154,2490,176,2531,204,2569,236,2602,256,2614,253,2619,233,2606,200,2573,172,2534,149,2492,132,2448,108,2366,98,2304"/>
+<area shape="rect" id="Node000060" href="$classgameplay__logic_1_1CourseRunner.html" title="Like a ChartRunner, but for courses." alt="" coords="248,2666,472,2691"/>
+<area shape="poly" id="edge77_Node000002_Node000060" title=" " alt="" coords="101,2303,109,2374,130,2469,148,2519,171,2568,200,2613,236,2651,255,2664,253,2668,233,2655,196,2616,166,2570,143,2521,125,2470,104,2375,96,2304"/>
+<area shape="rect" id="Node000061" href="$classgameplay__logic_1_1GameplayState.html" title="The state of gameplay columns and barlines." alt="" coords="260,2716,460,2756"/>
+<area shape="poly" id="edge78_Node000002_Node000061" title=" " alt="" coords="100,2304,106,2382,114,2433,126,2489,143,2546,166,2603,197,2655,236,2701,261,2717,258,2722,233,2705,193,2658,162,2605,138,2548,120,2490,109,2434,101,2383,95,2304"/>
+<area shape="rect" id="Node000062" href="$classgameplay__logic_1_1Player.html" title="A player of a chart." alt="" coords="273,2781,447,2806"/>
+<area shape="poly" id="edge79_Node000002_Node000062" title=" " alt="" coords="104,2303,120,2405,149,2545,168,2616,189,2680,212,2732,237,2766,253,2778,273,2786,271,2791,251,2783,233,2770,207,2734,184,2682,163,2617,144,2546,115,2406,98,2304"/>
+<area shape="rect" id="Node000065" href="$classgameplay__logic_1_1rules_1_1BmsGauge.html" title=" " alt="" coords="277,2831,443,2871"/>
+<area shape="poly" id="edge82_Node000002_Node000065" title=" " alt="" coords="103,2304,119,2415,147,2569,165,2647,187,2718,210,2776,237,2815,256,2830,278,2839,276,2844,253,2834,233,2819,206,2779,182,2720,160,2649,142,2570,114,2416,98,2304"/>
+<area shape="rect" id="Node000067" href="$classinput_1_1AnalogAxisConfig.html" title=" " alt="" coords="271,2895,449,2921"/>
+<area shape="poly" id="edge84_Node000002_Node000067" title=" " alt="" coords="102,2304,115,2427,141,2601,160,2690,182,2771,207,2837,221,2862,237,2881,253,2893,272,2901,270,2906,250,2897,233,2885,217,2865,202,2839,177,2773,155,2692,136,2602,110,2428,97,2304"/>
+<area shape="rect" id="Node000068" href="$classinput_1_1GamepadManager.html" title=" " alt="" coords="269,2945,451,2970"/>
+<area shape="poly" id="edge85_Node000002_Node000068" title=" " alt="" coords="102,2304,113,2436,138,2626,156,2723,178,2812,205,2884,220,2911,237,2931,252,2943,269,2950,267,2955,249,2947,233,2935,216,2914,200,2886,173,2813,151,2724,133,2627,108,2437,96,2304"/>
+<area shape="rect" id="Node000069" href="$classinput_1_1InputTranslator.html" title=" " alt="" coords="280,2994,440,3019"/>
+<area shape="poly" id="edge86_Node000002_Node000069" title=" " alt="" coords="101,2304,111,2445,135,2650,153,2755,175,2851,203,2929,219,2959,236,2981,257,2995,281,3003,279,3008,254,3000,233,2985,215,2962,198,2931,170,2852,147,2756,129,2650,106,2445,96,2304"/>
+<area shape="rect" id="Node000070" href="$classinput_1_1MidiManager.html" title=" " alt="" coords="286,3043,434,3069"/>
+<area shape="poly" id="edge87_Node000002_Node000070" title=" " alt="" coords="101,2304,110,2453,132,2673,149,2786,172,2890,201,2974,218,3006,236,3030,259,3045,286,3054,285,3059,257,3050,233,3034,214,3009,196,2976,167,2891,144,2787,126,2674,104,2454,96,2304"/>
+<area shape="rect" id="Node000071" href="$classqml__components_1_1BattleProfiles.html" title="The profiles used in battle mode." alt="" coords="245,3093,475,3118"/>
+<area shape="poly" id="edge88_Node000002_Node000071" title=" " alt="" coords="101,2304,108,2462,128,2697,146,2818,169,2929,199,3019,217,3054,237,3079,251,3090,247,3095,233,3083,213,3057,194,3021,164,2930,141,2819,123,2697,102,2463,95,2304"/>
+<area shape="rect" id="Node000072" href="$classqml__components_1_1Bga.html" title="A single BGA layer." alt="" coords="277,3142,443,3167"/>
+<area shape="poly" id="edge89_Node000002_Node000072" title=" " alt="" coords="100,2304,106,2471,113,2590,125,2720,143,2849,166,2968,181,3019,197,3064,216,3101,237,3129,255,3142,277,3151,275,3156,253,3147,233,3133,211,3104,192,3067,176,3021,161,2969,137,2850,120,2721,108,2591,101,2471,95,2304"/>
+<area shape="rect" id="Node000073" href="$classqml__components_1_1BgaContainer.html" title=" " alt="" coords="245,3191,475,3217"/>
+<area shape="poly" id="edge90_Node000002_Node000073" title=" " alt="" coords="100,2304,104,2480,111,2606,122,2744,139,2881,163,3007,178,3062,195,3110,215,3149,237,3178,250,3189,247,3193,233,3182,210,3152,191,3112,173,3063,158,3008,134,2882,117,2744,106,2607,99,2480,95,2304"/>
+<area shape="rect" id="Node000074" href="$classqml__components_1_1ChartLoader.html" title="Loads charts and courses with the given parameters." alt="" coords="249,3241,471,3266"/>
+<area shape="poly" id="edge91_Node000002_Node000074" title=" " alt="" coords="100,2304,103,2488,109,2622,119,2767,136,2913,160,3046,176,3104,194,3155,214,3196,237,3227,251,3239,247,3243,233,3231,209,3199,189,3157,171,3106,155,3047,131,2913,114,2768,103,2622,97,2489,95,2304"/>
+<area shape="rect" id="Node000075" href="$classqml__components_1_1FileQuery.html" title=" " alt="" coords="258,3290,462,3315"/>
+<area shape="poly" id="edge92_Node000002_Node000075" title=" " alt="" coords="100,2304,101,2496,106,2637,116,2790,133,2944,157,3084,173,3146,192,3200,213,3244,237,3277,259,3293,256,3297,233,3281,208,3247,187,3202,168,3148,152,3086,127,2944,111,2791,101,2637,96,2496,94,2304"/>
+<area shape="rect" id="Node000076" href="$classqml__components_1_1InputAttached.html" title="The class that provides the Input attached property." alt="" coords="243,3339,477,3365"/>
+<area shape="poly" id="edge93_Node000002_Node000076" title=" " alt="" coords="99,2304,100,2504,104,2652,113,2813,129,2975,154,3123,171,3188,190,3245,212,3291,237,3326,250,3337,247,3341,233,3330,207,3294,185,3247,165,3190,149,3124,124,2975,108,2814,99,2652,94,2504,94,2304"/>
+<area shape="rect" id="Node000077" href="$classqml__components_1_1Logger.html" title="Lets you access the entire log history of this session." alt="" coords="267,3389,453,3414"/>
+<area shape="poly" id="edge94_Node000002_Node000077" title=" " alt="" coords="101,2304,116,2527,144,2870,163,3044,185,3197,210,3314,223,3353,237,3376,251,3387,268,3395,265,3400,248,3391,233,3379,218,3355,205,3315,180,3198,158,3044,139,2870,111,2528,96,2304"/>
+<area shape="rect" id="Node000078" href="$classqml__components_1_1OnlineScores.html" title=" " alt="" coords="247,3438,473,3463"/>
+<area shape="poly" id="edge95_Node000002_Node000078" title=" " alt="" coords="101,2304,115,2537,143,2895,162,3077,184,3238,209,3360,223,3401,237,3425,250,3436,246,3440,233,3428,218,3403,204,3361,179,3239,156,3078,137,2895,110,2537,96,2304"/>
+<area shape="rect" id="Node000079" href="$classqml__components_1_1ProfileList.html" title="The list of local profiles." alt="" coords="257,3487,463,3513"/>
+<area shape="poly" id="edge96_Node000002_Node000079" title=" " alt="" coords="101,2303,114,2545,141,2919,160,3110,182,3278,208,3406,222,3449,237,3474,258,3489,255,3494,233,3478,217,3451,203,3408,177,3279,155,3110,136,2919,109,2545,96,2304"/>
+<area shape="rect" id="Node000080" href="$classqml__components_1_1ProgramSettings.html" title=" " alt="" coords="235,3537,485,3562"/>
+<area shape="poly" id="edge97_Node000002_Node000080" title=" " alt="" coords="101,2303,113,2553,140,2944,158,3143,181,3319,207,3452,221,3497,237,3524,250,3534,246,3539,233,3527,217,3499,202,3454,175,3320,153,3143,134,2944,108,2554,96,2304"/>
+<area shape="rect" id="Node000081" href="$classqml__components_1_1QmlUtilsAttached.html" title="Provides utility functions for QML as an attached property." alt="" coords="261,3587,459,3627"/>
+<area shape="poly" id="edge98_Node000002_Node000081" title=" " alt="" coords="101,2304,113,2563,139,2968,158,3175,181,3358,207,3498,221,3545,237,3573,262,3592,259,3596,233,3576,217,3547,202,3499,175,3359,153,3175,134,2968,108,2563,96,2304"/>
+<area shape="rect" id="Node000082" href="$classqml__components_1_1RootSongFoldersConfig.html" title=" " alt="" coords="258,3651,462,3691"/>
+<area shape="poly" id="edge100_Node000002_Node000082" title=" " alt="" coords="101,2303,112,2573,137,2999,156,3217,179,3411,206,3558,221,3607,237,3637,259,3654,256,3659,233,3640,216,3609,200,3559,173,3411,151,3218,132,2999,107,2574,96,2304"/>
+<area shape="rect" id="Node000083" href="$classqml__components_1_1ScoreDb.html" title="Provides asynchronous access to a profile&#39;s score database." alt="" coords="262,3715,458,3741"/>
+<area shape="poly" id="edge101_Node000002_Node000083" title=" " alt="" coords="101,2304,110,2585,134,3032,153,3261,176,3464,189,3549,204,3618,220,3670,237,3701,263,3719,260,3724,233,3704,215,3672,198,3620,184,3550,170,3465,147,3262,129,3032,105,2586,95,2304"/>
+<area shape="rect" id="Node000084" href="$classqml__components_1_1ScoreReplayer.html" title=" " alt="" coords="242,3765,478,3790"/>
+<area shape="poly" id="edge102_Node000002_Node000084" title=" " alt="" coords="101,2304,110,2595,133,3058,151,3296,174,3506,187,3594,202,3666,219,3720,237,3752,250,3763,246,3767,233,3755,214,3722,197,3667,182,3595,169,3507,145,3296,127,3058,104,2595,95,2304"/>
+<area shape="rect" id="Node000085" href="$classqml__components_1_1ScoreSyncOperation.html" title="Tracks the progress of an asynchronous score sync (upload or download)." alt="" coords="255,3815,465,3855"/>
+<area shape="poly" id="edge103_Node000002_Node000085" title=" " alt="" coords="101,2304,110,2602,133,3081,151,3327,174,3545,187,3636,203,3711,219,3767,237,3801,257,3817,253,3821,233,3804,214,3769,197,3713,182,3637,169,3546,145,3327,127,3081,104,2603,95,2304"/>
+<area shape="rect" id="Node000086" href="$classqml__components_1_1SongDirectoryFilePathFetcher.html" title=" " alt="" coords="243,3879,477,3919"/>
+<area shape="poly" id="edge104_Node000002_Node000086" title=" " alt="" coords="100,2304,109,2615,131,3113,149,3370,172,3598,186,3693,201,3771,218,3830,237,3865,250,3877,246,3881,233,3868,213,3832,196,3773,181,3694,167,3598,143,3370,126,3114,103,2615,95,2304"/>
+<area shape="rect" id="Node000087" href="$classqml__components_1_1SongFolderFactory.html" title=" " alt="" coords="253,3943,467,3983"/>
+<area shape="poly" id="edge105_Node000002_Node000087" title=" " alt="" coords="100,2304,108,2625,129,3145,147,3412,170,3650,184,3749,200,3831,218,3892,237,3929,254,3944,250,3948,233,3932,213,3894,195,3832,179,3750,165,3651,141,3413,124,3145,102,2626,95,2304"/>
+<area shape="rect" id="Node000088" href="$classqml__components_1_1TachiResolveHandle.html" title=" " alt="" coords="247,4007,473,4047"/>
+<area shape="poly" id="edge106_Node000002_Node000088" title=" " alt="" coords="100,2304,107,2637,115,2895,127,3177,145,3455,168,3703,183,3806,199,3891,217,3955,237,3993,249,4004,245,4008,233,3996,212,3957,194,3892,177,3807,163,3703,139,3456,122,3177,109,2895,101,2638,95,2304"/>
+<area shape="rect" id="Node000089" href="$classqml__components_1_1Themes.html" title=" " alt="" coords="263,4071,457,4097"/>
+<area shape="poly" id="edge107_Node000002_Node000089" title=" " alt="" coords="100,2303,105,2647,112,2915,124,3208,141,3498,165,3756,180,3863,197,3952,216,4018,237,4057,249,4068,264,4075,261,4080,246,4072,233,4060,211,4020,191,3953,174,3864,160,3756,136,3498,118,3208,107,2915,100,2647,95,2304"/>
+<area shape="rect" id="Node000090" href="$classresource__managers_1_1ArenaTicketOperation.html" title=" " alt="" coords="279,4121,441,4161"/>
+<area shape="poly" id="edge108_Node000002_Node000090" title=" " alt="" coords="100,2304,105,2657,112,2932,124,3233,141,3531,165,3796,180,3907,197,3998,216,4067,237,4108,256,4123,279,4133,277,4138,253,4128,233,4111,211,4069,191,4000,175,3908,160,3797,136,3532,119,3233,107,2932,100,2657,95,2304"/>
+<area shape="rect" id="Node000091" href="$classresource__managers_1_1ChartFolderModel.html" title=" " alt="" coords="281,4185,439,4225"/>
+<area shape="poly" id="edge109_Node000002_Node000091" title=" " alt="" coords="100,2304,104,2667,111,2952,122,3264,139,3573,163,3848,178,3963,195,4058,215,4129,226,4154,237,4172,257,4188,281,4198,279,4203,254,4192,233,4175,221,4157,210,4131,190,4059,173,3964,158,3849,134,3574,117,3264,106,2952,99,2667,95,2304"/>
+<area shape="rect" id="Node000092" href="$classresource__managers_1_1GeneralVars.html" title="The general variables for the game that all screens and the engine should know about and respect...." alt="" coords="281,4249,439,4289"/>
+<area shape="poly" id="edge110_Node000002_Node000092" title=" " alt="" coords="100,2304,103,2678,109,2973,120,3296,137,3616,161,3901,177,4020,194,4118,214,4192,225,4217,237,4236,257,4252,281,4262,279,4267,254,4256,233,4239,221,4220,209,4193,189,4119,171,4021,156,3901,132,3616,115,3296,104,2973,98,2678,95,2304"/>
+<area shape="rect" id="Node000093" href="$classresource__managers_1_1Languages.html" title="Manages the available languages and the selected language." alt="" coords="281,4313,439,4353"/>
+<area shape="poly" id="edge111_Node000002_Node000093" title=" " alt="" coords="100,2304,103,2689,108,2993,118,3327,135,3658,159,3953,175,4076,193,4178,214,4254,225,4281,237,4300,257,4316,281,4326,279,4331,254,4321,233,4303,220,4283,209,4256,188,4179,170,4077,154,3953,130,3658,113,3327,103,2993,97,2689,95,2304"/>
+<area shape="rect" id="Node000094" href="$classresource__managers_1_1Profile.html" title=" " alt="" coords="281,4377,439,4417"/>
+<area shape="poly" id="edge112_Node000002_Node000094" title=" " alt="" coords="100,2304,102,2699,107,3013,117,3358,133,3700,158,4005,173,4132,192,4238,213,4316,224,4344,237,4364,257,4380,281,4390,279,4395,254,4385,233,4367,220,4347,208,4318,186,4239,168,4133,152,4005,128,3701,111,3358,101,3013,96,2699,95,2304"/>
+<area shape="rect" id="Node000095" href="$classresource__managers_1_1SoundTask.html" title=" " alt="" coords="281,4441,439,4481"/>
+<area shape="poly" id="edge113_Node000002_Node000095" title=" " alt="" coords="100,2304,101,2711,105,3035,115,3390,131,3743,156,4058,172,4189,190,4298,212,4379,224,4408,237,4428,257,4444,281,4454,279,4459,254,4449,233,4431,219,4410,207,4381,185,4299,166,4190,150,4058,126,3744,109,3391,100,3035,96,2711,95,2304"/>
+<area shape="rect" id="Node000096" href="$classresource__managers_1_1Vars.html" title=" " alt="" coords="267,4506,453,4531"/>
+<area shape="poly" id="edge114_Node000002_Node000096" title=" " alt="" coords="100,2304,99,2722,103,3056,111,3423,127,3787,152,4111,168,4247,188,4359,211,4442,223,4471,237,4492,251,4504,268,4512,265,4517,248,4508,233,4495,219,4474,206,4444,183,4360,163,4248,147,4112,122,3787,106,3423,97,3056,94,2722,94,2304"/>
+<area shape="rect" id="Node000097" href="$classsounds_1_1AudioEngine.html" title=" " alt="" coords="281,4555,439,4581"/>
+<area shape="poly" id="edge115_Node000002_Node000097" title=" " alt="" coords="101,2304,114,2745,142,3483,162,3861,184,4191,209,4432,223,4506,237,4542,257,4558,282,4566,280,4571,254,4562,233,4546,218,4508,204,4433,179,4192,156,3861,137,3483,108,2746,95,2304"/>
+<area shape="rect" id="Node000098" href="$classsounds_1_1AudioPlayer.html" title=" " alt="" coords="283,4605,437,4630"/>
+<area shape="poly" id="edge116_Node000002_Node000098" title=" " alt="" coords="101,2304,113,2755,142,3509,161,3895,183,4232,209,4479,223,4555,237,4592,258,4607,283,4616,282,4621,255,4612,233,4595,218,4556,204,4480,178,4233,155,3895,136,3509,108,2755,95,2304"/>
+<area shape="rect" id="Node000099" href="$classsounds_1_1NormalSound.html" title=" " alt="" coords="278,4703,442,4729"/>
+<area shape="poly" id="edge117_Node000002_Node000099" title=" " alt="" coords="101,2304,113,2772,140,3558,159,3962,182,4315,208,4572,222,4652,229,4677,237,4690,256,4705,279,4713,277,4718,253,4710,233,4694,225,4679,217,4653,203,4573,177,4315,154,3963,135,3559,107,2772,95,2304"/>
+<area shape="rect" id="Node000102" href="$classsupport_1_1PendingReply.html" title="QML&#45;facing handle for one asynchronous result." alt="" coords="276,4654,444,4679"/>
+<area shape="poly" id="edge118_Node000002_Node000102" title=" " alt="" coords="101,2304,113,2763,141,3533,160,3928,183,4273,208,4526,222,4603,237,4641,255,4655,277,4664,275,4669,252,4660,233,4644,217,4605,203,4526,177,4274,155,3929,135,3533,108,2763,95,2304"/>
+<area shape="rect" id="Node000035" href="$classarena_1_1QtArenaGameplaySource.html" title=" " alt="" coords="543,1623,774,1649"/>
+<area shape="poly" id="edge52_Node000034_Node000035" title=" " alt="" coords="482,1638,543,1636,543,1642,482,1643"/>
+<area shape="rect" id="Node000037" href="$classarena_1_1ProfileArenaIdentityProvider.html" title=" " alt="" coords="561,1673,757,1713"/>
+<area shape="poly" id="edge54_Node000036_Node000037" title=" " alt="" coords="478,1691,560,1691,560,1696,478,1696"/>
+<area shape="rect" id="Node000039" href="$classarena_1_1SqliteArenaInventorySource.html" title=" " alt="" coords="557,1737,761,1777"/>
+<area shape="poly" id="edge56_Node000038_Node000039" title=" " alt="" coords="479,1746,557,1750,556,1755,479,1751"/>
+<area shape="rect" id="Node000043" href="$classarena_1_1QtArenaRoundLoader.html" title=" " alt="" coords="556,1878,761,1903"/>
+<area shape="poly" id="edge60_Node000042_Node000043" title=" " alt="" coords="469,1888,556,1888,556,1893,469,1893"/>
+<area shape="rect" id="Node000045" href="$classarena_1_1QtArenaScheduler.html" title=" " alt="" coords="567,1927,751,1953"/>
+<area shape="poly" id="edge62_Node000044_Node000045" title=" " alt="" coords="459,1937,567,1937,567,1943,459,1943"/>
+<area shape="rect" id="Node000048" href="$classarena_1_1QtWebSocketArenaTransport.html" title=" " alt="" coords="533,2026,784,2051"/>
+<area shape="poly" id="edge65_Node000047_Node000048" title=" " alt="" coords="456,2036,533,2036,533,2041,456,2041"/>
+<area shape="rect" id="Node000063" href="$classgameplay__logic_1_1AutoPlayer.html" title="A player that plays automatically, hitting all notes perfectly." alt="" coords="557,2731,761,2757"/>
+<area shape="poly" id="edge80_Node000062_Node000063" title=" " alt="" coords="450,2776,580,2754,581,2759,451,2781"/>
+<area shape="rect" id="Node000064" href="$classgameplay__logic_1_1RePlayer.html" title="A player that replays a recorded score." alt="" coords="563,2781,754,2806"/>
+<area shape="poly" id="edge81_Node000062_Node000064" title=" " alt="" coords="461,2791,563,2791,563,2796,461,2796"/>
+<area shape="rect" id="Node000066" href="$classgameplay__logic_1_1rules_1_1Lr2Gauge.html" title=" " alt="" coords="576,2831,741,2871"/>
+<area shape="poly" id="edge83_Node000065_Node000066" title=" " alt="" coords="456,2848,576,2848,576,2853,456,2853"/>
+<area shape="rect" id="Node000100" href="$classsounds_1_1Sound.html" title="A sound that can be played." alt="" coords="38,4727,154,4753"/>
+<area shape="poly" id="edge120_Node000100_Node000099" title=" " alt="" coords="167,4731,278,4721,278,4726,168,4736"/>
+<area shape="rect" id="Node000101" href="$classsounds_1_1MultiSound.html" title="A sound that plays multiple underlying sounds simultaneously." alt="" coords="285,4753,435,4778"/>
+<area shape="poly" id="edge119_Node000100_Node000101" title=" " alt="" coords="168,4744,285,4756,285,4761,167,4749"/>
+</map>

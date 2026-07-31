@@ -1,14 +1,20 @@
 var searchData=
 [
-  ['date_0',['Date',['../classqml__components_1_1OnlineRankingModel.html#ac0db71d62af3a8aaf2e137775b33fc51a44749712dbec183e983dcd78a7736c41',1,'qml_components::OnlineRankingModel']]],
-  ['desc_1',['Desc',['../classqml__components_1_1OnlineRankingModel.html#aa5af959362ef473bc9cacff77ec7e1e1a5fc8b9a31666e95fddf7fdc19ba6070c',1,'qml_components::OnlineRankingModel']]],
-  ['difficultyrole_2',['difficultyrole',['../classLr2SelectBarModel.html#a25a41f80af69df74bf1ce52e0b03c544a84cf3e0681139b33dc4f16704034fb03',1,'Lr2SelectBarModel::DifficultyRole'],['../classLr2SelectDifficultyModel.html#a334eeab7a46a7a7f39ba8d7031f9d87baeabae89e50f74b81465ae41c0bcbe325',1,'Lr2SelectDifficultyModel::DifficultyRole'],['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a7775f6d360d11b4429b21314207e6c1b',1,'Lr2SelectItemModel::DifficultyRole']]],
-  ['directory_3',['Directory',['../namespaceresource__managers_1_1select__sort__mode.html#a6a1dbecf9939d2bdabf678269921d950ae73cda510e8bb947f7e61089e5581494',1,'resource_managers::select_sort_mode']]],
-  ['directoryrole_4',['DirectoryRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a4ed64faca1bd348715446dff05217c3b',1,'Lr2SelectItemModel']]],
-  ['displaytextrole_5',['DisplayTextRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a09dd266c3f4525aa0400b34df5cfbec7',1,'Lr2SelectItemModel']]],
-  ['double_6',['Double',['../namespaceresource__managers_1_1select__keymode__filter.html#ad8112b568ebc1855c812d07da15884a2ad909d38d705ce75386dd86e611a82f5b',1,'resource_managers::select_keymode_filter']]],
-  ['down_7',['Down',['../classinput_1_1Key.html#aa22750d74ed901350411d2145c92c32aa08a38277b0309070706f6652eeae9a53',1,'input::Key']]],
-  ['dstsrole_8',['DstsRole',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a7d981e12ba4ce6936f30fe360133c2c8a0f5409d3daf3aa0b3fe1c40d0754df2c',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]],
-  ['duplicate_9',['Duplicate',['../classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028eaed75712b0eb1913c28a3872731ffd48d',1,'gameplay_logic::BmsScore']]],
-  ['durationrole_10',['DurationRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167ac6ef2a04426e0cc402da6129d5ccab1e',1,'Lr2SelectItemModel']]]
+  ['databaseerror_0',['DatabaseError',['../namespacearena.html#a39157bb6623b3176a6cf447f71a3c3e4aa31437013b94ae5b39a818c6defac7ea',1,'arena']]],
+  ['date_1',['Date',['../classqml__components_1_1OnlineRankingModel.html#ac0db71d62af3a8aaf2e137775b33fc51a44749712dbec183e983dcd78a7736c41',1,'qml_components::OnlineRankingModel']]],
+  ['delta_2',['Delta',['../namespacearena.html#a9897880b68e200a2fbb32720c4569b6aadb1f4ab5845def61a83d5df13e0c2397',1,'arena']]],
+  ['desc_3',['Desc',['../classqml__components_1_1OnlineRankingModel.html#aa5af959362ef473bc9cacff77ec7e1e1a5fc8b9a31666e95fddf7fdc19ba6070c',1,'qml_components::OnlineRankingModel']]],
+  ['difficultyrole_4',['difficultyrole',['../classLr2SelectBarModel.html#a25a41f80af69df74bf1ce52e0b03c544a84cf3e0681139b33dc4f16704034fb03',1,'Lr2SelectBarModel::DifficultyRole'],['../classLr2SelectDifficultyModel.html#a334eeab7a46a7a7f39ba8d7031f9d87baeabae89e50f74b81465ae41c0bcbe325',1,'Lr2SelectDifficultyModel::DifficultyRole'],['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a7775f6d360d11b4429b21314207e6c1b',1,'Lr2SelectItemModel::DifficultyRole']]],
+  ['directory_5',['Directory',['../namespaceresource__managers_1_1select__sort__mode.html#a6a1dbecf9939d2bdabf678269921d950ae73cda510e8bb947f7e61089e5581494',1,'resource_managers::select_sort_mode']]],
+  ['directoryrole_6',['DirectoryRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a4ed64faca1bd348715446dff05217c3b',1,'Lr2SelectItemModel']]],
+  ['disconnected_7',['Disconnected',['../classarena_1_1ArenaSession.html#a88b20e43f1c361128c1b1abf428996b6aef70e46fd3bbc21e3e1f0b6815e750c0',1,'arena::ArenaSession']]],
+  ['displaynamerole_8',['displaynamerole',['../classarena_1_1ArenaChatModel.html#a7c706e6ded12061767c57fb9e1fc410caa0c0acfc9498293c8c38b77b78220006',1,'arena::ArenaChatModel::DisplayNameRole'],['../classarena_1_1ArenaMemberListModel.html#a57096274f44dbbd19642a475c42a7ad2a3f3bbbb79d15cd610712b27283fb0b9a',1,'arena::ArenaMemberListModel::DisplayNameRole'],['../classarena_1_1ArenaStandingsModel.html#a9c401e972ca35f735cce25597a9cb39aa6779f37a5da0f3c5757faa40338b3c20',1,'arena::ArenaStandingsModel::DisplayNameRole']]],
+  ['displaytextrole_9',['DisplayTextRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a09dd266c3f4525aa0400b34df5cfbec7',1,'Lr2SelectItemModel']]],
+  ['dnf_10',['Dnf',['../namespacearena.html#ac7a1768de091cd66d2f894c734326a12a763415e6c073b7b7bf10d0cf0073ecbb',1,'arena']]],
+  ['dnfreasonrole_11',['DnfReasonRole',['../classarena_1_1ArenaStandingsModel.html#a9c401e972ca35f735cce25597a9cb39aa2102271d8b1d68acc0364ebbe69ee395',1,'arena::ArenaStandingsModel']]],
+  ['double_12',['Double',['../namespaceresource__managers_1_1select__keymode__filter.html#ad8112b568ebc1855c812d07da15884a2ad909d38d705ce75386dd86e611a82f5b',1,'resource_managers::select_keymode_filter']]],
+  ['down_13',['Down',['../classinput_1_1Key.html#aa22750d74ed901350411d2145c92c32aa08a38277b0309070706f6652eeae9a53',1,'input::Key']]],
+  ['dstsrole_14',['DstsRole',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a7d981e12ba4ce6936f30fe360133c2c8a0f5409d3daf3aa0b3fe1c40d0754df2c',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]],
+  ['duplicate_15',['Duplicate',['../classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028eaed75712b0eb1913c28a3872731ffd48d',1,'gameplay_logic::BmsScore']]],
+  ['durationrole_16',['DurationRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167ac6ef2a04426e0cc402da6129d5ccab1e',1,'Lr2SelectItemModel']]]
 ];

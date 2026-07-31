@@ -5,6 +5,8 @@ var searchData=
   ['webapiurlchanged_2',['webApiUrlChanged',['../classqml__components_1_1OnlineRankingModel.html#a619a2790bb6f1e7125ff0fb8139c773a',1,'qml_components::OnlineRankingModel']]],
   ['websitebaseurlchanged_3',['websiteBaseUrlChanged',['../classresource__managers_1_1GeneralVars.html#a3371edff0270d206144e5ac8362fc0ca',1,'resource_managers::GeneralVars']]],
   ['what_4',['what',['../classsupport_1_1Exception.html#a25768e1c813fa1542ab41110c30e5079',1,'support::Exception']]],
-  ['withmappedfile_5',['withMappedFile',['../namespaceresource__managers.html#a0c720f82b76b8e28793aa6a603a71e7e',1,'resource_managers']]],
-  ['writeconfig_6',['writeConfig',['../namespaceresource__managers.html#a397314cac474ac1c2dea6a7d9d8831dd',1,'resource_managers']]]
+  ['winnermemberids_5',['winnerMemberIds',['../classarena_1_1ArenaResultModel.html#a38cbfc156a686fc54bffce5621217382',1,'arena::ArenaResultModel']]],
+  ['winnernames_6',['winnerNames',['../classarena_1_1ArenaResultModel.html#a1301bc519671836857b995f1b999c469',1,'arena::ArenaResultModel']]],
+  ['withmappedfile_7',['withMappedFile',['../namespaceresource__managers.html#a0c720f82b76b8e28793aa6a603a71e7e',1,'resource_managers']]],
+  ['writeconfig_8',['writeConfig',['../namespaceresource__managers.html#a397314cac474ac1c2dea6a7d9d8831dd',1,'resource_managers']]]
 ];

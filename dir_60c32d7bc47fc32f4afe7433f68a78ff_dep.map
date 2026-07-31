@@ -1,0 +1,16 @@
+<map id="src/arena" name="src/arena">
+<area shape="rect" id="node1" href="dir_18fd539062cd3a2de3dfd78991cf728d.html" title="db" alt="" coords="27,125,66,151"/>
+<area shape="rect" id="node2" href="dir_527bc9af833e63dbc16533b60a5f5ab8.html" title="resource_managers" alt="" coords="90,125,241,151"/>
+<area shape="rect" id="node3" href="dir_532906d8876b5477dcd3b8816c48a7ca.html" title="gameplay_logic" alt="" coords="265,125,391,151"/>
+<area shape="rect" id="node4" href="dir_870fedec2d106ed34b9454ee795594d3.html" title="qml_components" alt="" coords="415,125,550,151"/>
+<area shape="rect" id="node5" href="dir_60c32d7bc47fc32f4afe7433f68a78ff.html" title="arena" alt="" coords="217,52,276,77"/>
+<area shape="poly" id="edge1" href="dir_000000_000003.html" alt="" coords="218,79,80,128,78,123,216,74"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000000_000003.html" title="1" alt="" coords="82,124,91,139"/>
+<area shape="poly" id="edge2" href="dir_000000_000013.html" alt="" coords="235,79,191,118,187,114,232,75"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000000_000013.html" title="3" alt="" coords="193,112,203,127"/>
+<area shape="poly" id="edge3" href="dir_000000_000006.html" alt="" coords="261,75,306,114,303,118,258,79"/>
+<area shape="rect" id="edge3-headlabel" href="dir_000000_000006.html" title="13" alt="" coords="298,100,315,114"/>
+<area shape="poly" id="edge4" href="dir_000000_000012.html" alt="" coords="277,72,433,119,431,124,275,77"/>
+<area shape="rect" id="edge4-headlabel" href="dir_000000_000012.html" title="3" alt="" coords="425,105,434,119"/>
+<area shape="rect" id="clust1" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html" title="src" alt="" coords="16,16,561,161"/>
+</map>

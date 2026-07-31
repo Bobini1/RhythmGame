@@ -1,0 +1,21 @@
+<map id="RhythmGameQml/FontResolver.cpp" name="RhythmGameQml/FontResolver.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="299,5,553,31"/>
+<area shape="rect" id="Node000002" href="$FontResolver_8h.html" title=" " alt="" coords="157,79,276,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="393,33,265,77,263,72,392,28"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="301,79,423,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="417,33,383,70,379,67,413,29"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="447,79,535,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="439,29,473,67,470,70,435,33"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="559,79,645,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="455,28,561,71,559,76,453,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,65,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="189,107,79,149,77,144,187,102"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="89,152,155,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="203,106,150,146,147,141,200,102"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="179,152,254,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="219,104,219,138,214,138,214,104"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="278,152,371,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="235,102,297,142,294,147,233,106"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="395,152,534,177"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="257,101,412,146,411,151,256,107"/>
+</map>

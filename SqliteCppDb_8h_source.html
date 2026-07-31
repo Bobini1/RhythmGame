@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.13</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.14</span>
    </div>
   </td>
  </tr>
@@ -95,8 +95,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;<a class="code" href="get_8h.html">support/get.h</a>&quot;</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="TupleSize_8h.html">support/TupleSize.h</a>&quot;</span></div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
-<div class="foldopen" id="foldopen00018" data-start="{" data-end="}">
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="namespacedb.html">   18</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacedb.html">db</a> {</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacedb.html">db</a> {</div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
 <div class="foldopen" id="foldopen00024" data-start="{" data-end="};">
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="classdb_1_1SqliteCppDb.html">   24</a></span><span class="keyword">class </span><a class="code hl_class" href="classdb_1_1SqliteCppDb.html">SqliteCppDb</a></div>
@@ -138,24 +137,24 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>            <span class="keywordflow">if</span> (!statement.executeStep()) {</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>                <span class="keywordflow">return</span> {};</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>            }</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>            Ret result{};</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>            writeRow(statement, result);</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>            Ret <a class="code hl_variable" href="ScoreDb_8cpp.html#a737031dda0f6361193cddc1b0f1c9a5e">result</a>{};</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>            writeRow(statement, <a class="code hl_variable" href="ScoreDb_8cpp.html#a737031dda0f6361193cddc1b0f1c9a5e">result</a>);</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>            <span class="keywordflow">return</span> { std::move(result) };</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>            <span class="keywordflow">return</span> { std::move(<a class="code hl_variable" href="ScoreDb_8cpp.html#a737031dda0f6361193cddc1b0f1c9a5e">result</a>) };</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>        }</div>
 </div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>        <span class="keyword">template</span>&lt;std::default_initializable Ret&gt;</div>
 <div class="foldopen" id="foldopen00084" data-start="{" data-end="}">
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno"><a class="line" href="classdb_1_1SqliteCppDb_1_1Statement.html#af3d824cd22b6aa07a7c45320f1f8cbca">   84</a></span>        [[nodiscard]] <span class="keyword">auto</span> <a class="code hl_function" href="classdb_1_1SqliteCppDb_1_1Statement.html#af3d824cd22b6aa07a7c45320f1f8cbca">executeAndGetAll</a>() -&gt; std::vector&lt;Ret&gt;</div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>        {</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>            std::vector&lt;Ret&gt; result;</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>            std::vector&lt;Ret&gt; <a class="code hl_variable" href="ScoreDb_8cpp.html#a737031dda0f6361193cddc1b0f1c9a5e">result</a>;</div>
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>            <span class="keywordflow">while</span> (statement.executeStep()) {</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>                result.emplace_back();</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>                writeRow(statement, result.back());</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>                <a class="code hl_variable" href="ScoreDb_8cpp.html#a737031dda0f6361193cddc1b0f1c9a5e">result</a>.emplace_back();</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>                writeRow(statement, <a class="code hl_variable" href="ScoreDb_8cpp.html#a737031dda0f6361193cddc1b0f1c9a5e">result</a>.back());</div>
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>            }</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>            <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>            <span class="keywordflow">return</span> <a class="code hl_variable" href="ScoreDb_8cpp.html#a737031dda0f6361193cddc1b0f1c9a5e">result</a>;</div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>        }</div>
 </div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
@@ -202,9 +201,9 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>};</div>
 </div>
 <div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>} <span class="comment">// namespace db</span></div>
-</div>
 <div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span> </div>
 <div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_SQLITECPPDB_H</span></div>
+<div class="ttc" id="aScoreDb_8cpp_html_a737031dda0f6361193cddc1b0f1c9a5e"><div class="ttname"><a href="ScoreDb_8cpp.html#a737031dda0f6361193cddc1b0f1c9a5e">result</a></div><div class="ttdeci">Result result</div><div class="ttdef"><b>Definition</b> ScoreDb.cpp:108</div></div>
 <div class="ttc" id="aTupleSize_8h_html"><div class="ttname"><a href="TupleSize_8h.html">TupleSize.h</a></div></div>
 <div class="ttc" id="aclassdb_1_1SqliteCppDb_1_1Statement_html"><div class="ttname"><a href="classdb_1_1SqliteCppDb_1_1Statement.html">db::SqliteCppDb::Statement</a></div><div class="ttdoc">Wrapper for SQLiteCpp::Statement.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:34</div></div>
 <div class="ttc" id="aclassdb_1_1SqliteCppDb_1_1Statement_html_a03295a4ffffd3a640dc3bf80556b93bb"><div class="ttname"><a href="classdb_1_1SqliteCppDb_1_1Statement.html#a03295a4ffffd3a640dc3bf80556b93bb">db::SqliteCppDb::Statement::bind</a></div><div class="ttdeci">auto bind(const std::string &amp;name, T &amp;&amp;... values) -&gt; void</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:47</div></div>
@@ -219,7 +218,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclassdb_1_1SqliteCppDb_html_a4995b59a52608ec568d044b6e83b4925"><div class="ttname"><a href="classdb_1_1SqliteCppDb.html#a4995b59a52608ec568d044b6e83b4925">db::SqliteCppDb::execute</a></div><div class="ttdeci">auto execute(const std::string &amp;query) -&gt; int64_t</div><div class="ttdoc">Executes a query.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.cpp:31</div></div>
 <div class="ttc" id="aclassdb_1_1SqliteCppDb_html_a8a6cd925b08f9594f45f0f12deee1346"><div class="ttname"><a href="classdb_1_1SqliteCppDb.html#a8a6cd925b08f9594f45f0f12deee1346">db::SqliteCppDb::SqliteCppDb</a></div><div class="ttdeci">SqliteCppDb(const std::filesystem::path &amp;dbPath)</div><div class="ttdoc">Constructs a database wrapper.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.cpp:11</div></div>
 <div class="ttc" id="aget_8h_html"><div class="ttname"><a href="get_8h.html">get.h</a></div></div>
-<div class="ttc" id="anamespacedb_html"><div class="ttname"><a href="namespacedb.html">db</a></div><div class="ttdoc">Namespace for database related classes and functions.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:18</div></div>
+<div class="ttc" id="anamespacedb_html"><div class="ttname"><a href="namespacedb.html">db</a></div><div class="ttdoc">Namespace for database related classes and functions.</div><div class="ttdef"><b>Definition</b> QtArenaRoundLoader.h:15</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

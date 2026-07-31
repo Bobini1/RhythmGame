@@ -1,10 +1,25 @@
 var searchData=
 [
-  ['pathrole_0',['PathRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a21aa184ed9e3564a7565342769cd9c4d',1,'Lr2SelectItemModel']]],
-  ['perfect_1',['Perfect',['../namespacegameplay__logic_1_1judgement.html#a4dd73363d266a4e4aa41782d0e02b6e6a56cdd7e9e3cef1974f4075c03a80332d',1,'gameplay_logic::judgement']]],
-  ['playcount_2',['PlayCount',['../classqml__components_1_1OnlineRankingModel.html#ac0db71d62af3a8aaf2e137775b33fc51ad56ca1ecd4f7863d00ed260e5788a39c',1,'qml_components::OnlineRankingModel']]],
-  ['player_3',['Player',['../classqml__components_1_1OnlineRankingModel.html#ac0db71d62af3a8aaf2e137775b33fc51a636da1d35e805b00eae0fcd8333f9234',1,'qml_components::OnlineRankingModel']]],
-  ['playlevelrole_4',['playlevelrole',['../classLr2SelectBarModel.html#a25a41f80af69df74bf1ce52e0b03c544a932dd75eba50f40930a4d2586c56e1f0',1,'Lr2SelectBarModel::PlayLevelRole'],['../classLr2SelectDifficultyModel.html#a334eeab7a46a7a7f39ba8d7031f9d87ba02db7f6e9038ffe83162917d36a1bc26',1,'Lr2SelectDifficultyModel::PlayLevelRole'],['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a3255f2805125578125675e334f75a0b4',1,'Lr2SelectItemModel::PlayLevelRole']]],
-  ['poor_5',['Poor',['../namespacegameplay__logic_1_1judgement.html#a4dd73363d266a4e4aa41782d0e02b6e6a0e94d01753f69bda9b5060a18994540d',1,'gameplay_logic::judgement']]],
-  ['press_6',['Press',['../classgameplay__logic_1_1HitEvent.html#a90790c3562f52b83f1c52d0c3764f767a0610123bdd4ffc191a3ea05a847e1307',1,'gameplay_logic::HitEvent']]]
+  ['parsefailed_0',['parsefailed',['../namespacearena.html#a0ec07907e6c8305e89875fdebaa2da00a23d01629a792d6831d857dc3831e7165',1,'arena::ParseFailed'],['../namespacearena.html#a6980dc4c1d40b457b09082de2f9905c0a23d01629a792d6831d857dc3831e7165',1,'arena::ParseFailed'],['../namespacearena.html#abbbd374961e556558add076cc967c272a23d01629a792d6831d857dc3831e7165',1,'arena::ParseFailed']]],
+  ['participantkicked_1',['ParticipantKicked',['../namespacearena.html#a0ec07907e6c8305e89875fdebaa2da00aedb79eb2b200d048eec9ac8455829ca1',1,'arena']]],
+  ['participantleft_2',['ParticipantLeft',['../namespacearena.html#a0ec07907e6c8305e89875fdebaa2da00a389912246518b735daa2a0082e61321a',1,'arena']]],
+  ['passwordprotectedrole_3',['PasswordProtectedRole',['../classarena_1_1ArenaRoomListModel.html#a4e561a41043e442c42a2a0951b338d1ba535af79eeb3514f06d3d74b50e1ec049',1,'arena::ArenaRoomListModel']]],
+  ['pathrole_4',['PathRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a21aa184ed9e3564a7565342769cd9c4d',1,'Lr2SelectItemModel']]],
+  ['payloadsizemismatch_5',['PayloadSizeMismatch',['../namespacearena.html#af515f641a788662a2f23629720c4a956a0cd115065bc6e69b12e9a8218d1aaf40',1,'arena']]],
+  ['perfect_6',['perfect',['../namespacearena.html#ac5f623123b9fb53bd81d98a739db1826a56cdd7e9e3cef1974f4075c03a80332d',1,'arena::Perfect'],['../namespacegameplay__logic_1_1judgement.html#a4dd73363d266a4e4aa41782d0e02b6e6a56cdd7e9e3cef1974f4075c03a80332d',1,'gameplay_logic::judgement::Perfect']]],
+  ['perfectrole_7',['PerfectRole',['../classarena_1_1ArenaStandingsModel.html#a9c401e972ca35f735cce25597a9cb39aa9d1eddc63277924d2da26f953fb5188a',1,'arena::ArenaStandingsModel']]],
+  ['permissiondenied_8',['PermissionDenied',['../namespacearena.html#a15055e86288adba1f2093fadfbd4efbda4b33a686be73bb172407d73b26356275',1,'arena']]],
+  ['phaserole_9',['PhaseRole',['../classarena_1_1ArenaRoomListModel.html#a4e561a41043e442c42a2a0951b338d1ba838d07c9422a7a37bc65aad23df9eda2',1,'arena::ArenaRoomListModel']]],
+  ['playcount_10',['PlayCount',['../classqml__components_1_1OnlineRankingModel.html#ac0db71d62af3a8aaf2e137775b33fc51ad56ca1ecd4f7863d00ed260e5788a39c',1,'qml_components::OnlineRankingModel']]],
+  ['playdeadline_11',['PlayDeadline',['../namespacearena.html#a24f6251fcea0367271dc9e82be67bf9fa3422babf97a75144373187df6fbe5df6',1,'arena']]],
+  ['player_12',['Player',['../classqml__components_1_1OnlineRankingModel.html#ac0db71d62af3a8aaf2e137775b33fc51a636da1d35e805b00eae0fcd8333f9234',1,'qml_components::OnlineRankingModel']]],
+  ['playing_13',['playing',['../namespacearena.html#a265e7430a7620ecbe9e2f14718398800ac9dbb2b7c84159b632d71e512eba8428',1,'arena::Playing'],['../namespacearena.html#a1737a5b8ca74ae6c37f5fc4920430901ac9dbb2b7c84159b632d71e512eba8428',1,'arena::Playing'],['../namespacearena.html#a88affd31bec9f0915585c1d68dc56a80ac9dbb2b7c84159b632d71e512eba8428',1,'arena::Playing'],['../namespacearena.html#ac95a2e5414fb5d6eb5a0ba5cbfb86432ac9dbb2b7c84159b632d71e512eba8428',1,'arena::Playing']]],
+  ['playlevelrole_14',['playlevelrole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a3255f2805125578125675e334f75a0b4',1,'Lr2SelectItemModel::PlayLevelRole'],['../classLr2SelectBarModel.html#a25a41f80af69df74bf1ce52e0b03c544a932dd75eba50f40930a4d2586c56e1f0',1,'Lr2SelectBarModel::PlayLevelRole'],['../classLr2SelectDifficultyModel.html#a334eeab7a46a7a7f39ba8d7031f9d87ba02db7f6e9038ffe83162917d36a1bc26',1,'Lr2SelectDifficultyModel::PlayLevelRole']]],
+  ['poor_15',['Poor',['../namespacegameplay__logic_1_1judgement.html#a4dd73363d266a4e4aa41782d0e02b6e6a0e94d01753f69bda9b5060a18994540d',1,'gameplay_logic::judgement']]],
+  ['poorrole_16',['PoorRole',['../classarena_1_1ArenaStandingsModel.html#a9c401e972ca35f735cce25597a9cb39aab52304e560cd84adb1421291bb56ffd9',1,'arena::ArenaStandingsModel']]],
+  ['press_17',['Press',['../classgameplay__logic_1_1HitEvent.html#a90790c3562f52b83f1c52d0c3764f767a0610123bdd4ffc191a3ea05a847e1307',1,'gameplay_logic::HitEvent']]],
+  ['probetimeout_18',['ProbeTimeout',['../namespacearena.html#a0ec07907e6c8305e89875fdebaa2da00a57107109d3ae706db551f5c20f7cccd8',1,'arena']]],
+  ['probing_19',['probing',['../namespacearena.html#a1737a5b8ca74ae6c37f5fc4920430901ac9775416f8be0f7b5ff451587182eabb',1,'arena::Probing'],['../namespacearena.html#a265e7430a7620ecbe9e2f14718398800ac9775416f8be0f7b5ff451587182eabb',1,'arena::Probing']]],
+  ['progresspermillerole_20',['ProgressPermilleRole',['../classarena_1_1ArenaStandingsModel.html#a9c401e972ca35f735cce25597a9cb39aa75987b4d7cf8ec95f82d43e72241f636',1,'arena::ArenaStandingsModel']]],
+  ['protocolincompatible_21',['protocolincompatible',['../namespacearena.html#a637cb22414955263c13c9619f8e91224a157edbf8c2bda7ce06239048abe1e450',1,'arena::ProtocolIncompatible'],['../namespacearena.html#a91dd963eac2b98e4ff3dfcdc35a51447a157edbf8c2bda7ce06239048abe1e450',1,'arena::ProtocolIncompatible']]]
 ];

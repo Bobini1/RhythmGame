@@ -1,11 +1,23 @@
 var searchData=
 [
-  ['activationobjectrole_0',['ActivationObjectRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a8f631bc3a9f07c6e001ea71870af706b',1,'Lr2SelectItemModel']]],
-  ['all_1',['All',['../namespaceresource__managers_1_1select__keymode__filter.html#ad8112b568ebc1855c812d07da15884a2ab1c94ca2fbc3e78fc30069c8d0f01680',1,'resource_managers::select_keymode_filter']]],
-  ['analogscratchtick_2',['AnalogScratchTick',['../classinput_1_1InputTranslator.html#a11ee382f1e1c19d60a889b2cce5c7fcfad7ea2519f90d381647592478ad6fa688',1,'input::InputTranslator']]],
-  ['artist_3',['Artist',['../namespaceresource__managers_1_1select__sort__mode.html#a6a1dbecf9939d2bdabf678269921d950a4047c5607db6be8e0081725f0d164309',1,'resource_managers::select_sort_mode']]],
-  ['artistrole_4',['ArtistRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a9d50fbeeee117e683283bfc89f788f92',1,'Lr2SelectItemModel']]],
-  ['asc_5',['Asc',['../classqml__components_1_1OnlineRankingModel.html#aa5af959362ef473bc9cacff77ec7e1e1ae8338cca05b6a68b1b516f4f0d6b0a0f',1,'qml_components::OnlineRankingModel']]],
-  ['avg_6',['Avg',['../namespaceresource__managers_1_1hi__speed__fix.html#ac715382b9422d7bab66ac00314eb3e7ea5c0c148daa2c67922abe6018b87a759f',1,'resource_managers::hi_speed_fix']]],
-  ['axis_7',['Axis',['../classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290a39e6b4ab3e4adecf031d3aa8410bb3ce',1,'input::Key']]]
+  ['aborted_0',['Aborted',['../namespacearena.html#a24f6251fcea0367271dc9e82be67bf9fa721c28f4c74928cc9e0bb3fef345e408',1,'arena']]],
+  ['activationobjectrole_1',['ActivationObjectRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a8f631bc3a9f07c6e001ea71870af706b',1,'Lr2SelectItemModel']]],
+  ['all_2',['All',['../namespaceresource__managers_1_1select__keymode__filter.html#ad8112b568ebc1855c812d07da15884a2ab1c94ca2fbc3e78fc30069c8d0f01680',1,'resource_managers::select_keymode_filter']]],
+  ['alreadyinroom_3',['AlreadyInRoom',['../namespacearena.html#a15055e86288adba1f2093fadfbd4efbda75e7df57839c23f61ab776e060a24f55',1,'arena']]],
+  ['analogscratchtick_4',['AnalogScratchTick',['../classinput_1_1InputTranslator.html#a11ee382f1e1c19d60a889b2cce5c7fcfad7ea2519f90d381647592478ad6fa688',1,'input::InputTranslator']]],
+  ['arenaavailabilityrole_5',['arenaavailabilityrole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167ac239197adae7d9b958d6e89aa9c1774c',1,'Lr2SelectItemModel::ArenaAvailabilityRole'],['../classLr2SelectBarModel.html#a25a41f80af69df74bf1ce52e0b03c544af2122eecc56c0aabd61a74fd02ea893c',1,'Lr2SelectBarModel::ArenaAvailabilityRole']]],
+  ['artist_6',['Artist',['../namespaceresource__managers_1_1select__sort__mode.html#a6a1dbecf9939d2bdabf678269921d950a4047c5607db6be8e0081725f0d164309',1,'resource_managers::select_sort_mode']]],
+  ['artistrole_7',['ArtistRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a9d50fbeeee117e683283bfc89f788f92',1,'Lr2SelectItemModel']]],
+  ['asc_8',['Asc',['../classqml__components_1_1OnlineRankingModel.html#aa5af959362ef473bc9cacff77ec7e1e1ae8338cca05b6a68b1b516f4f0d6b0a0f',1,'qml_components::OnlineRankingModel']]],
+  ['assisteasy_9',['assisteasy',['../namespacearena.html#ac5f623123b9fb53bd81d98a739db1826a867de1c71460d1e44d2806aea4e4b540',1,'arena::AssistEasy'],['../namespacearena.html#aa6853406d09e8844ca9e9759d35c0597a867de1c71460d1e44d2806aea4e4b540',1,'arena::AssistEasy']]],
+  ['authrequired_10',['AuthRequired',['../namespacearena.html#a15055e86288adba1f2093fadfbd4efbda368e126e30d063c1bbe92a7a951709da',1,'arena']]],
+  ['availabilityadd_11',['AvailabilityAdd',['../namespacearena.html#a41bb5b3295c95608a566cfa2306305c7a401681cf9d9347c2bdd591594d229020',1,'arena']]],
+  ['availabilityappliedrevisionrole_12',['AvailabilityAppliedRevisionRole',['../classarena_1_1ArenaMemberListModel.html#a57096274f44dbbd19642a475c42a7ad2a9f5c313a868431ef6e9109d1a1ea9523',1,'arena::ArenaMemberListModel']]],
+  ['availabilityremove_13',['AvailabilityRemove',['../namespacearena.html#a41bb5b3295c95608a566cfa2306305c7acfd1bcc26aa4af4f94ee2b9a76049bb8',1,'arena']]],
+  ['availabilityreset_14',['AvailabilityReset',['../namespacearena.html#a41bb5b3295c95608a566cfa2306305c7aea540ed5e62fe9e2e39b2ca470b87e21',1,'arena']]],
+  ['availabilitystale_15',['AvailabilityStale',['../namespacearena.html#a15055e86288adba1f2093fadfbd4efbda58294ebe4398de9eb9bec1ac8c8a0eb3',1,'arena']]],
+  ['availabletoall_16',['AvailableToAll',['../classarena_1_1ArenaAvailabilityIndex.html#a29b9ccb104543dd36ac8684682ca8f00a4d1ccd8087aac2b7e224e708ff2e679f',1,'arena::ArenaAvailabilityIndex']]],
+  ['avatarurlrole_17',['avatarurlrole',['../classarena_1_1ArenaStandingsModel.html#a9c401e972ca35f735cce25597a9cb39aa0b792aaf807d32dfd6a3b092d0b4cc44',1,'arena::ArenaStandingsModel::AvatarUrlRole'],['../classarena_1_1ArenaMemberListModel.html#a57096274f44dbbd19642a475c42a7ad2a64e69aaadd0b969e9e0e62e2fb975ebb',1,'arena::ArenaMemberListModel::AvatarUrlRole']]],
+  ['avg_18',['Avg',['../namespaceresource__managers_1_1hi__speed__fix.html#ac715382b9422d7bab66ac00314eb3e7ea5c0c148daa2c67922abe6018b87a759f',1,'resource_managers::hi_speed_fix']]],
+  ['axis_19',['Axis',['../classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290a39e6b4ab3e4adecf031d3aa8410bb3ce',1,'input::Key']]]
 ];

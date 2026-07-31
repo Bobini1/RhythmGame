@@ -1,0 +1,22 @@
+<map id="src/arena/ArenaIdentityProvider.h" name="src/arena/ArenaIdentityProvider.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="427,5,665,31"/>
+<area shape="rect" id="Node000002" href="$ArenaTypes_8h.html" title=" " alt="" coords="325,79,434,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="520,33,420,76,418,71,518,28"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="583,152,658,177"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="551,30,558,64,574,103,601,140,597,143,569,105,553,65,545,31"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="583,79,658,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="560,29,600,67,597,71,556,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,76,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="325,106,90,154,89,149,324,101"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="101,152,194,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="343,107,199,151,197,145,341,101"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="218,152,269,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="359,106,279,148,276,143,356,102"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="293,152,367,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="373,106,348,142,344,139,369,103"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="391,152,466,177"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="390,103,415,139,411,142,385,106"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="419,101,571,146,569,151,417,107"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="491,152,559,177"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="404,102,490,144,488,148,402,106"/>
+</map>

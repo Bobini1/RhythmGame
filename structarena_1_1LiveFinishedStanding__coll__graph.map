@@ -1,0 +1,9 @@
+<map id="arena::LiveFinishedStanding" name="arena::LiveFinishedStanding">
+<area shape="rect" id="Node000001" title=" " alt="" coords="94,181,299,207"/>
+<area shape="rect" id="Node000002" href="$structarena_1_1FinalResult.html" title=" " alt="" coords="127,93,266,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,133,199,181,194,181,194,133"/>
+<area shape="rect" id="Node000003" href="$structarena_1_1ArenaJudgements.html" title=" " alt="" coords="5,5,188,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="122,38,184,91,181,95,119,42"/>
+<area shape="rect" id="Node000004" href="$structarena_1_1GaugeSnapshot.html" title=" " alt="" coords="212,5,381,31"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="275,42,241,71,212,95,209,91,238,67,272,38"/>
+</map>

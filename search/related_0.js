@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['lr2resolvedtextregistry_0',['Lr2ResolvedTextRegistry',['../classLr2ResolvedText.html#a92cb2633f090a0c22147d589353be3d6',1,'Lr2ResolvedText']]]
+  ['arenaticketoperationtestaccess_0',['ArenaTicketOperationTestAccess',['../classresource__managers_1_1ArenaTicketOperation.html#a4c91d29c358489be257a8faedefc44ba',1,'resource_managers::ArenaTicketOperation']]]
 ];

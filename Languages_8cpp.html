@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.13</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.14</span>
    </div>
   </td>
  </tr>
@@ -74,8 +74,7 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle"><div class="title">Languages.cpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -85,32 +84,40 @@ $(function() {
 <code>#include &lt;qlibraryinfo.h&gt;</code><br />
 <code>#include &lt;magic_enum/magic_enum.hpp&gt;</code><br />
 <code>#include &lt;spdlog/spdlog.h&gt;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for Languages.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="Languages_8cpp__incl.png" border="0" usemap="#asrc_2resource__managers_2Languages_8cpp" alt=""/></div>
 <map name="asrc_2resource__managers_2Languages_8cpp" id="asrc_2resource__managers_2Languages_8cpp">
-<area shape="rect" title=" " alt="" coords="607,5,781,45"/>
-<area shape="rect" href="Languages_8h.html" title=" " alt="" coords="293,93,397,119"/>
-<area shape="poly" title=" " alt="" coords="611,48,409,93,408,88,610,43"/>
-<area shape="rect" title=" " alt="" coords="421,93,524,119"/>
-<area shape="poly" title=" " alt="" coords="642,48,519,91,517,86,640,43"/>
-<area shape="rect" title=" " alt="" coords="548,93,691,119"/>
-<area shape="poly" title=" " alt="" coords="678,47,642,85,638,81,674,44"/>
-<area shape="rect" title=" " alt="" coords="715,93,825,119"/>
-<area shape="poly" title=" " alt="" coords="714,44,751,81,747,85,710,47"/>
-<area shape="rect" title=" " alt="" coords="849,93,1072,119"/>
-<area shape="poly" title=" " alt="" coords="759,43,909,87,908,92,757,48"/>
-<area shape="rect" title=" " alt="" coords="1096,93,1220,119"/>
-<area shape="poly" title=" " alt="" coords="781,39,1083,89,1082,95,780,44"/>
+<area shape="rect" title=" " alt="" coords="826,5,999,45"/>
+<area shape="rect" href="Languages_8h.html" title=" " alt="" coords="341,93,445,119"/>
+<area shape="poly" title=" " alt="" coords="826,41,458,96,458,96,457,91,458,91,825,36"/>
+<area shape="rect" title=" " alt="" coords="469,93,572,119"/>
+<area shape="poly" title=" " alt="" coords="826,47,586,94,585,89,825,41"/>
+<area shape="rect" title=" " alt="" coords="596,93,739,119"/>
+<area shape="poly" title=" " alt="" coords="855,48,717,92,715,87,853,43"/>
+<area shape="rect" title=" " alt="" coords="763,93,873,119"/>
+<area shape="poly" title=" " alt="" coords="891,48,845,86,841,82,888,43"/>
+<area shape="rect" title=" " alt="" coords="897,93,1120,119"/>
+<area shape="poly" title=" " alt="" coords="938,43,986,82,982,87,934,48"/>
+<area shape="rect" title=" " alt="" coords="1144,93,1268,119"/>
+<area shape="poly" title=" " alt="" coords="984,43,1150,87,1149,92,982,48"/>
+<area shape="rect" title=" " alt="" coords="1293,93,1378,119"/>
+<area shape="poly" title=" " alt="" coords="1000,39,1280,90,1279,96,999,44"/>
+<area shape="rect" title=" " alt="" coords="1402,93,1477,119"/>
+<area shape="poly" title=" " alt="" coords="1000,34,1175,57,1389,91,1388,96,1175,62,999,39"/>
 <area shape="rect" href="ThemeFamily_8h.html" title=" " alt="" coords="5,167,241,192"/>
-<area shape="poly" title=" " alt="" coords="310,121,173,165,171,160,308,116"/>
+<area shape="poly" title=" " alt="" coords="350,121,181,166,179,161,349,116"/>
 <area shape="rect" title=" " alt="" coords="265,167,331,192"/>
-<area shape="poly" title=" " alt="" coords="339,120,315,157,311,154,335,118"/>
+<area shape="poly" title=" " alt="" coords="379,121,326,160,323,156,376,117"/>
 <area shape="rect" title=" " alt="" coords="355,167,430,192"/>
-<area shape="poly" title=" " alt="" coords="355,118,380,154,375,157,350,121"/>
-<area shape="rect" title=" " alt="" coords="454,167,558,192"/>
-<area shape="poly" title=" " alt="" coords="372,116,468,159,466,163,370,121"/>
+<area shape="poly" title=" " alt="" coords="395,119,395,153,390,153,390,119"/>
+<area shape="rect" title=" " alt="" coords="454,167,529,192"/>
+<area shape="poly" title=" " alt="" coords="410,117,466,156,463,161,407,121"/>
+<area shape="rect" title=" " alt="" coords="553,167,657,192"/>
+<area shape="poly" title=" " alt="" coords="428,116,558,160,557,165,426,121"/>
 <area shape="rect" title=" " alt="" coords="53,240,113,265"/>
 <area shape="poly" title=" " alt="" coords="119,194,99,229,94,227,114,191"/>
 <area shape="rect" title=" " alt="" coords="138,240,189,265"/>
@@ -123,11 +130,6 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceresource__managers" id="r_namespaceresource__managers"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html">resource_managers</a></td></tr>
 <tr class="memdesc:namespaceresource__managers"><td class="mdescLeft">&#160;</td><td class="mdescRight">Classes and functions related to loading and managing resources such as charts, sounds, images, etc. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:a3867bd0ee6840492884f0bebb6c0e1ab" id="r_a3867bd0ee6840492884f0bebb6c0e1ab"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a3867bd0ee6840492884f0bebb6c0e1ab">resource_managers::getClosestLanguageImpl</a> (QLocale locale, const QStringList &amp;languages) -&gt; QString</td></tr>
-<tr class="separator:a3867bd0ee6840492884f0bebb6c0e1ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->

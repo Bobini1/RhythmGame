@@ -1,0 +1,17 @@
+<map id="src/arena/QtArenaScheduler.h" name="src/arena/QtArenaScheduler.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="245,5,459,31"/>
+<area shape="rect" id="Node000002" href="$ArenaScheduler_8h.html" title=" " alt="" coords="74,79,209,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="319,33,189,77,187,72,317,28"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="233,79,354,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="344,33,313,70,309,67,340,29"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="378,79,443,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="364,29,395,67,391,70,360,33"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="467,79,546,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="378,28,470,70,468,75,376,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,80,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="127,106,71,146,68,142,124,102"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="104,152,179,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="144,104,144,138,139,138,139,104"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="203,152,290,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="160,102,220,142,217,147,157,106"/>
+</map>

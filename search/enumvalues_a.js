@@ -9,5 +9,6 @@ var searchData=
   ['keypress_6',['KeyPress',['../classgameplay__logic_1_1ChartRunner.html#af0f679d67348402a76ef38b12cc47daea65a1aa093fcf3acd50b318f1942c02f5',1,'gameplay_logic::ChartRunner']]],
   ['keyrelease_7',['KeyRelease',['../classgameplay__logic_1_1ChartRunner.html#af0f679d67348402a76ef38b12cc47daea17ee17cec34ff017c382ba1ce8dc4cdc',1,'gameplay_logic::ChartRunner']]],
   ['keyrole_8',['KeyRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167aaefa55de5fbf1573cbb3a9cfcca21606',1,'Lr2SelectItemModel']]],
-  ['kindrole_9',['KindRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a168c259b4a12a5b338dfe8703d6b6354',1,'Lr2SelectItemModel']]]
+  ['kicked_9',['kicked',['../namespacearena.html#a24f6251fcea0367271dc9e82be67bf9fab795b32b5ff2af716e8c5953cb7dcc37',1,'arena::Kicked'],['../namespacearena.html#a0c559269f245bb769e6b6d06dbbcec90ab795b32b5ff2af716e8c5953cb7dcc37',1,'arena::Kicked']]],
+  ['kindrole_10',['KindRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a168c259b4a12a5b338dfe8703d6b6354',1,'Lr2SelectItemModel']]]
 ];

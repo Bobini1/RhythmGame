@@ -1,0 +1,22 @@
+<map id="src/arena/ArenaTransport.h" name="src/arena/ArenaTransport.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="543,5,739,31"/>
+<area shape="rect" id="Node000002" href="$ArenaSession_8h.html" title=" " alt="" coords="437,86,624,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="615,41,549,88,546,84,612,37"/>
+<area shape="rect" id="Node000008" href="$QtWebSocketArenaTransport_8h.html" title=" " alt="" coords="648,79,859,119"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="671,36,728,76,725,81,668,41"/>
+<area shape="rect" id="Node000003" href="$QmlForeignTypes_8h.html" title=" " alt="" coords="435,167,653,207"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="537,124,544,166,538,167,532,125"/>
+<area shape="rect" id="Node000004" href="$main_8cpp.html" title=" " alt="" coords="565,255,670,280"/>
+<area shape="poly" id="edge8_Node000002_Node000004" title=" " alt="" coords="597,113,636,133,653,148,668,165,673,178,673,191,665,216,649,239,632,256,628,253,645,235,660,214,668,190,667,179,663,168,650,151,633,138,594,118"/>
+<area shape="rect" id="Node000005" href="$Rg_8h.html" title=" " alt="" coords="13,174,185,199"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="460,117,157,177,156,171,459,111"/>
+<area shape="rect" id="Node000007" href="$ArenaSession_8cpp.html" title=" " alt="" coords="209,174,410,199"/>
+<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="489,119,340,176,338,171,487,114"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="573,215,608,252,604,256,569,219"/>
+<area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="169,199,196,204,400,235,565,257,564,262,400,240,196,209,168,205"/>
+<area shape="rect" id="Node000006" href="$Rg_8cpp.html" title=" " alt="" coords="5,255,192,280"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="101,213,101,254,96,254,96,213"/>
+<area shape="poly" id="edge11_Node000008_Node000004" title=" " alt="" coords="740,132,718,170,690,208,662,236,635,257,632,252,659,232,686,205,714,167,735,130"/>
+<area shape="rect" id="Node000009" href="$QtWebSocketArenaTransport_8cpp.html" title=" " alt="" coords="779,167,989,207"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="795,124,857,164,854,169,792,128"/>
+</map>

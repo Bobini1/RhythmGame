@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['charts_0',['charts',['../namespacecharts.html',1,'']]]
+  ['arena_0',['arena',['../namespacearena.html',1,'']]]
 ];
