@@ -76,7 +76,7 @@ All resolutions supported! Press F11 to toggle fullscreen.
 
 ### Translations
 
-RhythmGame supports English and Polish by default.
+RhythmGame supports English, Polish and Simplified Chinese by default.
 Contact me if you would like to help translating it to your language!
 
 ![Language selection](docs/images/languages.webp)
