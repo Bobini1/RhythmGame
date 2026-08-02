@@ -5,9 +5,10 @@
 #ifndef GAMEPADMANAGER_H
 #define GAMEPADMANAGER_H
 #include <QObject>
+#include <QTimer>
 #include <SDL_gamecontroller.h>
-#include <functional>
-#include <thread>
+#include <memory>
+#include <unordered_map>
 
 namespace input {
 class Gamepad
@@ -57,10 +58,10 @@ class GamepadManager : public QObject
       std::unique_ptr<SDL_Joystick, decltype(&SDL_JoystickClose)>>
       controllers;
     std::unordered_map<SDL_JoystickID, Gamepad> gamepads;
-    std::jthread worker;
+    QTimer pollTimer;
 
     void addController(int index);
-    void loop();
+    void pollEvents();
 
   public:
     explicit GamepadManager(QObject* parent = nullptr);

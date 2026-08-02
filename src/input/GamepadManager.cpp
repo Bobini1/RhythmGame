@@ -1,16 +1,8 @@
 #include "GamepadManager.h"
-#include "GamepadManager.h"
-//
-// Created by bobini on 07.12.23.
-//
 
-#include "GamepadManager.h"
-#include <SDL2/SDL.h>
-#include <SDL_joystick.h>
+#include <QTimer>
+#include <SDL.h>
 #include <ranges>
-#include <spdlog/spdlog.h>
-#include <QGuiApplication>
-#include <thread>
 
 namespace input {
 
@@ -20,19 +12,27 @@ GamepadManager::GamepadManager(QObject* parent)
     if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK)) {
         throw std::runtime_error(SDL_GetError());
     }
-    // Run event loop in a dedicated thread
-    worker = std::jthread([this] { loop(); });
+    connect(&pollTimer,
+            &QTimer::timeout,
+            this,
+            &GamepadManager::pollEvents);
+    pollTimer.setTimerType(Qt::PreciseTimer);
+    pollTimer.start(1);
 }
+
 GamepadManager::~GamepadManager()
 {
+    pollTimer.stop();
+    controllers.clear();
+    gamepads.clear();
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK);
 }
 
 void
-GamepadManager::loop()
+GamepadManager::pollEvents()
 {
-    SDL_Event event;
-    while (SDL_WaitEvent(&event)) {
+    auto event = SDL_Event{};
+    while (SDL_PollEvent(&event)) {
         auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::steady_clock::now().time_since_epoch());
         auto startTime =
