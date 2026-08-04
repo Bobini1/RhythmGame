@@ -14,6 +14,7 @@
 #include "gameplay_logic/ChartRunner.h"
 #include "resource_managers/ChartFactory.h"
 #include "resource_managers/ChartPlayConfig.h"
+#include "resource_managers/SongAssetStore.h"
 #include "gameplay_logic/rules/TimingWindows.h"
 #include "gameplay_logic/rules/BmsRanks.h"
 #include "resource_managers/Tables.h"
@@ -49,6 +50,7 @@ class ChartLoader : public QObject
 
   private:
     resource_managers::ChartDataFactory* chartDataFactory;
+    resource_managers::SongAssetStore* assetStore;
     HitValueFactory hitValueFactory;
     GaugeFactory gaugeFactory;
     GaugeFactoryCourse gaugeFactoryCourse;
@@ -58,18 +60,17 @@ class ChartLoader : public QObject
     input::InputTranslator* inputTranslator;
     db::SqliteCppDb* db;
 
-    auto createChart(resource_managers::Profile* player1,
-                     bool player1AutoPlay,
-                     bool player1Replay,
-                     gameplay_logic::BmsScore* replayedScore1,
-                     resource_managers::Profile* player2,
-                     bool player2AutoPlay,
-                     bool player2Replay,
-                     gameplay_logic::BmsScore* replayedScore2,
-                     resource_managers::ChartDataFactory::ChartComponents
-                       chartComponents,
-                     const resource_managers::ChartPlayConfig* playConfig =
-                       nullptr) const
+    auto createChart(
+      resource_managers::Profile* player1,
+      bool player1AutoPlay,
+      bool player1Replay,
+      gameplay_logic::BmsScore* replayedScore1,
+      resource_managers::Profile* player2,
+      bool player2AutoPlay,
+      bool player2Replay,
+      gameplay_logic::BmsScore* replayedScore2,
+      resource_managers::ChartDataFactory::ChartComponents chartComponents,
+      const resource_managers::ChartPlayConfig* playConfig = nullptr) const
       -> std::unique_ptr<gameplay_logic::ChartRunner>;
 
     auto loadCourseChart(
@@ -93,6 +94,7 @@ class ChartLoader : public QObject
     ChartLoader(ProfileList* profileList,
                 input::InputTranslator* inputTranslator,
                 resource_managers::ChartDataFactory* chartDataFactory,
+                resource_managers::SongAssetStore* assetStore,
                 HitValueFactory hitValueFactory,
                 GaugeFactory gaugeFactory,
                 GaugeFactoryCourse gaugeFactoryCourse,

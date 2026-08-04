@@ -16,6 +16,8 @@
 #include "qml_components/Logger.h"
 #include "gameplay_logic/rules/Lr2HitValues.h"
 #include "resource_managers/SongDbScanner.h"
+#include "resource_managers/SongAssetImageProvider.h"
+#include "resource_managers/SongAssetStore.h"
 #include "resource_managers/DefineDb.h"
 #include "input/GamepadManager.h"
 #include "input/InputTranslator.h"
@@ -268,7 +270,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         resource_managers::defineDb(db);
 
-        auto songDbScanner = resource_managers::SongDbScanner{ &db };
+        auto songAssets =
+          resource_managers::SongAssetStore{ dataFolder / "song-assets-cache" };
+        auto songDbScanner =
+          resource_managers::SongDbScanner{ &db, &songAssets };
         auto avatarPath = support::pathToQString(dataFolder / "avatars/");
         if (!avatarPath.startsWith("/")) {
             avatarPath = "/" + avatarPath;
@@ -312,10 +317,14 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto networkManager = QNetworkAccessManager{};
         networkManager.setCookieJar(nullptr);
-        auto profileList = qml_components::ProfileList{
-            dataFolder / "song_db.sqlite", &db,           availableThemes,
-            dataFolder / "profiles",       assetsFolders, &networkManager
-        };
+        auto profileList =
+          qml_components::ProfileList{ dataFolder / "song_db.sqlite",
+                                       &db,
+                                       availableThemes,
+                                       dataFolder / "profiles",
+                                       assetsFolders,
+                                       &networkManager,
+                                       &songAssets };
         auto arenaTransport = arena::QtWebSocketArenaTransport{};
         auto arenaIdentityProvider =
           arena::ProfileArenaIdentityProvider{ &profileList };
@@ -353,8 +362,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          &input::InputTranslator::handleMidiDeviceRemoved);
 
         auto audioEngine = sounds::AudioEngine{};
-        auto chartFactory =
-          resource_managers::ChartFactory{ &audioEngine, &inputTranslator };
+        auto chartFactory = resource_managers::ChartFactory{ &audioEngine,
+                                                             &inputTranslator,
+                                                             &songAssets };
         auto chartDataFactory = resource_managers::ChartDataFactory{};
         auto gaugeFactoryGeneral = resource_managers::GaugeFactory{};
         auto gaugeFactory =
@@ -397,6 +407,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             &profileList,
             &inputTranslator,
             &chartDataFactory,
+            &songAssets,
             &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
             gaugeFactory,
             gaugeFactoryCourse,
@@ -445,9 +456,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto songFolderFactory = qml_components::SongFolderFactory{ &db };
         auto songDirectoryFilePathFetcher =
-          qml_components::SongDirectoryFilePathFetcher{ &db };
+          qml_components::SongDirectoryFilePathFetcher{ &db, &songAssets };
 
-        auto fileQuery = qml_components::FileQuery{};
+        auto fileQuery = qml_components::FileQuery{ &songAssets };
 
         auto tables = resource_managers::Tables{ &networkManager,
                                                  dataFolder / "tables",
@@ -490,7 +501,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &gamepadManager,    &profileList,
                       &arenaSession,      &tables,
                       &languages,         &audioEngine,
-                      &onlineScores };
+                      &onlineScores,      &songAssets };
 
         Rg::instance = &rg;
 
@@ -628,6 +639,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "Input",
           "Input is only accessible as an attached property");
         sounds::AudioPlayer::engine = &audioEngine;
+        sounds::AudioPlayer::assetStore = &songAssets;
         qmlRegisterType<sounds::AudioPlayer>(
           "RhythmGameQml", 1, 0, "AudioPlayer");
         qmlRegisterType<qml_components::ScoreReplayer>(
@@ -702,6 +714,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                 new resource_managers::DxaImageProvider{});
         engine.addImageProvider("lr2font",
                                 new resource_managers::Lr2FontImageProvider{});
+        engine.addImageProvider(
+          "song-assets",
+          new resource_managers::SongAssetImageProvider{ &songAssets });
         auto assetsPaths = std::vector{ installationDataFolder };
         if (!isPortable) {
             assetsPaths.push_back(dataFolder);

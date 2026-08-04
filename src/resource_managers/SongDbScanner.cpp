@@ -13,19 +13,24 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 #include <stack>
 #include <utility>
 #include "SongDbScanner.h"
+#include "SongAssetStore.h"
 #include "db/SqliteCppDb.h"
 #include "support/PathToQString.h"
 #include "support/PathToUtfString.h"
+#include "support/QStringToPath.h"
 
 #include <algorithm>
 #include <cctype>
+#include <QHash>
+#include <QSet>
 #include <qthreadpool.h>
 #include <spdlog/stopwatch.h>
 #include <spdlog/spdlog.h>
 
 namespace resource_managers {
-SongDbScanner::SongDbScanner(db::SqliteCppDb* db)
+SongDbScanner::SongDbScanner(db::SqliteCppDb* db, SongAssetStore* assetStore)
   : db(db)
+  , assetStore(assetStore)
 {
 }
 
@@ -125,6 +130,58 @@ loadChart(QThreadPool& threadPool,
 }
 
 void
+loadArchivedChart(QThreadPool& threadPool,
+                  db::SqliteCppDb& db,
+                  int64_t directory,
+                  const std::filesystem::path& virtualPath,
+                  QByteArray contents,
+                  std::function<void(QString)> updateCurrentScannedFolder,
+                  std::atomic_bool* stop)
+{
+    threadPool.start([&db,
+                      virtualPath,
+                      directory,
+                      contents = std::move(contents),
+                      updateCurrentScannedFolder,
+                      stop] {
+        if (*stop) {
+            return;
+        }
+        try {
+            updateCurrentScannedFolder(support::pathToQString(virtualPath));
+            auto randomGenerator =
+              [](charts::ParsedBmsChart::RandomRange randomRange) {
+                  thread_local auto randomEngine =
+                    std::default_random_engine{ std::random_device{}() };
+                  if (randomRange <= 1) {
+                      return charts::ParsedBmsChart::RandomRange{ 1 };
+                  }
+                  return std::uniform_int_distribution{
+                      charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
+                  }(randomEngine);
+              };
+            const auto view =
+              std::string_view{ contents.constData(),
+                                static_cast<size_t>(contents.size()) };
+            thread_local constexpr ChartDataFactory chartDataFactory;
+            const auto extension =
+              support::pathToQString(virtualPath.extension()).toLower();
+            const auto chartComponents =
+              extension == QStringLiteral(".bmson")
+                ? chartDataFactory.loadBmsonChartData(
+                    view, virtualPath, directory)
+                : chartDataFactory.loadChartData(
+                    view, virtualPath, randomGenerator, directory);
+            chartComponents.chartData->save(db);
+        } catch (const std::exception& error) {
+            spdlog::error("Failed to load archived chart data for {}: {}",
+                          support::pathToUtfString(virtualPath),
+                          error.what());
+        }
+    });
+}
+
+void
 addSongDirectoryFileToDb(db::SqliteCppDb& db,
                          const char* table,
                          const char* label,
@@ -194,6 +251,171 @@ isReadmeCandidate(const std::filesystem::path& path) -> bool
     }
     return lowercaseExtension(path) == ".txt";
 }
+
+auto
+isChartCandidate(const std::filesystem::path& path) -> bool
+{
+    const auto extension = lowercaseExtension(path);
+    return extension == ".bms" || extension == ".bme" || extension == ".bml" ||
+           extension == ".pms" || extension == ".bmson";
+}
+
+auto
+isPreviewCandidate(const std::filesystem::path& path) -> bool
+{
+    auto filename = support::pathToUtfString(path.filename());
+    std::ranges::transform(
+      filename, filename.begin(), [](const unsigned char value) {
+          return static_cast<char>(std::tolower(value));
+      });
+    const auto extension = lowercaseExtension(path);
+    return filename.starts_with("preview") &&
+           (extension == ".mp3" || extension == ".ogg" || extension == ".wav" ||
+            extension == ".flac");
+}
+
+void
+scanSongArchive(const std::filesystem::path& archivePath,
+                QThreadPool& threadPool,
+                db::SqliteCppDb& db,
+                SongAssetStore& assetStore,
+                const QString& root,
+                const std::function<void(QString)>& updateCurrentScannedFolder,
+                std::atomic_bool* stop)
+{
+    if (SongAssetStore::isSplitArchivePath(archivePath)) {
+        spdlog::warn("Split archive is unsupported: {}",
+                     support::pathToUtfString(archivePath));
+        return;
+    }
+    assetStore.evictArchiveForRescan(support::qStringToPath(root), archivePath);
+
+    auto chartEntries = std::vector<SongAssetStore::ArchiveEntry>{};
+    auto previewPaths = QHash<QString, std::filesystem::path>{};
+    auto readmePaths = QHash<QString, std::filesystem::path>{};
+    updateCurrentScannedFolder(support::pathToQString(archivePath));
+    assetStore.walkArchive(
+      archivePath,
+      [](const std::filesystem::path& path) {
+          return isChartCandidate(path) && lowercaseExtension(path) != ".pms";
+      },
+      [&](SongAssetStore::ArchiveEntry entry) {
+          if (*stop) {
+              return;
+          }
+          const auto directoryPath = entry.virtualPath.parent_path() / "";
+          const auto directory = support::pathToQString(directoryPath);
+          if (isChartCandidate(entry.virtualPath)) {
+              chartEntries.push_back(std::move(entry));
+              return;
+          }
+          if (isPreviewCandidate(entry.virtualPath)) {
+              previewPaths.insert(directory, entry.virtualPath);
+          } else if (isReadmeCandidate(entry.virtualPath) &&
+                     !readmePaths.contains(directory)) {
+              readmePaths.insert(directory, entry.virtualPath);
+          }
+      },
+      stop);
+
+    auto allChartDirectories = QSet<QString>{};
+    for (const auto& entry : chartEntries) {
+        allChartDirectories.insert(
+          support::pathToQString(entry.virtualPath.parent_path() / ""));
+    }
+    auto candidates = allChartDirectories.values();
+    std::ranges::sort(candidates, [](const auto& left, const auto& right) {
+        return left.size() < right.size();
+    });
+    auto chartDirectories = QSet<QString>{};
+    for (const auto& candidate : candidates) {
+        const auto belowSongDirectory =
+          std::ranges::any_of(chartDirectories, [&](const auto& parent) {
+              return candidate.startsWith(parent, Qt::CaseInsensitive);
+          });
+        if (!belowSongDirectory) {
+            chartDirectories.insert(candidate);
+        }
+    }
+
+    for (auto& entry : chartEntries) {
+        const auto directory =
+          support::pathToQString(entry.virtualPath.parent_path() / "");
+        if (!chartDirectories.contains(directory)) {
+            continue;
+        }
+        auto listingDirectory = support::pathToQString(
+          entry.virtualPath.parent_path().parent_path() / "");
+        if (!listingDirectory.startsWith(root)) {
+            listingDirectory = root;
+        }
+        const auto directoryId = addDirToParentDirs(db, root, listingDirectory);
+        if (lowercaseExtension(entry.virtualPath) != ".pms" && entry.contents) {
+            loadArchivedChart(threadPool,
+                              db,
+                              directoryId,
+                              entry.virtualPath,
+                              std::move(*entry.contents),
+                              updateCurrentScannedFolder,
+                              stop);
+        }
+    }
+
+    for (const auto& directory : chartDirectories) {
+        const auto directoryPath = support::qStringToPath(directory);
+        if (const auto preview = previewPaths.constFind(directory);
+            preview != previewPaths.cend()) {
+            addPreviewFileToDb(db, directoryPath, *preview);
+        }
+        if (const auto readme = readmePaths.constFind(directory);
+            readme != readmePaths.cend()) {
+            addReadmeFileToDb(db, directoryPath, *readme);
+        }
+    }
+
+    threadPool.waitForDone();
+    if (*stop) {
+        return;
+    }
+    auto selectAssets = std::vector<std::filesystem::path>{};
+    selectAssets.reserve(chartDirectories.size() * 2);
+    for (const auto& directory : chartDirectories) {
+        if (const auto preview = previewPaths.constFind(directory);
+            preview != previewPaths.cend()) {
+            selectAssets.push_back(*preview);
+        }
+        if (const auto readme = readmePaths.constFind(directory);
+            readme != readmePaths.cend()) {
+            selectAssets.push_back(*readme);
+        }
+    }
+
+    auto archivePrefix = support::pathToQString(archivePath);
+    archivePrefix.replace('\\', '/');
+    if (!archivePrefix.endsWith('/')) {
+        archivePrefix += '/';
+    }
+    auto chartAssets =
+      db.createStatement("SELECT chart_directory, stage_file, banner, back_bmp "
+                         "FROM charts WHERE instr(path, ?) = 1");
+    chartAssets.bind(1, archivePrefix.toStdString());
+    for (const auto& [directory, stageFile, banner, backBmp] :
+         chartAssets.executeAndGetAll<
+           std::tuple<std::string, std::string, std::string, std::string>>()) {
+        for (const auto& relative : { stageFile, banner, backBmp }) {
+            if (relative.empty()) {
+                continue;
+            }
+            const auto source =
+              SongAssetStore::imageUrl(QString::fromStdString(directory),
+                                       QString::fromStdString(relative));
+            if (source.startsWith(QStringLiteral("image://song-assets/"))) {
+                selectAssets.push_back(SongAssetStore::pathFromUrl(source));
+            }
+        }
+    }
+    assetStore.prefetch(selectAssets, stop);
+}
 #ifdef _WIN32
 using NtQueryDirectoryFile_t =
   NTSTATUS(NTAPI*)(_In_ HANDLE FileHandle,
@@ -228,6 +450,7 @@ scanFolder(std::filesystem::path directory,
            std::filesystem::path parentDirectory,
            QThreadPool& threadPool,
            db::SqliteCppDb& db,
+           SongAssetStore& assetStore,
            const QString& root,
            std::function<void(QString)> updateCurrentScannedFolder,
            std::atomic_bool* stop)
@@ -249,6 +472,7 @@ scanFolder(std::filesystem::path directory,
                                     NULL);
 
     auto directoriesToScan = std::vector<std::filesystem::path>{};
+    auto archivesToScan = std::vector<std::filesystem::path>{};
     auto isSongDirectory = false;
     auto parentDirQString = support::pathToQString(parentDirectory);
     if (!parentDirQString.isEmpty()) {
@@ -318,6 +542,11 @@ scanFolder(std::filesystem::path directory,
                               updateCurrentScannedFolder,
                               stop);
                 }
+            } else if (SongAssetStore::isArchivePath(
+                         std::filesystem::path(path)) ||
+                       SongAssetStore::isSplitArchivePath(
+                         std::filesystem::path(path))) {
+                archivesToScan.push_back(directory / path);
             } else if (path.starts_with(L"preview") &&
                        (extension.compare(".mp3") == 0 ||
                         extension.compare(".ogg") == 0 ||
@@ -346,6 +575,24 @@ scanFolder(std::filesystem::path directory,
             addReadmeFileToDb(db, directory, readmePath);
         });
     }
+    for (const auto& archive : archivesToScan) {
+        if (*stop) {
+            break;
+        }
+        try {
+            scanSongArchive(archive,
+                            threadPool,
+                            db,
+                            assetStore,
+                            root,
+                            updateCurrentScannedFolder,
+                            stop);
+        } catch (const std::exception& error) {
+            spdlog::error("Failed to scan song archive {}: {}",
+                          support::pathToUtfString(archive),
+                          error.what());
+        }
+    }
     for (const auto& entry : directoriesToScan) {
         if (*stop) {
             break;
@@ -354,6 +601,7 @@ scanFolder(std::filesystem::path directory,
                    directory,
                    threadPool,
                    db,
+                   assetStore,
                    root,
                    updateCurrentScannedFolder,
                    stop);
@@ -365,12 +613,14 @@ scanFolder(const std::filesystem::path& directory,
            const std::filesystem::path& parentDirectory,
            QThreadPool& threadPool,
            db::SqliteCppDb& db,
+           SongAssetStore& assetStore,
            const QString& root,
            const std::function<void(QString)>& updateCurrentScannedFolder,
            std::vector<llfio::directory_handle::buffer_type>& buffer,
            std::atomic_bool* stop)
 {
     auto directoriesToScan = std::vector<std::filesystem::path>{};
+    auto archivesToScan = std::vector<std::filesystem::path>{};
     auto isSongDirectory = false;
     auto previewPath = std::filesystem::path{};
     auto readmePath = std::filesystem::path{};
@@ -433,6 +683,9 @@ scanFolder(const std::filesystem::path& directory,
                           updateCurrentScannedFolder,
                           stop);
             }
+        } else if (SongAssetStore::isArchivePath(path) ||
+                   SongAssetStore::isSplitArchivePath(path)) {
+            archivesToScan.push_back(directory / path);
         } else if (path.string().starts_with("preview") &&
                    (extension == ".mp3" || extension == ".ogg" ||
                     extension == ".wav" || extension == ".flac")) {
@@ -451,6 +704,24 @@ scanFolder(const std::filesystem::path& directory,
             addReadmeFileToDb(db, directory, readmePath);
         });
     }
+    for (const auto& archive : archivesToScan) {
+        if (*stop) {
+            break;
+        }
+        try {
+            scanSongArchive(archive,
+                            threadPool,
+                            db,
+                            assetStore,
+                            root,
+                            updateCurrentScannedFolder,
+                            stop);
+        } catch (const std::exception& error) {
+            spdlog::error("Failed to scan song archive {}: {}",
+                          support::pathToUtfString(archive),
+                          error.what());
+        }
+    }
     for (const auto& entry : directoriesToScan) {
         if (*stop) {
             break;
@@ -460,6 +731,7 @@ scanFolder(const std::filesystem::path& directory,
                    directory,
                    threadPool,
                    db,
+                   assetStore,
                    root,
                    updateCurrentScannedFolder,
                    buffer,
@@ -477,6 +749,7 @@ SongDbScanner::scanDirectory(
     auto sw = spdlog::stopwatch{};
     auto threadPool = QThreadPool{};
     try {
+        assetStore->beginRescan(directory);
 #ifndef _WIN32
         auto buffer = std::vector<llfio::directory_handle::buffer_type>(100);
 #endif
@@ -486,15 +759,31 @@ SongDbScanner::scanDirectory(
                        {},
                        threadPool,
                        *db,
+                       *assetStore,
                        root,
                        updateCurrentScannedFolder,
 #ifndef _WIN32
                        buffer,
 #endif
                        stop);
+        } else if (is_regular_file(directory) &&
+                   SongAssetStore::isArchivePath(directory) &&
+                   !SongAssetStore::isSplitArchivePath(directory)) {
+            auto root = support::pathToQString(directory);
+            if (!root.endsWith('/')) {
+                root += '/';
+            }
+            scanSongArchive(directory,
+                            threadPool,
+                            *db,
+                            *assetStore,
+                            root,
+                            updateCurrentScannedFolder,
+                            stop);
         } else {
-            spdlog::error("Resource path {} is not a directory",
-                          directory.string());
+            spdlog::error(
+              "Resource path {} is not a directory or supported song archive",
+              directory.string());
         }
     } catch (const std::exception& e) {
         spdlog::error(

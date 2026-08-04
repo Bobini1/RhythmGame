@@ -11,6 +11,7 @@ class QObject;
 
 namespace resource_managers {
 class Profile;
+class SongAssetStore;
 }
 
 namespace qml_components {
@@ -20,9 +21,10 @@ namespace qml_components {
  * @details The returned operation is parented to @p parent and tracks progress.
  * The caller is responsible for exposing it to QML.
  */
-ReplayImportOperation* startBeatorajaReplayImport(
-  resource_managers::Profile* profile,
-  const QString& folderPath);
+ReplayImportOperation*
+startBeatorajaReplayImport(resource_managers::Profile* profile,
+                           resource_managers::SongAssetStore* songAssetStore,
+                           const QString& folderPath);
 
 } // namespace qml_components
 

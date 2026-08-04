@@ -17,6 +17,8 @@ class ProfileList;
 } // namespace qml_components
 namespace resource_managers {
 
+class SongAssetStore;
+
 class SoundTask : public QObject
 {
     Q_OBJECT
@@ -50,6 +52,7 @@ class ChartFactory
 {
     sounds::AudioEngine* engine;
     input::InputTranslator* inputTranslator;
+    SongAssetStore* assetStore;
 
   public:
     struct PlayerSpecificData
@@ -66,7 +69,8 @@ class ChartFactory
         bool usePre130{};
     };
     ChartFactory(sounds::AudioEngine* engine,
-                 input::InputTranslator* inputTranslator);
+                 input::InputTranslator* inputTranslator,
+                 SongAssetStore* assetStore);
     auto createChart(ChartDataFactory::ChartComponents chartComponents,
                      PlayerSpecificData player1,
                      std::optional<PlayerSpecificData> player2,

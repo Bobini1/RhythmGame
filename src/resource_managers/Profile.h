@@ -25,6 +25,7 @@ class ChartData;
 }
 namespace resource_managers {
 class Profile;
+class SongAssetStore;
 
 class ArenaTicketOperation final : public QObject
 {
@@ -131,6 +132,7 @@ class Profile final : public QObject
     QNetworkRequestFactory networkRequestFactory;
     QThreadPool threadPool;
     QThreadPool importPool;
+    SongAssetStore* songAssetStore;
 
     qml_components::ReplayImportOperation* currentImportOp{ nullptr };
 
@@ -175,6 +177,7 @@ class Profile final : public QObject
       const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
       QList<QString> assetsPaths,
       QNetworkAccessManager* networkManager,
+      SongAssetStore* songAssetStore,
       QObject* parent = nullptr);
 
     auto getPath() const -> std::filesystem::path;

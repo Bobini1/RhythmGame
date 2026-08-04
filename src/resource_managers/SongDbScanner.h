@@ -9,12 +9,15 @@
 #include "ChartDataFactory.h"
 namespace resource_managers {
 
+class SongAssetStore;
+
 class SongDbScanner
 {
     db::SqliteCppDb* db;
+    SongAssetStore* assetStore;
 
   public:
-    explicit SongDbScanner(db::SqliteCppDb* db);
+    SongDbScanner(db::SqliteCppDb* db, SongAssetStore* assetStore);
     void scanDirectory(
       const std::filesystem::path& directory,
       const std::function<void(QString)>& updateCurrentScannedFolder,

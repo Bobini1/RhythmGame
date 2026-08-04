@@ -9,12 +9,19 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+namespace resource_managers {
+class SongAssetStore;
+}
 namespace qml_components {
 class FileQuery : public QObject
 {
     Q_OBJECT
 
+    resource_managers::SongAssetStore* assetStore;
+
   public:
+    explicit FileQuery(resource_managers::SongAssetStore* assetStore = nullptr,
+                       QObject* parent = nullptr);
     Q_INVOKABLE QString readTextFile(const QString& path) const;
     /**
      * @brief Get a list of all files in a directory EXCLUDING ini files.

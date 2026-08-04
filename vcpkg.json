@@ -9,6 +9,16 @@
     "fmt",
     "foonathan-lexy",
     {
+      "name": "libarchive",
+      "default-features": false,
+      "features": [
+        "bzip2",
+        "lz4",
+        "lzma",
+        "zstd"
+      ]
+    },
+    {
       "name": "libsndfile",
       "features": [
         "external-libs",

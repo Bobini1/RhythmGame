@@ -4,15 +4,20 @@
 
 #include "SongDirectoryFilePathFetcher.h"
 
+#include "resource_managers/SongAssetStore.h"
+#include "support/QStringToPath.h"
 #include <spdlog/stopwatch.h>
 #include <spdlog/spdlog.h>
 #include <utility>
 
 namespace qml_components {
-SongDirectoryFilePathFetcher::SongDirectoryFilePathFetcher(db::SqliteCppDb* db,
-                                                           QObject* parent)
+SongDirectoryFilePathFetcher::SongDirectoryFilePathFetcher(
+  db::SqliteCppDb* db,
+  resource_managers::SongAssetStore* assetStore,
+  QObject* parent)
   : QObject(parent)
   , db(db)
+  , assetStore(assetStore)
 {
 }
 auto
@@ -67,7 +72,16 @@ auto
 SongDirectoryFilePathFetcher::getPreviewFilePaths(
   QList<QString> directories) const -> QVariantHash
 {
-    return getFilePaths(std::move(directories), "preview_files");
+    auto result = getFilePaths(std::move(directories), "preview_files");
+    for (auto iterator = result.begin(); iterator != result.end(); ++iterator) {
+        const auto path = iterator.value().toString();
+        const auto fsPath = support::qStringToPath(path);
+        if (assetStore->isArchived(fsPath)) {
+            iterator.value() =
+              resource_managers::SongAssetStore::audioUrl(fsPath);
+        }
+    }
+    return result;
 }
 
 auto

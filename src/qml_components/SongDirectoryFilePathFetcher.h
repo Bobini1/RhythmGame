@@ -8,6 +8,9 @@
 #include <QVariantHash>
 #include "db/SqliteCppDb.h"
 #include <string>
+namespace resource_managers {
+class SongAssetStore;
+}
 namespace qml_components {
 
 class SongDirectoryFilePathFetcher : public QObject
@@ -15,13 +18,16 @@ class SongDirectoryFilePathFetcher : public QObject
     Q_OBJECT
 
     db::SqliteCppDb* db;
+    resource_managers::SongAssetStore* assetStore;
 
-    auto getFilePaths(QList<QString> directories, const std::string& table)
-      const -> QVariantHash;
+    auto getFilePaths(QList<QString> directories,
+                      const std::string& table) const -> QVariantHash;
 
   public:
-    explicit SongDirectoryFilePathFetcher(db::SqliteCppDb* db,
-                                          QObject* parent = nullptr);
+    explicit SongDirectoryFilePathFetcher(
+      db::SqliteCppDb* db,
+      resource_managers::SongAssetStore* assetStore,
+      QObject* parent = nullptr);
     /**
      * @brief Fetches the preview file paths for the given directories.
      * @param directories A list of directories to fetch preview file paths for.
@@ -29,7 +35,8 @@ class SongDirectoryFilePathFetcher : public QObject
      * preview file path. The result will not contain entries for directories
      * that do not have a preview file path.
      */
-    Q_INVOKABLE QVariantHash getPreviewFilePaths(QList<QString> directories) const;
+    Q_INVOKABLE QVariantHash
+    getPreviewFilePaths(QList<QString> directories) const;
 
     /**
      * @brief Fetches the readme file paths for the given directories.
@@ -38,7 +45,8 @@ class SongDirectoryFilePathFetcher : public QObject
      * readme file path. The result will not contain entries for directories
      * that do not have a readme file path.
      */
-    Q_INVOKABLE QVariantHash getReadmeFilePaths(QList<QString> directories) const;
+    Q_INVOKABLE QVariantHash
+    getReadmeFilePaths(QList<QString> directories) const;
 };
 
 } // namespace qml_components

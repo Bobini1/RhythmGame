@@ -4,22 +4,24 @@
 
 #include "Rg.h"
 
-Rg::Rg(qml_components::ProgramSettings* programSettings,
-       input::InputTranslator* inputTranslator,
-       qml_components::ChartLoader* chartLoader,
-       qml_components::RootSongFoldersConfig* rootSongFoldersConfig,
-       qml_components::SongFolderFactory* songFolderFactory,
-       qml_components::SongDirectoryFilePathFetcher* songDirectoryFilePathFetcher,
-       qml_components::FileQuery* fileQuery,
-       qml_components::Themes* themes,
-       input::GamepadManager* gamepadManager,
-       qml_components::ProfileList* profileList,
-       arena::ArenaSession* arenaSession,
-       resource_managers::Tables* tables,
-       resource_managers::Languages* languages,
-       sounds::AudioEngine* audioEngine,
-       qml_components::OnlineScores* onlineScores,
-       QObject* parent)
+Rg::Rg(
+  qml_components::ProgramSettings* programSettings,
+  input::InputTranslator* inputTranslator,
+  qml_components::ChartLoader* chartLoader,
+  qml_components::RootSongFoldersConfig* rootSongFoldersConfig,
+  qml_components::SongFolderFactory* songFolderFactory,
+  qml_components::SongDirectoryFilePathFetcher* songDirectoryFilePathFetcher,
+  qml_components::FileQuery* fileQuery,
+  qml_components::Themes* themes,
+  input::GamepadManager* gamepadManager,
+  qml_components::ProfileList* profileList,
+  arena::ArenaSession* arenaSession,
+  resource_managers::Tables* tables,
+  resource_managers::Languages* languages,
+  sounds::AudioEngine* audioEngine,
+  qml_components::OnlineScores* onlineScores,
+  resource_managers::SongAssetStore* songAssets,
+  QObject* parent)
   : QObject(parent)
   , programSettings(programSettings)
   , inputTranslator(inputTranslator)
@@ -36,6 +38,7 @@ Rg::Rg(qml_components::ProgramSettings* programSettings,
   , languages(languages)
   , audioEngine(audioEngine)
   , onlineScores(onlineScores)
+  , songAssets(songAssets)
 {
 }
 Rg*

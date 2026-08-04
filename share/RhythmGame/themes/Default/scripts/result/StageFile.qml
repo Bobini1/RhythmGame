@@ -7,17 +7,7 @@ Image {
 
     required property string chartDirectory
     required property string stageFileName
-    source: {
-        if (stageFileName === "") {
-            return "";
-        }
-        let dir = chartDirectory;
-        if (dir[0] !== "/") {
-            dir = "/" + dir;
-        }
-        let stageFile = "file://" + dir + stageFileName;
-        return stageFile;
-    }
+    source: Rg.songAssets.imageSource(chartDirectory, stageFileName)
     sourceSize.height: 192
     sourceSize.width: 256
     width: sourceSize.width

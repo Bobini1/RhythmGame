@@ -94,6 +94,7 @@ class ProfileList final : public QObject
     bool battleAllowed{ true };
     QList<QString> assetsPaths;
     QNetworkAccessManager* networkAccessManager;
+    resource_managers::SongAssetStore* songAssetStore;
 
     void saveMainProfile();
     void saveActiveProfiles();
@@ -105,6 +106,7 @@ class ProfileList final : public QObject
                          std::filesystem::path profilesFolder,
                          QList<QString> assetsPaths,
                          QNetworkAccessManager* networkAccessManager,
+                         resource_managers::SongAssetStore* songAssetStore,
                          QObject* parent = nullptr);
     auto getProfiles() -> const QList<resource_managers::Profile*>&;
 

@@ -320,6 +320,7 @@ Image {
         width: parent.width / 3 - parent.width / 24
         height: width * (3/4)
         asynchronous: true
+        sourceSize: Qt.size(Math.ceil(width), Math.ceil(height))
         property real pos: - 1 / 3 + 1 / 24
         NumberAnimation {
             id: stagefileAnim
@@ -329,17 +330,7 @@ Image {
             duration: 1000
             easing.type: Easing.OutCubic
         }
-        source: {
-            let dir = chart.chartData?.chartDirectory;
-            if (dir === undefined || !chart.chartData?.stageFile) {
-                return "";
-            }
-            if (dir[0] !== "/") {
-                dir = "/" + dir;
-            }
-            let stageFileWithoutExt = chart.chartData.stageFile.replace(/\.[^/.]+$/, "");
-            return "file://" + dir + stageFileWithoutExt;
-        }
+        source: chart.chartData?.stageFileSource || ""
 
         Rectangle {
             anchors.fill: parent

@@ -195,7 +195,9 @@ FocusScope {
             }
             let paths = Rg.songDirectoryFilePathFetcher.getReadmeFilePaths([target.chartDirectory]);
             let path = paths[target.chartDirectory] || "";
-            return path.length > 0 && Qt.openUrlExternally(globalRoot.localFileUrl(path));
+            let localPath = path.length > 0 ? Rg.songAssets.localFile(path) : "";
+            return localPath.length > 0
+                && Qt.openUrlExternally(globalRoot.localFileUrl(localPath));
         }
 
         function showAllChartsForCurrentSong() {
@@ -460,18 +462,26 @@ FocusScope {
             AudioPlayer {
                 id: playMusic
 
+                readonly property string requestedSource: songList.current instanceof ChartData
+                    ? (songList.previewFiles[songList.current.chartDirectory] || "")
+                    : ""
+                property string queuedSource: ""
                 property bool waitingForStop: false
                 fadeInMillis: 1000
                 looping: true
-                source: songList.current instanceof ChartData ? songList.previewFiles[songList.current.chartDirectory] : undefined
+                source: queuedSource
                 Component.onCompleted: {
                     playing = true;
                 }
 
-                onSourceChanged: {
+                onRequestedSourceChanged: {
                     previewDelayTimer.stop();
                     playMusic.stop();
-                    waitingForStop = playMusic.source !== "";
+                    queuedSource = "";
+                    waitingForStop = requestedSource !== "";
+                    if (waitingForStop && root.enabled) {
+                        previewDelayTimer.restart();
+                    }
                 }
             }
             AudioPlayer {
@@ -479,7 +489,7 @@ FocusScope {
                 looping: true
                 source: Rg.profileList.mainProfile.vars.generalVars.bgmPath + "select";
                 fadeInMillis: 1000
-                property bool canPlay: (!playMusic.playing || playMusic.source === "") && root.enabled
+                property bool canPlay: (!playMusic.playing || !playMusic.loaded) && root.enabled
                 onCanPlayChanged: {
                     if (!canPlay) {
                         bgm.stop();
@@ -591,7 +601,18 @@ FocusScope {
                 interval: 300
 
                 onTriggered: {
-                    playMusic.play();
+                    let requested = playMusic.requestedSource;
+                    playMusic.waitingForStop = false;
+                    playMusic.queuedSource = requested;
+                    if (requested !== "") {
+                        Qt.callLater(() => {
+                            if (root.enabled
+                                    && playMusic.queuedSource === requested
+                                    && playMusic.requestedSource === requested) {
+                                playMusic.play();
+                            }
+                        });
+                    }
                 }
             }
             Text {

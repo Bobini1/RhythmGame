@@ -15,6 +15,7 @@
 #include "sounds/AudioEngine.h"
 #include "resource_managers/Languages.h"
 #include "resource_managers/Tables.h"
+#include "resource_managers/SongAssetStore.h"
 #include "qml_components/OnlineScores.h"
 #include "arena/ArenaSession.h"
 
@@ -35,31 +36,35 @@ class Rg final : public QObject
 
     Q_PROPERTY(qml_components::ProgramSettings* programSettings MEMBER
                  programSettings CONSTANT FINAL)
-    Q_PROPERTY(
-      input::InputTranslator* inputTranslator MEMBER inputTranslator CONSTANT FINAL)
-    Q_PROPERTY(
-      qml_components::ChartLoader* chartLoader MEMBER chartLoader CONSTANT FINAL)
+    Q_PROPERTY(input::InputTranslator* inputTranslator MEMBER inputTranslator
+                 CONSTANT FINAL)
+    Q_PROPERTY(qml_components::ChartLoader* chartLoader MEMBER chartLoader
+                 CONSTANT FINAL)
     Q_PROPERTY(qml_components::RootSongFoldersConfig* rootSongFoldersConfig
                  MEMBER rootSongFoldersConfig CONSTANT FINAL)
     Q_PROPERTY(qml_components::SongFolderFactory* songFolderFactory MEMBER
                  songFolderFactory CONSTANT FINAL)
-    Q_PROPERTY(qml_components::SongDirectoryFilePathFetcher*
-                 songDirectoryFilePathFetcher MEMBER songDirectoryFilePathFetcher
-                   CONSTANT FINAL)
-    Q_PROPERTY(qml_components::FileQuery* fileQuery MEMBER fileQuery CONSTANT FINAL)
+    Q_PROPERTY(
+      qml_components::SongDirectoryFilePathFetcher* songDirectoryFilePathFetcher
+        MEMBER songDirectoryFilePathFetcher CONSTANT FINAL)
+    Q_PROPERTY(
+      qml_components::FileQuery* fileQuery MEMBER fileQuery CONSTANT FINAL)
     Q_PROPERTY(qml_components::Themes* themes MEMBER themes CONSTANT FINAL)
-    Q_PROPERTY(
-      input::GamepadManager* gamepadManager MEMBER gamepadManager CONSTANT FINAL)
-    Q_PROPERTY(
-      qml_components::ProfileList* profileList MEMBER profileList CONSTANT FINAL)
+    Q_PROPERTY(input::GamepadManager* gamepadManager MEMBER gamepadManager
+                 CONSTANT FINAL)
+    Q_PROPERTY(qml_components::ProfileList* profileList MEMBER profileList
+                 CONSTANT FINAL)
     Q_PROPERTY(
       arena::ArenaSession* arenaSession MEMBER arenaSession CONSTANT FINAL)
     Q_PROPERTY(resource_managers::Tables* tables MEMBER tables CONSTANT FINAL)
     Q_PROPERTY(
       resource_managers::Languages* languages MEMBER languages CONSTANT FINAL)
-    Q_PROPERTY(sounds::AudioEngine* audioEngine MEMBER audioEngine CONSTANT FINAL)
     Q_PROPERTY(
-      qml_components::OnlineScores* onlineScores MEMBER onlineScores CONSTANT FINAL)
+      sounds::AudioEngine* audioEngine MEMBER audioEngine CONSTANT FINAL)
+    Q_PROPERTY(qml_components::OnlineScores* onlineScores MEMBER onlineScores
+                 CONSTANT FINAL)
+    Q_PROPERTY(resource_managers::SongAssetStore* songAssets MEMBER songAssets
+                 CONSTANT FINAL)
 
     qml_components::ProgramSettings* programSettings;
     input::InputTranslator* inputTranslator;
@@ -76,6 +81,7 @@ class Rg final : public QObject
     resource_managers::Languages* languages;
     sounds::AudioEngine* audioEngine;
     qml_components::OnlineScores* onlineScores;
+    resource_managers::SongAssetStore* songAssets;
 
   public:
     Rg(qml_components::ProgramSettings* programSettings,
@@ -83,7 +89,8 @@ class Rg final : public QObject
        qml_components::ChartLoader* chartLoader,
        qml_components::RootSongFoldersConfig* rootSongFoldersConfig,
        qml_components::SongFolderFactory* songFolderFactory,
-       qml_components::SongDirectoryFilePathFetcher* songDirectoryFilePathFetcher,
+       qml_components::SongDirectoryFilePathFetcher*
+         songDirectoryFilePathFetcher,
        qml_components::FileQuery* fileQuery,
        qml_components::Themes* themes,
        input::GamepadManager* gamepadManager,
@@ -93,6 +100,7 @@ class Rg final : public QObject
        resource_managers::Languages* languages,
        sounds::AudioEngine* audioEngine,
        qml_components::OnlineScores* onlineScores,
+       resource_managers::SongAssetStore* songAssets,
        QObject* parent = nullptr);
     inline static Rg* instance = nullptr;
     static auto create(QQmlEngine* qmlEngine, QJSEngine*) -> Rg*;

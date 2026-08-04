@@ -4,6 +4,7 @@
 
 #include "FileQuery.h"
 
+#include "resource_managers/SongAssetStore.h"
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
 #include <QFile>
@@ -288,9 +289,34 @@ localPathFromUserPath(const QString& path) -> QString
 } // namespace
 
 namespace qml_components {
+FileQuery::FileQuery(resource_managers::SongAssetStore* assetStore,
+                     QObject* parent)
+  : QObject(parent)
+  , assetStore(assetStore)
+{
+}
+
 auto
 FileQuery::readTextFile(const QString& path) const -> QString
 {
+    if (assetStore) {
+        try {
+            auto virtualPath = support::qStringToPath(path);
+            if (resource_managers::SongAssetStore::isAudioUrl(path) ||
+                path.startsWith(QStringLiteral("image://song-assets/"))) {
+                virtualPath =
+                  resource_managers::SongAssetStore::pathFromUrl(path);
+            }
+            if (assetStore->isArchived(virtualPath)) {
+                return decodeTextFile(assetStore->read(virtualPath));
+            }
+        } catch (const std::exception& error) {
+            spdlog::warn("Failed to read archived text file {}: {}",
+                         path.toStdString(),
+                         error.what());
+            return {};
+        }
+    }
     QFile file(localPathFromUserPath(path));
     if (!file.open(QIODevice::ReadOnly)) {
         spdlog::warn("Failed to read text file {}", path.toStdString());

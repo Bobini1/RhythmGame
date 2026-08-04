@@ -1,6 +1,7 @@
 #include "db/SqliteCppDb.h"
 #include "qml_components/ProfileList.h"
 #include "qml_components/ThemeFamily.h"
+#include "resource_managers/SongAssetStore.h"
 #include "support/QStringToPath.h"
 
 #include <catch2/catch_test_macros.hpp>
@@ -110,8 +111,14 @@ TEST_CASE("ArenaSession ProfileList silently enforces the generic battle gate",
     db::SqliteCppDb songDb(songDbPath);
     songDb.execute("CREATE TABLE properties (key TEXT PRIMARY KEY, value)");
     QNetworkAccessManager networkManager;
-    qml_components::ProfileList profiles(
-      songDbPath, &songDb, {}, root / "profiles", {}, &networkManager);
+    resource_managers::SongAssetStore songAssetStore(root / "asset-cache");
+    qml_components::ProfileList profiles(songDbPath,
+                                         &songDb,
+                                         {},
+                                         root / "profiles",
+                                         {},
+                                         &networkManager,
+                                         &songAssetStore);
     auto* secondProfile = profiles.createProfile();
     REQUIRE(secondProfile != nullptr);
     REQUIRE(profiles.getProfiles().size() >= 2);
@@ -158,8 +165,14 @@ TEST_CASE("ArenaSession Profile queues enum-only ticket failure and "
     db::SqliteCppDb songDb(songDbPath);
     songDb.execute("CREATE TABLE properties (key TEXT PRIMARY KEY, value)");
     QNetworkAccessManager networkManager;
-    qml_components::ProfileList profiles(
-      songDbPath, &songDb, {}, root / "profiles", {}, &networkManager);
+    resource_managers::SongAssetStore songAssetStore(root / "asset-cache");
+    qml_components::ProfileList profiles(songDbPath,
+                                         &songDb,
+                                         {},
+                                         root / "profiles",
+                                         {},
+                                         &networkManager,
+                                         &songAssetStore);
     auto* profile = profiles.getMainProfile();
     REQUIRE(profile != nullptr);
 

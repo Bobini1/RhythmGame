@@ -3,6 +3,7 @@
 //
 
 #include "ChartData.h"
+#include "resource_managers/SongAssetStore.h"
 #include "support/Compress.h"
 #include <QFileInfo>
 #include "BmsNotes.h"
@@ -319,6 +320,28 @@ auto
 gameplay_logic::ChartData::getBackBmp() const -> const QString&
 {
     return backBmp;
+}
+auto
+gameplay_logic::ChartData::getStageFileSource() const -> QString
+{
+    return assetSource(stageFile);
+}
+auto
+gameplay_logic::ChartData::getBannerSource() const -> QString
+{
+    return assetSource(banner);
+}
+auto
+gameplay_logic::ChartData::getBackBmpSource() const -> QString
+{
+    return assetSource(backBmp);
+}
+auto
+gameplay_logic::ChartData::assetSource(const QString& relativePath) const
+  -> QString
+{
+    return resource_managers::SongAssetStore::imageUrl(getChartDirectory(),
+                                                       relativePath);
 }
 auto
 gameplay_logic::ChartData::getDirectory() const -> QString

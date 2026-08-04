@@ -126,6 +126,9 @@ function chartAssetPath(chartData, fileName) {
 }
 
 function chartAssetUrl(chartData, fileName) {
+    if (chartData && chartData.assetSource && fileName) {
+        return chartData.assetSource(fileName);
+    }
     return fileUrlForPath(chartAssetPath(chartData, fileName));
 }
 

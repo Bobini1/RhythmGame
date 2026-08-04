@@ -38,6 +38,7 @@ add_executable(RhythmGame_test
         resource_managers/Lr2FontCache.test.cpp
         resource_managers/Languages.test.cpp
         resource_managers/ScanThemes.test.cpp
+        resource_managers/SongAssetStore.test.cpp
         qml_components/FileQuery.test.cpp
         qml_components/FontResolver.test.cpp
         qml_components/OnlineScores.test.cpp

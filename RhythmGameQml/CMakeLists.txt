@@ -229,4 +229,6 @@ qt6_add_shaders(RhythmGame_lr2_qml "lr2_shaders"
         ${LR2_SKIN_SHADERS}
 )
 
+# qmlimportscanner always scans an executable target's CMake SOURCE_DIR.
+# Define the executable in this directory scope so only real QML roots are scanned.
 include(${PROJECT_SOURCE_DIR}/src/CMakeLists.txt)

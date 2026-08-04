@@ -15,6 +15,7 @@
 #include "gameplay_logic/Judgement.h"
 #include "resource_managers/ChartDataFactory.h"
 #include "resource_managers/Profile.h"
+#include "resource_managers/SongAssetStore.h"
 #include "support/GeneratePermutation.h"
 #include "support/QStringToPath.h"
 #include "support/TimingWindowsFromHash.h"
@@ -754,6 +755,7 @@ resultScoreKeys(const gameplay_logic::BmsResult& result) -> QStringList
 
 auto
 createScoreFromReplay(resource_managers::Profile& profile,
+                      resource_managers::SongAssetStore& songAssetStore,
                       ReplayPayload replay,
                       const QString& guid)
   -> std::unique_ptr<gameplay_logic::BmsScore>
@@ -787,8 +789,17 @@ createScoreFromReplay(resource_managers::Profile& profile,
           }
           return charts::ParsedBmsChart::RandomRange{ 1 };
       };
-    auto chartComponents =
-      chartDataFactory.loadChartData(*chartPath, randomGenerator);
+    auto chartComponents = [&] {
+        if (!songAssetStore.isArchived(*chartPath)) {
+            return chartDataFactory.loadChartData(*chartPath, randomGenerator);
+        }
+        const auto contents = songAssetStore.read(*chartPath);
+        const auto view =
+          std::string_view{ contents.constData(),
+                            static_cast<size_t>(contents.size()) };
+        return chartDataFactory.loadChartData(
+          view, *chartPath, randomGenerator);
+    }();
     auto& chartData = chartComponents.chartData;
     if (replay.source == ReplaySource::Beatoraja && chartData->getIsRandom() &&
         chartData->getRandomSequence().size() != replay.randomSequence.size()) {
@@ -962,6 +973,7 @@ createScoreFromReplay(resource_managers::Profile& profile,
 
 ReplayImportOperation*
 startBeatorajaReplayImport(resource_managers::Profile* profile,
+                           resource_managers::SongAssetStore* songAssetStore,
                            const QString& folderPath)
 {
     // This function is always called from a background thread
@@ -1065,8 +1077,8 @@ startBeatorajaReplayImport(resource_managers::Profile* profile,
             }
 
             const auto guid = QUuid::createUuid().toString();
-            auto score =
-              createScoreFromReplay(*profile, std::move(replay), guid);
+            auto score = createScoreFromReplay(
+              *profile, *songAssetStore, std::move(replay), guid);
             score->save(profile->getDb());
             // Track so a duplicate file later in the same batch is also
             // skipped.

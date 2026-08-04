@@ -34,6 +34,20 @@ Item {
         }
     }
 
+    FileDialog {
+        id: archiveDialog
+
+        title: qsTr("Add song archive")
+        fileMode: FileDialog.OpenFile
+        nameFilters: [
+            qsTr("Song archives (*.zip *.7z *.rar *.tar *.tgz *.tbz *.tbz2 *.txz *.lha *.lzh *.cab *.xar *.cpio *.iso *.ar *.gz *.bz2 *.xz *.zst)")
+        ]
+
+        onAccepted: {
+            Rg.rootSongFoldersConfig.folders.add(archiveDialog.selectedFile.toString());
+        }
+    }
+
     SettingsWorkspaceScaffold {
         id: pageScaffold
 
@@ -41,8 +55,8 @@ Item {
         SettingsPageHeader {
             id: pageHeader
 
-            title: qsTr("Song directories")
-            subtitle: qsTr("Manage root song folders and background scanning.")
+            title: qsTr("Song sources")
+            subtitle: qsTr("Manage root song folders, archives, and background scanning.")
         }
 
         RowLayout {
@@ -53,8 +67,8 @@ Item {
             WorkbenchPanel {
                 id: songListFrame
 
-                title: qsTr("Song folders")
-                subtitle: qsTr("Folders scanned for BMS charts.")
+                title: qsTr("Song sources")
+                subtitle: qsTr("Folders and archives scanned for BMS charts.")
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
@@ -70,6 +84,16 @@ Item {
 
                         onClicked: {
                             folderDialog.open();
+                        }
+                    }
+
+                    ActionButton {
+                        text: qsTr("Add archive")
+                        tone: ActionButton.Primary
+                        Layout.fillWidth: true
+
+                        onClicked: {
+                            archiveDialog.open();
                         }
                     }
 
@@ -96,8 +120,8 @@ Item {
                         anchors.centerIn: parent
                         visible: folderList.count === 0
                         width: Math.min(360, parent.width - 32)
-                        title: qsTr("No song folders")
-                        subtitle: qsTr("Add a folder that contains your BMS charts.")
+                        title: qsTr("No song sources")
+                        subtitle: qsTr("Add a folder or archive that contains your BMS charts.")
                     }
 
                     ListView {
@@ -145,7 +169,7 @@ Item {
                 id: scanningQueueFrame
 
                 title: qsTr("Scan activity")
-                subtitle: qsTr("Folders waiting for or currently undergoing scan.")
+                subtitle: qsTr("Sources waiting for or currently undergoing scan.")
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
@@ -164,7 +188,7 @@ Item {
                         visible: scanQueueList.count === 0 && !scanActivityArea.hasCurrentScan
                         width: Math.min(360, parent.width - 32)
                         title: qsTr("Scanner idle")
-                        subtitle: qsTr("Scan one folder or all folders to see progress here.")
+                        subtitle: qsTr("Scan one source or all sources to see progress here.")
                     }
 
                     ListView {

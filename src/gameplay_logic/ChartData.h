@@ -70,6 +70,12 @@ class ChartData : public QObject
     Q_PROPERTY(QString banner READ getBanner CONSTANT)
     /** @brief The path to the chart's backbmp. */
     Q_PROPERTY(QString backBmp READ getBackBmp CONSTANT)
+    /** @brief A directly usable Image source for the chart's stagefile. */
+    Q_PROPERTY(QString stageFileSource READ getStageFileSource CONSTANT)
+    /** @brief A directly usable Image source for the chart's banner. */
+    Q_PROPERTY(QString bannerSource READ getBannerSource CONSTANT)
+    /** @brief A directly usable Image source for the chart's backbmp. */
+    Q_PROPERTY(QString backBmpSource READ getBackBmpSource CONSTANT)
     /**
      * @brief The rank of the chart, converted to defexrank format.
      * @details Determines the timing windows for judgements. 25=veryhard,
@@ -292,6 +298,11 @@ class ChartData : public QObject
     [[nodiscard]] auto getStageFile() const -> const QString&;
     [[nodiscard]] auto getBanner() const -> const QString&;
     [[nodiscard]] auto getBackBmp() const -> const QString&;
+    [[nodiscard]] auto getStageFileSource() const -> QString;
+    [[nodiscard]] auto getBannerSource() const -> QString;
+    [[nodiscard]] auto getBackBmpSource() const -> QString;
+    Q_INVOKABLE [[nodiscard]] QString assetSource(
+      const QString& relativePath) const;
     [[nodiscard]] auto getNormalNoteCount() const -> int;
     [[nodiscard]] auto getScratchCount() const -> int;
     [[nodiscard]] auto getLnCount() const -> int;
@@ -322,7 +333,8 @@ class ChartData : public QObject
     [[nodiscard]] auto getBpmChanges() -> QList<BpmChange>&;
     [[nodiscard]] auto getGameVersion() const -> quint64;
     [[nodiscard]] auto getTimingWindows() const -> QVariantList;
-    [[nodiscard]] auto getTimingWindowsHash() const -> QHash<Judgement, QPair<qint64, qint64>>;
+    [[nodiscard]] auto getTimingWindowsHash() const
+      -> QHash<Judgement, QPair<qint64, qint64>>;
 
     auto clone() const -> std::unique_ptr<ChartData>;
 

@@ -1,0 +1,93 @@
+#ifndef RHYTHMGAME_SONGASSETSTORE_H
+#define RHYTHMGAME_SONGASSETSTORE_H
+
+#include <QByteArray>
+#include <QObject>
+#include <QString>
+
+#include <atomic>
+#include <filesystem>
+#include <functional>
+#include <optional>
+#include <unordered_map>
+#include <vector>
+
+namespace resource_managers {
+
+/**
+ * Resolves song-library virtual paths across ordinary directories and nested
+ * archives. A path such as
+ * C:/songs/collection.zip/song.zip/chart.bms is kept as the public identity;
+ * archive boundaries are discovered and handled inside this module.
+ */
+class SongAssetStore final : public QObject
+{
+    Q_OBJECT
+
+  public:
+    struct ArchiveEntry
+    {
+        std::filesystem::path virtualPath;
+        std::optional<QByteArray> contents;
+    };
+
+    using WantsContents =
+      std::function<bool(const std::filesystem::path& virtualPath)>;
+    using EntryVisitor = std::function<void(ArchiveEntry entry)>;
+
+    explicit SongAssetStore(std::filesystem::path cacheDirectory,
+                            QObject* parent = nullptr);
+
+    [[nodiscard]] auto read(const std::filesystem::path& virtualPath) const
+      -> QByteArray;
+    [[nodiscard]] auto materialize(const std::filesystem::path& virtualPath,
+                                   const std::atomic_bool* stop = nullptr) const
+      -> std::filesystem::path;
+    [[nodiscard]] auto materializeRelative(
+      const std::filesystem::path& virtualDirectory,
+      const std::vector<std::filesystem::path>& relativePaths,
+      const std::atomic_bool* stop = nullptr) const
+      -> std::unordered_map<std::filesystem::path, std::filesystem::path>;
+    void beginRescan(const std::filesystem::path& root) const;
+    void evictArchiveForRescan(const std::filesystem::path& root,
+                               const std::filesystem::path& archivePath) const;
+    void prefetch(const std::vector<std::filesystem::path>& virtualPaths,
+                  const std::atomic_bool* stop = nullptr) const;
+
+    void walkArchive(const std::filesystem::path& archivePath,
+                     const WantsContents& wantsContents,
+                     const EntryVisitor& visitor,
+                     std::atomic_bool* stop = nullptr) const;
+
+    [[nodiscard]] auto isArchived(
+      const std::filesystem::path& virtualPath) const -> bool;
+
+    [[nodiscard]] static auto isArchivePath(const std::filesystem::path& path)
+      -> bool;
+    [[nodiscard]] static auto isSplitArchivePath(
+      const std::filesystem::path& path) -> bool;
+    [[nodiscard]] static auto imageUrl(const std::filesystem::path& virtualPath)
+      -> QString;
+    [[nodiscard]] static auto imageUrl(const QString& virtualDirectory,
+                                       const QString& relativePath) -> QString;
+    [[nodiscard]] static auto audioUrl(const std::filesystem::path& virtualPath)
+      -> QString;
+    [[nodiscard]] static auto isAudioUrl(const QString& source) -> bool;
+    [[nodiscard]] static auto pathFromUrl(const QString& source)
+      -> std::filesystem::path;
+
+    Q_INVOKABLE [[nodiscard]] QString imageSource(
+      const QString& virtualDirectory,
+      const QString& relativePath) const;
+    Q_INVOKABLE [[nodiscard]] QString localFile(
+      const QString& virtualPath) const;
+    Q_INVOKABLE [[nodiscard]] QString containingFolder(
+      const QString& virtualPath) const;
+
+  private:
+    std::filesystem::path cacheDirectory;
+};
+
+} // namespace resource_managers
+
+#endif // RHYTHMGAME_SONGASSETSTORE_H

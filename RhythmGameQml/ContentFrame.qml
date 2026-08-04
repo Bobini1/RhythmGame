@@ -171,7 +171,10 @@ ApplicationWindow {
         }
 
         function openLocalFolder(path: var): var {
-            let url = localFileUrl(path);
+            let localPath = Rg.songAssets
+                ? Rg.songAssets.containingFolder(path)
+                : path;
+            let url = localFileUrl(localPath);
             return url.length > 0 && Qt.openUrlExternally(url);
         }
 

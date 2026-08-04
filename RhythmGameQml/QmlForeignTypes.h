@@ -18,6 +18,7 @@
 #include "qml_components/Themes.h"
 #include "support/PendingReply.h"
 #include "resource_managers/Languages.h"
+#include "resource_managers/SongAssetStore.h"
 #include "resource_managers/Profile.h"
 #include "resource_managers/ChartFolderModel.h"
 #include "resource_managers/Tables.h"
@@ -141,14 +142,11 @@ RHYTHMGAME_QML_ANONYMOUS_FOREIGN(RootSongFoldersConfigForeign,
                                  qml_components::RootSongFoldersConfig);
 RHYTHMGAME_QML_ANONYMOUS_FOREIGN(SongFolderFactoryForeign,
                                  qml_components::SongFolderFactory);
-RHYTHMGAME_QML_ANONYMOUS_FOREIGN(
-  SongDirectoryFilePathFetcherForeign,
-  qml_components::SongDirectoryFilePathFetcher);
-RHYTHMGAME_QML_ANONYMOUS_FOREIGN(FileQueryForeign,
-                                 qml_components::FileQuery);
+RHYTHMGAME_QML_ANONYMOUS_FOREIGN(SongDirectoryFilePathFetcherForeign,
+                                 qml_components::SongDirectoryFilePathFetcher);
+RHYTHMGAME_QML_ANONYMOUS_FOREIGN(FileQueryForeign, qml_components::FileQuery);
 RHYTHMGAME_QML_ANONYMOUS_FOREIGN(ThemesForeign, qml_components::Themes);
-RHYTHMGAME_QML_ANONYMOUS_FOREIGN(GamepadManagerForeign,
-                                 input::GamepadManager);
+RHYTHMGAME_QML_ANONYMOUS_FOREIGN(GamepadManagerForeign, input::GamepadManager);
 RHYTHMGAME_QML_ANONYMOUS_FOREIGN(ProfileListForeign,
                                  qml_components::ProfileList);
 RHYTHMGAME_QML_ANONYMOUS_FOREIGN(BattleProfilesForeign,
@@ -167,8 +165,7 @@ RHYTHMGAME_QML_ANONYMOUS_FOREIGN(LanguagesForeign,
 RHYTHMGAME_QML_ANONYMOUS_FOREIGN(AudioEngineForeign, sounds::AudioEngine);
 RHYTHMGAME_QML_ANONYMOUS_FOREIGN(OnlineScoresForeign,
                                  qml_components::OnlineScores);
-RHYTHMGAME_QML_ANONYMOUS_FOREIGN(PendingReplyForeign,
-                                 support::PendingReply);
+RHYTHMGAME_QML_ANONYMOUS_FOREIGN(PendingReplyForeign, support::PendingReply);
 struct ArenaRoomListModelForeign
 {
     Q_GADGET
@@ -192,6 +189,8 @@ struct ArenaChatModelForeign
     QML_ANONYMOUS
     QML_UNCREATABLE("Arena chat models are provided by ArenaSession")
 };
+RHYTHMGAME_QML_ANONYMOUS_FOREIGN(SongAssetStoreForeign,
+                                 resource_managers::SongAssetStore);
 
 #undef RHYTHMGAME_QML_ANONYMOUS_FOREIGN
 

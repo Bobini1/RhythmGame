@@ -7,6 +7,7 @@
 #include "ChartFactory.h"
 
 #include "loadBmsSounds.h"
+#include "SongAssetStore.h"
 #include "qml_components/ProfileList.h"
 #include "support/GeneratePermutation.h"
 #include "support/QStringToPath.h"
@@ -633,7 +634,34 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
   -> std::unique_ptr<gameplay_logic::ChartRunner>
 {
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
-    auto path = support::qStringToPath(chartData->getPath()).parent_path();
+    auto path = support::qStringToPath(chartData->getChartDirectory());
+    if (assetStore->isArchived(path)) {
+        try {
+            auto requested = std::vector<std::filesystem::path>{};
+            requested.reserve(wavs.size() + bmps.size());
+            for (const auto& resource : { &wavs, &bmps }) {
+                for (const auto& [id, relativePath] : *resource) {
+                    Q_UNUSED(id);
+                    requested.push_back(relativePath);
+                }
+            }
+            const auto materialized =
+              assetStore->materializeRelative(path, requested);
+            for (auto* resource : { &wavs, &bmps }) {
+                for (auto& [id, relativePath] : *resource) {
+                    Q_UNUSED(id);
+                    if (const auto resolved = materialized.find(relativePath);
+                        resolved != materialized.end()) {
+                        relativePath = resolved->second;
+                    }
+                }
+            }
+        } catch (const std::exception& error) {
+            spdlog::warn("Failed to materialize chart assets for {}: {}",
+                         chartData->getPath().toStdString(),
+                         error.what());
+        }
+    }
     auto components1 = getComponentsForPlayer(player1,
                                               notesData,
                                               *chartData,
@@ -839,9 +867,11 @@ SoundTask::run()
     }
 }
 ChartFactory::ChartFactory(sounds::AudioEngine* engine,
-                           input::InputTranslator* inputTranslator)
+                           input::InputTranslator* inputTranslator,
+                           SongAssetStore* assetStore)
   : engine(engine)
   , inputTranslator(inputTranslator)
+  , assetStore(assetStore)
 {
 }
 } // namespace resource_managers

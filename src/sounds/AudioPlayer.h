@@ -9,10 +9,18 @@
 #include <QObject>
 #include <QTimer>
 #include <qqmlintegration.h>
+
+#include <atomic>
+#include <memory>
 #include <vector>
 
 namespace sounds {
 class AudioEngine;
+}
+namespace resource_managers {
+class SongAssetStore;
+}
+namespace sounds {
 
 class AudioPlayer : public QObject
 {
@@ -28,22 +36,29 @@ class AudioPlayer : public QObject
                  NOTIFY fadeInMillisChanged)
     Q_PROPERTY(
       bool playing READ isPlaying WRITE setPlaying NOTIFY playingChanged)
+    Q_PROPERTY(bool loaded READ isLoaded NOTIFY loadedChanged)
     Q_PROPERTY(float length READ getLength NOTIFY lengthChanged)
 
     QString source;
+    QString resolvedSource;
     std::unique_ptr<ma_sound> sound;
     std::vector<std::unique_ptr<ma_sound>> overlappingSounds;
     double volume = 1.0;
     bool looping = false;
     bool playing = false;
+    bool loaded = false;
     uint64_t fadeInMillis = 0;
     float length = 0.0f;
     QTimer playingFinishedTimer;
     QTimer overlappingCleanupTimer;
+    quint64 sourceGeneration = 0;
+    std::shared_ptr<std::atomic_bool> sourceCancellation;
     void onDeviceChanged();
     void onPlayingFinishedTimerTriggered();
     void cleanupOverlappingSounds();
     void stopOverlappingSounds();
+    void loadResolvedSource(QString value);
+    void setLoaded(bool value);
 
   public:
     explicit AudioPlayer(QObject* parent = nullptr);
@@ -56,6 +71,7 @@ class AudioPlayer : public QObject
     Q_INVOKABLE void playOverlapping();
     Q_INVOKABLE void stop();
     auto isPlaying() const -> bool;
+    auto isLoaded() const -> bool;
 
     auto getVolume() const -> float;
     void setVolume(float value);
@@ -65,6 +81,7 @@ class AudioPlayer : public QObject
     void setFadeInMillis(uint64_t value);
     auto getLength() const -> float;
     inline static AudioEngine* engine = nullptr;
+    inline static resource_managers::SongAssetStore* assetStore = nullptr;
   signals:
     void sourceChanged();
     void volumeChanged();
@@ -72,6 +89,7 @@ class AudioPlayer : public QObject
     void autoPlayChanged();
     void fadeInMillisChanged();
     void playingChanged();
+    void loadedChanged();
     void lengthChanged();
 };
 

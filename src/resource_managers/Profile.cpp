@@ -368,6 +368,7 @@ Profile::Profile(
   const QMap<QString, qml_components::ThemeFamily>& themeFamilies,
   QList<QString> assetsPaths,
   QNetworkAccessManager* networkManager,
+  SongAssetStore* songAssetStore,
   QObject* parent)
   : QObject(parent)
   , db(createDb(dbPath))
@@ -377,6 +378,7 @@ Profile::Profile(
         .release())
   , vars(this, themeFamilies, std::move(assetsPaths))
   , networkManager(networkManager)
+  , songAssetStore(songAssetStore)
 {
     themeConfig->setParent(this);
     vars.setParent(this);
@@ -1091,7 +1093,8 @@ void
 Profile::importReplays(const QString& folderPath)
 {
     importPool.start([this, folderPath]() {
-        qml_components::startBeatorajaReplayImport(this, folderPath);
+        qml_components::startBeatorajaReplayImport(
+          this, songAssetStore, folderPath);
     });
 }
 

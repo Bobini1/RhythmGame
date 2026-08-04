@@ -6,6 +6,7 @@
 
 #include <utility>
 #include "gameplay_logic/ChartRunner.h"
+#include "support/PathToQString.h"
 #include "support/QStringToPath.h"
 #include "magic_enum/magic_enum.hpp"
 #include "gameplay_logic/Judgement.h"
@@ -19,6 +20,34 @@
 #include <spdlog/spdlog.h>
 
 namespace qml_components {
+namespace {
+
+auto
+loadChartComponents(
+  resource_managers::ChartDataFactory* chartDataFactory,
+  resource_managers::SongAssetStore* assetStore,
+  const std::filesystem::path& path,
+  resource_managers::ChartDataFactory::RandomGenerator randomGenerator)
+  -> resource_managers::ChartDataFactory::ChartComponents
+{
+    auto extension = support::pathToQString(path.extension()).toLower();
+    if (!assetStore->isArchived(path)) {
+        return extension == QStringLiteral(".bmson")
+                 ? chartDataFactory->loadBmsonChartData(path)
+                 : chartDataFactory->loadChartData(path,
+                                                   std::move(randomGenerator));
+    }
+
+    const auto contents = assetStore->read(path);
+    const auto view = std::string_view{ contents.constData(),
+                                        static_cast<size_t>(contents.size()) };
+    return extension == QStringLiteral(".bmson")
+             ? chartDataFactory->loadBmsonChartData(view, path)
+             : chartDataFactory->loadChartData(
+                 view, path, std::move(randomGenerator));
+}
+
+} // namespace
 
 auto
 ChartLoader::createChart(
@@ -311,13 +340,8 @@ ChartLoader::loadChart(const QString& filename,
             spdlog::error("Failed to find chart path to load replay");
             return nullptr;
         }
-        auto chartComponents = [&] {
-            if (file->extension() == ".bmson") {
-                return chartDataFactory->loadBmsonChartData(*file);
-            }
-            return chartDataFactory->loadChartData(*file,
-                                                   std::move(randomGenerator));
-        }();
+        auto chartComponents = loadChartComponents(
+          chartDataFactory, assetStore, *file, std::move(randomGenerator));
         return createChart(player1,
                            player1AutoPlay,
                            player1Replay,
@@ -349,22 +373,18 @@ ChartLoader::loadChartWithConfig(
         const auto file = support::qStringToPath(filename);
         auto exactRandom =
           resource_managers::ExactRandomSequence(playConfig.randomSequence);
-        auto chartComponents = [&] {
-            if (file.extension() == ".bmson") {
-                if (!playConfig.randomSequence.isEmpty()) {
-                    throw std::invalid_argument(
-                      "bmson cannot consume a BMS random sequence");
-                }
-                return chartDataFactory->loadBmsonChartData(file);
-            }
-            auto randomGenerator =
-              [&exactRandom](charts::ParsedBmsChart::RandomRange range) {
-                  return static_cast<charts::ParsedBmsChart::RandomRange>(
-                    exactRandom.next(static_cast<qint64>(range)));
-              };
-            return chartDataFactory->loadChartData(file,
-                                                   std::move(randomGenerator));
-        }();
+        if (file.extension() == ".bmson" &&
+            !playConfig.randomSequence.isEmpty()) {
+            throw std::invalid_argument(
+              "bmson cannot consume a BMS random sequence");
+        }
+        auto randomGenerator =
+          [&exactRandom](charts::ParsedBmsChart::RandomRange range) {
+              return static_cast<charts::ParsedBmsChart::RandomRange>(
+                exactRandom.next(static_cast<qint64>(range)));
+          };
+        auto chartComponents = loadChartComponents(
+          chartDataFactory, assetStore, file, std::move(randomGenerator));
         if (!exactRandom.complete()) {
             return nullptr;
         }
@@ -449,8 +469,8 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
                       charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
                   }(randomEngine);
               };
-            auto components =
-              chartDataFactory->loadChartData(*path, randomGenerator);
+            auto components = loadChartComponents(
+              chartDataFactory, assetStore, *path, randomGenerator);
             chartComponents.append(std::move(components));
         } catch (const std::exception& e) {
             spdlog::error("Failed to load chart: {}", e.what());
@@ -664,8 +684,8 @@ ChartLoader::loadChartData(const QString& filename,
                   charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
               }(randomEngine);
           };
-        auto components =
-          chartDataFactory->loadChartData(*path, randomGenerator);
+        auto components = loadChartComponents(
+          chartDataFactory, assetStore, *path, randomGenerator);
         return components.chartData.release();
     } catch (const std::exception& e) {
         spdlog::error("Failed to load chart: {}", e.what());
@@ -797,6 +817,7 @@ ChartLoader::loadCourseChart(
 ChartLoader::ChartLoader(ProfileList* profileList,
                          input::InputTranslator* inputTranslator,
                          resource_managers::ChartDataFactory* chartDataFactory,
+                         resource_managers::SongAssetStore* assetStore,
                          HitValueFactory hitValueFactory,
                          GaugeFactory gaugeFactory,
                          GaugeFactoryCourse gaugeFactoryCourse,
@@ -806,6 +827,7 @@ ChartLoader::ChartLoader(ProfileList* profileList,
                          QObject* parent)
   : QObject(parent)
   , chartDataFactory(chartDataFactory)
+  , assetStore(assetStore)
   , hitValueFactory(std::move(hitValueFactory))
   , gaugeFactory(std::move(gaugeFactory))
   , gaugeFactoryCourse(std::move(gaugeFactoryCourse))

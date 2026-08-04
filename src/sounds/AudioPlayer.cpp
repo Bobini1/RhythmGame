@@ -5,7 +5,11 @@
 #include "AudioPlayer.h"
 
 #include "AudioEngine.h"
+#include "resource_managers/SongAssetStore.h"
+#include "support/PathToQString.h"
 #include <QFileInfo>
+#include <QFutureWatcher>
+#include <QtConcurrentRun>
 #include <algorithm>
 
 namespace sounds {
@@ -13,7 +17,7 @@ void
 AudioPlayer::onDeviceChanged()
 {
     stopOverlappingSounds();
-    if (!sound) {
+    if (!sound || resolvedSource.isEmpty()) {
         return;
     }
     auto isPlayingNow = isPlaying();
@@ -22,7 +26,7 @@ AudioPlayer::onDeviceChanged()
       ma_sound_get_cursor_in_pcm_frames(sound.get(), &cursor);
     ma_sound_uninit(sound.get());
     if (ma_sound_init_from_file_w(engine->getEngine(),
-                                  source.toStdWString().c_str(),
+                                  resolvedSource.toStdWString().c_str(),
                                   MA_SOUND_FLAG_NO_PITCH |
                                     MA_SOUND_FLAG_NO_SPATIALIZATION,
                                   nullptr,
@@ -30,6 +34,7 @@ AudioPlayer::onDeviceChanged()
                                   sound.get()) != MA_SUCCESS) {
         spdlog::error("Failed to load sound: {}", source.toStdString());
         sound.reset();
+        setLoaded(false);
         return;
     }
     ma_sound_set_looping(sound.get(), looping ? MA_TRUE : MA_FALSE);
@@ -97,6 +102,9 @@ AudioPlayer::setPlaying(bool value)
 
 AudioPlayer::~AudioPlayer()
 {
+    if (sourceCancellation) {
+        sourceCancellation->store(true);
+    }
     stopOverlappingSounds();
     if (sound) {
         ma_sound_uninit(sound.get());
@@ -113,28 +121,91 @@ AudioPlayer::setSource(const QString& value)
     if (source == value) {
         return;
     }
+    if (sourceCancellation) {
+        sourceCancellation->store(true);
+        sourceCancellation.reset();
+    }
     source = value;
+    resolvedSource.clear();
+    const auto generation = ++sourceGeneration;
     stopOverlappingSounds();
     if (sound) {
         ma_sound_uninit(sound.get());
-    } else {
-        sound = std::make_unique<ma_sound>();
+        sound.reset();
     }
+    setLoaded(false);
+    playingFinishedTimer.stop();
+    if (length != 0.0f) {
+        length = 0.0f;
+        emit lengthChanged();
+    }
+    emit sourceChanged();
+    if (value.isEmpty()) {
+        return;
+    }
+    if (resource_managers::SongAssetStore::isAudioUrl(value)) {
+        if (!assetStore) {
+            spdlog::error(
+              "Cannot load archived sound before the song asset store is set");
+            stop();
+            return;
+        }
+        auto* store = assetStore;
+        auto cancellation = std::make_shared<std::atomic_bool>(false);
+        sourceCancellation = cancellation;
+        auto* watcher = new QFutureWatcher<std::filesystem::path>{ this };
+        connect(
+          watcher,
+          &QFutureWatcher<std::filesystem::path>::finished,
+          this,
+          [this, watcher, generation, value, cancellation] {
+              try {
+                  const auto localPath = watcher->result();
+                  if (generation == sourceGeneration && source == value) {
+                      loadResolvedSource(support::pathToQString(localPath));
+                  }
+              } catch (const std::exception& error) {
+                  if (generation == sourceGeneration && source == value) {
+                      spdlog::error("Failed to load archived sound {}: {}",
+                                    value.toStdString(),
+                                    error.what());
+                      stop();
+                  }
+              }
+              if (sourceCancellation == cancellation) {
+                  sourceCancellation.reset();
+              }
+              watcher->deleteLater();
+          });
+        watcher->setFuture(QtConcurrent::run([store, value, cancellation] {
+            return store->materialize(
+              resource_managers::SongAssetStore::pathFromUrl(value),
+              cancellation.get());
+        }));
+        return;
+    }
+    loadResolvedSource(value);
+}
+
+void
+AudioPlayer::loadResolvedSource(QString value)
+{
     auto fileinfo = QFileInfo(value);
     if (fileinfo.suffix().isEmpty()) {
         auto suffixes = QStringList{ "wav", "flac", "ogg", "mp3" };
         for (const auto& suffix : suffixes) {
             if (auto testPath = value + "." + suffix;
                 QFileInfo::exists(testPath)) {
-                source = testPath;
+                value = testPath;
                 break;
             }
         }
     }
-    emit sourceChanged();
+    resolvedSource = value;
+    sound = std::make_unique<ma_sound>();
     auto previousLength = length;
     if (ma_sound_init_from_file_w(engine->getEngine(),
-                                  source.toStdWString().c_str(),
+                                  resolvedSource.toStdWString().c_str(),
                                   MA_SOUND_FLAG_NO_PITCH |
                                     MA_SOUND_FLAG_NO_SPATIALIZATION,
                                   nullptr,
@@ -155,6 +226,7 @@ AudioPlayer::setSource(const QString& value)
     ma_sound_set_fade_in_milliseconds(sound.get(), 0, volume, fadeInMillis);
     ma_sound_get_length_in_seconds(sound.get(), &length);
     playingFinishedTimer.setInterval(static_cast<int>(length * 1000));
+    setLoaded(true);
     if (previousLength != length) {
         emit lengthChanged();
     }
@@ -171,20 +243,41 @@ AudioPlayer::setSource(const QString& value)
 void
 AudioPlayer::resetSource()
 {
+    if (sourceCancellation) {
+        sourceCancellation->store(true);
+        sourceCancellation.reset();
+    }
+    ++sourceGeneration;
     stopOverlappingSounds();
     if (sound) {
         ma_sound_uninit(sound.get());
         sound.reset();
     }
+    setLoaded(false);
     if (!source.isEmpty()) {
         source.clear();
         emit sourceChanged();
     }
+    resolvedSource.clear();
 }
 auto
 AudioPlayer::isPlaying() const -> bool
 {
     return playing;
+}
+auto
+AudioPlayer::isLoaded() const -> bool
+{
+    return loaded;
+}
+void
+AudioPlayer::setLoaded(bool value)
+{
+    if (loaded == value) {
+        return;
+    }
+    loaded = value;
+    emit loadedChanged();
 }
 void
 AudioPlayer::cleanupOverlappingSounds()

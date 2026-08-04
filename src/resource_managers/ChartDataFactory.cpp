@@ -171,26 +171,24 @@ withMappedFile(const std::filesystem::path& path, Func&& func)
 }
 
 auto
-readAndParse(const std::filesystem::path& chartPath,
+readAndParse(std::string_view chart,
              ChartDataFactory::RandomGenerator randomGenerator)
 {
-    return withMappedFile(chartPath, [&](std::string_view chart) {
-        auto sha256 = support::sha256(chart);
-        auto md5 = support::md5(chart);
-        auto randomValues = QList<qint64>{};
-        auto randomGeneratorRecorder =
-          [&randomValues, &randomGenerator](
-            const charts::ParsedBmsChart::RandomRange number) mutable {
-              const auto generated = randomGenerator(number);
-              randomValues.append(generated);
-              return generated;
-          };
-        auto parsedChart = charts::readBmsChart(chart, randomGeneratorRecorder);
-        return std::make_tuple(std::move(parsedChart),
-                               std::move(randomValues),
-                               std::move(sha256),
-                               std::move(md5));
-    });
+    auto sha256 = support::sha256(chart);
+    auto md5 = support::md5(chart);
+    auto randomValues = QList<qint64>{};
+    auto randomGeneratorRecorder =
+      [&randomValues, &randomGenerator](
+        const charts::ParsedBmsChart::RandomRange number) mutable {
+          const auto generated = randomGenerator(number);
+          randomValues.append(generated);
+          return generated;
+      };
+    auto parsedChart = charts::readBmsChart(chart, randomGeneratorRecorder);
+    return std::make_tuple(std::move(parsedChart),
+                           std::move(randomValues),
+                           std::move(sha256),
+                           std::move(md5));
 }
 
 using namespace std::chrono_literals;
@@ -346,8 +344,20 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
                                 RandomGenerator randomGenerator,
                                 int64_t directory) const -> ChartComponents
 {
+    return withMappedFile(chartPath, [&](std::string_view chart) {
+        return loadChartData(
+          chart, chartPath, std::move(randomGenerator), directory);
+    });
+}
+
+auto
+ChartDataFactory::loadChartData(std::string_view chart,
+                                const std::filesystem::path& virtualChartPath,
+                                RandomGenerator randomGenerator,
+                                int64_t directory) const -> ChartComponents
+{
     auto [parsedChart, randomValues, sha256, md5] =
-      readAndParse(chartPath, randomGenerator);
+      readAndParse(chart, std::move(randomGenerator));
 
     auto title = QString::fromUtf8(parsedChart.tags.title.value_or(""));
     auto subtitle = QString::fromUtf8(parsedChart.tags.subTitle.value_or(""));
@@ -402,7 +412,7 @@ ChartDataFactory::loadChartData(const std::filesystem::path& chartPath,
                                 std::move(metadata),
                                 std::move(wavs),
                                 std::move(bmps),
-                                chartPath,
+                                virtualChartPath,
                                 directory,
                                 false);
 }
@@ -411,78 +421,86 @@ auto
 ChartDataFactory::loadBmsonChartData(const std::filesystem::path& chartPath,
                                      int64_t directory) const -> ChartComponents
 {
-    return withMappedFile(
-      chartPath, [&](std::string_view fileContent) -> ChartComponents {
-          auto sha256 = support::sha256(fileContent);
-          auto md5 = support::md5(fileContent);
+    return withMappedFile(chartPath, [&](std::string_view chart) {
+        return loadBmsonChartData(chart, chartPath, directory);
+    });
+}
 
-          auto jsonDoc = QJsonDocument::fromJson(QByteArray(
-            fileContent.data(), static_cast<qsizetype>(fileContent.size())));
-          if (jsonDoc.isNull()) {
-              throw std::runtime_error("Could not parse bmson file as JSON");
-          }
-          auto bmson = jsonDoc.object();
+auto
+ChartDataFactory::loadBmsonChartData(
+  std::string_view fileContent,
+  const std::filesystem::path& virtualChartPath,
+  int64_t directory) const -> ChartComponents
+{
+    auto sha256 = support::sha256(fileContent);
+    auto md5 = support::md5(fileContent);
 
-          // Extract metadata from bmson info object
-          auto info = bmson["info"].toObject();
-          auto subartists = info["subartists"].toArray();
-          auto subartistStr = QString{};
-          for (const auto& sa : subartists) {
-              if (!subartistStr.isEmpty()) {
-                  subartistStr += QStringLiteral(" / ");
-              }
-              subartistStr += sa.toString();
-          }
+    auto jsonDoc = QJsonDocument::fromJson(QByteArray(
+      fileContent.data(), static_cast<qsizetype>(fileContent.size())));
+    if (jsonDoc.isNull()) {
+        throw std::runtime_error("Could not parse bmson file as JSON");
+    }
+    auto bmson = jsonDoc.object();
 
-          auto metadata = ChartMetadata{
-              .title = info["title"].toString(),
-              .artist = info["artist"].toString(),
-              .subtitle = info["subtitle"].toString(),
-              .subartist = subartistStr,
-              .genre = info["genre"].toString(),
-              .stageFile = info["eyecatch_image"].toString(),
-              .banner = info["banner_image"].toString(),
-              .backBmp = info["back_image"].toString(),
-              .rank = info["judge_rank"].toDouble(100),
-              .total = info["total"].toDouble(100),
-              .playLevel = info["level"].toInt(1),
-              .difficulty = 1,
-              .isRandom = false,
-              .randomSequence = {},
-              .sha256 = QString::fromStdString(sha256),
-              .md5 = QString::fromStdString(md5),
-          };
+    // Extract metadata from bmson info object
+    auto info = bmson["info"].toObject();
+    auto subartists = info["subartists"].toArray();
+    auto subartistStr = QString{};
+    for (const auto& sa : subartists) {
+        if (!subartistStr.isEmpty()) {
+            subartistStr += QStringLiteral(" / ");
+        }
+        subartistStr += sa.toString();
+    }
 
-          // Extract wav paths from sound_channels (keyed by channel
-          // index to match BmsonSliceInfo::channelIndex)
-          std::unordered_map<uint64_t, std::filesystem::path> wavs;
-          auto soundChannels = bmson["sound_channels"].toArray();
-          for (uint64_t idx = 0; idx < soundChannels.size(); ++idx) {
-              auto channelObj = soundChannels[idx].toObject();
-              auto name = channelObj["name"].toString().toStdString();
-              wavs.emplace(idx, std::filesystem::path{ name });
-          }
+    auto metadata = ChartMetadata{
+        .title = info["title"].toString(),
+        .artist = info["artist"].toString(),
+        .subtitle = info["subtitle"].toString(),
+        .subartist = subartistStr,
+        .genre = info["genre"].toString(),
+        .stageFile = info["eyecatch_image"].toString(),
+        .banner = info["banner_image"].toString(),
+        .backBmp = info["back_image"].toString(),
+        .rank = info["judge_rank"].toDouble(100),
+        .total = info["total"].toDouble(100),
+        .playLevel = info["level"].toInt(1),
+        .difficulty = 1,
+        .isRandom = false,
+        .randomSequence = {},
+        .sha256 = QString::fromStdString(sha256),
+        .md5 = QString::fromStdString(md5),
+    };
 
-          // Extract bmp paths from bga headers
-          std::unordered_map<uint64_t, std::filesystem::path> bmps;
-          auto bgaObj = bmson["bga"].toObject();
-          for (const auto& header : bgaObj["bga_header"].toArray()) {
-              auto headerObj = header.toObject();
-              auto id = headerObj["id"].toInteger(0);
-              auto name = headerObj["name"].toString().toStdString();
-              bmps.emplace(id, std::filesystem::path{ name });
-          }
+    // Extract wav paths from sound_channels (keyed by channel index to match
+    // BmsonSliceInfo::channelIndex)
+    std::unordered_map<uint64_t, std::filesystem::path> wavs;
+    auto soundChannels = bmson["sound_channels"].toArray();
+    for (uint64_t idx = 0; idx < soundChannels.size(); ++idx) {
+        auto channelObj = soundChannels[idx].toObject();
+        auto name = channelObj["name"].toString().toStdString();
+        wavs.emplace(idx, std::filesystem::path{ name });
+    }
 
-          auto calculatedNotesData = charts::BmsNotesData::fromBmson(bmson);
+    // Extract bmp paths from bga headers
+    std::unordered_map<uint64_t, std::filesystem::path> bmps;
+    auto bgaObj = bmson["bga"].toObject();
+    for (const auto& header : bgaObj["bga_header"].toArray()) {
+        auto headerObj = header.toObject();
+        auto id = headerObj["id"].toInteger(0);
+        auto name = headerObj["name"].toString().toStdString();
+        bmps.emplace(id, std::filesystem::path{ name });
+    }
 
-          return buildChartComponents(std::move(calculatedNotesData),
-                                      std::move(metadata),
-                                      std::move(wavs),
-                                      std::move(bmps),
-                                      chartPath,
-                                      directory,
-                                      true);
-      });
+    auto calculatedNotesData = charts::BmsNotesData::fromBmson(bmson);
+
+    return buildChartComponents(std::move(calculatedNotesData),
+                                std::move(metadata),
+                                std::move(wavs),
+                                std::move(bmps),
+                                virtualChartPath,
+                                directory,
+                                true);
 }
 
 auto

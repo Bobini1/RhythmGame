@@ -54,6 +54,7 @@ qml_components::ProfileList::ProfileList(
   std::filesystem::path profilesFolder,
   QList<QString> assetsPaths,
   QNetworkAccessManager* networkAccessManager,
+  resource_managers::SongAssetStore* songAssetStore,
   QObject* parent)
   : QObject(parent)
   , profilesFolder(std::move(profilesFolder))
@@ -62,6 +63,7 @@ qml_components::ProfileList::ProfileList(
   , themeFamilies(themeFamilies)
   , assetsPaths(std::move(assetsPaths))
   , networkAccessManager(networkAccessManager)
+  , songAssetStore(songAssetStore)
 {
     if (!exists(this->profilesFolder)) {
         create_directory(this->profilesFolder);
@@ -79,6 +81,7 @@ qml_components::ProfileList::ProfileList(
                   themeFamilies,
                   this->assetsPaths,
                   networkAccessManager,
+                  songAssetStore,
                   this);
                 QQmlEngine::setObjectOwnership(profile,
                                                QQmlEngine::CppOwnership);
@@ -169,6 +172,7 @@ qml_components::ProfileList::createProfile() -> resource_managers::Profile*
           themeFamilies,
           assetsPaths,
           networkAccessManager,
+          songAssetStore,
           this);
         QQmlEngine::setObjectOwnership(profile, QQmlEngine::CppOwnership);
         profiles.append(profile);

@@ -3,11 +3,13 @@
 //
 
 #include "RootSongFoldersConfig.h"
+#include "resource_managers/SongAssetStore.h"
 #include "support/QStringToPath.h"
 #include <algorithm>
 #include <QtConcurrentRun>
 #include <utility>
 #include <qdir.h>
+#include <qfileinfo.h>
 #include <spdlog/spdlog.h>
 
 namespace qml_components {
@@ -39,13 +41,35 @@ getStartupRootFolders(db::SqliteCppDb::Statement& getRootFolders)
 }
 
 auto
+canonicalSongSource(const QString& source) -> QString
+{
+    if (source.isEmpty()) {
+        return {};
+    }
+    const auto url = QUrl{ source };
+    const auto path = url.isLocalFile() ? url.toLocalFile() : source;
+    const auto info = QFileInfo{ path };
+    if (info.isDir()) {
+        auto canonical = QDir{ path }.canonicalPath();
+        if (!canonical.isEmpty() && !canonical.endsWith('/')) {
+            canonical += '/';
+        }
+        return canonical;
+    }
+    if (info.isFile() &&
+        resource_managers::SongAssetStore::isArchivePath(
+          support::qStringToPath(path)) &&
+        !resource_managers::SongAssetStore::isSplitArchivePath(
+          support::qStringToPath(path))) {
+        return info.canonicalFilePath();
+    }
+    return {};
+}
+
+auto
 validatePath(const QString& path) -> bool
 {
-    if (path.isEmpty()) {
-        return false;
-    }
-    const auto dir = QDir{ QUrl{ path }.toLocalFile() };
-    return dir.exists();
+    return !canonicalSongSource(path).isEmpty();
 }
 } // namespace
 
@@ -73,7 +97,7 @@ ScanningQueue::scan(RootSongFolder* which) -> bool
     }
     auto shared = which->sharedFromThis();
     if (!validatePath(which->getName())) {
-        spdlog::error("Attempted to scan an invalid directory: {}",
+        spdlog::error("Attempted to scan an invalid song source: {}",
                       which->getName().toStdString());
         return false;
     }
@@ -162,16 +186,15 @@ RootSongFolders::RootSongFolders(db::SqliteCppDb* db,
 auto
 RootSongFolders::add(const QString& folder) -> bool
 {
-    const auto path = QUrl(folder).toLocalFile();
-    const auto dir = QDir{ path };
-    const auto canonical = dir.canonicalPath() + "/";
-    if (canonical == "/") {
+    const auto canonical = canonicalSongSource(folder);
+    if (canonical.isEmpty()) {
         return false;
     }
     for (const auto& rootFolder : folders) {
-        if (auto folderName = rootFolder->getName();
-            folderName.startsWith(canonical) ||
-            canonical.startsWith(folderName)) {
+        const auto existing = rootFolder->getName();
+        if (existing == canonical ||
+            (existing.endsWith('/') && canonical.startsWith(existing)) ||
+            (canonical.endsWith('/') && existing.startsWith(canonical))) {
             return false;
         }
     }
@@ -309,11 +332,14 @@ ScanningQueue::setCurrentScannedFolder(QString folder)
 void
 ScanningQueue::clear(const QString& which)
 {
-    const auto folderNameStd = which.toStdString();
+    auto sourcePrefix = which;
+    if (!sourcePrefix.endsWith('/')) {
+        sourcePrefix += '/';
+    }
 
     auto removeSongsStartingWith =
       db->createStatement("DELETE FROM charts WHERE path LIKE :dir || '%'");
-    removeSongsStartingWith.bind(":dir", folderNameStd);
+    removeSongsStartingWith.bind(":dir", sourcePrefix.toStdString());
     removeSongsStartingWith.execute();
     db->execute("WITH RECURSIVE "
                 "chart_dirs(dir) AS ( "

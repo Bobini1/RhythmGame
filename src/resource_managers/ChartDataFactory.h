@@ -52,7 +52,14 @@ class ChartDataFactory
     auto loadChartData(const std::filesystem::path& chartPath,
                        RandomGenerator randomGenerator,
                        int64_t directory = 0) const -> ChartComponents;
+    auto loadChartData(std::string_view chart,
+                       const std::filesystem::path& virtualChartPath,
+                       RandomGenerator randomGenerator,
+                       int64_t directory = 0) const -> ChartComponents;
     auto loadBmsonChartData(const std::filesystem::path& chartPath,
+                            int64_t directory = 0) const -> ChartComponents;
+    auto loadBmsonChartData(std::string_view chart,
+                            const std::filesystem::path& virtualChartPath,
                             int64_t directory = 0) const -> ChartComponents;
 
   private:

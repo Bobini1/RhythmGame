@@ -5,18 +5,9 @@ Image {
     id: stageFile
 
     asynchronous: true
-    source: {
-        let current = songList.current;
-        if (!(current instanceof ChartData) || current.banner === "") {
-            return "";
-        }
-        let dir = current.chartDirectory;
-        if (dir[0] !== "/") {
-            dir = "/" + dir;
-        }
-        let bannerWithoutExt = current.banner.replace(/\.[^/.]+$/, "");
-        return "file://" + dir + bannerWithoutExt;
-    }
+    source: songList.current instanceof ChartData
+        ? songList.current.bannerSource
+        : ""
     sourceSize.height: 80
     sourceSize.width: 300
 }

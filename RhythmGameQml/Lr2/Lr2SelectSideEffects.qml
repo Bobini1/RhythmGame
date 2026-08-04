@@ -108,7 +108,7 @@ Item {
         fadeInMillis: 1000
         source: root.host.mainGeneralVarsRef ? root.host.mainGeneralVarsRef.bgmPath + "select" : ""
         property bool canPlay: root.active
-            && (!playMusic.playing || playMusic.source === "")
+            && (!playMusic.playing || !playMusic.loaded)
         onCanPlayChanged: {
             if (!canPlay) {
                 stop();
