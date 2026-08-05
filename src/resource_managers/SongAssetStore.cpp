@@ -163,7 +163,7 @@ joinVirtual(QString directory, QString relative) -> QString
 }
 
 auto
-extensionForCache(const QString& virtualPath) -> QString
+extensionForMaterialization(const QString& virtualPath) -> QString
 {
     auto suffix = QFileInfo(virtualPath).suffix().toLower();
     if (suffix.isEmpty() || suffix.size() > 12 ||
@@ -245,7 +245,7 @@ findPhysicalBoundary(const std::filesystem::path& virtualPath)
 }
 
 auto
-cacheKeyDigest(const std::filesystem::path& virtualPath)
+materializationKeyDigest(const std::filesystem::path& virtualPath)
   -> std::optional<QByteArray>
 {
     const auto boundary = findPhysicalBoundary(virtualPath);
@@ -263,7 +263,7 @@ cacheKeyDigest(const std::filesystem::path& virtualPath)
     if (ec) {
         return std::nullopt;
     }
-    auto identity = QByteArray{ "song-asset-source-v1" };
+    auto identity = QByteArray{ "song-asset-materialization-v1" };
     identity += '\0';
     identity += normalizedPhysicalPath(boundary->physicalFile).toUtf8();
     identity += '\0';
@@ -276,238 +276,90 @@ cacheKeyDigest(const std::filesystem::path& virtualPath)
 }
 
 auto
-archiveCacheDigest(const std::filesystem::path& archivePath) -> QByteArray
-{
-    auto identity = QByteArray{ "song-asset-archive-v1" };
-    identity += '\0';
-    identity += normalizedPhysicalPath(archivePath).toUtf8();
-    return QCryptographicHash::hash(identity, QCryptographicHash::Sha256);
-}
-
-auto
-archiveCacheDigestForVirtualPath(const std::filesystem::path& virtualPath)
-  -> std::optional<QByteArray>
-{
-    const auto boundary = findPhysicalBoundary(virtualPath);
-    if (!boundary) {
-        return std::nullopt;
-    }
-    return archiveCacheDigest(boundary->physicalFile);
-}
-
-auto
-archiveCacheDirectory(const std::filesystem::path& cacheDirectory,
-                      const QByteArray& archiveDigestHex)
-  -> std::filesystem::path
-{
-    return cacheDirectory /
-           support::qStringToPath(QStringLiteral("archive-") +
-                                  QString::fromLatin1(archiveDigestHex));
-}
-
-auto
-sourceCacheObjectPath(const std::filesystem::path& cacheDirectory,
-                      const std::filesystem::path& virtualPath)
+sourceMaterializationPath(const std::filesystem::path& materializationDirectory,
+                          const std::filesystem::path& virtualPath)
   -> std::optional<std::filesystem::path>
 {
-    const auto digest = cacheKeyDigest(virtualPath);
-    const auto archiveDigest = archiveCacheDigestForVirtualPath(virtualPath);
-    if (!digest || !archiveDigest) {
-        return std::nullopt;
-    }
-    return archiveCacheDirectory(cacheDirectory, archiveDigest->toHex()) /
-           support::qStringToPath(
-             QStringLiteral("source-") + QString::fromLatin1(digest->toHex()) +
-             extensionForCache(support::pathToQString(virtualPath)));
-}
-
-auto
-legacySourceCacheObjectPath(const std::filesystem::path& cacheDirectory,
-                            const std::filesystem::path& virtualPath)
-  -> std::optional<std::filesystem::path>
-{
-    const auto digest = cacheKeyDigest(virtualPath);
+    const auto digest = materializationKeyDigest(virtualPath);
     if (!digest) {
         return std::nullopt;
     }
-    return cacheDirectory /
+    return materializationDirectory /
            support::qStringToPath(
              QStringLiteral("source-") + QString::fromLatin1(digest->toHex()) +
-             extensionForCache(support::pathToQString(virtualPath)));
+             extensionForMaterialization(support::pathToQString(virtualPath)));
 }
 
 auto
-resolutionCachePath(const std::filesystem::path& cacheDirectory,
-                    const std::filesystem::path& requestedVirtualPath)
+resolutionMaterializationPath(
+  const std::filesystem::path& materializationDirectory,
+  const std::filesystem::path& requestedVirtualPath)
   -> std::optional<std::filesystem::path>
 {
-    const auto digest = cacheKeyDigest(requestedVirtualPath);
-    const auto archiveDigest =
-      archiveCacheDigestForVirtualPath(requestedVirtualPath);
-    if (!digest || !archiveDigest) {
+    const auto digest = materializationKeyDigest(requestedVirtualPath);
+    if (!digest) {
         return std::nullopt;
     }
-    return archiveCacheDirectory(cacheDirectory, archiveDigest->toHex()) /
+    return materializationDirectory /
            support::qStringToPath(QStringLiteral("resolve-") +
                                   QString::fromLatin1(digest->toHex()));
 }
 
 auto
-legacyResolutionCachePath(const std::filesystem::path& cacheDirectory,
-                          const std::filesystem::path& requestedVirtualPath)
-  -> std::optional<std::filesystem::path>
-{
-    const auto digest = cacheKeyDigest(requestedVirtualPath);
-    if (!digest) {
-        return std::nullopt;
-    }
-    return cacheDirectory /
-           support::qStringToPath(QStringLiteral("resolve-") +
-                                  QString::fromLatin1(digest->toHex()));
-}
-
-auto
-cachedMaterializedPath(const std::filesystem::path& cacheDirectory,
-                       const std::filesystem::path& requestedVirtualPath)
+existingMaterialization(const std::filesystem::path& materializationDirectory,
+                        const std::filesystem::path& requestedVirtualPath)
   -> std::optional<std::filesystem::path>
 {
     std::error_code ec;
-    if (const auto direct =
-          sourceCacheObjectPath(cacheDirectory, requestedVirtualPath);
+    if (const auto direct = sourceMaterializationPath(materializationDirectory,
+                                                      requestedVirtualPath);
         direct && std::filesystem::is_regular_file(*direct, ec)) {
         return direct;
     }
-    if (const auto legacy =
-          legacySourceCacheObjectPath(cacheDirectory, requestedVirtualPath);
-        legacy && std::filesystem::is_regular_file(*legacy, ec)) {
-        return legacy;
+    const auto resolution = resolutionMaterializationPath(
+      materializationDirectory, requestedVirtualPath);
+    if (!resolution || !std::filesystem::is_regular_file(*resolution, ec)) {
+        return std::nullopt;
     }
-
-    for (const auto& resolution :
-         { resolutionCachePath(cacheDirectory, requestedVirtualPath),
-           legacyResolutionCachePath(cacheDirectory, requestedVirtualPath) }) {
-        if (!resolution || !std::filesystem::is_regular_file(*resolution, ec)) {
-            continue;
-        }
-        auto file = QFile{ support::pathToQString(*resolution) };
-        if (!file.open(QIODevice::ReadOnly)) {
-            continue;
-        }
-        const auto targetName = QString::fromUtf8(file.readAll()).trimmed();
-        const auto targetInfo = QFileInfo{ targetName };
-        if (targetName.isEmpty() || targetInfo.fileName() != targetName ||
-            !targetName.startsWith(QStringLiteral("source-"))) {
-            continue;
-        }
-        for (const auto& target :
-             { resolution->parent_path() / support::qStringToPath(targetName),
-               cacheDirectory / support::qStringToPath(targetName) }) {
-            if (std::filesystem::is_regular_file(target, ec)) {
-                return target;
-            }
-        }
+    auto file = QFile{ support::pathToQString(*resolution) };
+    if (!file.open(QIODevice::ReadOnly)) {
+        return std::nullopt;
+    }
+    const auto targetName = QString::fromUtf8(file.readAll()).trimmed();
+    const auto targetInfo = QFileInfo{ targetName };
+    if (targetName.isEmpty() || targetInfo.fileName() != targetName ||
+        !targetName.startsWith(QStringLiteral("source-"))) {
+        return std::nullopt;
+    }
+    const auto target =
+      materializationDirectory / support::qStringToPath(targetName);
+    if (std::filesystem::is_regular_file(target, ec)) {
+        return target;
     }
     return std::nullopt;
 }
 
-auto
-rescanManifestPath(const std::filesystem::path& cacheDirectory,
-                   const std::filesystem::path& root) -> std::filesystem::path
-{
-    auto identity = QByteArray{ "song-asset-rescan-root-v1" };
-    identity += '\0';
-    identity += normalizedPhysicalPath(root).toUtf8();
-    const auto digest =
-      QCryptographicHash::hash(identity, QCryptographicHash::Sha256);
-    return cacheDirectory /
-           support::qStringToPath(QStringLiteral("rescan-") +
-                                  QString::fromLatin1(digest.toHex()) +
-                                  QStringLiteral(".archives"));
-}
-
 void
-removeArchiveCacheFiles(const std::filesystem::path& cacheDirectory,
-                        const QByteArray& archiveDigestHex)
-{
-    const auto archiveDirectory =
-      archiveCacheDirectory(cacheDirectory, archiveDigestHex);
-    std::error_code removeError;
-    std::filesystem::remove_all(archiveDirectory, removeError);
-    if (removeError) {
-        spdlog::warn("Could not evict song asset cache directory {}: {}",
-                     support::pathToQString(archiveDirectory).toStdString(),
-                     removeError.message());
-    }
-}
-
-void
-migrateLegacyCacheOnRescan(const std::filesystem::path& cacheDirectory)
-{
-    const auto marker = cacheDirectory / ".archive-cache-v2";
-    std::error_code ec;
-    if (std::filesystem::is_regular_file(marker, ec)) {
-        return;
-    }
-
-    const auto legacySource = QRegularExpression{ QStringLiteral(
-      R"(^source-[0-9a-f]{64}(?:\.[^.]+)?$)") };
-    const auto legacyResolution =
-      QRegularExpression{ QStringLiteral(R"(^resolve-[0-9a-f]{64}$)") };
-    for (auto iterator =
-           std::filesystem::directory_iterator(cacheDirectory, ec);
-         !ec && iterator != std::filesystem::directory_iterator{};
-         iterator.increment(ec)) {
-        const auto name = support::pathToQString(iterator->path().filename());
-        if (!legacySource.match(name).hasMatch() &&
-            !legacyResolution.match(name).hasMatch() &&
-            !name.startsWith(QStringLiteral(".extract-"))) {
-            continue;
-        }
-        std::error_code removeError;
-        std::filesystem::remove(iterator->path(), removeError);
-        if (removeError) {
-            spdlog::warn("Could not remove legacy song asset cache file {}: {}",
-                         support::pathToQString(iterator->path()).toStdString(),
-                         removeError.message());
-        }
-    }
-
-    auto markerFile = QSaveFile{ support::pathToQString(marker) };
-    if (!markerFile.open(QIODevice::WriteOnly) ||
-        markerFile.write("2\n") != 2 || !markerFile.commit()) {
-        throw std::runtime_error("Could not record song asset cache migration");
-    }
-}
-
-void
-recordResolution(const std::filesystem::path& cacheDirectory,
-                 const std::filesystem::path& requestedVirtualPath,
-                 const std::filesystem::path& target)
+recordMaterializationResolution(
+  const std::filesystem::path& materializationDirectory,
+  const std::filesystem::path& requestedVirtualPath,
+  const std::filesystem::path& target)
 {
     const auto direct =
-      sourceCacheObjectPath(cacheDirectory, requestedVirtualPath);
+      sourceMaterializationPath(materializationDirectory, requestedVirtualPath);
     if (direct && *direct == target) {
         return;
     }
-    const auto resolution =
-      resolutionCachePath(cacheDirectory, requestedVirtualPath);
+    const auto resolution = resolutionMaterializationPath(
+      materializationDirectory, requestedVirtualPath);
     if (!resolution) {
-        return;
-    }
-    std::error_code ec;
-    std::filesystem::create_directories(resolution->parent_path(), ec);
-    if (ec) {
-        spdlog::warn(
-          "Could not create song asset resolution directory {}: {}",
-          support::pathToQString(resolution->parent_path()).toStdString(),
-          ec.message());
         return;
     }
     auto file = QSaveFile{ support::pathToQString(*resolution) };
     const auto targetName = support::pathToQString(target.filename()).toUtf8();
     if (!file.open(QIODevice::WriteOnly) ||
         file.write(targetName) != targetName.size() || !file.commit()) {
-        spdlog::warn("Could not record song asset cache resolution {}",
+        spdlog::warn("Could not record song asset materialization {}",
                      support::pathToQString(*resolution).toStdString());
     }
 }
@@ -534,13 +386,14 @@ readCurrentEntry(archive* reader) -> QByteArray
 
 auto
 materializeCurrentEntry(archive* reader,
-                        const std::filesystem::path& cacheDirectory,
+                        const std::filesystem::path& materializationDirectory,
                         const std::filesystem::path& virtualPath,
                         const std::atomic_bool* stop = nullptr)
   -> std::filesystem::path
 {
     throwIfCancelled(stop);
-    const auto target = sourceCacheObjectPath(cacheDirectory, virtualPath);
+    const auto target =
+      sourceMaterializationPath(materializationDirectory, virtualPath);
     if (!target) {
         throw std::runtime_error(
           QStringLiteral("Could not identify archive source for %1")
@@ -552,19 +405,11 @@ materializeCurrentEntry(archive* reader,
         archive_read_data_skip(reader);
         return *target;
     }
-    std::filesystem::create_directories(target->parent_path(), ec);
-    if (ec) {
-        throw std::runtime_error(
-          "Could not create song asset archive cache directory: " +
-          ec.message());
-    }
-
-    const auto cachePath = support::pathToQString(cacheDirectory);
+    const auto scratchPath = support::pathToQString(materializationDirectory);
     auto temporary =
-      QTemporaryFile{ cachePath + QStringLiteral("/.extract-XXXXXX") };
+      QTemporaryFile{ scratchPath + QStringLiteral("/.extract-XXXXXX") };
     if (!temporary.open()) {
-        throw std::runtime_error(
-          "Could not create temporary archive cache file");
+        throw std::runtime_error("Could not create temporary song asset");
     }
     auto buffer = std::array<char, archiveReadBlockSize>{};
     for (;;) {
@@ -643,7 +488,7 @@ struct LocatedContainer
 
 auto
 locateContainer(const std::filesystem::path& virtualDirectory,
-                const std::filesystem::path& cacheDirectory,
+                const std::filesystem::path& materializationDirectory,
                 const std::atomic_bool* stop = nullptr)
   -> std::optional<LocatedContainer>
 {
@@ -678,8 +523,8 @@ locateContainer(const std::filesystem::path& virtualDirectory,
                                      remaining };
         }
 
-        auto cachedPrefix = QString{};
-        auto cachedArchive = std::filesystem::path{};
+        auto materializedPrefix = QString{};
+        auto materializedArchive = std::filesystem::path{};
         for (const auto& prefix : prefixes) {
             throwIfCancelled(stop);
             if (!SongAssetStore::isArchivePath(
@@ -688,18 +533,18 @@ locateContainer(const std::filesystem::path& virtualDirectory,
             }
             const auto nestedVirtualPath = support::qStringToPath(
               joinVirtual(support::pathToQString(virtualArchivePath), prefix));
-            if (const auto cached =
-                  cachedMaterializedPath(cacheDirectory, nestedVirtualPath)) {
-                cachedPrefix = prefix;
-                cachedArchive = *cached;
+            if (const auto materialized = existingMaterialization(
+                  materializationDirectory, nestedVirtualPath)) {
+                materializedPrefix = prefix;
+                materializedArchive = *materialized;
                 break;
             }
         }
-        if (!cachedPrefix.isEmpty()) {
+        if (!materializedPrefix.isEmpty()) {
             virtualArchivePath = support::qStringToPath(joinVirtual(
-              support::pathToQString(virtualArchivePath), cachedPrefix));
-            archivePath = std::move(cachedArchive);
-            remaining.remove(0, cachedPrefix.size());
+              support::pathToQString(virtualArchivePath), materializedPrefix));
+            archivePath = std::move(materializedArchive);
+            remaining.remove(0, materializedPrefix.size());
             while (remaining.startsWith('/')) {
                 remaining.remove(0, 1);
             }
@@ -731,7 +576,7 @@ locateContainer(const std::filesystem::path& virtualDirectory,
             const auto nestedVirtualPath = support::qStringToPath(
               joinVirtual(support::pathToQString(virtualArchivePath), path));
             const auto extracted = materializeCurrentEntry(
-              reader.get(), cacheDirectory, nestedVirtualPath, stop);
+              reader.get(), materializationDirectory, nestedVirtualPath, stop);
             candidates.push_back(
               { path, nestedVirtualPath, std::move(extracted) });
         }
@@ -851,61 +696,16 @@ encodedPath(const std::filesystem::path& path) -> QString
 
 } // namespace
 
-SongAssetStore::SongAssetStore(std::filesystem::path cacheDirectory,
-                               QObject* parent)
+SongAssetStore::SongAssetStore(QObject* parent)
   : QObject(parent)
-  , cacheDirectory(std::move(cacheDirectory))
+  , temporaryDirectory(QDir::tempPath() +
+                       QStringLiteral("/RhythmGame-song-assets-XXXXXX"))
 {
-    std::error_code ec;
-    std::filesystem::create_directories(this->cacheDirectory, ec);
-    if (ec) {
-        throw std::runtime_error(
-          "Could not create song asset cache directory: " + ec.message());
+    if (!temporaryDirectory.isValid()) {
+        throw std::runtime_error("Could not create song asset scratch space");
     }
-}
-
-void
-SongAssetStore::beginRescan(const std::filesystem::path& root) const
-{
-    migrateLegacyCacheOnRescan(cacheDirectory);
-    const auto manifest = rescanManifestPath(cacheDirectory, root);
-    auto file = QFile{ support::pathToQString(manifest) };
-    if (file.exists() && !file.open(QIODevice::ReadOnly)) {
-        throw std::runtime_error("Could not read song asset rescan manifest");
-    }
-    if (file.isOpen()) {
-        while (!file.atEnd()) {
-            const auto digest = file.readLine().trimmed();
-            static const auto archiveDigestPattern =
-              QRegularExpression{ QStringLiteral(R"(^[0-9a-f]{64}$)") };
-            if (archiveDigestPattern.match(QString::fromLatin1(digest))
-                  .hasMatch()) {
-                removeArchiveCacheFiles(cacheDirectory, digest);
-            }
-        }
-        file.close();
-    }
-
-    auto replacement = QSaveFile{ support::pathToQString(manifest) };
-    if (!replacement.open(QIODevice::WriteOnly) || !replacement.commit()) {
-        throw std::runtime_error("Could not reset song asset rescan manifest");
-    }
-}
-
-void
-SongAssetStore::evictArchiveForRescan(
-  const std::filesystem::path& root,
-  const std::filesystem::path& archivePath) const
-{
-    const auto digest = archiveCacheDigest(archivePath).toHex();
-    const auto manifest = rescanManifestPath(cacheDirectory, root);
-    auto file = QFile{ support::pathToQString(manifest) };
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Append) ||
-        file.write(digest) != digest.size() || file.write("\n") != 1) {
-        throw std::runtime_error("Could not update song asset rescan manifest");
-    }
-    file.close();
-    removeArchiveCacheFiles(cacheDirectory, digest);
+    materializationDirectory =
+      support::qStringToPath(temporaryDirectory.path());
 }
 
 auto
@@ -1006,7 +806,7 @@ SongAssetStore::walkArchive(const std::filesystem::path& archivePath,
             if (isArchivePath(support::qStringToPath(relative))) {
                 const auto nested =
                   materializeCurrentEntry(reader.get(),
-                                          cacheDirectory,
+                                          materializationDirectory,
                                           support::qStringToPath(virtualPath));
                 pending.push_back({ nested, virtualPath + '/', true });
                 continue;
@@ -1047,9 +847,9 @@ SongAssetStore::materializeRelative(
     auto unresolved = std::vector<std::filesystem::path>{};
     for (const auto& requested : relativePaths) {
         throwIfCancelled(stop);
-        if (const auto cached = cachedMaterializedPath(
-              cacheDirectory, requestedVirtualPath(requested))) {
-            result.emplace(requested, *cached);
+        if (const auto materialized = existingMaterialization(
+              materializationDirectory, requestedVirtualPath(requested))) {
+            result.emplace(requested, *materialized);
         } else {
             unresolved.push_back(requested);
         }
@@ -1059,7 +859,7 @@ SongAssetStore::materializeRelative(
     }
 
     const auto container =
-      locateContainer(virtualDirectory, cacheDirectory, stop);
+      locateContainer(virtualDirectory, materializationDirectory, stop);
     if (!container) {
         auto local = resolveLocalAssets(virtualDirectory, unresolved);
         result.insert(std::make_move_iterator(local.begin()),
@@ -1072,19 +872,20 @@ SongAssetStore::materializeRelative(
     for (const auto& requested : unresolved) {
         requestedVirtualPaths.push_back(requestedVirtualPath(requested));
     }
-    prefetch(requestedVirtualPaths, stop);
+    materializeRequested(requestedVirtualPaths, stop);
     for (const auto& requested : unresolved) {
-        if (const auto cached = cachedMaterializedPath(
-              cacheDirectory, requestedVirtualPath(requested))) {
-            result.emplace(requested, *cached);
+        if (const auto materialized = existingMaterialization(
+              materializationDirectory, requestedVirtualPath(requested))) {
+            result.emplace(requested, *materialized);
         }
     }
     return result;
 }
 
 void
-SongAssetStore::prefetch(const std::vector<std::filesystem::path>& virtualPaths,
-                         const std::atomic_bool* stop) const
+SongAssetStore::materializeRequested(
+  const std::vector<std::filesystem::path>& virtualPaths,
+  const std::atomic_bool* stop) const
 {
     struct Candidate
     {
@@ -1114,11 +915,12 @@ SongAssetStore::prefetch(const std::vector<std::filesystem::path>& virtualPaths,
     for (const auto& virtualPath : virtualPaths) {
         throwIfCancelled(stop);
         if (virtualPath.empty() || !uniquePaths.insert(virtualPath).second ||
-            cachedMaterializedPath(cacheDirectory, virtualPath)) {
+            existingMaterialization(materializationDirectory, virtualPath)) {
             continue;
         }
         const auto parent = virtualPath.parent_path() / "";
-        const auto container = locateContainer(parent, cacheDirectory, stop);
+        const auto container =
+          locateContainer(parent, materializationDirectory, stop);
         if (!container) {
             continue;
         }
@@ -1185,7 +987,7 @@ SongAssetStore::prefetch(const std::vector<std::filesystem::path>& virtualPaths,
             const auto entryVirtualPath = support::qStringToPath(joinVirtual(
               support::pathToQString(group.virtualArchivePath), relative));
             const auto local = materializeCurrentEntry(
-              reader.get(), cacheDirectory, entryVirtualPath, stop);
+              reader.get(), materializationDirectory, entryVirtualPath, stop);
             if (!exactMatches.isEmpty()) {
                 exactMaterialized.insert(local);
             }
@@ -1195,25 +997,25 @@ SongAssetStore::prefetch(const std::vector<std::filesystem::path>& virtualPaths,
                     continue;
                 }
                 priorities[match.requestedVirtualPath] = match.priority;
-                recordResolution(
-                  cacheDirectory, match.requestedVirtualPath, local);
+                recordMaterializationResolution(
+                  materializationDirectory, match.requestedVirtualPath, local);
             }
             if (firstFallback) {
                 fallbackEntries[basename].localPath = local;
             }
         }
-        for (auto entry = fallbackEntries.cbegin();
-             entry != fallbackEntries.cend();
-             ++entry) {
-            if (entry->matches != 1) {
-                if (!exactMaterialized.contains(entry->localPath)) {
+        for (auto fallbackEntry = fallbackEntries.cbegin();
+             fallbackEntry != fallbackEntries.cend();
+             ++fallbackEntry) {
+            if (fallbackEntry->matches != 1) {
+                if (!exactMaterialized.contains(fallbackEntry->localPath)) {
                     std::error_code ec;
-                    std::filesystem::remove(entry->localPath, ec);
+                    std::filesystem::remove(fallbackEntry->localPath, ec);
                 }
                 continue;
             }
             for (const auto& match :
-                 group.fallbackCandidates.values(entry.key())) {
+                 group.fallbackCandidates.values(fallbackEntry.key())) {
                 if (priorities.contains(match.requestedVirtualPath)) {
                     continue;
                 }
@@ -1221,13 +1023,14 @@ SongAssetStore::prefetch(const std::vector<std::filesystem::path>& virtualPaths,
                   fallbackResolutions[match.requestedVirtualPath];
                 if (match.priority < fallback.priority) {
                     fallback.priority = match.priority;
-                    fallback.localPath = entry->localPath;
+                    fallback.localPath = fallbackEntry->localPath;
                 }
             }
         }
         for (const auto& [requested, fallback] : fallbackResolutions) {
             if (!priorities.contains(requested)) {
-                recordResolution(cacheDirectory, requested, fallback.localPath);
+                recordMaterializationResolution(
+                  materializationDirectory, requested, fallback.localPath);
             }
         }
     }

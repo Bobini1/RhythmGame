@@ -288,8 +288,6 @@ scanSongArchive(const std::filesystem::path& archivePath,
                      support::pathToUtfString(archivePath));
         return;
     }
-    assetStore.evictArchiveForRescan(support::qStringToPath(root), archivePath);
-
     auto chartEntries = std::vector<SongAssetStore::ArchiveEntry>{};
     auto previewPaths = QHash<QString, std::filesystem::path>{};
     auto readmePaths = QHash<QString, std::filesystem::path>{};
@@ -374,47 +372,6 @@ scanSongArchive(const std::filesystem::path& archivePath,
     }
 
     threadPool.waitForDone();
-    if (*stop) {
-        return;
-    }
-    auto selectAssets = std::vector<std::filesystem::path>{};
-    selectAssets.reserve(chartDirectories.size() * 2);
-    for (const auto& directory : chartDirectories) {
-        if (const auto preview = previewPaths.constFind(directory);
-            preview != previewPaths.cend()) {
-            selectAssets.push_back(*preview);
-        }
-        if (const auto readme = readmePaths.constFind(directory);
-            readme != readmePaths.cend()) {
-            selectAssets.push_back(*readme);
-        }
-    }
-
-    auto archivePrefix = support::pathToQString(archivePath);
-    archivePrefix.replace('\\', '/');
-    if (!archivePrefix.endsWith('/')) {
-        archivePrefix += '/';
-    }
-    auto chartAssets =
-      db.createStatement("SELECT chart_directory, stage_file, banner, back_bmp "
-                         "FROM charts WHERE instr(path, ?) = 1");
-    chartAssets.bind(1, archivePrefix.toStdString());
-    for (const auto& [directory, stageFile, banner, backBmp] :
-         chartAssets.executeAndGetAll<
-           std::tuple<std::string, std::string, std::string, std::string>>()) {
-        for (const auto& relative : { stageFile, banner, backBmp }) {
-            if (relative.empty()) {
-                continue;
-            }
-            const auto source =
-              SongAssetStore::imageUrl(QString::fromStdString(directory),
-                                       QString::fromStdString(relative));
-            if (source.startsWith(QStringLiteral("image://song-assets/"))) {
-                selectAssets.push_back(SongAssetStore::pathFromUrl(source));
-            }
-        }
-    }
-    assetStore.prefetch(selectAssets, stop);
 }
 #ifdef _WIN32
 using NtQueryDirectoryFile_t =
@@ -749,7 +706,6 @@ SongDbScanner::scanDirectory(
     auto sw = spdlog::stopwatch{};
     auto threadPool = QThreadPool{};
     try {
-        assetStore->beginRescan(directory);
 #ifndef _WIN32
         auto buffer = std::vector<llfio::directory_handle::buffer_type>(100);
 #endif

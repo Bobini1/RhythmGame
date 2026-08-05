@@ -4,6 +4,7 @@
 #include <QByteArray>
 #include <QObject>
 #include <QString>
+#include <QTemporaryDir>
 
 #include <atomic>
 #include <filesystem>
@@ -20,7 +21,7 @@ namespace resource_managers {
  * C:/songs/collection.zip/song.zip/chart.bms is kept as the public identity;
  * archive boundaries are discovered and handled inside this module.
  */
-class SongAssetStore final : public QObject
+class SongAssetStore : public QObject
 {
     Q_OBJECT
 
@@ -35,8 +36,7 @@ class SongAssetStore final : public QObject
       std::function<bool(const std::filesystem::path& virtualPath)>;
     using EntryVisitor = std::function<void(ArchiveEntry entry)>;
 
-    explicit SongAssetStore(std::filesystem::path cacheDirectory,
-                            QObject* parent = nullptr);
+    explicit SongAssetStore(QObject* parent = nullptr);
 
     [[nodiscard]] auto read(const std::filesystem::path& virtualPath) const
       -> QByteArray;
@@ -48,12 +48,6 @@ class SongAssetStore final : public QObject
       const std::vector<std::filesystem::path>& relativePaths,
       const std::atomic_bool* stop = nullptr) const
       -> std::unordered_map<std::filesystem::path, std::filesystem::path>;
-    void beginRescan(const std::filesystem::path& root) const;
-    void evictArchiveForRescan(const std::filesystem::path& root,
-                               const std::filesystem::path& archivePath) const;
-    void prefetch(const std::vector<std::filesystem::path>& virtualPaths,
-                  const std::atomic_bool* stop = nullptr) const;
-
     void walkArchive(const std::filesystem::path& archivePath,
                      const WantsContents& wantsContents,
                      const EntryVisitor& visitor,
@@ -85,7 +79,12 @@ class SongAssetStore final : public QObject
       const QString& virtualPath) const;
 
   private:
-    std::filesystem::path cacheDirectory;
+    void materializeRequested(
+      const std::vector<std::filesystem::path>& virtualPaths,
+      const std::atomic_bool* stop = nullptr) const;
+
+    QTemporaryDir temporaryDirectory;
+    std::filesystem::path materializationDirectory;
 };
 
 } // namespace resource_managers

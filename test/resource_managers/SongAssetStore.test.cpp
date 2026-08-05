@@ -118,8 +118,6 @@ TEST_CASE("SongAssetStore traverses and resolves nested song archives")
 {
     auto temporaryDirectory = QTemporaryDir{};
     REQUIRE(temporaryDirectory.isValid());
-    auto cacheDirectory = QTemporaryDir{};
-    REQUIRE(cacheDirectory.isValid());
     const auto root = support::qStringToPath(temporaryDirectory.path());
     const auto inner = root / "song1.zip";
     const auto outer = root / "collection1.zip";
@@ -135,8 +133,7 @@ TEST_CASE("SongAssetStore traverses and resolves nested song archives")
                { "song/readme.txt", QByteArray{ "readme" } } });
     writeZip(outer, { { "set/song1.zip", readFile(inner) } });
 
-    auto store = resource_managers::SongAssetStore{ support::qStringToPath(
-      cacheDirectory.path()) };
+    auto store = resource_managers::SongAssetStore{};
     auto discovered =
       std::vector<resource_managers::SongAssetStore::ArchiveEntry>{};
     store.walkArchive(
@@ -190,15 +187,12 @@ TEST_CASE("SongAssetImageProvider loads an archived image through QML")
     ensureGuiApplication();
     auto temporaryDirectory = QTemporaryDir{};
     REQUIRE(temporaryDirectory.isValid());
-    auto cacheDirectory = QTemporaryDir{};
-    REQUIRE(cacheDirectory.isValid());
     const auto root = support::qStringToPath(temporaryDirectory.path());
     const auto archivePath = root / L"東方音弾遊戯7.zip";
     const auto virtualImage = archivePath / "song" / "stage.png";
     writeZip(archivePath, { { "song/stage.png", makePng() } });
 
-    auto store = resource_managers::SongAssetStore{ support::qStringToPath(
-      cacheDirectory.path()) };
+    auto store = resource_managers::SongAssetStore{};
     auto engine = QQmlEngine{};
     engine.addImageProvider(
       QStringLiteral("song-assets"),
@@ -247,27 +241,40 @@ TEST_CASE("SongAssetStore resolves a uniquely named shared archive asset")
 {
     auto temporaryDirectory = QTemporaryDir{};
     REQUIRE(temporaryDirectory.isValid());
-    auto cacheDirectory = QTemporaryDir{};
-    REQUIRE(cacheDirectory.isValid());
     const auto root = support::qStringToPath(temporaryDirectory.path());
     const auto archivePath = root / "songs.zip";
     const auto image = makePng();
     writeZip(archivePath, { { "shared/_title.png", image } });
 
-    auto store = resource_managers::SongAssetStore{ support::qStringToPath(
-      cacheDirectory.path()) };
+    auto store = resource_managers::SongAssetStore{};
     const auto requested = archivePath / "song" / "_title.png";
     CHECK(readFile(store.materialize(requested)) == image);
 }
 
-TEST_CASE("SongAssetStore cache identity follows source and archive revision")
+TEST_CASE("SongAssetStore removes temporary materializations on destruction")
 {
     auto temporaryDirectory = QTemporaryDir{};
     REQUIRE(temporaryDirectory.isValid());
-    auto cacheDirectory = QTemporaryDir{};
-    REQUIRE(cacheDirectory.isValid());
     const auto root = support::qStringToPath(temporaryDirectory.path());
-    const auto cache = support::qStringToPath(cacheDirectory.path());
+    const auto archivePath = root / "songs.zip";
+    const auto virtualPath = archivePath / "song" / "preview.ogg";
+    writeZip(archivePath, { { "song/preview.ogg", QByteArray{ "preview" } } });
+
+    auto materialized = std::filesystem::path{};
+    {
+        auto store = resource_managers::SongAssetStore{};
+        materialized = store.materialize(virtualPath);
+        REQUIRE(std::filesystem::is_regular_file(materialized));
+    }
+    CHECK_FALSE(std::filesystem::exists(materialized));
+}
+
+TEST_CASE(
+  "SongAssetStore materialization identity follows source and archive revision")
+{
+    auto temporaryDirectory = QTemporaryDir{};
+    REQUIRE(temporaryDirectory.isValid());
+    const auto root = support::qStringToPath(temporaryDirectory.path());
     const auto firstArchive = root / "first.zip";
     const auto secondArchive = root / "second.zip";
     const auto relative = std::filesystem::path{ "song/banner.png" };
@@ -276,7 +283,7 @@ TEST_CASE("SongAssetStore cache identity follows source and archive revision")
     writeZip(firstArchive, { { "song/banner.png", original } });
     writeZip(secondArchive, { { "song/banner.png", original } });
 
-    auto store = resource_managers::SongAssetStore{ cache };
+    auto store = resource_managers::SongAssetStore{};
     const auto first = store.materialize(firstArchive / relative);
     const auto repeated = store.materialize(firstArchive / relative);
     const auto sameContentsOtherArchive =
@@ -299,57 +306,17 @@ TEST_CASE("SongAssetStore cache identity follows source and archive revision")
     CHECK(readFile(revised) == replacement);
 }
 
-TEST_CASE("SongAssetStore evicts one root's archive cache on rescan")
-{
-    auto temporaryDirectory = QTemporaryDir{};
-    REQUIRE(temporaryDirectory.isValid());
-    auto cacheDirectory = QTemporaryDir{};
-    REQUIRE(cacheDirectory.isValid());
-    const auto root = support::qStringToPath(temporaryDirectory.path());
-    const auto firstRoot = root / "first-root";
-    const auto secondRoot = root / "second-root";
-    REQUIRE(std::filesystem::create_directories(firstRoot));
-    REQUIRE(std::filesystem::create_directories(secondRoot));
-    const auto firstArchive = firstRoot / "songs.zip";
-    const auto secondArchive = secondRoot / "songs.zip";
-    const auto relative = std::filesystem::path{ "song/banner.png" };
-    writeZip(firstArchive, { { "song/banner.png", QByteArray{ "first" } } });
-    writeZip(secondArchive, { { "song/banner.png", QByteArray{ "second" } } });
-
-    auto store = resource_managers::SongAssetStore{ support::qStringToPath(
-      cacheDirectory.path()) };
-    const auto firstCached = store.materialize(firstArchive / relative);
-    const auto secondCached = store.materialize(secondArchive / relative);
-    CAPTURE(firstCached, secondCached);
-    REQUIRE(std::filesystem::is_regular_file(firstCached));
-    REQUIRE(std::filesystem::is_regular_file(secondCached));
-
-    store.beginRescan(firstRoot);
-    store.evictArchiveForRescan(firstRoot, firstArchive);
-    CHECK_FALSE(std::filesystem::exists(firstCached));
-    CHECK(std::filesystem::is_regular_file(secondCached));
-
-    const auto recreated = store.materialize(firstArchive / relative);
-    REQUIRE(std::filesystem::is_regular_file(recreated));
-    store.beginRescan(firstRoot);
-    CHECK_FALSE(std::filesystem::exists(recreated));
-    CHECK(std::filesystem::is_regular_file(secondCached));
-}
-
 TEST_CASE("SongAssetStore shares concurrent materialization")
 {
     auto temporaryDirectory = QTemporaryDir{};
     REQUIRE(temporaryDirectory.isValid());
-    auto cacheDirectory = QTemporaryDir{};
-    REQUIRE(cacheDirectory.isValid());
     const auto root = support::qStringToPath(temporaryDirectory.path());
     const auto archivePath = root / "songs.zip";
     const auto virtualPath = archivePath / "song" / "preview.ogg";
     const auto preview = QByteArray(1024 * 1024, 'p');
     writeZip(archivePath, { { "song/preview.ogg", preview } });
 
-    auto store = resource_managers::SongAssetStore{ support::qStringToPath(
-      cacheDirectory.path()) };
+    auto store = resource_managers::SongAssetStore{};
     auto requests = std::vector<std::future<std::filesystem::path>>{};
     for (auto index = 0; index < 8; ++index) {
         requests.push_back(
@@ -368,8 +335,8 @@ TEST_CASE("SongAssetStore shares concurrent materialization")
     }
     CHECK(readFile(materialized) == preview);
 
-    for (const auto& entry : std::filesystem::directory_iterator(
-           support::qStringToPath(cacheDirectory.path()))) {
+    for (const auto& entry :
+         std::filesystem::directory_iterator(materialized.parent_path())) {
         CHECK_FALSE(support::pathToQString(entry.path().filename())
                       .startsWith(".extract-"));
     }
@@ -391,7 +358,7 @@ TEST_CASE("SongAssetStore does not impose an arbitrary nesting depth")
         current = parent;
     }
 
-    auto store = resource_managers::SongAssetStore{ root / "asset-cache" };
+    auto store = resource_managers::SongAssetStore{};
     auto charts = std::vector<std::filesystem::path>{};
     store.walkArchive(
       current,
@@ -418,8 +385,6 @@ TEST_CASE(
 {
     auto temporaryDirectory = QTemporaryDir{};
     REQUIRE(temporaryDirectory.isValid());
-    auto cacheDirectory = QTemporaryDir{};
-    REQUIRE(cacheDirectory.isValid());
     const auto root = support::qStringToPath(temporaryDirectory.path());
     const auto inner = root / "song1.zip";
     const auto outer = root / L"東方音弾遊戯7.7z";
@@ -451,37 +416,27 @@ TEST_CASE(
 
     auto database = db::SqliteCppDb{ root / "songs.sqlite" };
     resource_managers::defineDb(database);
-    auto store = resource_managers::SongAssetStore{ support::qStringToPath(
-      cacheDirectory.path()) };
+    auto store = resource_managers::SongAssetStore{};
     auto scanner = resource_managers::SongDbScanner{ &database, &store };
     auto stopped = std::atomic_bool{ false };
     scanner.scanDirectory(root, [](const QString&) {}, &stopped);
 
-    const auto unusedCached = store.materialize(
-      outer / "set" / "song1.zip" / "song" / "Magus Logos" / "unused.wav");
-    REQUIRE(std::filesystem::is_regular_file(unusedCached));
-    scanner.scanDirectory(root, [](const QString&) {}, &stopped);
-    CHECK_FALSE(std::filesystem::exists(unusedCached));
-
-    auto cachedExtensions = QSet<QString>{};
-    auto cachedOggFiles = 0;
+    const auto nestedArchive = store.materialize(outer / "set" / "song1.zip");
+    auto materializedExtensions = QSet<QString>{};
     for (const auto& entry : std::filesystem::recursive_directory_iterator(
-           support::qStringToPath(cacheDirectory.path()))) {
+           nestedArchive.parent_path())) {
         if (!entry.is_regular_file()) {
             continue;
         }
         const auto extension =
           support::pathToQString(entry.path().extension()).toLower();
-        cachedExtensions.insert(extension);
-        if (extension == QStringLiteral(".ogg")) {
-            ++cachedOggFiles;
-        }
+        materializedExtensions.insert(extension);
     }
-    CHECK(cachedExtensions.contains(QStringLiteral(".png")));
-    CHECK(cachedExtensions.contains(QStringLiteral(".bmp")));
-    CHECK(cachedExtensions.contains(QStringLiteral(".ogg")));
-    CHECK(cachedOggFiles == 1);
-    CHECK(cachedExtensions.contains(QStringLiteral(".txt")));
+    CHECK(materializedExtensions.contains(QStringLiteral(".zip")));
+    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".png")));
+    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".bmp")));
+    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".ogg")));
+    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".txt")));
 
     auto charts =
       database
@@ -547,8 +502,6 @@ TEST_CASE("SongDbScanner accepts an archive as a root song source")
 {
     auto temporaryDirectory = QTemporaryDir{};
     REQUIRE(temporaryDirectory.isValid());
-    auto cacheDirectory = QTemporaryDir{};
-    REQUIRE(cacheDirectory.isValid());
     const auto root = support::qStringToPath(temporaryDirectory.path());
     const auto archivePath = root / "songs.zip";
     const auto chart = QByteArray{ "#PLAYER 1\n"
@@ -567,8 +520,7 @@ TEST_CASE("SongDbScanner accepts an archive as a root song source")
 
     auto database = db::SqliteCppDb{ root / "songs.sqlite" };
     resource_managers::defineDb(database);
-    auto store = resource_managers::SongAssetStore{ support::qStringToPath(
-      cacheDirectory.path()) };
+    auto store = resource_managers::SongAssetStore{};
     auto scanner = resource_managers::SongDbScanner{ &database, &store };
     auto stopped = std::atomic_bool{ false };
     scanner.scanDirectory(archivePath, [](const QString&) {}, &stopped);
@@ -626,8 +578,6 @@ TEST_CASE("RootSongFolders accepts an archive URL from settings")
 {
     auto temporaryDirectory = QTemporaryDir{};
     REQUIRE(temporaryDirectory.isValid());
-    auto cacheDirectory = QTemporaryDir{};
-    REQUIRE(cacheDirectory.isValid());
     const auto root = support::qStringToPath(temporaryDirectory.path());
     const auto archivePath = root / "songs.zip";
     writeZip(archivePath,
@@ -635,8 +585,7 @@ TEST_CASE("RootSongFolders accepts an archive URL from settings")
 
     auto database = db::SqliteCppDb{ root / "songs.sqlite" };
     resource_managers::defineDb(database);
-    auto store = resource_managers::SongAssetStore{ support::qStringToPath(
-      cacheDirectory.path()) };
+    auto store = resource_managers::SongAssetStore{};
     auto scanner = resource_managers::SongDbScanner{ &database, &store };
     auto queue = qml_components::ScanningQueue{ &database, scanner };
     auto folders = qml_components::RootSongFolders{ &database, &queue };

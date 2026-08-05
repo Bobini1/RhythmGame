@@ -111,7 +111,7 @@ TEST_CASE("ArenaSession ProfileList silently enforces the generic battle gate",
     db::SqliteCppDb songDb(songDbPath);
     songDb.execute("CREATE TABLE properties (key TEXT PRIMARY KEY, value)");
     QNetworkAccessManager networkManager;
-    resource_managers::SongAssetStore songAssetStore(root / "asset-cache");
+    resource_managers::SongAssetStore songAssetStore;
     qml_components::ProfileList profiles(songDbPath,
                                          &songDb,
                                          {},
@@ -165,7 +165,7 @@ TEST_CASE("ArenaSession Profile queues enum-only ticket failure and "
     db::SqliteCppDb songDb(songDbPath);
     songDb.execute("CREATE TABLE properties (key TEXT PRIMARY KEY, value)");
     QNetworkAccessManager networkManager;
-    resource_managers::SongAssetStore songAssetStore(root / "asset-cache");
+    resource_managers::SongAssetStore songAssetStore;
     qml_components::ProfileList profiles(songDbPath,
                                          &songDb,
                                          {},

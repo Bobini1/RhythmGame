@@ -66,6 +66,8 @@
 #include "arena/QtWebSocketArenaTransport.h"
 #include "arena/SqliteArenaInventorySource.h"
 
+#include <filesystem>
+
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 Q_IMPORT_PLUGIN(TgaPlugin)
 Q_IMPORT_PLUGIN(CimPlugin)
@@ -101,6 +103,19 @@ arenaEndpointFromEnvironment() -> QUrl
           "RHYTHMGAME_ARENA_ENDPOINT must be a local ws/wss /ws endpoint");
     }
     return endpoint;
+}
+
+void
+removeLegacySongAssetCache(const std::filesystem::path& dataFolder)
+{
+    const auto cacheDirectory = dataFolder / "song-assets-cache";
+    auto error = std::error_code{};
+    std::filesystem::remove_all(cacheDirectory, error);
+    if (error) {
+        spdlog::warn("Could not remove the legacy song asset cache at {}: {}",
+                     cacheDirectory.string(),
+                     error.message());
+    }
 }
 
 } // namespace
@@ -270,8 +285,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         resource_managers::defineDb(db);
 
-        auto songAssets =
-          resource_managers::SongAssetStore{ dataFolder / "song-assets-cache" };
+        removeLegacySongAssetCache(dataFolder);
+        auto songAssets = resource_managers::SongAssetStore{};
         auto songDbScanner =
           resource_managers::SongDbScanner{ &db, &songAssets };
         auto avatarPath = support::pathToQString(dataFolder / "avatars/");

@@ -298,9 +298,7 @@ TEST_CASE("ArenaInventorySource commits one generation after scan queue drain",
     const auto path = databasePath(directory);
     db::SqliteCppDb db(path);
     resource_managers::defineDb(db);
-    auto assetStore = resource_managers::SongAssetStore{
-        support::qStringToPath(directory.path()) / "asset-cache"
-    };
+    auto assetStore = resource_managers::SongAssetStore{};
     resource_managers::SongDbScanner scanner(&db, &assetStore);
     qml_components::ScanningQueue queue(&db, scanner);
     arena::SqliteArenaInventorySource source(path);
@@ -335,9 +333,7 @@ TEST_CASE("ArenaInventorySource scan stop reaches idle and commits once",
     const auto path = databasePath(directory);
     db::SqliteCppDb db(path);
     resource_managers::defineDb(db);
-    auto assetStore = resource_managers::SongAssetStore{
-        support::qStringToPath(directory.path()) / "asset-cache"
-    };
+    auto assetStore = resource_managers::SongAssetStore{};
     resource_managers::SongDbScanner scanner(&db, &assetStore);
     qml_components::ScanningQueue queue(&db, scanner);
     arena::SqliteArenaInventorySource source(path);
@@ -389,9 +385,7 @@ TEST_CASE("ArenaInventorySource root removal commits after database cleanup",
     insertChart.bind(1, (root + QStringLiteral("chart.bms")).toStdString());
     insertChart.execute();
 
-    auto assetStore = resource_managers::SongAssetStore{
-        support::qStringToPath(directory.path()) / "asset-cache"
-    };
+    auto assetStore = resource_managers::SongAssetStore{};
     resource_managers::SongDbScanner scanner(&db, &assetStore);
     qml_components::ScanningQueue queue(&db, scanner);
     qml_components::RootSongFolders folders(&db, &queue);
@@ -429,9 +423,7 @@ TEST_CASE("ArenaInventorySource active root removal defers until queue drain",
     insertRoot.bind(1, root.toStdString());
     insertRoot.execute();
 
-    auto assetStore = resource_managers::SongAssetStore{
-        support::qStringToPath(directory.path()) / "asset-cache"
-    };
+    auto assetStore = resource_managers::SongAssetStore{};
     resource_managers::SongDbScanner scanner(&db, &assetStore);
     qml_components::ScanningQueue queue(&db, scanner);
     arena::SqliteArenaInventorySource source(path);

@@ -189,8 +189,13 @@ struct ArenaChatModelForeign
     QML_ANONYMOUS
     QML_UNCREATABLE("Arena chat models are provided by ArenaSession")
 };
-RHYTHMGAME_QML_ANONYMOUS_FOREIGN(SongAssetStoreForeign,
-                                 resource_managers::SongAssetStore);
+struct SongAssetStoreForeign
+{
+    Q_GADGET
+    QML_FOREIGN(resource_managers::SongAssetStore)
+    QML_ANONYMOUS
+    QML_UNCREATABLE("Song assets are provided by Rg.songAssets")
+};
 
 #undef RHYTHMGAME_QML_ANONYMOUS_FOREIGN
 
