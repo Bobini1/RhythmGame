@@ -67,6 +67,10 @@ archiveError(archive* reader, const QString& prefix) -> std::runtime_error
 auto
 openArchive(const std::filesystem::path& path) -> ArchiveReader
 {
+    const auto supportError = SongAssetStore::archiveSupportError(path);
+    if (!supportError.isEmpty()) {
+        throw std::runtime_error(supportError.toStdString());
+    }
     auto reader = ArchiveReader{ archive_read_new() };
     if (!reader) {
         throw std::runtime_error("Could not allocate archive reader");
@@ -186,6 +190,13 @@ archiveExtensions() -> const QStringList&
         QStringLiteral(".gz"),   QStringLiteral(".bz2"), QStringLiteral(".xz"),
         QStringLiteral(".zst")
     };
+    return extensions;
+}
+
+auto
+supportedArchiveExtensions() -> const QStringList&
+{
+    static const auto extensions = QStringList{ QStringLiteral(".zip") };
     return extensions;
 }
 
@@ -444,18 +455,37 @@ materializeCurrentEntry(archive* reader,
     return *target;
 }
 
+void
+requireZipFormat(archive* reader, const std::filesystem::path& archivePath)
+{
+    if ((archive_format(reader) & ARCHIVE_FORMAT_BASE_MASK) ==
+        ARCHIVE_FORMAT_ZIP) {
+        return;
+    }
+    throw std::runtime_error(
+      QStringLiteral("Unsupported song archive format in %1. Convert or "
+                     "repack it as a ZIP archive.")
+        .arg(support::pathToQString(archivePath))
+        .toStdString());
+}
+
 auto
-nextHeader(archive* reader, archive_entry** entry) -> bool
+nextHeader(archive* reader,
+           archive_entry** entry,
+           const std::filesystem::path& archivePath) -> bool
 {
     for (;;) {
         const auto result = archive_read_next_header(reader, entry);
         if (result == ARCHIVE_EOF) {
+            requireZipFormat(reader, archivePath);
             return false;
         }
         if (result == ARCHIVE_OK) {
+            requireZipFormat(reader, archivePath);
             return true;
         }
         if (result == ARCHIVE_WARN) {
+            requireZipFormat(reader, archivePath);
             spdlog::warn("Archive warning: {}",
                          archive_error_string(reader)
                            ? archive_error_string(reader)
@@ -533,6 +563,11 @@ locateContainer(const std::filesystem::path& virtualDirectory,
             }
             const auto nestedVirtualPath = support::qStringToPath(
               joinVirtual(support::pathToQString(virtualArchivePath), prefix));
+            const auto supportError =
+              SongAssetStore::archiveSupportError(nestedVirtualPath);
+            if (!supportError.isEmpty()) {
+                throw std::runtime_error(supportError.toStdString());
+            }
             if (const auto materialized = existingMaterialization(
                   materializationDirectory, nestedVirtualPath)) {
                 materializedPrefix = prefix;
@@ -560,7 +595,7 @@ locateContainer(const std::filesystem::path& virtualDirectory,
         };
         auto candidates = std::vector<NestedArchiveCandidate>{};
         auto* entry = static_cast<archive_entry*>(nullptr);
-        while (nextHeader(reader.get(), &entry)) {
+        while (nextHeader(reader.get(), &entry, archivePath)) {
             throwIfCancelled(stop);
             const auto path = entryPath(entry);
             const auto isPrefix =
@@ -718,6 +753,35 @@ SongAssetStore::isArchivePath(const std::filesystem::path& path) -> bool
 }
 
 auto
+SongAssetStore::isSupportedArchivePath(const std::filesystem::path& path)
+  -> bool
+{
+    const auto value = support::pathToQString(path).toLower();
+    return std::ranges::any_of(
+      supportedArchiveExtensions(),
+      [&value](const QString& extension) { return value.endsWith(extension); });
+}
+
+auto
+SongAssetStore::archiveSupportError(const std::filesystem::path& path)
+  -> QString
+{
+    if (isSplitArchivePath(path)) {
+        return QStringLiteral(
+                 "Split song archives are unsupported: %1. Combine or repack "
+                 "the archive as a ZIP file.")
+          .arg(support::pathToQString(path));
+    }
+    if (isSupportedArchivePath(path)) {
+        return {};
+    }
+    return QStringLiteral(
+             "Unsupported song archive format: %1. Convert or repack the "
+             "archive as a ZIP file.")
+      .arg(support::pathToQString(path));
+}
+
+auto
 SongAssetStore::isSplitArchivePath(const std::filesystem::path& path) -> bool
 {
     const auto value = support::pathToQString(path).toLower();
@@ -781,7 +845,7 @@ SongAssetStore::walkArchive(const std::filesystem::path& archivePath,
             continue;
         }
         auto* entry = static_cast<archive_entry*>(nullptr);
-        while (nextHeader(reader.get(), &entry)) {
+        while (nextHeader(reader.get(), &entry, current.physicalPath)) {
             if (stop && *stop) {
                 return;
             }
@@ -798,16 +862,25 @@ SongAssetStore::walkArchive(const std::filesystem::path& archivePath,
                 continue;
             }
             if (isSplitArchivePath(support::qStringToPath(relative))) {
-                spdlog::warn("Split archive is unsupported: {}",
-                             virtualPath.toStdString());
+                spdlog::error(
+                  "{}",
+                  archiveSupportError(support::qStringToPath(virtualPath))
+                    .toStdString());
                 archive_read_data_skip(reader.get());
                 continue;
             }
             if (isArchivePath(support::qStringToPath(relative))) {
-                const auto nested =
-                  materializeCurrentEntry(reader.get(),
-                                          materializationDirectory,
-                                          support::qStringToPath(virtualPath));
+                const auto nestedVirtualPath =
+                  support::qStringToPath(virtualPath);
+                const auto supportError =
+                  archiveSupportError(nestedVirtualPath);
+                if (!supportError.isEmpty()) {
+                    spdlog::error("{}", supportError.toStdString());
+                    archive_read_data_skip(reader.get());
+                    continue;
+                }
+                const auto nested = materializeCurrentEntry(
+                  reader.get(), materializationDirectory, nestedVirtualPath);
                 pending.push_back({ nested, virtualPath + '/', true });
                 continue;
             }
@@ -961,7 +1034,7 @@ SongAssetStore::materializeRequested(
         auto exactMaterialized = std::unordered_set<std::filesystem::path>{};
         auto reader = openArchive(group.archivePath);
         auto* entry = static_cast<archive_entry*>(nullptr);
-        while (nextHeader(reader.get(), &entry)) {
+        while (nextHeader(reader.get(), &entry, group.archivePath)) {
             throwIfCancelled(stop);
             const auto relative = entryPath(entry);
             if (!isRegularEntry(entry) || relative.isEmpty() ||

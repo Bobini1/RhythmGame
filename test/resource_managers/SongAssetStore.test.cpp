@@ -50,13 +50,16 @@ struct ArchiveWriteDeleter
 
 using ArchiveWriter = std::unique_ptr<archive, ArchiveWriteDeleter>;
 
+using ArchiveFormatSetter = int (*)(archive*);
+
 void
-writeZip(const std::filesystem::path& target,
-         const std::vector<std::pair<std::string, QByteArray>>& files)
+writeArchive(const std::filesystem::path& target,
+             const std::vector<std::pair<std::string, QByteArray>>& files,
+             ArchiveFormatSetter setFormat)
 {
     auto writer = ArchiveWriter{ archive_write_new() };
     REQUIRE(writer);
-    REQUIRE(archive_write_set_format_zip(writer.get()) == ARCHIVE_OK);
+    REQUIRE(setFormat(writer.get()) == ARCHIVE_OK);
 #ifdef _WIN32
     REQUIRE(archive_write_open_filename_w(writer.get(), target.c_str()) ==
             ARCHIVE_OK);
@@ -77,6 +80,20 @@ writeZip(const std::filesystem::path& target,
                                    contents.size()) == contents.size());
         archive_entry_free(entry);
     }
+}
+
+void
+writeZip(const std::filesystem::path& target,
+         const std::vector<std::pair<std::string, QByteArray>>& files)
+{
+    writeArchive(target, files, archive_write_set_format_zip);
+}
+
+void
+writeSevenZip(const std::filesystem::path& target,
+              const std::vector<std::pair<std::string, QByteArray>>& files)
+{
+    writeArchive(target, files, archive_write_set_format_7zip);
 }
 
 auto
@@ -237,6 +254,85 @@ TEST_CASE("SongAssetStore recognizes split archive names")
       resource_managers::SongAssetStore::isSplitArchivePath("songs.zip"));
 }
 
+TEST_CASE("SongAssetStore supports ZIP archive containers only")
+{
+    CHECK(resource_managers::SongAssetStore::isArchivePath("songs.zip"));
+    CHECK(
+      resource_managers::SongAssetStore::isSupportedArchivePath("songs.zip"));
+    CHECK(resource_managers::SongAssetStore::archiveSupportError("songs.zip")
+            .isEmpty());
+
+    for (const auto& path : { "songs.7z", "songs.rar", "songs.tar" }) {
+        CHECK(resource_managers::SongAssetStore::isArchivePath(path));
+        CHECK_FALSE(
+          resource_managers::SongAssetStore::isSupportedArchivePath(path));
+        const auto error =
+          resource_managers::SongAssetStore::archiveSupportError(path);
+        CHECK(error.contains(QStringLiteral("Unsupported")));
+        CHECK(error.contains(QStringLiteral("ZIP")));
+    }
+}
+
+TEST_CASE("SongAssetStore rejects non-ZIP data disguised as ZIP")
+{
+    auto temporaryDirectory = QTemporaryDir{};
+    REQUIRE(temporaryDirectory.isValid());
+    const auto root = support::qStringToPath(temporaryDirectory.path());
+    auto store = resource_managers::SongAssetStore{};
+
+    SECTION("with entries")
+    {
+        const auto archivePath = root / "disguised.zip";
+        writeSevenZip(
+          archivePath,
+          { { "song/chart.bms", QByteArray{ "#TITLE Unsupported\n" } } });
+        CHECK_THROWS(store.walkArchive(
+          archivePath, [](const auto&) { return true; }, [](auto) {}));
+    }
+
+    SECTION("when empty")
+    {
+        const auto archivePath = root / "empty-disguised.zip";
+        writeSevenZip(archivePath, {});
+        CHECK_THROWS(store.walkArchive(
+          archivePath, [](const auto&) { return true; }, [](auto) {}));
+    }
+
+    SECTION("without rejecting an empty ZIP")
+    {
+        const auto archivePath = root / "empty.zip";
+        writeZip(archivePath, {});
+        CHECK_NOTHROW(store.walkArchive(
+          archivePath, [](const auto&) { return true; }, [](auto) {}));
+    }
+}
+
+TEST_CASE("SongAssetStore skips nested non-ZIP archives")
+{
+    auto temporaryDirectory = QTemporaryDir{};
+    REQUIRE(temporaryDirectory.isValid());
+    const auto root = support::qStringToPath(temporaryDirectory.path());
+    const auto inner = root / "song.7z";
+    const auto outer = root / "collection.zip";
+    writeZip(inner,
+             { { "song/chart.bms", QByteArray{ "#TITLE Unsupported\n" } } });
+    writeZip(outer, { { "set/song.7z", readFile(inner) } });
+
+    auto store = resource_managers::SongAssetStore{};
+    auto charts = std::vector<std::filesystem::path>{};
+    CHECK_NOTHROW(store.walkArchive(
+      outer,
+      [](const std::filesystem::path& path) {
+          return path.extension() == ".bms";
+      },
+      [&charts](auto entry) {
+          if (entry.contents) {
+              charts.push_back(std::move(entry.virtualPath));
+          }
+      }));
+    CHECK(charts.empty());
+}
+
 TEST_CASE("SongAssetStore resolves a uniquely named shared archive asset")
 {
     auto temporaryDirectory = QTemporaryDir{};
@@ -387,7 +483,7 @@ TEST_CASE(
     REQUIRE(temporaryDirectory.isValid());
     const auto root = support::qStringToPath(temporaryDirectory.path());
     const auto inner = root / "song1.zip";
-    const auto outer = root / L"東方音弾遊戯7.7z";
+    const auto outer = root / L"東方音弾遊戯7.zip";
     const auto chart = QByteArray{ "#PLAYER 1\n"
                                    "#TITLE Nested scanner chart\n"
                                    "#ARTIST Test\n"
@@ -598,4 +694,25 @@ TEST_CASE("RootSongFolders accepts an archive URL from settings")
     REQUIRE(configured);
     CHECK(configured->getName() ==
           QFileInfo{ support::pathToQString(archivePath) }.canonicalFilePath());
+}
+
+TEST_CASE("RootSongFolders rejects non-ZIP archives from settings")
+{
+    auto temporaryDirectory = QTemporaryDir{};
+    REQUIRE(temporaryDirectory.isValid());
+    const auto root = support::qStringToPath(temporaryDirectory.path());
+    const auto archivePath = root / "songs.7z";
+    writeZip(archivePath,
+             { { "song/chart.bms", QByteArray{ "#TITLE Test\n" } } });
+
+    auto database = db::SqliteCppDb{ root / "songs.sqlite" };
+    resource_managers::defineDb(database);
+    auto store = resource_managers::SongAssetStore{};
+    auto scanner = resource_managers::SongDbScanner{ &database, &store };
+    auto queue = qml_components::ScanningQueue{ &database, scanner };
+    auto folders = qml_components::RootSongFolders{ &database, &queue };
+
+    CHECK_FALSE(folders.add(
+      QUrl::fromLocalFile(support::pathToQString(archivePath)).toString()));
+    CHECK(folders.rowCount() == 0);
 }

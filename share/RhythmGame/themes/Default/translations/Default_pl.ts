@@ -2773,92 +2773,135 @@
         <translation>Dodaj folder</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="44"/>
         <source>Song directories</source>
-        <translation>Foldery z piosenkami</translation>
+        <translation type="vanished">Foldery z piosenkami</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="99"/>
         <source>No song folders</source>
-        <translation>Brak folderów z piosenkami</translation>
+        <translation type="vanished">Brak folderów z piosenkami</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="100"/>
         <source>Add a folder that contains your BMS charts.</source>
-        <translation>Dodaj folder z chartami BMS.</translation>
+        <translation type="vanished">Dodaj folder z chartami BMS.</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="120"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="40"/>
+        <source>Add ZIP song archive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="43"/>
+        <source>ZIP archives (*.zip)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="58"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="70"/>
+        <source>Song sources</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="59"/>
+        <source>Manage root song folders, ZIP archives, and background scanning.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="71"/>
+        <source>Folders and ZIP archives scanned for BMS charts.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="124"/>
+        <source>Add a folder or ZIP archive that contains your BMS charts.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="123"/>
+        <source>No song sources</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="144"/>
         <source>Root song source</source>
         <translation>Źródło piosenek</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="132"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="156"/>
         <source>Remove</source>
         <translation>Usuń</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="147"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="171"/>
         <source>Scan activity</source>
         <translation>Aktywność skanowania</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="123"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="172"/>
+        <source>Sources waiting for or currently undergoing scan.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="191"/>
+        <source>Scan one source or all sources to see progress here.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="147"/>
         <source>Scan</source>
         <translation>Skanuj</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="45"/>
         <source>Manage root song folders and background scanning.</source>
-        <translation>Zarządzaj folderami z piosenkami i skanowaniem w tle.</translation>
+        <translation type="vanished">Zarządzaj folderami z piosenkami i skanowaniem w tle.</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="56"/>
         <source>Song folders</source>
-        <translation>Foldery z piosenkami</translation>
+        <translation type="vanished">Foldery z piosenkami</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="57"/>
         <source>Folders scanned for BMS charts.</source>
-        <translation>Foldery z plikami BMS.</translation>
+        <translation type="vanished">Foldery z plikami BMS.</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="67"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="81"/>
         <source>Add folder</source>
         <translation>Dodaj folder</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="77"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="91"/>
+        <source>Add ZIP archive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="101"/>
         <source>Scan all</source>
         <translation>Skanuj wszystkie</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="148"/>
         <source>Folders waiting for or currently undergoing scan.</source>
-        <translation>Foldery w kolejce lub właśnie skanowane.</translation>
+        <translation type="vanished">Foldery w kolejce lub właśnie skanowane.</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="166"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="190"/>
         <source>Scanner idle</source>
         <translation>Skaner czeka</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="167"/>
         <source>Scan one folder or all folders to see progress here.</source>
-        <translation>Uruchom skanowanie folderu, aby zobaczyć tutaj postęp.</translation>
+        <translation type="vanished">Uruchom skanowanie folderu, aby zobaczyć tutaj postęp.</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="216"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="240"/>
         <source>Scanning</source>
         <translation>Skanowanie</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="216"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="240"/>
         <source>Queued</source>
         <translation>W kolejce</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="227"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="251"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>

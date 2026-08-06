@@ -58,6 +58,10 @@ class SongAssetStore : public QObject
 
     [[nodiscard]] static auto isArchivePath(const std::filesystem::path& path)
       -> bool;
+    [[nodiscard]] static auto isSupportedArchivePath(
+      const std::filesystem::path& path) -> bool;
+    [[nodiscard]] static auto archiveSupportError(
+      const std::filesystem::path& path) -> QString;
     [[nodiscard]] static auto isSplitArchivePath(
       const std::filesystem::path& path) -> bool;
     [[nodiscard]] static auto imageUrl(const std::filesystem::path& virtualPath)

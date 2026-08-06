@@ -283,9 +283,9 @@ scanSongArchive(const std::filesystem::path& archivePath,
                 const std::function<void(QString)>& updateCurrentScannedFolder,
                 std::atomic_bool* stop)
 {
-    if (SongAssetStore::isSplitArchivePath(archivePath)) {
-        spdlog::warn("Split archive is unsupported: {}",
-                     support::pathToUtfString(archivePath));
+    const auto supportError = SongAssetStore::archiveSupportError(archivePath);
+    if (!supportError.isEmpty()) {
+        spdlog::error("{}", supportError.toStdString());
         return;
     }
     auto chartEntries = std::vector<SongAssetStore::ArchiveEntry>{};
@@ -723,8 +723,8 @@ SongDbScanner::scanDirectory(
 #endif
                        stop);
         } else if (is_regular_file(directory) &&
-                   SongAssetStore::isArchivePath(directory) &&
-                   !SongAssetStore::isSplitArchivePath(directory)) {
+                   (SongAssetStore::isArchivePath(directory) ||
+                    SongAssetStore::isSplitArchivePath(directory))) {
             auto root = support::pathToQString(directory);
             if (!root.endsWith('/')) {
                 root += '/';

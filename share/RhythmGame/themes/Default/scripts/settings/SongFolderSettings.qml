@@ -37,10 +37,10 @@ Item {
     FileDialog {
         id: archiveDialog
 
-        title: qsTr("Add song archive")
+        title: qsTr("Add ZIP song archive")
         fileMode: FileDialog.OpenFile
         nameFilters: [
-            qsTr("Song archives (*.zip *.7z *.rar *.tar *.tgz *.tbz *.tbz2 *.txz *.lha *.lzh *.cab *.xar *.cpio *.iso *.ar *.gz *.bz2 *.xz *.zst)")
+            qsTr("ZIP archives (*.zip)")
         ]
 
         onAccepted: {
@@ -56,7 +56,7 @@ Item {
             id: pageHeader
 
             title: qsTr("Song sources")
-            subtitle: qsTr("Manage root song folders, archives, and background scanning.")
+            subtitle: qsTr("Manage root song folders, ZIP archives, and background scanning.")
         }
 
         RowLayout {
@@ -68,7 +68,7 @@ Item {
                 id: songListFrame
 
                 title: qsTr("Song sources")
-                subtitle: qsTr("Folders and archives scanned for BMS charts.")
+                subtitle: qsTr("Folders and ZIP archives scanned for BMS charts.")
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
@@ -88,7 +88,7 @@ Item {
                     }
 
                     ActionButton {
-                        text: qsTr("Add archive")
+                        text: qsTr("Add ZIP archive")
                         tone: ActionButton.Primary
                         Layout.fillWidth: true
 
@@ -121,7 +121,7 @@ Item {
                         visible: folderList.count === 0
                         width: Math.min(360, parent.width - 32)
                         title: qsTr("No song sources")
-                        subtitle: qsTr("Add a folder or archive that contains your BMS charts.")
+                        subtitle: qsTr("Add a folder or ZIP archive that contains your BMS charts.")
                     }
 
                     ListView {

@@ -56,11 +56,16 @@ canonicalSongSource(const QString& source) -> QString
         }
         return canonical;
     }
+    const auto archivePath = support::qStringToPath(path);
     if (info.isFile() &&
-        resource_managers::SongAssetStore::isArchivePath(
-          support::qStringToPath(path)) &&
-        !resource_managers::SongAssetStore::isSplitArchivePath(
-          support::qStringToPath(path))) {
+        (resource_managers::SongAssetStore::isArchivePath(archivePath) ||
+         resource_managers::SongAssetStore::isSplitArchivePath(archivePath))) {
+        const auto supportError =
+          resource_managers::SongAssetStore::archiveSupportError(archivePath);
+        if (!supportError.isEmpty()) {
+            spdlog::error("{}", supportError.toStdString());
+            return {};
+        }
         return info.canonicalFilePath();
     }
     return {};

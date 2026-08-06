@@ -2757,92 +2757,135 @@
         <translation>添加谱面文件夹</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="44"/>
         <source>Song directories</source>
-        <translation>谱面目录</translation>
+        <translation type="vanished">谱面目录</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="99"/>
         <source>No song folders</source>
-        <translation>暂无谱面文件夹</translation>
+        <translation type="vanished">暂无谱面文件夹</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="100"/>
         <source>Add a folder that contains your BMS charts.</source>
-        <translation>添加包含 BMS 谱面的文件夹。</translation>
+        <translation type="vanished">添加包含 BMS 谱面的文件夹。</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="120"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="40"/>
+        <source>Add ZIP song archive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="43"/>
+        <source>ZIP archives (*.zip)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="58"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="70"/>
+        <source>Song sources</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="59"/>
+        <source>Manage root song folders, ZIP archives, and background scanning.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="71"/>
+        <source>Folders and ZIP archives scanned for BMS charts.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="124"/>
+        <source>Add a folder or ZIP archive that contains your BMS charts.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="123"/>
+        <source>No song sources</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="144"/>
         <source>Root song source</source>
         <translation>谱面文件根目录</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="132"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="156"/>
         <source>Remove</source>
         <translation>移除</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="147"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="171"/>
         <source>Scan activity</source>
         <translation>扫描队列</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="123"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="172"/>
+        <source>Sources waiting for or currently undergoing scan.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="191"/>
+        <source>Scan one source or all sources to see progress here.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="147"/>
         <source>Scan</source>
         <translation>扫描</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="45"/>
         <source>Manage root song folders and background scanning.</source>
-        <translation>管理谱面文件根目录及后台扫描。</translation>
+        <translation type="vanished">管理谱面文件根目录及后台扫描。</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="56"/>
         <source>Song folders</source>
-        <translation>谱面文件夹</translation>
+        <translation type="vanished">谱面文件夹</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="57"/>
         <source>Folders scanned for BMS charts.</source>
-        <translation>用于扫描 BMS 谱面的文件夹。</translation>
+        <translation type="vanished">用于扫描 BMS 谱面的文件夹。</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="67"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="81"/>
         <source>Add folder</source>
         <translation>添加文件夹</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="77"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="91"/>
+        <source>Add ZIP archive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="101"/>
         <source>Scan all</source>
         <translation>扫描全部</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="148"/>
         <source>Folders waiting for or currently undergoing scan.</source>
-        <translation>正在等待或正在进行扫描的文件夹。</translation>
+        <translation type="vanished">正在等待或正在进行扫描的文件夹。</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="166"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="190"/>
         <source>Scanner idle</source>
         <translation>扫描器空闲</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="167"/>
         <source>Scan one folder or all folders to see progress here.</source>
-        <translation>扫描一个或所有文件夹以在此处查看进度。</translation>
+        <translation type="vanished">扫描一个或所有文件夹以在此处查看进度。</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="216"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="240"/>
         <source>Scanning</source>
         <translation>正在扫描</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="216"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="240"/>
         <source>Queued</source>
         <translation>队列中</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/SongFolderSettings.qml" line="227"/>
+        <location filename="../scripts/settings/SongFolderSettings.qml" line="251"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
