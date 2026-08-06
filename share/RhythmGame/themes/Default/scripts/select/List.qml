@@ -45,6 +45,9 @@ PathView {
         refreshScores();
         refreshFolderClearStats();
     }
+    function folderForHistoryItem(item) {
+        return item instanceof ChartData ? item.chartDirectory : item;
+    }
     Component.onDestruction: {
         cancelScoreDbReplies();
     }
@@ -65,7 +68,7 @@ PathView {
         } else {
             trackScoreDbReply(
                 Rg.profileList.mainProfile.scoreDb.getScores(
-                    historyStack[historyStack.length - 1])
+                    folderForHistoryItem(historyStack[historyStack.length - 1]))
             ).then((result) => {
                 if (result instanceof tableQueryResult) {
                     let newScores = result.scores.scores;
@@ -498,6 +501,7 @@ PathView {
         resetNavigation();
     }
     function open(item) {
+        item = folderForHistoryItem(item);
         let folder;
         if (item instanceof table) {
             let courses = item.courses;
@@ -576,8 +580,9 @@ PathView {
         if (!folder.length) {
             return false;
         }
-        if (historyStack.length === 0 || historyStack[historyStack.length - 1] !== directory) {
-            historyStack.push(directory);
+        if (historyStack.length === 0
+                || folderForHistoryItem(historyStack[historyStack.length - 1]) !== directory) {
+            historyStack.push(initialItem || directory);
         }
         let newFolderContents = [];
         for (let item of folder) {
