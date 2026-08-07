@@ -771,10 +771,10 @@ ApplicationWindow {
                 debugLogLoader.active = !debugLogLoader.active;
             }
         }
-        FrameAnimation {
-            running: globalRoot.fpsOverlayVisible
+        Connections {
+            target: globalRoot.fpsOverlayVisible ? globalRoot.Window.window : null
 
-            onTriggered: {
+            function onFrameSwapped() {
                 let now = Date.now();
                 if (globalRoot.fpsOverlayLastSampleMs <= 0) {
                     globalRoot.fpsOverlayLastSampleMs = now;
@@ -783,9 +783,6 @@ ApplicationWindow {
                 }
                 globalRoot.fpsOverlayFrameCount += 1;
                 let elapsed = now - globalRoot.fpsOverlayLastSampleMs;
-                if (globalRoot.fpsOverlayValue < 0 && elapsed > 0) {
-                    globalRoot.fpsOverlayValue = Math.round(1000 / elapsed);
-                }
                 if (elapsed >= 500) {
                     globalRoot.fpsOverlayValue = Math.round(globalRoot.fpsOverlayFrameCount * 1000 / elapsed);
                     globalRoot.fpsOverlayFrameCount = 0;

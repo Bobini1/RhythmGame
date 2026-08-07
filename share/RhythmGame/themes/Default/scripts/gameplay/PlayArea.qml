@@ -58,17 +58,10 @@ Item {
     readonly property var vars: profile.vars.themeVars[root.screen][root.themeName]
     readonly property var generalVars: profile.vars.generalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
-    property real position
-    property real beatPosition
+    readonly property real position: player.position
+    readonly property real beatPosition: player.beatPosition
     property var pointTarget
     property bool pointTargetAvailable: true
-    FrameAnimation {
-        running: true
-        onTriggered: {
-            playArea.position = playArea.player.position;
-            playArea.beatPosition = playArea.player.beatPosition;
-        }
-    }
 
     Item {
         id: playObjectContainer

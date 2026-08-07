@@ -1468,51 +1468,61 @@
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="229"/>
+        <source>Maximum FPS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="230"/>
+        <source>Set to 0 for unlimited.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="242"/>
         <source>BGA On</source>
         <translation>BGA 开启</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="238"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="251"/>
         <source>Normal;Extend</source>
         <translation>标准;扩展</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="239"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="252"/>
         <source>LR2 BGA Size</source>
         <translation>LR2 BGA 大小</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="247"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="260"/>
         <source>Score Graph</source>
         <translation>得分柱形图</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="256"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="269"/>
         <source>Off;Type A;Type B;Type C</source>
         <translation>Off;Type A;Type B;Type C</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="257"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="270"/>
         <source>Ghost Position</source>
         <translation>Ghost Position</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="287"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="300"/>
         <source>Play defaults</source>
         <translation>游玩默认设置</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="295"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="308"/>
         <source>Newest;Best Score;Best Clear;Best Combo</source>
         <translation>最近游玩;最高分;最佳血条通关;最大连击数</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="296"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="309"/>
         <source>Replay Type</source>
         <translation>回放类型</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="266"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="279"/>
         <source>Percentage;Best Score;Last Score;Next Rank</source>
         <translation>百分比;最高分;上次得分;下一等级</translation>
     </message>
@@ -1527,68 +1537,68 @@
         <translation>时值与修饰</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="267"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="280"/>
         <source>Score Target Type</source>
         <translation>目标得分类型</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="275"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="288"/>
         <source>Target Score Percentage</source>
         <translation>目标得分百分比</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="305"/>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="316"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="318"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="329"/>
         <source>Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+</source>
         <translation>Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="306"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="319"/>
         <source>Note Order Algorithm</source>
         <translation>音符排列方式</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="317"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="330"/>
         <source>Note Order Algorithm P2</source>
         <translation>音符排列方式P2</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="327"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="340"/>
         <source>Off;Main;Start;Min;Max;Average</source>
         <translation>Off;Main;Start;Min;Max;Average</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="328"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="341"/>
         <source>Hi-Speed Fix</source>
         <translation>Hi-Speed Fix</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="338"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="351"/>
         <source>Off;Flip;Battle</source>
         <translation>关闭;翻转;对战</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="339"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="352"/>
         <source>DP Options</source>
         <translation>DP 选项</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="350"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="363"/>
         <source>Gauge Type</source>
         <translation>血条类型</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="359"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="372"/>
         <source>Exclusive;Best;Select to Under</source>
         <translation>仅通关当前血条;最佳通关血条;未通关时降级血条</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="360"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="373"/>
         <source>Gauge Mode</source>
         <translation>血条模式</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="369"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="382"/>
         <source>Bottom Shiftable Gauge</source>
         <translation>可降至最低血条</translation>
     </message>

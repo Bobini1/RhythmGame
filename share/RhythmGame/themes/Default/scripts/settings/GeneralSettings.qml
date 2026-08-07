@@ -223,6 +223,19 @@ Item {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignTop
 
+                Range {
+                    destination: Rg.programSettings
+                    id_: "maxFps"
+                    name: qsTr("Maximum FPS")
+                    description: qsTr("Set to 0 for unlimited.")
+                    min: 0
+                    max: 1000
+                    sliderMax: 1000
+                    default_: 0
+                    decimals: 0
+                    Layout.fillWidth: true
+                }
+
                 Boolean {
                     destination: root.generalVars
                     id_: "bgaOn"
