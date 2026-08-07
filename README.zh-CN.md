@@ -13,90 +13,87 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-A customizable BMS player for Windows and Linux.
+一款可自定义的BMS播放器，在Windows 和 Linux 运行。
 
-New to BMS? Check out w's [Beatoraja English Guide](https://github.com/wcko87/beatoraja-english-guide/wiki/BMS-Overview)
-to learn about BMS and how to find songs to play.
+刚接触BMS？ 查看 [Beatoraja English Guide](https://github.com/wcko87/beatoraja-english-guide/wiki/BMS-Overview)
+以了解BMS及如何寻找谱面并游玩。
 
-## Features
+## 功能
 
-### Customizable themes
+### 自定义主题
 
-Customize the default theme by pressing F2 during gameplay and moving the elements around!
+在游戏过程中按 F2 键可以自定义默认主题，同时还可以自由调整各个元素的位置！
 
 ![Customize mode (song: wa. - Black Lotus)](docs/images/customize.webp)
 
-You can also create your own custom theme with [QML](https://doc.qt.io/qt-6/qmlreference.html).
-Contact me if you're interested, I can help you get started!
-You can use the [default theme](https://github.com/Bobini1/RhythmGame/tree/master/share/RhythmGame/themes/Default) as a
-reference.
-See the [DEV_THEME.md](DEV_THEME.md) document for more information.
+你也可以使用 [QML](https://doc.qt.io/qt-6/qmlreference.html) 来创建自己的主题。
+如果你感兴趣可以联系我，我会帮你开始主题的创建。
+你可以用 [default theme](https://github.com/Bobini1/RhythmGame/tree/master/share/RhythmGame/themes/Default) 作为参考。
+见 [DEV_THEME.md](DEV_THEME.md) 文档以了解更多信息。
 
-The game also supports CSV-based Lunatic Rave 2 and Beatoraja skins.
+游戏还支持基于CSV的 Lunatic Rave 2 和 Beatoraja 皮肤。
 
 ![Lunatic Rave 2 skin - LR2 Default - Play](docs/images/lr2-play.png)]
 
 ![Lunatic Rave 2 skin - LR2 Default - Select](docs/images/lr2.png)
 
-### Internet Ranking with Bokutachi and LR2IR support
+### 网络排行榜（支持 Bokutachi 和 LR2IR）
 
-Compete with players around the world! RhythmGame supports has its own native IR server at https://rhythmgame.eu,
-but you can also submit your scores to [Bokutachi](https://boku.tachi.ac/) and see the scores from
-the [Lunatic Rave 2 Internet Ranking](http://www.dream-pro.info/~lavalse/LR2IR/search.cgi).
+与世界各地的玩家竞争吧！RhythmGame 平台拥有自己的本地 IR 服务器，地址为https://rhythmgame.eu,
+你也可以上传成绩至 [Bokutachi](https://boku.tachi.ac/) 并在 [Lunatic Rave 2 Internet Ranking](http://www.dream-pro.info/~lavalse/LR2IR/search.cgi) 查看。
 
 [![Internet ranking](docs/images/ranking.png)](https://rhythmgame.eu)
 
-|                      Ranking                       |                      Online Stats                       |
+|                        排名                        |                        在线统计                         |
 |:--------------------------------------------------:|:-------------------------------------------------------:|
 | ![In-game ranking](docs/images/ranking-ingame.png) | ![In-game ranking stats](docs/images/ranking-stats.png) |
 
-### Rules based on Lunatic Rave 2
+### 基于 Lunatic Rave 2 的规则
 
-The timing windows and gauges match Lunatic Rave 2/Lr2oraja
-so you can compare your scores with those games easily.
+时间窗口与 Lunatic Rave 2/Lr2oraja 一致，
+你可以与其比较分数。
 
-### Local battle mode
+### 本地对战
 
-Play with a friend! Press start twice in song select to enable battle mode.
+和朋友一起玩吧！在选择歌曲时点击两次开始键，即可进入对战模式。
 
 ![Local battle mode](docs/images/battle.png)
 
-### Table support
+### 支持难度表
 
-RhythmGame supports BMS tables natively.
-Simply paste a link in settings.
+RhythmGame 原生支持BMS难度表。
+在设置里粘贴链接即可。
 
 ![Tables](docs/images/tables.png)
 
 ![Course](docs/images/course.png)
 
-### Smooth scaling
+### 平滑缩放
 
-All resolutions supported! Press F11 to toggle fullscreen.
+支持所有分辨率，按F11进入全屏。
 
 ![Scaling (song: isocosa - data lake)](docs/images/resize.webp)
 
-### Translations
+### 多语言支持
 
-RhythmGame supports English, Polish and Simplified Chinese by default.
-Contact me if you would like to help translating it to your language!
+RhythmGame 默认支持英语、波兰语和简体中文。
+如果你想帮助翻译成其他语言，欢迎联系我！
 
 ![Language selection](docs/images/languages.webp)
 
-### A beautiful default theme
+### 精美的默认主题
 
-Based on the works of [Shimi999](https://github.com/Shimi9999/GenericTheme) and
-[souki202](https://github.com/souki202/my_beatoraja_skin),
-RhythmGame's default theme contains all the necessary features to play BMS.
+基于 [Shimi999](https://github.com/Shimi9999/GenericTheme) 和 [souki202](https://github.com/souki202/my_beatoraja_skin) 的作品，
+RhythmGame 的默认主题包含了游玩 BMS 所需的所有必要功能。
 
 ![Song selection](docs/images/select.png)
 
 ![Result screen](docs/images/result.png)
 
-### Asynchronous scanning of the song library
+### 异步扫描歌曲库
 
-RhythmGame scans your song library in the background,
-so you can start playing immediately!
+RhythmGame 会在后台扫描你的歌曲库，
+因此你可以立即开始游玩！
 
 # Building and installing
 
