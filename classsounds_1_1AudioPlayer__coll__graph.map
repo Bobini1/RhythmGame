@@ -1,8 +1,11 @@
 <map id="sounds::AudioPlayer" name="sounds::AudioPlayer">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,168,160,193"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="40,5,115,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,44,85,168,80,168,76,45"/>
-<area shape="rect" id="Node000003" href="$classsounds_1_1AudioEngine.html" title=" " alt="" coords="99,80,256,105"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="106,37,163,77,159,82,103,41"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="156,117,98,169,94,165,152,113"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="25,183,179,208"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="65,5,139,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="60,39,34,57,14,81,8,100,14,119,27,139,44,156,80,180,77,185,40,160,23,142,9,121,3,100,9,79,30,53,58,35"/>
+<area shape="rect" id="Node000003" href="$classsounds_1_1AudioEngine.html" title=" " alt="" coords="23,87,181,113"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="105,44,105,87,99,87,99,44"/>
+<area shape="rect" id="Node000004" href="$classresource__managers_1_1SongAssetStore.html" title=" " alt="" coords="205,80,364,120"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="142,34,243,78,241,82,140,38"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="105,126,105,183,99,183,99,126"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="237,129,126,185,123,180,234,124"/>
 </map>

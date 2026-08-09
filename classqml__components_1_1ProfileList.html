@@ -120,8 +120,8 @@ Signals</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a8dcfc7e82cd3fb662f9a4e9fd5e18556" id="r_a8dcfc7e82cd3fb662f9a4e9fd5e18556"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ProfileList.html#a8dcfc7e82cd3fb662f9a4e9fd5e18556">ProfileList</a> (std::filesystem::path mainDbPath, <a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> *songDb, const QMap&lt; QString, <a class="el" href="classqml__components_1_1ThemeFamily.html">ThemeFamily</a> &gt; &amp;themeFamilies, std::filesystem::path profilesFolder, QList&lt; QString &gt; assetsPaths, QNetworkAccessManager *networkAccessManager, QObject *parent=nullptr)</td></tr>
-<tr class="separator:a8dcfc7e82cd3fb662f9a4e9fd5e18556"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9357a424e14d52270beaa568afcaa9a" id="r_ad9357a424e14d52270beaa568afcaa9a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ProfileList.html#ad9357a424e14d52270beaa568afcaa9a">ProfileList</a> (std::filesystem::path mainDbPath, <a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> *songDb, const QMap&lt; QString, <a class="el" href="classqml__components_1_1ThemeFamily.html">ThemeFamily</a> &gt; &amp;themeFamilies, std::filesystem::path profilesFolder, QList&lt; QString &gt; assetsPaths, QNetworkAccessManager *networkAccessManager, <a class="el" href="classresource__managers_1_1SongAssetStore.html">resource_managers::SongAssetStore</a> *songAssetStore, QObject *parent=nullptr)</td></tr>
+<tr class="separator:ad9357a424e14d52270beaa568afcaa9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afda660b4983138aebfcb0a8a44091de9" id="r_afda660b4983138aebfcb0a8a44091de9"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ProfileList.html#afda660b4983138aebfcb0a8a44091de9">getProfiles</a> () -&gt; const QList&lt; <a class="el" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a> * &gt; &amp;</td></tr>
 <tr class="separator:afda660b4983138aebfcb0a8a44091de9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0610f0931fa8426352cad6fdd214411" id="r_aa0610f0931fa8426352cad6fdd214411"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ProfileList.html#aa0610f0931fa8426352cad6fdd214411">at</a> (int index) const</td></tr>
@@ -167,8 +167,8 @@ Properties</h2></td></tr>
 <div class="textblock"><p>The list of local profiles. </p>
 <p>Besides listing all local profiles, this class also contains the list of active profiles (for battle mode) and the main profile, used to select themes and theme settings. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a8dcfc7e82cd3fb662f9a4e9fd5e18556" name="a8dcfc7e82cd3fb662f9a4e9fd5e18556"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8dcfc7e82cd3fb662f9a4e9fd5e18556">&#9670;&#160;</a></span>ProfileList()</h2>
+<a id="ad9357a424e14d52270beaa568afcaa9a" name="ad9357a424e14d52270beaa568afcaa9a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9357a424e14d52270beaa568afcaa9a">&#9670;&#160;</a></span>ProfileList()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -211,6 +211,12 @@ Properties</h2></td></tr>
           <td></td>
           <td class="paramtype">QNetworkAccessManager *&#160;</td>
           <td class="paramname"><em>networkAccessManager</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classresource__managers_1_1SongAssetStore.html">resource_managers::SongAssetStore</a> *&#160;</td>
+          <td class="paramname"><em>songAssetStore</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

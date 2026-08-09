@@ -101,218 +101,224 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &quot;<a class="code" href="Themes_8h.html">qml_components/Themes.h</a>&quot;</span></div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &quot;<a class="code" href="PendingReply_8h.html">support/PendingReply.h</a>&quot;</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &quot;<a class="code" href="Languages_8h.html">resource_managers/Languages.h</a>&quot;</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &quot;<a class="code" href="Profile_8h.html">resource_managers/Profile.h</a>&quot;</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &quot;<a class="code" href="ChartFolderModel_8h.html">resource_managers/ChartFolderModel.h</a>&quot;</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &quot;<a class="code" href="Tables_8h.html">resource_managers/Tables.h</a>&quot;</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &quot;<a class="code" href="AudioEngine_8h.html">sounds/AudioEngine.h</a>&quot;</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaChatModel_8h.html">arena/ArenaChatModel.h</a>&quot;</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaAvailabilityIndex_8h.html">arena/ArenaAvailabilityIndex.h</a>&quot;</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaMemberListModel_8h.html">arena/ArenaMemberListModel.h</a>&quot;</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaOpponentTarget_8h.html">arena/ArenaOpponentTarget.h</a>&quot;</span></div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaResultModel_8h.html">arena/ArenaResultModel.h</a>&quot;</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaRoomListModel_8h.html">arena/ArenaRoomListModel.h</a>&quot;</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaSession_8h.html">arena/ArenaSession.h</a>&quot;</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaStandingsModel_8h.html">arena/ArenaStandingsModel.h</a>&quot;</span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="preprocessor">#include &lt;QQmlEngine&gt;</span></div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="preprocessor">#include &lt;QtCore/qassert.h&gt;</span></div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#include &lt;QtQml/qqmlregistration.h&gt;</span></div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
-<div class="foldopen" id="foldopen00038" data-start="{" data-end="}">
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="namespacerhythm__game__qml.html">   38</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacerhythm__game__qml.html">rhythm_game_qml</a> {</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
-<div class="foldopen" id="foldopen00040" data-start="{" data-end="};">
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1LoggerForeign.html">   40</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1LoggerForeign.html">LoggerForeign</a></div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>{</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    Q_GADGET</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    QML_FOREIGN(<a class="code hl_class" href="classqml__components_1_1Logger.html">qml_components::Logger</a>)</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    QML_NAMED_ELEMENT(Logger)</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    QML_SINGLETON</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1LoggerForeign.html#aa8fb4428c4e9eee4d2e769b502454b20">   48</a></span>    <span class="keyword">inline</span> <span class="keyword">static</span> <a class="code hl_class" href="classqml__components_1_1Logger.html">qml_components::Logger</a>* <a class="code hl_variable" href="structrhythm__game__qml_1_1LoggerForeign.html#aa8fb4428c4e9eee4d2e769b502454b20">instance</a> = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="foldopen" id="foldopen00050" data-start="{" data-end="}">
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1LoggerForeign.html#ac4930b8e1990f973068acfe34f64efef">   50</a></span>    <span class="keyword">static</span> <span class="keyword">auto</span> <a class="code hl_function" href="structrhythm__game__qml_1_1LoggerForeign.html#ac4930b8e1990f973068acfe34f64efef">create</a>(QQmlEngine*, QJSEngine*) -&gt; <a class="code hl_class" href="classqml__components_1_1Logger.html">qml_components::Logger</a>*</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    {</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        Q_ASSERT(<a class="code hl_variable" href="structrhythm__game__qml_1_1LoggerForeign.html#aa8fb4428c4e9eee4d2e769b502454b20">instance</a> != <span class="keyword">nullptr</span>);</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        QQmlEngine::setObjectOwnership(<a class="code hl_variable" href="structrhythm__game__qml_1_1LoggerForeign.html#aa8fb4428c4e9eee4d2e769b502454b20">instance</a>, QQmlEngine::CppOwnership);</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="structrhythm__game__qml_1_1LoggerForeign.html#aa8fb4428c4e9eee4d2e769b502454b20">instance</a>;</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    }</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &quot;<a class="code" href="SongAssetStore_8h.html">resource_managers/SongAssetStore.h</a>&quot;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &quot;<a class="code" href="Profile_8h.html">resource_managers/Profile.h</a>&quot;</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &quot;<a class="code" href="ChartFolderModel_8h.html">resource_managers/ChartFolderModel.h</a>&quot;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &quot;<a class="code" href="Tables_8h.html">resource_managers/Tables.h</a>&quot;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &quot;<a class="code" href="AudioEngine_8h.html">sounds/AudioEngine.h</a>&quot;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaChatModel_8h.html">arena/ArenaChatModel.h</a>&quot;</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaAvailabilityIndex_8h.html">arena/ArenaAvailabilityIndex.h</a>&quot;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaMemberListModel_8h.html">arena/ArenaMemberListModel.h</a>&quot;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaOpponentTarget_8h.html">arena/ArenaOpponentTarget.h</a>&quot;</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaResultModel_8h.html">arena/ArenaResultModel.h</a>&quot;</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaRoomListModel_8h.html">arena/ArenaRoomListModel.h</a>&quot;</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaSession_8h.html">arena/ArenaSession.h</a>&quot;</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#include &quot;<a class="code" href="ArenaStandingsModel_8h.html">arena/ArenaStandingsModel.h</a>&quot;</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="preprocessor">#include &lt;QQmlEngine&gt;</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#include &lt;QtCore/qassert.h&gt;</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="preprocessor">#include &lt;QtQml/qqmlregistration.h&gt;</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
+<div class="foldopen" id="foldopen00039" data-start="{" data-end="}">
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="namespacerhythm__game__qml.html">   39</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacerhythm__game__qml.html">rhythm_game_qml</a> {</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
+<div class="foldopen" id="foldopen00041" data-start="{" data-end="};">
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1LoggerForeign.html">   41</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1LoggerForeign.html">LoggerForeign</a></div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>{</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    Q_GADGET</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    QML_FOREIGN(<a class="code hl_class" href="classqml__components_1_1Logger.html">qml_components::Logger</a>)</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    QML_NAMED_ELEMENT(Logger)</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    QML_SINGLETON</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1LoggerForeign.html#aa8fb4428c4e9eee4d2e769b502454b20">   49</a></span>    <span class="keyword">inline</span> <span class="keyword">static</span> <a class="code hl_class" href="classqml__components_1_1Logger.html">qml_components::Logger</a>* <a class="code hl_variable" href="structrhythm__game__qml_1_1LoggerForeign.html#aa8fb4428c4e9eee4d2e769b502454b20">instance</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="foldopen" id="foldopen00051" data-start="{" data-end="}">
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1LoggerForeign.html#ac4930b8e1990f973068acfe34f64efef">   51</a></span>    <span class="keyword">static</span> <span class="keyword">auto</span> <a class="code hl_function" href="structrhythm__game__qml_1_1LoggerForeign.html#ac4930b8e1990f973068acfe34f64efef">create</a>(QQmlEngine*, QJSEngine*) -&gt; <a class="code hl_class" href="classqml__components_1_1Logger.html">qml_components::Logger</a>*</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    {</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        Q_ASSERT(<a class="code hl_variable" href="structrhythm__game__qml_1_1LoggerForeign.html#aa8fb4428c4e9eee4d2e769b502454b20">instance</a> != <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        QQmlEngine::setObjectOwnership(<a class="code hl_variable" href="structrhythm__game__qml_1_1LoggerForeign.html#aa8fb4428c4e9eee4d2e769b502454b20">instance</a>, QQmlEngine::CppOwnership);</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="structrhythm__game__qml_1_1LoggerForeign.html#aa8fb4428c4e9eee4d2e769b502454b20">instance</a>;</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    }</div>
 </div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>};</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>};</div>
 </div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
-<div class="foldopen" id="foldopen00058" data-start="{" data-end="};">
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1InputTranslatorForeign.html">   58</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1InputTranslatorForeign.html">InputTranslatorForeign</a></div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>{</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    Q_GADGET</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    QML_FOREIGN(<a class="code hl_class" href="classinput_1_1InputTranslator.html">input::InputTranslator</a>)</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    QML_NAMED_ELEMENT(InputTranslator)</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;InputTranslator is provided by Rg.inputTranslator&quot;</span>)</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>};</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
+<div class="foldopen" id="foldopen00059" data-start="{" data-end="};">
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1InputTranslatorForeign.html">   59</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1InputTranslatorForeign.html">InputTranslatorForeign</a></div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>{</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    Q_GADGET</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    QML_FOREIGN(<a class="code hl_class" href="classinput_1_1InputTranslator.html">input::InputTranslator</a>)</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    QML_NAMED_ELEMENT(InputTranslator)</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;InputTranslator is provided by Rg.inputTranslator&quot;</span>)</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>};</div>
 </div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
-<div class="foldopen" id="foldopen00066" data-start="{" data-end="};">
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1AnalogAxisConfigForeign.html">   66</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1AnalogAxisConfigForeign.html">AnalogAxisConfigForeign</a></div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>{</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    Q_GADGET</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    QML_FOREIGN(<a class="code hl_class" href="classinput_1_1AnalogAxisConfig.html">input::AnalogAxisConfig</a>)</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    QML_NAMED_ELEMENT(AnalogAxisConfig)</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>};</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
+<div class="foldopen" id="foldopen00067" data-start="{" data-end="};">
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1AnalogAxisConfigForeign.html">   67</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1AnalogAxisConfigForeign.html">AnalogAxisConfigForeign</a></div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>{</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    Q_GADGET</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    QML_FOREIGN(<a class="code hl_class" href="classinput_1_1AnalogAxisConfig.html">input::AnalogAxisConfig</a>)</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    QML_NAMED_ELEMENT(AnalogAxisConfig)</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>};</div>
 </div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
-<div class="foldopen" id="foldopen00073" data-start="{" data-end="};">
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ProfileForeign.html">   73</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ProfileForeign.html">ProfileForeign</a></div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>{</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    Q_GADGET</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    QML_FOREIGN(<a class="code hl_class" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a>)</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    QML_NAMED_ELEMENT(Profile)</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;Profile is managed by ProfileList&quot;</span>)</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>};</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
+<div class="foldopen" id="foldopen00074" data-start="{" data-end="};">
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ProfileForeign.html">   74</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ProfileForeign.html">ProfileForeign</a></div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>{</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    Q_GADGET</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    QML_FOREIGN(<a class="code hl_class" href="classresource__managers_1_1Profile.html">resource_managers::Profile</a>)</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    QML_NAMED_ELEMENT(Profile)</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;Profile is managed by ProfileList&quot;</span>)</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>};</div>
 </div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
-<div class="foldopen" id="foldopen00081" data-start="{" data-end="};">
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaSessionForeign.html">   81</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaSessionForeign.html">ArenaSessionForeign</a></div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>{</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    Q_GADGET</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaSession.html">arena::ArenaSession</a>)</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    QML_NAMED_ELEMENT(ArenaSession)</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;ArenaSession is provided by Rg.arenaSession&quot;</span>)</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>};</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
+<div class="foldopen" id="foldopen00082" data-start="{" data-end="};">
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaSessionForeign.html">   82</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaSessionForeign.html">ArenaSessionForeign</a></div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>{</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    Q_GADGET</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaSession.html">arena::ArenaSession</a>)</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    QML_NAMED_ELEMENT(ArenaSession)</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;ArenaSession is provided by Rg.arenaSession&quot;</span>)</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>};</div>
 </div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
-<div class="foldopen" id="foldopen00089" data-start="{" data-end="};">
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaAvailabilityIndexForeign.html">   89</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaAvailabilityIndexForeign.html">ArenaAvailabilityIndexForeign</a></div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>{</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    Q_GADGET</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaAvailabilityIndex.html">arena::ArenaAvailabilityIndex</a>)</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    QML_NAMED_ELEMENT(ArenaAvailabilityIndex)</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;Arena availability is provided by ArenaSession&quot;</span>)</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>};</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
+<div class="foldopen" id="foldopen00090" data-start="{" data-end="};">
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaAvailabilityIndexForeign.html">   90</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaAvailabilityIndexForeign.html">ArenaAvailabilityIndexForeign</a></div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>{</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    Q_GADGET</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaAvailabilityIndex.html">arena::ArenaAvailabilityIndex</a>)</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    QML_NAMED_ELEMENT(ArenaAvailabilityIndex)</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;Arena availability is provided by ArenaSession&quot;</span>)</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>};</div>
 </div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
-<div class="foldopen" id="foldopen00097" data-start="{" data-end="};">
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaStandingsModelForeign.html">   97</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaStandingsModelForeign.html">ArenaStandingsModelForeign</a></div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>{</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    Q_GADGET</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaStandingsModel.html">arena::ArenaStandingsModel</a>)</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    QML_NAMED_ELEMENT(ArenaStandingsModel)</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;ArenaStandingsModel is provided by ArenaSession&quot;</span>)</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>};</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
+<div class="foldopen" id="foldopen00098" data-start="{" data-end="};">
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaStandingsModelForeign.html">   98</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaStandingsModelForeign.html">ArenaStandingsModelForeign</a></div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>{</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    Q_GADGET</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaStandingsModel.html">arena::ArenaStandingsModel</a>)</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    QML_NAMED_ELEMENT(ArenaStandingsModel)</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;ArenaStandingsModel is provided by ArenaSession&quot;</span>)</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>};</div>
 </div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span> </div>
-<div class="foldopen" id="foldopen00105" data-start="{" data-end="};">
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaResultModelForeign.html">  105</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaResultModelForeign.html">ArenaResultModelForeign</a></div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>{</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    Q_GADGET</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaResultModel.html">arena::ArenaResultModel</a>)</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    QML_NAMED_ELEMENT(ArenaResultModel)</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;ArenaResultModel is provided by ArenaSession&quot;</span>)</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>};</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
+<div class="foldopen" id="foldopen00106" data-start="{" data-end="};">
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaResultModelForeign.html">  106</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaResultModelForeign.html">ArenaResultModelForeign</a></div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>{</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    Q_GADGET</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaResultModel.html">arena::ArenaResultModel</a>)</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    QML_NAMED_ELEMENT(ArenaResultModel)</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;ArenaResultModel is provided by ArenaSession&quot;</span>)</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>};</div>
 </div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span> </div>
-<div class="foldopen" id="foldopen00113" data-start="{" data-end="};">
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaOpponentTargetForeign.html">  113</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaOpponentTargetForeign.html">ArenaOpponentTargetForeign</a></div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>{</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    Q_GADGET</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaOpponentTarget.html">arena::ArenaOpponentTarget</a>)</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    QML_NAMED_ELEMENT(ArenaOpponentTarget)</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;ArenaOpponentTarget is provided by ArenaSession&quot;</span>)</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>};</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span> </div>
+<div class="foldopen" id="foldopen00114" data-start="{" data-end="};">
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaOpponentTargetForeign.html">  114</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaOpponentTargetForeign.html">ArenaOpponentTargetForeign</a></div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>{</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    Q_GADGET</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaOpponentTarget.html">arena::ArenaOpponentTarget</a>)</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    QML_NAMED_ELEMENT(ArenaOpponentTarget)</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;ArenaOpponentTarget is provided by ArenaSession&quot;</span>)</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>};</div>
 </div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span> </div>
-<div class="foldopen" id="foldopen00121" data-start="{" data-end="};">
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ChartFolderModelForeign.html">  121</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ChartFolderModelForeign.html">ChartFolderModelForeign</a></div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>{</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>    Q_GADGET</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    QML_FOREIGN(<a class="code hl_class" href="classresource__managers_1_1ChartFolderModel.html">resource_managers::ChartFolderModel</a>)</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    QML_NAMED_ELEMENT(ChartFolderModel)</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>};</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span> </div>
+<div class="foldopen" id="foldopen00122" data-start="{" data-end="};">
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ChartFolderModelForeign.html">  122</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ChartFolderModelForeign.html">ChartFolderModelForeign</a></div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>{</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    Q_GADGET</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    QML_FOREIGN(<a class="code hl_class" href="classresource__managers_1_1ChartFolderModel.html">resource_managers::ChartFolderModel</a>)</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>    QML_NAMED_ELEMENT(ChartFolderModel)</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>};</div>
 </div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span> </div>
-<div class="foldopen" id="foldopen00128" data-start="" data-end="">
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno"><a class="line" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">  128</a></span><span class="preprocessor">#define RHYTHMGAME_QML_ANONYMOUS_FOREIGN(WrapperName, ForeignType)             \</span></div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span><span class="preprocessor">    struct WrapperName                                                         \</span></div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span><span class="preprocessor">    {                                                                          \</span></div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span><span class="preprocessor">        Q_GADGET                                                               \</span></div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span><span class="preprocessor">        QML_FOREIGN(ForeignType)                                               \</span></div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span><span class="preprocessor">        QML_ANONYMOUS                                                          \</span></div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span><span class="preprocessor">    }</span></div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span> </div>
+<div class="foldopen" id="foldopen00129" data-start="" data-end="">
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno"><a class="line" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">  129</a></span><span class="preprocessor">#define RHYTHMGAME_QML_ANONYMOUS_FOREIGN(WrapperName, ForeignType)             \</span></div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span><span class="preprocessor">    struct WrapperName                                                         \</span></div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span><span class="preprocessor">    {                                                                          \</span></div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span><span class="preprocessor">        Q_GADGET                                                               \</span></div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span><span class="preprocessor">        QML_FOREIGN(ForeignType)                                               \</span></div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span><span class="preprocessor">        QML_ANONYMOUS                                                          \</span></div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span><span class="preprocessor">    }</span></div>
 </div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span> </div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(ProgramSettingsForeign,</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ProgramSettingsForeign.html">  137</a></span>                                 <a class="code hl_class" href="classqml__components_1_1ProgramSettings.html">qml_components::ProgramSettings</a>);</div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1ChartLoaderForeign.html">ChartLoaderForeign</a>,</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ChartLoaderForeign.html">  139</a></span>                                 <a class="code hl_class" href="classqml__components_1_1ChartLoader.html">qml_components::ChartLoader</a>);</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1RootSongFoldersConfigForeign.html">RootSongFoldersConfigForeign</a>,</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1RootSongFoldersConfigForeign.html">  141</a></span>                                 <a class="code hl_class" href="classqml__components_1_1RootSongFoldersConfig.html">qml_components::RootSongFoldersConfig</a>);</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1SongFolderFactoryForeign.html">SongFolderFactoryForeign</a>,</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1SongFolderFactoryForeign.html">  143</a></span>                                 <a class="code hl_class" href="classqml__components_1_1SongFolderFactory.html">qml_components::SongFolderFactory</a>);</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  <a class="code hl_struct" href="structrhythm__game__qml_1_1SongDirectoryFilePathFetcherForeign.html">SongDirectoryFilePathFetcherForeign</a>,</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1SongDirectoryFilePathFetcherForeign.html">  146</a></span>  <a class="code hl_class" href="classqml__components_1_1SongDirectoryFilePathFetcher.html">qml_components::SongDirectoryFilePathFetcher</a>);</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1FileQueryForeign.html">FileQueryForeign</a>,</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1FileQueryForeign.html">  148</a></span>                                 <a class="code hl_class" href="classqml__components_1_1FileQuery.html">qml_components::FileQuery</a>);</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ThemesForeign.html">  149</a></span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1ThemesForeign.html">ThemesForeign</a>, <a class="code hl_class" href="classqml__components_1_1Themes.html">qml_components::Themes</a>);</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1GamepadManagerForeign.html">GamepadManagerForeign</a>,</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1GamepadManagerForeign.html">  151</a></span>                                 <a class="code hl_class" href="classinput_1_1GamepadManager.html">input::GamepadManager</a>);</div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1ProfileListForeign.html">ProfileListForeign</a>,</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ProfileListForeign.html">  153</a></span>                                 <a class="code hl_class" href="classqml__components_1_1ProfileList.html">qml_components::ProfileList</a>);</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1BattleProfilesForeign.html">BattleProfilesForeign</a>,</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1BattleProfilesForeign.html">  155</a></span>                                 <a class="code hl_class" href="classqml__components_1_1BattleProfiles.html">qml_components::BattleProfiles</a>);</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1VarsForeign.html">  156</a></span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1VarsForeign.html">VarsForeign</a>, <a class="code hl_class" href="classresource__managers_1_1Vars.html">resource_managers::Vars</a>);</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1GeneralVarsForeign.html">GeneralVarsForeign</a>,</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1GeneralVarsForeign.html">  158</a></span>                                 <a class="code hl_class" href="classresource__managers_1_1GeneralVars.html">resource_managers::GeneralVars</a>);</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ScoreDbForeign.html">  159</a></span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1ScoreDbForeign.html">ScoreDbForeign</a>, <a class="code hl_class" href="classqml__components_1_1ScoreDb.html">qml_components::ScoreDb</a>);</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1ScoreSyncOperationForeign.html">ScoreSyncOperationForeign</a>,</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ScoreSyncOperationForeign.html">  161</a></span>                                 <a class="code hl_class" href="classqml__components_1_1ScoreSyncOperation.html">qml_components::ScoreSyncOperation</a>);</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1ReplayImportOperationForeign.html">ReplayImportOperationForeign</a>,</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ReplayImportOperationForeign.html">  163</a></span>                                 <a class="code hl_class" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a>);</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1TablesForeign.html">  164</a></span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1TablesForeign.html">TablesForeign</a>, <a class="code hl_class" href="classresource__managers_1_1Tables.html">resource_managers::Tables</a>);</div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1LanguagesForeign.html">LanguagesForeign</a>,</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1LanguagesForeign.html">  166</a></span>                                 <a class="code hl_class" href="classresource__managers_1_1Languages.html">resource_managers::Languages</a>);</div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1AudioEngineForeign.html">  167</a></span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1AudioEngineForeign.html">AudioEngineForeign</a>, <a class="code hl_class" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a>);</div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1OnlineScoresForeign.html">OnlineScoresForeign</a>,</div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1OnlineScoresForeign.html">  169</a></span>                                 <a class="code hl_class" href="classqml__components_1_1OnlineScores.html">qml_components::OnlineScores</a>);</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1PendingReplyForeign.html">PendingReplyForeign</a>,</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1PendingReplyForeign.html">  171</a></span>                                 <a class="code hl_class" href="classsupport_1_1PendingReply.html">support::PendingReply</a>);</div>
-<div class="foldopen" id="foldopen00172" data-start="{" data-end="};">
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaRoomListModelForeign.html">  172</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaRoomListModelForeign.html">ArenaRoomListModelForeign</a></div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>{</div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>    Q_GADGET</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaRoomListModel.html">arena::ArenaRoomListModel</a>)</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>    QML_ANONYMOUS</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;Arena room models are provided by ArenaSession&quot;</span>)</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>};</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span> </div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(ProgramSettingsForeign,</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ProgramSettingsForeign.html">  138</a></span>                                 <a class="code hl_class" href="classqml__components_1_1ProgramSettings.html">qml_components::ProgramSettings</a>);</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1ChartLoaderForeign.html">ChartLoaderForeign</a>,</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ChartLoaderForeign.html">  140</a></span>                                 <a class="code hl_class" href="classqml__components_1_1ChartLoader.html">qml_components::ChartLoader</a>);</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1RootSongFoldersConfigForeign.html">RootSongFoldersConfigForeign</a>,</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1RootSongFoldersConfigForeign.html">  142</a></span>                                 <a class="code hl_class" href="classqml__components_1_1RootSongFoldersConfig.html">qml_components::RootSongFoldersConfig</a>);</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1SongFolderFactoryForeign.html">SongFolderFactoryForeign</a>,</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1SongFolderFactoryForeign.html">  144</a></span>                                 <a class="code hl_class" href="classqml__components_1_1SongFolderFactory.html">qml_components::SongFolderFactory</a>);</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1SongDirectoryFilePathFetcherForeign.html">SongDirectoryFilePathFetcherForeign</a>,</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1SongDirectoryFilePathFetcherForeign.html">  146</a></span>                                 <a class="code hl_class" href="classqml__components_1_1SongDirectoryFilePathFetcher.html">qml_components::SongDirectoryFilePathFetcher</a>);</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1FileQueryForeign.html">  147</a></span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1FileQueryForeign.html">FileQueryForeign</a>, <a class="code hl_class" href="classqml__components_1_1FileQuery.html">qml_components::FileQuery</a>);</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ThemesForeign.html">  148</a></span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1ThemesForeign.html">ThemesForeign</a>, <a class="code hl_class" href="classqml__components_1_1Themes.html">qml_components::Themes</a>);</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1GamepadManagerForeign.html">  149</a></span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1GamepadManagerForeign.html">GamepadManagerForeign</a>, <a class="code hl_class" href="classinput_1_1GamepadManager.html">input::GamepadManager</a>);</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1ProfileListForeign.html">ProfileListForeign</a>,</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ProfileListForeign.html">  151</a></span>                                 <a class="code hl_class" href="classqml__components_1_1ProfileList.html">qml_components::ProfileList</a>);</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1BattleProfilesForeign.html">BattleProfilesForeign</a>,</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1BattleProfilesForeign.html">  153</a></span>                                 <a class="code hl_class" href="classqml__components_1_1BattleProfiles.html">qml_components::BattleProfiles</a>);</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1VarsForeign.html">  154</a></span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1VarsForeign.html">VarsForeign</a>, <a class="code hl_class" href="classresource__managers_1_1Vars.html">resource_managers::Vars</a>);</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1GeneralVarsForeign.html">GeneralVarsForeign</a>,</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1GeneralVarsForeign.html">  156</a></span>                                 <a class="code hl_class" href="classresource__managers_1_1GeneralVars.html">resource_managers::GeneralVars</a>);</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ScoreDbForeign.html">  157</a></span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1ScoreDbForeign.html">ScoreDbForeign</a>, <a class="code hl_class" href="classqml__components_1_1ScoreDb.html">qml_components::ScoreDb</a>);</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1ScoreSyncOperationForeign.html">ScoreSyncOperationForeign</a>,</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ScoreSyncOperationForeign.html">  159</a></span>                                 <a class="code hl_class" href="classqml__components_1_1ScoreSyncOperation.html">qml_components::ScoreSyncOperation</a>);</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1ReplayImportOperationForeign.html">ReplayImportOperationForeign</a>,</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ReplayImportOperationForeign.html">  161</a></span>                                 <a class="code hl_class" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a>);</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1TablesForeign.html">  162</a></span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1TablesForeign.html">TablesForeign</a>, <a class="code hl_class" href="classresource__managers_1_1Tables.html">resource_managers::Tables</a>);</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1LanguagesForeign.html">LanguagesForeign</a>,</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1LanguagesForeign.html">  164</a></span>                                 <a class="code hl_class" href="classresource__managers_1_1Languages.html">resource_managers::Languages</a>);</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1AudioEngineForeign.html">  165</a></span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1AudioEngineForeign.html">AudioEngineForeign</a>, <a class="code hl_class" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a>);</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1OnlineScoresForeign.html">OnlineScoresForeign</a>,</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1OnlineScoresForeign.html">  167</a></span>                                 <a class="code hl_class" href="classqml__components_1_1OnlineScores.html">qml_components::OnlineScores</a>);</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1PendingReplyForeign.html">  168</a></span><a class="code hl_define" href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a>(<a class="code hl_struct" href="structrhythm__game__qml_1_1PendingReplyForeign.html">PendingReplyForeign</a>, <a class="code hl_class" href="classsupport_1_1PendingReply.html">support::PendingReply</a>);</div>
+<div class="foldopen" id="foldopen00169" data-start="{" data-end="};">
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaRoomListModelForeign.html">  169</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaRoomListModelForeign.html">ArenaRoomListModelForeign</a></div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>{</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>    Q_GADGET</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaRoomListModel.html">arena::ArenaRoomListModel</a>)</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>    QML_ANONYMOUS</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;Arena room models are provided by ArenaSession&quot;</span>)</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>};</div>
 </div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span> </div>
-<div class="foldopen" id="foldopen00180" data-start="{" data-end="};">
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaMemberListModelForeign.html">  180</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaMemberListModelForeign.html">ArenaMemberListModelForeign</a></div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>{</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>    Q_GADGET</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaMemberListModel.html">arena::ArenaMemberListModel</a>)</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    QML_ANONYMOUS</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;Arena member models are provided by ArenaSession&quot;</span>)</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>};</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span> </div>
+<div class="foldopen" id="foldopen00177" data-start="{" data-end="};">
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaMemberListModelForeign.html">  177</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaMemberListModelForeign.html">ArenaMemberListModelForeign</a></div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>{</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>    Q_GADGET</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaMemberListModel.html">arena::ArenaMemberListModel</a>)</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    QML_ANONYMOUS</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;Arena member models are provided by ArenaSession&quot;</span>)</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>};</div>
 </div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span> </div>
-<div class="foldopen" id="foldopen00188" data-start="{" data-end="};">
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaChatModelForeign.html">  188</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaChatModelForeign.html">ArenaChatModelForeign</a></div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>{</div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    Q_GADGET</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaChatModel.html">arena::ArenaChatModel</a>)</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>    QML_ANONYMOUS</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;Arena chat models are provided by ArenaSession&quot;</span>)</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>};</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span> </div>
+<div class="foldopen" id="foldopen00185" data-start="{" data-end="};">
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1ArenaChatModelForeign.html">  185</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1ArenaChatModelForeign.html">ArenaChatModelForeign</a></div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>{</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>    Q_GADGET</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    QML_FOREIGN(<a class="code hl_class" href="classarena_1_1ArenaChatModel.html">arena::ArenaChatModel</a>)</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    QML_ANONYMOUS</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;Arena chat models are provided by ArenaSession&quot;</span>)</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>};</div>
 </div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span> </div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span><span class="preprocessor">#undef RHYTHMGAME_QML_ANONYMOUS_FOREIGN</span></div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span> </div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>} <span class="comment">// namespace rhythm_game_qml</span></div>
+<div class="foldopen" id="foldopen00192" data-start="{" data-end="};">
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno"><a class="line" href="structrhythm__game__qml_1_1SongAssetStoreForeign.html">  192</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structrhythm__game__qml_1_1SongAssetStoreForeign.html">SongAssetStoreForeign</a></div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>{</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>    Q_GADGET</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>    QML_FOREIGN(<a class="code hl_class" href="classresource__managers_1_1SongAssetStore.html">resource_managers::SongAssetStore</a>)</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    QML_ANONYMOUS</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    QML_UNCREATABLE(<span class="stringliteral">&quot;Song assets are provided by Rg.songAssets&quot;</span>)</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>};</div>
 </div>
 <div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span> </div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span><span class="preprocessor">#endif </span><span class="comment">// QMLFOREIGNTYPES_H</span></div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span><span class="preprocessor">#undef RHYTHMGAME_QML_ANONYMOUS_FOREIGN</span></div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span> </div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>} <span class="comment">// namespace rhythm_game_qml</span></div>
+</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span> </div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span><span class="preprocessor">#endif </span><span class="comment">// QMLFOREIGNTYPES_H</span></div>
 <div class="ttc" id="aArenaAvailabilityIndex_8h_html"><div class="ttname"><a href="ArenaAvailabilityIndex_8h.html">ArenaAvailabilityIndex.h</a></div></div>
 <div class="ttc" id="aArenaChatModel_8h_html"><div class="ttname"><a href="ArenaChatModel_8h.html">ArenaChatModel.h</a></div></div>
 <div class="ttc" id="aArenaMemberListModel_8h_html"><div class="ttname"><a href="ArenaMemberListModel_8h.html">ArenaMemberListModel.h</a></div></div>
@@ -334,11 +340,12 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aProfileList_8h_html"><div class="ttname"><a href="ProfileList_8h.html">ProfileList.h</a></div></div>
 <div class="ttc" id="aProfile_8h_html"><div class="ttname"><a href="Profile_8h.html">Profile.h</a></div></div>
 <div class="ttc" id="aProgramSettings_8h_html"><div class="ttname"><a href="ProgramSettings_8h.html">ProgramSettings.h</a></div></div>
-<div class="ttc" id="aQmlForeignTypes_8h_html_a11e61e516eb882f667b988ac0f1287dc"><div class="ttname"><a href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a></div><div class="ttdeci">#define RHYTHMGAME_QML_ANONYMOUS_FOREIGN(WrapperName, ForeignType)</div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:128</div></div>
+<div class="ttc" id="aQmlForeignTypes_8h_html_a11e61e516eb882f667b988ac0f1287dc"><div class="ttname"><a href="QmlForeignTypes_8h.html#a11e61e516eb882f667b988ac0f1287dc">RHYTHMGAME_QML_ANONYMOUS_FOREIGN</a></div><div class="ttdeci">#define RHYTHMGAME_QML_ANONYMOUS_FOREIGN(WrapperName, ForeignType)</div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:129</div></div>
 <div class="ttc" id="aReplayImportOperation_8h_html"><div class="ttname"><a href="ReplayImportOperation_8h.html">ReplayImportOperation.h</a></div></div>
 <div class="ttc" id="aRootSongFoldersConfig_8h_html"><div class="ttname"><a href="RootSongFoldersConfig_8h.html">RootSongFoldersConfig.h</a></div></div>
 <div class="ttc" id="aScoreDb_8h_html"><div class="ttname"><a href="ScoreDb_8h.html">ScoreDb.h</a></div></div>
 <div class="ttc" id="aScoreSyncOperation_8h_html"><div class="ttname"><a href="ScoreSyncOperation_8h.html">ScoreSyncOperation.h</a></div></div>
+<div class="ttc" id="aSongAssetStore_8h_html"><div class="ttname"><a href="SongAssetStore_8h.html">SongAssetStore.h</a></div></div>
 <div class="ttc" id="aSongDirectoryFilePathFetcher_8h_html"><div class="ttname"><a href="SongDirectoryFilePathFetcher_8h.html">SongDirectoryFilePathFetcher.h</a></div></div>
 <div class="ttc" id="aSongFolderFactory_8h_html"><div class="ttname"><a href="SongFolderFactory_8h.html">SongFolderFactory.h</a></div></div>
 <div class="ttc" id="aTables_8h_html"><div class="ttname"><a href="Tables_8h.html">Tables.h</a></div></div>
@@ -355,8 +362,8 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclassinput_1_1GamepadManager_html"><div class="ttname"><a href="classinput_1_1GamepadManager.html">input::GamepadManager</a></div><div class="ttdef"><b>Definition</b> GamepadManager.h:53</div></div>
 <div class="ttc" id="aclassinput_1_1InputTranslator_html"><div class="ttname"><a href="classinput_1_1InputTranslator.html">input::InputTranslator</a></div><div class="ttdef"><b>Definition</b> InputTranslator.h:178</div></div>
 <div class="ttc" id="aclassqml__components_1_1BattleProfiles_html"><div class="ttname"><a href="classqml__components_1_1BattleProfiles.html">qml_components::BattleProfiles</a></div><div class="ttdoc">The profiles used in battle mode.</div><div class="ttdef"><b>Definition</b> ProfileList.h:23</div></div>
-<div class="ttc" id="aclassqml__components_1_1ChartLoader_html"><div class="ttname"><a href="classqml__components_1_1ChartLoader.html">qml_components::ChartLoader</a></div><div class="ttdoc">Loads charts and courses with the given parameters.</div><div class="ttdef"><b>Definition</b> ChartLoader.h:31</div></div>
-<div class="ttc" id="aclassqml__components_1_1FileQuery_html"><div class="ttname"><a href="classqml__components_1_1FileQuery.html">qml_components::FileQuery</a></div><div class="ttdef"><b>Definition</b> FileQuery.h:14</div></div>
+<div class="ttc" id="aclassqml__components_1_1ChartLoader_html"><div class="ttname"><a href="classqml__components_1_1ChartLoader.html">qml_components::ChartLoader</a></div><div class="ttdoc">Loads charts and courses with the given parameters.</div><div class="ttdef"><b>Definition</b> ChartLoader.h:32</div></div>
+<div class="ttc" id="aclassqml__components_1_1FileQuery_html"><div class="ttname"><a href="classqml__components_1_1FileQuery.html">qml_components::FileQuery</a></div><div class="ttdef"><b>Definition</b> FileQuery.h:17</div></div>
 <div class="ttc" id="aclassqml__components_1_1Logger_html"><div class="ttname"><a href="classqml__components_1_1Logger.html">qml_components::Logger</a></div><div class="ttdoc">Lets you access the entire log history of this session.</div><div class="ttdef"><b>Definition</b> Logger.h:17</div></div>
 <div class="ttc" id="aclassqml__components_1_1OnlineScores_html"><div class="ttname"><a href="classqml__components_1_1OnlineScores.html">qml_components::OnlineScores</a></div><div class="ttdef"><b>Definition</b> OnlineScores.h:33</div></div>
 <div class="ttc" id="aclassqml__components_1_1ProfileList_html"><div class="ttname"><a href="classqml__components_1_1ProfileList.html">qml_components::ProfileList</a></div><div class="ttdoc">The list of local profiles.</div><div class="ttdef"><b>Definition</b> ProfileList.h:55</div></div>
@@ -365,52 +372,54 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclassqml__components_1_1RootSongFoldersConfig_html"><div class="ttname"><a href="classqml__components_1_1RootSongFoldersConfig.html">qml_components::RootSongFoldersConfig</a></div><div class="ttdef"><b>Definition</b> RootSongFoldersConfig.h:118</div></div>
 <div class="ttc" id="aclassqml__components_1_1ScoreDb_html"><div class="ttname"><a href="classqml__components_1_1ScoreDb.html">qml_components::ScoreDb</a></div><div class="ttdoc">Provides asynchronous access to a profile's score database.</div><div class="ttdef"><b>Definition</b> ScoreDb.h:66</div></div>
 <div class="ttc" id="aclassqml__components_1_1ScoreSyncOperation_html"><div class="ttname"><a href="classqml__components_1_1ScoreSyncOperation.html">qml_components::ScoreSyncOperation</a></div><div class="ttdoc">Tracks the progress of an asynchronous score sync (upload or download).</div><div class="ttdef"><b>Definition</b> ScoreSyncOperation.h:23</div></div>
-<div class="ttc" id="aclassqml__components_1_1SongDirectoryFilePathFetcher_html"><div class="ttname"><a href="classqml__components_1_1SongDirectoryFilePathFetcher.html">qml_components::SongDirectoryFilePathFetcher</a></div><div class="ttdef"><b>Definition</b> SongDirectoryFilePathFetcher.h:14</div></div>
+<div class="ttc" id="aclassqml__components_1_1SongDirectoryFilePathFetcher_html"><div class="ttname"><a href="classqml__components_1_1SongDirectoryFilePathFetcher.html">qml_components::SongDirectoryFilePathFetcher</a></div><div class="ttdef"><b>Definition</b> SongDirectoryFilePathFetcher.h:17</div></div>
 <div class="ttc" id="aclassqml__components_1_1SongFolderFactory_html"><div class="ttname"><a href="classqml__components_1_1SongFolderFactory.html">qml_components::SongFolderFactory</a></div><div class="ttdef"><b>Definition</b> SongFolderFactory.h:15</div></div>
 <div class="ttc" id="aclassqml__components_1_1Themes_html"><div class="ttname"><a href="classqml__components_1_1Themes.html">qml_components::Themes</a></div><div class="ttdef"><b>Definition</b> Themes.h:14</div></div>
 <div class="ttc" id="aclassresource__managers_1_1ChartFolderModel_html"><div class="ttname"><a href="classresource__managers_1_1ChartFolderModel.html">resource_managers::ChartFolderModel</a></div><div class="ttdef"><b>Definition</b> ChartFolderModel.h:13</div></div>
 <div class="ttc" id="aclassresource__managers_1_1GeneralVars_html"><div class="ttname"><a href="classresource__managers_1_1GeneralVars.html">resource_managers::GeneralVars</a></div><div class="ttdoc">The general variables for the game that all screens and the engine should know about and respect....</div><div class="ttdef"><b>Definition</b> Vars.h:143</div></div>
 <div class="ttc" id="aclassresource__managers_1_1Languages_html"><div class="ttname"><a href="classresource__managers_1_1Languages.html">resource_managers::Languages</a></div><div class="ttdoc">Manages the available languages and the selected language.</div><div class="ttdef"><b>Definition</b> Languages.h:21</div></div>
-<div class="ttc" id="aclassresource__managers_1_1Profile_html"><div class="ttname"><a href="classresource__managers_1_1Profile.html">resource_managers::Profile</a></div><div class="ttdef"><b>Definition</b> Profile.h:90</div></div>
+<div class="ttc" id="aclassresource__managers_1_1Profile_html"><div class="ttname"><a href="classresource__managers_1_1Profile.html">resource_managers::Profile</a></div><div class="ttdef"><b>Definition</b> Profile.h:91</div></div>
+<div class="ttc" id="aclassresource__managers_1_1SongAssetStore_html"><div class="ttname"><a href="classresource__managers_1_1SongAssetStore.html">resource_managers::SongAssetStore</a></div><div class="ttdef"><b>Definition</b> SongAssetStore.h:25</div></div>
 <div class="ttc" id="aclassresource__managers_1_1Tables_html"><div class="ttname"><a href="classresource__managers_1_1Tables.html">resource_managers::Tables</a></div><div class="ttdoc">Manages the download and storage of tables from given URLs.</div><div class="ttdef"><b>Definition</b> Tables.h:152</div></div>
 <div class="ttc" id="aclassresource__managers_1_1Vars_html"><div class="ttname"><a href="classresource__managers_1_1Vars.html">resource_managers::Vars</a></div><div class="ttdef"><b>Definition</b> Vars.h:643</div></div>
 <div class="ttc" id="aclasssounds_1_1AudioEngine_html"><div class="ttname"><a href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a></div><div class="ttdef"><b>Definition</b> AudioEngine.h:13</div></div>
 <div class="ttc" id="aclasssupport_1_1PendingReply_html"><div class="ttname"><a href="classsupport_1_1PendingReply.html">support::PendingReply</a></div><div class="ttdoc">QML-facing handle for one asynchronous result.</div><div class="ttdef"><b>Definition</b> PendingReply.h:67</div></div>
-<div class="ttc" id="anamespacerhythm__game__qml_html"><div class="ttname"><a href="namespacerhythm__game__qml.html">rhythm_game_qml</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:38</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1AnalogAxisConfigForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1AnalogAxisConfigForeign.html">rhythm_game_qml::AnalogAxisConfigForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:67</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ArenaAvailabilityIndexForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaAvailabilityIndexForeign.html">rhythm_game_qml::ArenaAvailabilityIndexForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:90</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ArenaChatModelForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaChatModelForeign.html">rhythm_game_qml::ArenaChatModelForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:189</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ArenaMemberListModelForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaMemberListModelForeign.html">rhythm_game_qml::ArenaMemberListModelForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:181</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ArenaOpponentTargetForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaOpponentTargetForeign.html">rhythm_game_qml::ArenaOpponentTargetForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:114</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ArenaResultModelForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaResultModelForeign.html">rhythm_game_qml::ArenaResultModelForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:106</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ArenaRoomListModelForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaRoomListModelForeign.html">rhythm_game_qml::ArenaRoomListModelForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:173</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ArenaSessionForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaSessionForeign.html">rhythm_game_qml::ArenaSessionForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:82</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ArenaStandingsModelForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaStandingsModelForeign.html">rhythm_game_qml::ArenaStandingsModelForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:98</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1AudioEngineForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1AudioEngineForeign.html">rhythm_game_qml::AudioEngineForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:167</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1BattleProfilesForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1BattleProfilesForeign.html">rhythm_game_qml::BattleProfilesForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:155</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ChartFolderModelForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ChartFolderModelForeign.html">rhythm_game_qml::ChartFolderModelForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:122</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ChartLoaderForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ChartLoaderForeign.html">rhythm_game_qml::ChartLoaderForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:139</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1FileQueryForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1FileQueryForeign.html">rhythm_game_qml::FileQueryForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:148</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1GamepadManagerForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1GamepadManagerForeign.html">rhythm_game_qml::GamepadManagerForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:151</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1GeneralVarsForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1GeneralVarsForeign.html">rhythm_game_qml::GeneralVarsForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:158</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1InputTranslatorForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1InputTranslatorForeign.html">rhythm_game_qml::InputTranslatorForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:59</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1LanguagesForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1LanguagesForeign.html">rhythm_game_qml::LanguagesForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:166</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1LoggerForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1LoggerForeign.html">rhythm_game_qml::LoggerForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:41</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1LoggerForeign_html_aa8fb4428c4e9eee4d2e769b502454b20"><div class="ttname"><a href="structrhythm__game__qml_1_1LoggerForeign.html#aa8fb4428c4e9eee4d2e769b502454b20">rhythm_game_qml::LoggerForeign::instance</a></div><div class="ttdeci">static qml_components::Logger * instance</div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:48</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1LoggerForeign_html_ac4930b8e1990f973068acfe34f64efef"><div class="ttname"><a href="structrhythm__game__qml_1_1LoggerForeign.html#ac4930b8e1990f973068acfe34f64efef">rhythm_game_qml::LoggerForeign::create</a></div><div class="ttdeci">static auto create(QQmlEngine *, QJSEngine *) -&gt; qml_components::Logger *</div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:50</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1OnlineScoresForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1OnlineScoresForeign.html">rhythm_game_qml::OnlineScoresForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:169</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1PendingReplyForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1PendingReplyForeign.html">rhythm_game_qml::PendingReplyForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:171</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ProfileForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ProfileForeign.html">rhythm_game_qml::ProfileForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:74</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ProfileListForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ProfileListForeign.html">rhythm_game_qml::ProfileListForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:153</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ReplayImportOperationForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ReplayImportOperationForeign.html">rhythm_game_qml::ReplayImportOperationForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:163</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1RootSongFoldersConfigForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1RootSongFoldersConfigForeign.html">rhythm_game_qml::RootSongFoldersConfigForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:141</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ScoreDbForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ScoreDbForeign.html">rhythm_game_qml::ScoreDbForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:159</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ScoreSyncOperationForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ScoreSyncOperationForeign.html">rhythm_game_qml::ScoreSyncOperationForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:161</div></div>
+<div class="ttc" id="anamespacerhythm__game__qml_html"><div class="ttname"><a href="namespacerhythm__game__qml.html">rhythm_game_qml</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:39</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1AnalogAxisConfigForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1AnalogAxisConfigForeign.html">rhythm_game_qml::AnalogAxisConfigForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:68</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ArenaAvailabilityIndexForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaAvailabilityIndexForeign.html">rhythm_game_qml::ArenaAvailabilityIndexForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:91</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ArenaChatModelForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaChatModelForeign.html">rhythm_game_qml::ArenaChatModelForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:186</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ArenaMemberListModelForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaMemberListModelForeign.html">rhythm_game_qml::ArenaMemberListModelForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:178</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ArenaOpponentTargetForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaOpponentTargetForeign.html">rhythm_game_qml::ArenaOpponentTargetForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:115</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ArenaResultModelForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaResultModelForeign.html">rhythm_game_qml::ArenaResultModelForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:107</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ArenaRoomListModelForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaRoomListModelForeign.html">rhythm_game_qml::ArenaRoomListModelForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:170</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ArenaSessionForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaSessionForeign.html">rhythm_game_qml::ArenaSessionForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:83</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ArenaStandingsModelForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ArenaStandingsModelForeign.html">rhythm_game_qml::ArenaStandingsModelForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:99</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1AudioEngineForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1AudioEngineForeign.html">rhythm_game_qml::AudioEngineForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:165</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1BattleProfilesForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1BattleProfilesForeign.html">rhythm_game_qml::BattleProfilesForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:153</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ChartFolderModelForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ChartFolderModelForeign.html">rhythm_game_qml::ChartFolderModelForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:123</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ChartLoaderForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ChartLoaderForeign.html">rhythm_game_qml::ChartLoaderForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:140</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1FileQueryForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1FileQueryForeign.html">rhythm_game_qml::FileQueryForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:147</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1GamepadManagerForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1GamepadManagerForeign.html">rhythm_game_qml::GamepadManagerForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:149</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1GeneralVarsForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1GeneralVarsForeign.html">rhythm_game_qml::GeneralVarsForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:156</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1InputTranslatorForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1InputTranslatorForeign.html">rhythm_game_qml::InputTranslatorForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:60</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1LanguagesForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1LanguagesForeign.html">rhythm_game_qml::LanguagesForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:164</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1LoggerForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1LoggerForeign.html">rhythm_game_qml::LoggerForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:42</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1LoggerForeign_html_aa8fb4428c4e9eee4d2e769b502454b20"><div class="ttname"><a href="structrhythm__game__qml_1_1LoggerForeign.html#aa8fb4428c4e9eee4d2e769b502454b20">rhythm_game_qml::LoggerForeign::instance</a></div><div class="ttdeci">static qml_components::Logger * instance</div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:49</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1LoggerForeign_html_ac4930b8e1990f973068acfe34f64efef"><div class="ttname"><a href="structrhythm__game__qml_1_1LoggerForeign.html#ac4930b8e1990f973068acfe34f64efef">rhythm_game_qml::LoggerForeign::create</a></div><div class="ttdeci">static auto create(QQmlEngine *, QJSEngine *) -&gt; qml_components::Logger *</div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:51</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1OnlineScoresForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1OnlineScoresForeign.html">rhythm_game_qml::OnlineScoresForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:167</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1PendingReplyForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1PendingReplyForeign.html">rhythm_game_qml::PendingReplyForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:168</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ProfileForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ProfileForeign.html">rhythm_game_qml::ProfileForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:75</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ProfileListForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ProfileListForeign.html">rhythm_game_qml::ProfileListForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:151</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ReplayImportOperationForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ReplayImportOperationForeign.html">rhythm_game_qml::ReplayImportOperationForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:161</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1RootSongFoldersConfigForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1RootSongFoldersConfigForeign.html">rhythm_game_qml::RootSongFoldersConfigForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:142</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ScoreDbForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ScoreDbForeign.html">rhythm_game_qml::ScoreDbForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:157</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ScoreSyncOperationForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ScoreSyncOperationForeign.html">rhythm_game_qml::ScoreSyncOperationForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:159</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1SongAssetStoreForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1SongAssetStoreForeign.html">rhythm_game_qml::SongAssetStoreForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:193</div></div>
 <div class="ttc" id="astructrhythm__game__qml_1_1SongDirectoryFilePathFetcherForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1SongDirectoryFilePathFetcherForeign.html">rhythm_game_qml::SongDirectoryFilePathFetcherForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:146</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1SongFolderFactoryForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1SongFolderFactoryForeign.html">rhythm_game_qml::SongFolderFactoryForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:143</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1TablesForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1TablesForeign.html">rhythm_game_qml::TablesForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:164</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1ThemesForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ThemesForeign.html">rhythm_game_qml::ThemesForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:149</div></div>
-<div class="ttc" id="astructrhythm__game__qml_1_1VarsForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1VarsForeign.html">rhythm_game_qml::VarsForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:156</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1SongFolderFactoryForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1SongFolderFactoryForeign.html">rhythm_game_qml::SongFolderFactoryForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:144</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1TablesForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1TablesForeign.html">rhythm_game_qml::TablesForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:162</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1ThemesForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1ThemesForeign.html">rhythm_game_qml::ThemesForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:148</div></div>
+<div class="ttc" id="astructrhythm__game__qml_1_1VarsForeign_html"><div class="ttname"><a href="structrhythm__game__qml_1_1VarsForeign.html">rhythm_game_qml::VarsForeign</a></div><div class="ttdef"><b>Definition</b> QmlForeignTypes.h:154</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
