@@ -202,6 +202,42 @@ TEST_CASE("LR2 skin scanner falls back to first custom file when default stem "
           QStringLiteral("Default.png"));
 }
 
+TEST_CASE("LR2 skin scanner matches custom file default stems case "
+          "insensitively",
+          "[themes][lr2][settings]")
+{
+    QTemporaryDir tempDir;
+    const auto themesRoot = makeThemesRoot(tempDir);
+    const auto skinRoot = themesRoot / "CaseInsensitiveDefaultSkin";
+
+    writeLr2SkinBytes(skinRoot / "lane" / "dark.png",
+                      QByteArray("dark", 4));
+    writeLr2SkinBytes(skinRoot / "lane" / "default.png",
+                      QByteArray("default", 7));
+    writeLr2SkinBytes(
+      skinRoot / "play7.lr2skin",
+      QByteArray("#INFORMATION,0,Case-insensitive Default,Tester\n"
+                 "#CUSTOMFILE,Lane,lane/*.png,Default\n"
+                 "#ENDOFHEADER\n"));
+
+    const auto themes = resource_managers::scanThemes(themesRoot);
+
+    const auto familyName =
+      QStringLiteral("Case-insensitive Default (play7.lr2skin)");
+    REQUIRE(themes.contains(familyName));
+
+    const auto settingsData =
+      themes[familyName].getScreens()[QStringLiteral("k7")].getSettingsData();
+    const auto settings =
+      QJsonDocument::fromJson(settingsData.toUtf8()).object();
+    const auto items = settings[QStringLiteral("items")].toArray();
+    REQUIRE(items.size() == 1);
+
+    CHECK(items[0]
+            .toObject()[QStringLiteral("default")]
+            .toString() == QStringLiteral("default.png"));
+}
+
 TEST_CASE("LR2 skin scanner keeps custom option and file ids distinct",
           "[themes][lr2][settings]")
 {

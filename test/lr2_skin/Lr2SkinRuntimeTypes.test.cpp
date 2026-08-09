@@ -1,5 +1,6 @@
 #include "Lr2SkinRuntimeTypes.h"
 #include "Lr2BarPositionedItem.h"
+#include "Lr2BlendSprite.h"
 #include "Lr2SkinElementActiveOptionsState.h"
 #include "Lr2SkinTimerState.h"
 #include "Lr2TimelineFrameState.h"
@@ -12,6 +13,20 @@
 
 using namespace lr2skin::runtime;
 using Catch::Matchers::WithinAbs;
+
+TEST_CASE("LR2 custom scene-graph blending covers destination-dependent modes",
+          "[lr2][skin][blend]")
+{
+    CHECK_FALSE(Lr2BlendSprite::supportsBlendMode(0));
+    CHECK_FALSE(Lr2BlendSprite::supportsBlendMode(1));
+    CHECK_FALSE(Lr2BlendSprite::supportsBlendMode(2));
+    CHECK(Lr2BlendSprite::supportsBlendMode(3));
+    CHECK(Lr2BlendSprite::supportsBlendMode(4));
+    CHECK(Lr2BlendSprite::supportsBlendMode(5));
+    CHECK_FALSE(Lr2BlendSprite::supportsBlendMode(6));
+    CHECK(Lr2BlendSprite::supportsBlendMode(9));
+    CHECK_FALSE(Lr2BlendSprite::supportsBlendMode(10));
+}
 
 namespace {
 
@@ -156,6 +171,23 @@ TEST_CASE("LR2 timeline frame treats blend 0 alpha 0 as opaque no-blend",
     REQUIRE_FALSE(alphaBlendFrame.isRenderable());
     REQUIRE(alphaBlendFrame.a() == 0);
     REQUIRE_THAT(alphaBlendFrame.opacity(), WithinAbs(0.0, 0.0001));
+}
+
+TEST_CASE("LR2 timeline frame preserves supported destination blend modes",
+          "[lr2][runtime][blend]")
+{
+    for (const int blendMode : { 3, 4, 5, 9 }) {
+        QVariantMap dst = dstMap(0, 12, 34, 56, 78);
+        dst.insert(QStringLiteral("blend"), blendMode);
+
+        Lr2TimelineFrameState frame;
+        frame.setDsts(QVariantList{ dst });
+        frame.setTimerFire(0);
+
+        CAPTURE(blendMode);
+        REQUIRE(frame.rawBlendMode() == blendMode);
+        REQUIRE(frame.blendMode() == blendMode);
+    }
 }
 
 TEST_CASE("LR2 bar positioned item notifies usePositionMap changes",

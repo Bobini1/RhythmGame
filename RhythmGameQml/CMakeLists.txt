@@ -6,6 +6,8 @@ set(LR2_SKIN_SOURCES
         Lr2/Lr2TimelineFrameState.cpp
         Lr2/Lr2AnimationFrameState.h
         Lr2/Lr2AnimationFrameState.cpp
+        Lr2/Lr2BlendSprite.h
+        Lr2/Lr2BlendSprite.cpp
         Lr2/Lr2GameplayFrameState.h
         Lr2/Lr2GameplayFrameState.cpp
         Lr2/Lr2BarPositionMap.h
@@ -118,6 +120,8 @@ set(LR2_SKIN_QML_FILES
 
 set(LR2_SKIN_SHADERS
         Lr2/Lr2AddBlend.frag
+        Lr2/Lr2BlendSprite.vert
+        Lr2/Lr2BlendSprite.frag
         Lr2/Lr2SpriteAtlas.frag
         Lr2/Lr2InvertBlend.frag
 )

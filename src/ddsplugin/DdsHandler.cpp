@@ -157,12 +157,48 @@ DdsHandler::read(QImage* image)
         return false;
     }
 
+    QImage result;
     const auto fileName = deviceFileName(device());
-    if (!fileName.isEmpty()) {
-        if (readOiioImage(fileName, image)) {
-            return true;
-        }
+    const bool readDirectly =
+      !fileName.isEmpty() && readOiioImage(fileName, &result);
+    if (!readDirectly && !readDeviceWithTemporaryFile(device(), &result)) {
+        return false;
     }
 
-    return readDeviceWithTemporaryFile(device(), image);
+    if (m_clipRect.isValid()) {
+        result = result.copy(m_clipRect);
+    }
+    if (m_scaledClipRect.isValid()) {
+        result = result.copy(m_scaledClipRect);
+    }
+    *image = result;
+    return !image->isNull();
+}
+
+QVariant
+DdsHandler::option(const ImageOption option) const
+{
+    if (option == ClipRect) {
+        return m_clipRect;
+    }
+    if (option == ScaledClipRect) {
+        return m_scaledClipRect;
+    }
+    return {};
+}
+
+void
+DdsHandler::setOption(const ImageOption option, const QVariant& value)
+{
+    if (option == ClipRect) {
+        m_clipRect = value.toRect();
+    } else if (option == ScaledClipRect) {
+        m_scaledClipRect = value.toRect();
+    }
+}
+
+bool
+DdsHandler::supportsOption(const ImageOption option) const
+{
+    return option == ClipRect || option == ScaledClipRect;
 }

@@ -318,7 +318,8 @@ customFileDefault(const std::filesystem::path& directory,
             firstSelectable = filename;
         }
         if (!defaultStem.isEmpty() &&
-            support::pathToQString(fileEntry.path().stem()) == defaultStem) {
+            support::pathToQString(fileEntry.path().stem())
+                .compare(defaultStem, Qt::CaseInsensitive) == 0) {
             return filename;
         }
     }

@@ -21,6 +21,7 @@ using gameplay_logic::lr2_skin::Lr2Dst;
 using gameplay_logic::lr2_skin::Lr2SkinModel;
 using gameplay_logic::lr2_skin::Lr2SkinParser;
 using gameplay_logic::lr2_skin::Lr2SrcImage;
+using gameplay_logic::lr2_skin::Lr2SrcNumber;
 
 namespace {
 
@@ -292,4 +293,109 @@ TEST_CASE("LR2 skin model reloads when conditional options change",
     waitForSkinLoadCount(model, loadCount, 2);
 
     CHECK(loadCount == 2);
+}
+
+TEST_CASE("LR2 NOWJUDGE and NOWCOMBO select their judgement directly",
+          "[lr2][skin]")
+{
+    QTemporaryDir tempDir;
+    const auto path = tempSkinPath(tempDir);
+
+    writeSkinFile(
+      path,
+      QStringLiteral(
+        "#IMAGE,judge.png\n"
+        "#SRC_NOWJUDGE_1P,4,0,0,0,100,20,1,1,0,46,0,0,0\n"
+        "#DST_NOWJUDGE_1P,4,0,0,0,100,20,0,255,255,255,255,1,0,0,0,-1,46\n"
+        "#SRC_NOWCOMBO_1P,4,0,0,0,100,20,10,1,0,46,0,0,4\n"
+        "#DST_NOWCOMBO_1P,4,0,0,0,10,20,0,255,255,255,255,1,0,0,0,-1,46\n"
+        "#SRC_NOWJUDGE_2P,3,0,0,0,100,20,1,1,0,46,0,0,0\n"
+        "#DST_NOWJUDGE_2P,3,0,0,0,100,20,0,255,255,255,255,1,0,0,0,-1,46\n"
+        "#SRC_NOWCOMBO_2P,3,0,0,0,100,20,10,1,0,46,0,0,4\n"
+        "#DST_NOWCOMBO_2P,3,0,0,0,10,20,0,255,255,255,255,1,0,0,0,-1,46\n") +
+        QStringLiteral(
+          "#SRC_NOWJUDGE_1P,6,0,0,0,100,20,1,1,0,46,1,0,0\n"
+          "#DST_NOWJUDGE_1P,6,0,0,0,100,20,0,255,255,255,255,1,0,0,0,-1,46\n"
+          "#SRC_NOWCOMBO_1P,6,0,0,0,100,20,10,1,0,446,0,0,4\n"
+          "#DST_NOWCOMBO_1P,6,0,0,0,10,20,0,255,255,255,255,1,0,0,0,-1,446\n"
+          "#SRC_NOWJUDGE_2P,6,0,0,0,100,20,1,1,0,47,1,0,0\n"
+          "#DST_NOWJUDGE_2P,6,0,0,0,100,20,0,255,255,255,255,1,0,0,0,-1,47\n"
+          "#SRC_NOWCOMBO_2P,6,0,0,0,100,20,10,1,0,447,0,0,4\n"
+          "#DST_NOWCOMBO_2P,6,0,0,0,10,20,0,255,255,255,255,1,0,0,0,-1,447\n") +
+        runtimeGatedSprite(261));
+
+    const auto skin = Lr2SkinParser::parseData(support::pathToQString(path));
+
+    REQUIRE(skin.elements.size() == 9);
+    const auto judgeSource = skin.elements.at(0).src.value<Lr2SrcImage>();
+    CHECK(judgeSource.nowJudge);
+    CHECK(judgeSource.side == 1);
+    CHECK(judgeSource.judgementIndex == 4);
+    CHECK(judgeSource.timer == 46);
+    const auto comboSource = skin.elements.at(1).src.value<Lr2SrcNumber>();
+    CHECK(comboSource.nowCombo);
+    CHECK(comboSource.side == 1);
+    CHECK(comboSource.judgementIndex == 4);
+    CHECK(comboSource.timer == 46);
+    const auto judgeSource2 = skin.elements.at(2).src.value<Lr2SrcImage>();
+    CHECK(judgeSource2.nowJudge);
+    CHECK(judgeSource2.side == 2);
+    CHECK(judgeSource2.judgementIndex == 3);
+    CHECK(judgeSource2.timer == 47);
+    const auto comboSource2 = skin.elements.at(3).src.value<Lr2SrcNumber>();
+    CHECK(comboSource2.nowCombo);
+    CHECK(comboSource2.side == 2);
+    CHECK(comboSource2.judgementIndex == 3);
+    CHECK(comboSource2.timer == 47);
+    const auto maxJudgeSource = skin.elements.at(4).src.value<Lr2SrcImage>();
+    CHECK(maxJudgeSource.nowJudge);
+    CHECK(maxJudgeSource.side == 1);
+    CHECK(maxJudgeSource.judgementIndex == 6);
+    CHECK(maxJudgeSource.timer == 46);
+    CHECK(maxJudgeSource.op1 == 1);
+    const auto maxComboSource = skin.elements.at(5).src.value<Lr2SrcNumber>();
+    CHECK(maxComboSource.nowCombo);
+    CHECK(maxComboSource.side == 1);
+    CHECK(maxComboSource.judgementIndex == 6);
+    CHECK(maxComboSource.timer == 446);
+    const auto maxJudgeSource2 = skin.elements.at(6).src.value<Lr2SrcImage>();
+    CHECK(maxJudgeSource2.nowJudge);
+    CHECK(maxJudgeSource2.side == 2);
+    CHECK(maxJudgeSource2.judgementIndex == 6);
+    CHECK(maxJudgeSource2.timer == 47);
+    CHECK(maxJudgeSource2.op1 == 1);
+    const auto maxComboSource2 = skin.elements.at(7).src.value<Lr2SrcNumber>();
+    CHECK(maxComboSource2.nowCombo);
+    CHECK(maxComboSource2.side == 2);
+    CHECK(maxComboSource2.judgementIndex == 6);
+    CHECK(maxComboSource2.timer == 447);
+    for (qsizetype index = 0; index < 8; ++index) {
+        const auto& element = skin.elements.at(index);
+        REQUIRE(element.dsts.size() == 1);
+        const auto dst = element.dsts.first().value<Lr2Dst>();
+        CHECK(dst.op1 == 0);
+        CHECK(dst.op2 == 0);
+        CHECK(dst.op3 == 0);
+        if (index == 5) {
+            CHECK(dst.timer == 446);
+        } else if (index == 7) {
+            CHECK(dst.timer == 447);
+        }
+    }
+    CHECK_FALSE(skin.usedOptions.contains(QVariant(242)));
+    CHECK_FALSE(skin.usedOptions.contains(QVariant(263)));
+    const auto ordinarySource = skin.elements.at(8).src.value<Lr2SrcImage>();
+    CHECK_FALSE(ordinarySource.nowJudge);
+    const auto ordinaryDst = skin.elements.at(8).dsts.first().value<Lr2Dst>();
+    CHECK(ordinaryDst.op1 == 261);
+    CHECK(skin.usedOptions.contains(QVariant(261)));
+
+    Lr2SkinModel model;
+    int loadCount = 0;
+    QObject::connect(
+      &model, &Lr2SkinModel::skinLoaded, [&loadCount]() { ++loadCount; });
+    model.setCsvPath(support::pathToQString(path));
+    REQUIRE(loadCount == 1);
+    CHECK(model.hasNowJudgeMaxGaugeVariant1());
+    CHECK(model.hasNowJudgeMaxGaugeVariant2());
 }

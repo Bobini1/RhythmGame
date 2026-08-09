@@ -457,11 +457,6 @@ Item {
             smooth: drawState.hasState && drawState.filter !== 0
             mipmap: false
             visible: root.useFastImagePath && status === Image.Ready
-            onStatusChanged: {
-                if (status === Image.Ready) {
-                    root.updateLoadedTextureSize(implicitWidth, implicitHeight);
-                }
-            }
         }
 
         Image {
@@ -475,6 +470,8 @@ Item {
             visible: false
             onStatusChanged: {
                 if (status === Image.Ready) {
+                    // Source bounds must come from this uncropped image. The
+                    // fast path's implicit size is only the decoded clip.
                     root.updateLoadedTextureSize(implicitWidth, implicitHeight);
                 }
             }
@@ -482,7 +479,10 @@ Item {
 
         ShaderEffect {
             anchors.fill: parent
-            visible: root.hasDrawableTexture && !root.useFastImagePath && atlasImage.status === Image.Ready
+            visible: root.hasDrawableTexture
+                && !root.useFastImagePath
+                && !customBlendSprite.supportedBlendMode
+                && atlasImage.status === Image.Ready
             blending: true
             supportsAtlasTextures: true
             property var source: atlasImage
@@ -497,6 +497,22 @@ Item {
                 Math.max(1, atlasImage.implicitHeight))
             property vector4d sourceRect: root.effectiveSourceRect
             fragmentShader: "qrc:/Lr2/Lr2SpriteAtlas.frag.qsb"
+        }
+
+        Lr2BlendSprite {
+            id: customBlendSprite
+            anchors.fill: parent
+            visible: root.hasDrawableTexture
+                && !root.useFastImagePath
+                && supportedBlendMode
+                && atlasImage.status === Image.Ready
+            source: atlasImage
+            sourceRect: root.effectiveSourceClipRect
+            tint: root.tintColor
+            transColor: root.transColor
+            colorKeyEnabled: root.effectiveColorKeyEnabled
+            smooth: drawState.hasState && drawState.filter !== 0
+            blendMode: root.blendMode
         }
 
         Rectangle {

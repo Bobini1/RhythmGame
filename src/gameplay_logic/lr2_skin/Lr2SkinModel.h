@@ -44,6 +44,8 @@ class Lr2SkinModel : public QAbstractListModel {
     Q_PROPERTY(bool usesBannerSource READ usesBannerSource NOTIFY skinMetadataChanged)
     Q_PROPERTY(bool usesSelectChartRenderer READ usesSelectChartRenderer NOTIFY skinMetadataChanged)
     Q_PROPERTY(bool usesSelectDifficultySource READ usesSelectDifficultySource NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool hasNowJudgeMaxGaugeVariant1 READ hasNowJudgeMaxGaugeVariant1 NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool hasNowJudgeMaxGaugeVariant2 READ hasNowJudgeMaxGaugeVariant2 NOTIFY skinMetadataChanged)
     Q_PROPERTY(int barCenter READ barCenter NOTIFY skinMetadataChanged)
     Q_PROPERTY(int barAvailableStart READ barAvailableStart NOTIFY skinMetadataChanged)
     Q_PROPERTY(int barAvailableEnd READ barAvailableEnd NOTIFY skinMetadataChanged)
@@ -115,6 +117,8 @@ public:
     bool usesBannerSource() const;
     bool usesSelectChartRenderer() const;
     bool usesSelectDifficultySource() const;
+    bool hasNowJudgeMaxGaugeVariant1() const;
+    bool hasNowJudgeMaxGaugeVariant2() const;
     int barCenter() const;
     int barAvailableStart() const;
     int barAvailableEnd() const;
@@ -177,6 +181,8 @@ private:
     bool m_usesBannerSource = false;
     bool m_usesSelectChartRenderer = false;
     bool m_usesSelectDifficultySource = false;
+    bool m_hasNowJudgeMaxGaugeVariant1 = false;
+    bool m_hasNowJudgeMaxGaugeVariant2 = false;
     int m_startInput = 0;
     int m_sceneTime = 0;
     int m_loadStart = 0;

@@ -601,16 +601,6 @@ parseDstWithOptionGate(const QStringList& tokens,
 }
 
 auto
-lr2NowJudgementOption(const QString& command, const int judgementIndex) -> int
-{
-    if (judgementIndex < 0 || judgementIndex > 5) {
-        return 0;
-    }
-    const int baseOption = command.endsWith(QStringLiteral("_2P")) ? 261 : 241;
-    return baseOption + (5 - judgementIndex);
-}
-
-auto
 lr2NowCommandIndex(const QStringList& tokens) -> int
 {
     return tokens.size() > 1 && !tokens[1].isEmpty() ? tokens[1].toInt() : -1;
@@ -620,6 +610,14 @@ auto
 lr2NowDisplayTimer(const QString& command) -> int
 {
     return command.endsWith(QStringLiteral("_2P")) ? 47 : 46;
+}
+
+auto
+lr2NowComboDisplayTimer(const QString& command, const int requestedTimer) -> int
+{
+    const int comboTimer = command.endsWith(QStringLiteral("_2P")) ? 447 : 446;
+    return requestedTimer == comboTimer ? comboTimer
+                                        : lr2NowDisplayTimer(command);
 }
 
 auto
@@ -2126,6 +2124,9 @@ processCommand(const QStringList& tokens,
         state.hasCurrentElement = true;
 
         auto src = parseImageSource(tokens, state);
+        src.nowJudge = true;
+        src.side = lr2NowSide(command);
+        src.judgementIndex = lr2NowCommandIndex(tokens);
         src.timer = lr2NowDisplayTimer(command);
         state.currentElement.src = QVariant::fromValue(src);
     } else if (command == "#DST_NOWJUDGE_1P" || command == "#DST_NOWJUDGE_2P") {
@@ -2135,7 +2136,6 @@ processCommand(const QStringList& tokens,
             const int index = lr2NowCommandIndex(tokens);
             state.nowJudgeDsts[lr2NowStateKey(side, index)].append(dst);
             dst.timer = lr2NowDisplayTimer(command);
-            addDstOptionGate(dst, lr2NowJudgementOption(command, index));
             recordDstOptions(state, dst, true);
             state.currentElement.dsts.append(QVariant::fromValue(dst));
         }
@@ -2147,7 +2147,7 @@ processCommand(const QStringList& tokens,
 
         auto src = parseNowComboSource(
           tokens, state, command.endsWith(QStringLiteral("_2P")) ? 2 : 1);
-        src.timer = lr2NowDisplayTimer(command);
+        src.timer = lr2NowComboDisplayTimer(command, src.timer);
         state.currentElement.src = QVariant::fromValue(src);
     } else if (command == "#DST_NOWCOMBO_1P" || command == "#DST_NOWCOMBO_2P") {
         if (state.hasCurrentElement && state.currentElement.type == 1) {
@@ -2165,8 +2165,7 @@ processCommand(const QStringList& tokens,
                 dst.y = judgeDst.y - dst.y;
             }
             ensureDstOffset(dst, 3);
-            dst.timer = lr2NowDisplayTimer(command);
-            addDstOptionGate(dst, lr2NowJudgementOption(command, index));
+            dst.timer = lr2NowComboDisplayTimer(command, dst.timer);
             recordDstOptions(state, dst, true);
             state.currentElement.dsts.append(QVariant::fromValue(dst));
         }
