@@ -221,6 +221,7 @@ class InputTranslator final : public QObject
     struct Scratch
     {
         std::unique_ptr<QTimer> timer = std::make_unique<QTimer>();
+        QMetaObject::Connection timerConnection;
         double delta = 0;
         Key::Direction direction = Key::Direction::None;
         double value = std::numeric_limits<double>::quiet_NaN();

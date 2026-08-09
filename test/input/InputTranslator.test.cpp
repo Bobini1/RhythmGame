@@ -101,6 +101,49 @@ TEST_CASE("beatoraja analog scratch ticks use wrapped 0.009 axis quanta")
     CHECK(InputTranslator::computeAnalogScratchTicks(-0.99, 0.99) == -3);
 }
 
+TEST_CASE("analog scratch auto-release uses the latest movement timestamp",
+          "[input][analog-scratch]")
+{
+    using input::BmsKey;
+    using input::Gamepad;
+    using input::Key;
+    using input::Mapping;
+
+    auto harness = InputTranslatorHarness{};
+    auto& translator = *harness.translator;
+    const auto gamepad = Gamepad{ "Test controller", "test-guid", 0 };
+    constexpr auto axis = Uint8{ 1 };
+    translator.setKeyConfig(QList<Mapping>{
+      Mapping{ Key{ QVariant::fromValue(gamepad),
+                    Key::Device::Axis,
+                    axis,
+                    Key::Direction::Up },
+               BmsKey::Col1sUp },
+      Mapping{ Key{ QVariant::fromValue(gamepad),
+                    Key::Device::Axis,
+                    axis,
+                    Key::Direction::Down },
+               BmsKey::Col1sDown },
+    });
+    auto* const analogConfig = translator.getAnalogAxisConfig1();
+    REQUIRE(analogConfig != nullptr);
+    analogConfig->setTimeout(10);
+
+    auto presses = std::vector<ButtonEvent>{};
+    auto releases = std::vector<ButtonEvent>{};
+    recordButtonEvents(translator, presses, releases);
+
+    translator.handleAxis(gamepad, axis, 0.0, 1'000);
+    translator.handleAxis(gamepad, axis, 0.010, 1'010);
+    translator.handleAxis(gamepad, axis, 0.020, 2'000);
+    runEventLoopFor(25);
+
+    REQUIRE(presses.size() == 1);
+    CHECK(presses.front() == ButtonEvent{ BmsKey::Col1sUp, 1'010 });
+    REQUIRE(releases.size() == 1);
+    CHECK(releases.front() == ButtonEvent{ BmsKey::Col1sUp, 2'010 });
+}
+
 TEST_CASE("debounce preserves a held key across press chatter",
           "[input][debounce]")
 {
