@@ -51,10 +51,22 @@ Item {
     readonly property real stateG: drawState.g
     readonly property real stateB: drawState.b
     readonly property int stateBlend: drawState.blend
-    readonly property bool hasRenderableState: drawState.renderable
+    readonly property bool sourceReady: root.srcData !== undefined
+        && root.srcData !== null
+        && root.srcData.st !== undefined
+        && root.srcData.align !== undefined
+        && root.srcData.fontPath !== undefined
+        && root.srcData.fontFamily !== undefined
+        && root.srcData.fontSize !== undefined
+        && root.srcData.fontThickness !== undefined
+        && root.srcData.fontType !== undefined
+        && root.srcData.bitmapFont !== undefined
+    readonly property bool hasRenderableState: root.sourceReady && drawState.renderable
     readonly property real effectiveOpacity: drawState.opacity
-    readonly property bool isLr2Font: srcData
-        && (srcData.bitmapFont || (srcData.fontPath && srcData.fontPath.toLowerCase().endsWith(".lr2font")))
+    readonly property bool isLr2Font: root.sourceReady
+        && Boolean(root.srcData.bitmapFont
+            || (root.srcData.fontPath
+                && root.srcData.fontPath.toLowerCase().endsWith(".lr2font")))
     readonly property int blendMode: drawState.blendMode
     readonly property bool normalBlendActive: root.blendMode !== 2
     readonly property bool additiveBlendActive: root.blendMode === 2
@@ -62,23 +74,26 @@ Item {
     readonly property bool normalSystemTextActive: root.normalBlendActive && !root.isLr2Font
     readonly property bool additiveBitmapTextActive: root.additiveBlendActive && root.isLr2Font
     readonly property bool additiveSystemTextActive: root.additiveBlendActive && !root.isLr2Font
-    readonly property string systemDisplayText: root.isLr2Font
+    readonly property string systemDisplayText: !root.sourceReady || root.isLr2Font
         ? ""
-        : (root.resolvedText || ("ST_" + (root.srcData ? root.srcData.st : "?")))
+        : (root.resolvedText || ("ST_" + root.srcData.st))
     readonly property int stateFilter: drawState.filter
     readonly property color textColor: root.hasCurrentState
         ? Qt.rgba(root.stateR / 255.0, root.stateG / 255.0, root.stateB / 255.0, 1.0)
         : "white"
-    readonly property string fontFamily: root.srcData ? (root.srcData.fontFamily || root.srcData.fontPath || "") : ""
-    readonly property string normalizedFontPath: root.srcData
+    readonly property string fontPath: root.sourceReady ? root.srcData.fontPath : ""
+    readonly property string fontFamily: root.sourceReady
+        ? (root.srcData.fontFamily || root.fontPath)
+        : ""
+    readonly property string normalizedFontPath: root.sourceReady
         ? String(root.srcData.fontPath || "").replace(/\\/g, "/").toLowerCase()
         : ""
     readonly property bool uppercaseBitmapText: root.isLr2Font
         && root.normalizedFontPath.indexOf("/font/title/") !== -1
-    readonly property int textAlignment: root.srcData ? root.srcData.align : 0
-    readonly property int textFontSize: root.srcData ? root.srcData.fontSize : 0
-    readonly property int textFontThickness: root.srcData ? root.srcData.fontThickness : 0
-    readonly property int textFontType: root.srcData ? root.srcData.fontType : 0
+    readonly property int textAlignment: root.sourceReady ? root.srcData.align : 0
+    readonly property int textFontSize: root.sourceReady ? root.srcData.fontSize : 0
+    readonly property int textFontThickness: root.sourceReady ? root.srcData.fontThickness : 0
+    readonly property int textFontType: root.sourceReady ? root.srcData.fontType : 0
     readonly property int effectiveTextureFilter: root.textureFilterOverride >= 0
         ? root.textureFilterOverride
         : root.stateFilter
@@ -109,7 +124,7 @@ Item {
             visible: root.normalBitmapTextActive
             anchors.fill: parent
             active: root.normalBitmapTextActive
-            fontPath: root.srcData ? root.srcData.fontPath : ""
+            fontPath: root.fontPath
             text: root.normalBitmapTextActive ? root.resolvedText : ""
             textColor: root.textColor
             textureFilter: root.effectiveTextureFilter
@@ -139,7 +154,7 @@ Item {
                 visible: root.additiveBitmapTextActive
                 anchors.fill: parent
                 active: root.additiveBitmapTextActive
-                fontPath: root.srcData ? root.srcData.fontPath : ""
+                fontPath: root.fontPath
                 text: root.additiveBitmapTextActive ? root.resolvedText : ""
                 textColor: root.textColor
                 textureFilter: root.effectiveTextureFilter
