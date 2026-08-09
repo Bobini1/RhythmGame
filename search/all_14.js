@@ -9,7 +9,7 @@ var searchData=
   ['tablelisturlchanged_6',['tableListUrlChanged',['../classresource__managers_1_1GeneralVars.html#a9a6e8e16342de56c633cf21597c69758',1,'resource_managers::GeneralVars']]],
   ['tablename_7',['tableName',['../structresource__managers_1_1TableInfo.html#aae72733a4966954123e973d6997e6512',1,'resource_managers::TableInfo']]],
   ['tablequeryresult_8',['TableQueryResult',['../classqml__components_1_1TableQueryResult.html',1,'qml_components']]],
-  ['tables_9',['tables',['../classresource__managers_1_1Tables.html',1,'resource_managers::Tables'],['../classresource__managers_1_1Tables.html#a4f3d7f6b1252e78cff5c97262fea9105',1,'resource_managers::Tables::Tables()'],['../classRg.html#a5f675f4937f3579373dce425a1325c49',1,'Rg::tables']]],
+  ['tables_9',['tables',['../classresource__managers_1_1Tables.html',1,'resource_managers::Tables'],['../classRg.html#a5f675f4937f3579373dce425a1325c49',1,'Rg::tables'],['../classresource__managers_1_1Tables.html#a4f3d7f6b1252e78cff5c97262fea9105',1,'resource_managers::Tables::Tables()']]],
   ['tables_2ecpp_10',['Tables.cpp',['../Tables_8cpp.html',1,'']]],
   ['tables_2eh_11',['Tables.h',['../Tables_8h.html',1,'']]],
   ['tablesforeign_12',['TablesForeign',['../structrhythm__game__qml_1_1TablesForeign.html',1,'rhythm_game_qml']]],
@@ -84,7 +84,7 @@ var searchData=
   ['themefamily_2ecpp_81',['ThemeFamily.cpp',['../ThemeFamily_8cpp.html',1,'']]],
   ['themefamily_2eh_82',['ThemeFamily.h',['../ThemeFamily_8h.html',1,'']]],
   ['themename_83',['themename',['../classqml__components_1_1QmlUtilsAttached.html#a7b250c1adffa813120894d1e38f38756',1,'qml_components::QmlUtilsAttached::themeName'],['../classqml__components_1_1QmlUtilsAttached.html#a9321a3687124e195fa23f5dedc1288ff',1,'qml_components::QmlUtilsAttached::themeName() const -&gt; QString']]],
-  ['themes_84',['themes',['../index.html#autotoc_md2',1,'Customizable themes'],['../classRg.html#a7c57b1750045af8b27e3f32df2db6e89',1,'Rg::themes'],['../classqml__components_1_1Themes.html#afc02ff2654275c3d974af1230e791952',1,'qml_components::Themes::Themes()'],['../classqml__components_1_1Themes.html',1,'qml_components::Themes']]],
+  ['themes_84',['themes',['../index.html#autotoc_md2',1,'Customizable themes'],['../classqml__components_1_1Themes.html#afc02ff2654275c3d974af1230e791952',1,'qml_components::Themes::Themes()'],['../classRg.html#a7c57b1750045af8b27e3f32df2db6e89',1,'Rg::themes'],['../classqml__components_1_1Themes.html',1,'qml_components::Themes']]],
   ['themes_2ecpp_85',['Themes.cpp',['../Themes_8cpp.html',1,'']]],
   ['themes_2eh_86',['Themes.h',['../Themes_8h.html',1,'']]],
   ['themesforeign_87',['ThemesForeign',['../structrhythm__game__qml_1_1ThemesForeign.html',1,'rhythm_game_qml']]],
@@ -188,6 +188,6 @@ var searchData=
   ['tuplesize_2ecpp_185',['TupleSize.cpp',['../TupleSize_8cpp.html',1,'']]],
   ['tuplesize_2eh_186',['TupleSize.h',['../TupleSize_8h.html',1,'']]],
   ['tuplesizev_187',['tupleSizeV',['../namespacesupport.html#a30de9f53b3c7cdc7f6ff8eac5fe678ef',1,'support']]],
-  ['type_188',['type',['../classgameplay__logic_1_1Note.html#a3b8d1cc4892925c524e301413a7a191c',1,'gameplay_logic::Note::type'],['../structarena_1_1GaugeSnapshot.html#a0bb4e52dec3bc8dee83a416f0e97283c',1,'arena::GaugeSnapshot::type'],['../structgameplay__logic_1_1lr2__skin_1_1Lr2Element.html#a96ce9eb545035a86b976c2926cfa7de9',1,'gameplay_logic::lr2_skin::Lr2Element::type'],['../structgameplay__logic_1_1rules_1_1HitRules_1_1Note.html#ab03dc7fc2a0807bf6070d1d78ca10eaf',1,'gameplay_logic::rules::HitRules::Note::type'],['../BmsNotesData_8cpp.html#ab6f4e6d3fde00ce906e46494f60dfe7a',1,'type:&#160;BmsNotesData.cpp'],['../classLr2SkinElementDescriptorValue.html#a5146a1f895297873b163559aa1028a57',1,'Lr2SkinElementDescriptorValue::type'],['../classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90',1,'gameplay_logic::Note::Type'],['../Lr2SkinParser_8cpp.html#ac765329451135abec74c45e1897abf26',1,'type:&#160;Lr2SkinParser.cpp']]],
+  ['type_188',['type',['../structarena_1_1GaugeSnapshot.html#a0bb4e52dec3bc8dee83a416f0e97283c',1,'arena::GaugeSnapshot::type'],['../classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90',1,'gameplay_logic::Note::Type'],['../classgameplay__logic_1_1Note.html#a3b8d1cc4892925c524e301413a7a191c',1,'gameplay_logic::Note::type'],['../structgameplay__logic_1_1lr2__skin_1_1Lr2Element.html#a96ce9eb545035a86b976c2926cfa7de9',1,'gameplay_logic::lr2_skin::Lr2Element::type'],['../BmsNotesData_8cpp.html#ab6f4e6d3fde00ce906e46494f60dfe7a',1,'type:&#160;BmsNotesData.cpp'],['../structgameplay__logic_1_1rules_1_1HitRules_1_1Note.html#ab03dc7fc2a0807bf6070d1d78ca10eaf',1,'gameplay_logic::rules::HitRules::Note::type'],['../classLr2SkinElementDescriptorValue.html#a5146a1f895297873b163559aa1028a57',1,'Lr2SkinElementDescriptorValue::type'],['../Lr2SkinParser_8cpp.html#ac765329451135abec74c45e1897abf26',1,'type:&#160;Lr2SkinParser.cpp']]],
   ['typerole_189',['TypeRole',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a7d981e12ba4ce6936f30fe360133c2c8a058b24f534021677bce92d5bfa4cf59a',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]]
 ];

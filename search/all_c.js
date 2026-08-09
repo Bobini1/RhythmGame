@@ -21,7 +21,7 @@ var searchData=
   ['laneseedcharacters_18',['LaneSeedCharacters',['../namespacearena.html#afc59f4dab5f5f47342ea32e46c1c49a6',1,'arena']]],
   ['language_19',['language',['../classresource__managers_1_1GeneralVars.html#a0e55217cee4a78deb9041e9954718e9f',1,'resource_managers::GeneralVars']]],
   ['languagechanged_20',['languageChanged',['../classresource__managers_1_1GeneralVars.html#a1f504c7b35b51173478713b6510e925b',1,'resource_managers::GeneralVars']]],
-  ['languages_21',['languages',['../classresource__managers_1_1Languages.html#ac0e007f3bf01881989ffce7202d4cb3f',1,'resource_managers::Languages::languages'],['../classRg.html#a827f6995f5fe35578040c29146822b4a',1,'Rg::languages'],['../classresource__managers_1_1Languages.html#a851cff67fb6a60da51954f43484ff614',1,'resource_managers::Languages::Languages()'],['../classresource__managers_1_1Languages.html',1,'resource_managers::Languages']]],
+  ['languages_21',['languages',['../classresource__managers_1_1Languages.html#a851cff67fb6a60da51954f43484ff614',1,'resource_managers::Languages::Languages(const QMap&lt; QString, qml_components::ThemeFamily &gt; &amp;availableThemes, QQmlEngine *qmlEngine, QObject *parent=nullptr)'],['../classresource__managers_1_1Languages.html#ac0e007f3bf01881989ffce7202d4cb3f',1,'resource_managers::Languages::languages'],['../classRg.html#a827f6995f5fe35578040c29146822b4a',1,'Rg::languages'],['../classresource__managers_1_1Languages.html',1,'resource_managers::Languages']]],
   ['languages_2ecpp_22',['Languages.cpp',['../Languages_8cpp.html',1,'']]],
   ['languages_2eh_23',['Languages.h',['../Languages_8h.html',1,'']]],
   ['languagesforeign_24',['LanguagesForeign',['../structrhythm__game__qml_1_1LanguagesForeign.html',1,'rhythm_game_qml']]],
