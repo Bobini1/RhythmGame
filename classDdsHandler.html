@@ -105,6 +105,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a2814adb9484f7176bd09c8c0f70c0c59"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae1e4ba7b81859414db1f9ed755dec636" id="r_ae1e4ba7b81859414db1f9ed755dec636"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDdsHandler.html#ae1e4ba7b81859414db1f9ed755dec636">read</a> (QImage *image) override</td></tr>
 <tr class="separator:ae1e4ba7b81859414db1f9ed755dec636"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae07f359c0b7537bc262a7a1f98deceb8" id="r_ae07f359c0b7537bc262a7a1f98deceb8"><td class="memItemLeft" align="right" valign="top">QVariant&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDdsHandler.html#ae07f359c0b7537bc262a7a1f98deceb8">option</a> (ImageOption option) const override</td></tr>
+<tr class="separator:ae07f359c0b7537bc262a7a1f98deceb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4489f3ef16be4b0de008a76681633e4d" id="r_a4489f3ef16be4b0de008a76681633e4d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDdsHandler.html#a4489f3ef16be4b0de008a76681633e4d">setOption</a> (ImageOption <a class="el" href="classDdsHandler.html#ae07f359c0b7537bc262a7a1f98deceb8">option</a>, const QVariant &amp;<a class="el" href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">value</a>) override</td></tr>
+<tr class="separator:a4489f3ef16be4b0de008a76681633e4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1accf0ac56246fc9b72f30e8e256a2eb" id="r_a1accf0ac56246fc9b72f30e8e256a2eb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDdsHandler.html#a1accf0ac56246fc9b72f30e8e256a2eb">supportsOption</a> (ImageOption <a class="el" href="classDdsHandler.html#ae07f359c0b7537bc262a7a1f98deceb8">option</a>) const override</td></tr>
+<tr class="separator:a1accf0ac56246fc9b72f30e8e256a2eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -163,6 +169,32 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ae07f359c0b7537bc262a7a1f98deceb8" name="ae07f359c0b7537bc262a7a1f98deceb8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae07f359c0b7537bc262a7a1f98deceb8">&#9670;&#160;</a></span>option()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QVariant DdsHandler::option </td>
+          <td>(</td>
+          <td class="paramtype">ImageOption&#160;</td>
+          <td class="paramname"><em>option</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ae1e4ba7b81859414db1f9ed755dec636" name="ae1e4ba7b81859414db1f9ed755dec636"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae1e4ba7b81859414db1f9ed755dec636">&#9670;&#160;</a></span>read()</h2>
 
@@ -178,6 +210,68 @@ Static Public Member Functions</h2></td></tr>
           <td class="paramtype">QImage *&#160;</td>
           <td class="paramname"><em>image</em></td><td>)</td>
           <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4489f3ef16be4b0de008a76681633e4d" name="a4489f3ef16be4b0de008a76681633e4d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4489f3ef16be4b0de008a76681633e4d">&#9670;&#160;</a></span>setOption()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DdsHandler::setOption </td>
+          <td>(</td>
+          <td class="paramtype">ImageOption&#160;</td>
+          <td class="paramname"><em>option</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QVariant &amp;&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1accf0ac56246fc9b72f30e8e256a2eb" name="a1accf0ac56246fc9b72f30e8e256a2eb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1accf0ac56246fc9b72f30e8e256a2eb">&#9670;&#160;</a></span>supportsOption()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool DdsHandler::supportsOption </td>
+          <td>(</td>
+          <td class="paramtype">ImageOption&#160;</td>
+          <td class="paramname"><em>option</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
   </td>

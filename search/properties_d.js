@@ -28,9 +28,10 @@ var searchData=
   ['notesources_25',['noteSources',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#ae7a4505c0f3d47a20ca51a2cb78bfdf1',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]],
   ['nowbarfixed_26',['nowBarFixed',['../classLr2SelectNavigationController.html#ab6e34f7187ddb1bfa0565134b9a99a78',1,'Lr2SelectNavigationController']]],
   ['nowcombo_27',['nowCombo',['../structgameplay__logic_1_1lr2__skin_1_1Lr2SrcNumber.html#a9d634628e46ac2dbdac960c18c4a7f41',1,'gameplay_logic::lr2_skin::Lr2SrcNumber']]],
-  ['nowms_28',['nowMs',['../classLr2SkinClock.html#a55d6370f86f795484c25ea148e28f20a',1,'Lr2SkinClock']]],
-  ['num_29',['num',['../structgameplay__logic_1_1lr2__skin_1_1Lr2SrcNumber.html#a3afc2296c2e019d5d9c2bf75bedb6ca8',1,'gameplay_logic::lr2_skin::Lr2SrcNumber']]],
-  ['numberrefslider_30',['numberRefSlider',['../classLr2SkinElementDescriptorValue.html#a9bc5fc9368d33ebae5f4ec1cce5308b7',1,'Lr2SkinElementDescriptorValue']]],
-  ['numberusesfocusedselectstate_31',['numberUsesFocusedSelectState',['../classLr2SkinElementDescriptorValue.html#ac85f4f1a66de7359a5928f3e3f58ca66',1,'Lr2SkinElementDescriptorValue']]],
-  ['numerator_32',['numerator',['../classgameplay__logic_1_1Snap.html#a168c2251e9ea1c22e4faa90c07ac5379',1,'gameplay_logic::Snap']]]
+  ['nowjudge_28',['nowJudge',['../structgameplay__logic_1_1lr2__skin_1_1Lr2SrcImage.html#aacdf5d019ef93c7be406c40957a61003',1,'gameplay_logic::lr2_skin::Lr2SrcImage']]],
+  ['nowms_29',['nowMs',['../classLr2SkinClock.html#a55d6370f86f795484c25ea148e28f20a',1,'Lr2SkinClock']]],
+  ['num_30',['num',['../structgameplay__logic_1_1lr2__skin_1_1Lr2SrcNumber.html#a3afc2296c2e019d5d9c2bf75bedb6ca8',1,'gameplay_logic::lr2_skin::Lr2SrcNumber']]],
+  ['numberrefslider_31',['numberRefSlider',['../classLr2SkinElementDescriptorValue.html#a9bc5fc9368d33ebae5f4ec1cce5308b7',1,'Lr2SkinElementDescriptorValue']]],
+  ['numberusesfocusedselectstate_32',['numberUsesFocusedSelectState',['../classLr2SkinElementDescriptorValue.html#ac85f4f1a66de7359a5928f3e3f58ca66',1,'Lr2SkinElementDescriptorValue']]],
+  ['numerator_33',['numerator',['../classgameplay__logic_1_1Snap.html#a168c2251e9ea1c22e4faa90c07ac5379',1,'gameplay_logic::Snap']]]
 ];

@@ -105,6 +105,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a69ae532ce8431c78209893a6f0639f8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeeadac86b2421019ee009502167b6540" id="r_aeeadac86b2421019ee009502167b6540"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTgaHandler.html#aeeadac86b2421019ee009502167b6540">read</a> (QImage *image) override</td></tr>
 <tr class="separator:aeeadac86b2421019ee009502167b6540"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9cdefdcd9fec1acf771b26543fd1eead" id="r_a9cdefdcd9fec1acf771b26543fd1eead"><td class="memItemLeft" align="right" valign="top">QVariant&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTgaHandler.html#a9cdefdcd9fec1acf771b26543fd1eead">option</a> (ImageOption option) const override</td></tr>
+<tr class="separator:a9cdefdcd9fec1acf771b26543fd1eead"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f73df982beaa13ac2660874aab48446" id="r_a1f73df982beaa13ac2660874aab48446"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTgaHandler.html#a1f73df982beaa13ac2660874aab48446">setOption</a> (ImageOption <a class="el" href="classTgaHandler.html#a9cdefdcd9fec1acf771b26543fd1eead">option</a>, const QVariant &amp;<a class="el" href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">value</a>) override</td></tr>
+<tr class="separator:a1f73df982beaa13ac2660874aab48446"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7541ac674907a1fa2856ee3073baf1fe" id="r_a7541ac674907a1fa2856ee3073baf1fe"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTgaHandler.html#a7541ac674907a1fa2856ee3073baf1fe">supportsOption</a> (ImageOption <a class="el" href="classTgaHandler.html#a9cdefdcd9fec1acf771b26543fd1eead">option</a>) const override</td></tr>
+<tr class="separator:a7541ac674907a1fa2856ee3073baf1fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -163,6 +169,32 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a9cdefdcd9fec1acf771b26543fd1eead" name="a9cdefdcd9fec1acf771b26543fd1eead"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9cdefdcd9fec1acf771b26543fd1eead">&#9670;&#160;</a></span>option()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QVariant TgaHandler::option </td>
+          <td>(</td>
+          <td class="paramtype">ImageOption&#160;</td>
+          <td class="paramname"><em>option</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aeeadac86b2421019ee009502167b6540" name="aeeadac86b2421019ee009502167b6540"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aeeadac86b2421019ee009502167b6540">&#9670;&#160;</a></span>read()</h2>
 
@@ -178,6 +210,68 @@ Static Public Member Functions</h2></td></tr>
           <td class="paramtype">QImage *&#160;</td>
           <td class="paramname"><em>image</em></td><td>)</td>
           <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1f73df982beaa13ac2660874aab48446" name="a1f73df982beaa13ac2660874aab48446"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f73df982beaa13ac2660874aab48446">&#9670;&#160;</a></span>setOption()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TgaHandler::setOption </td>
+          <td>(</td>
+          <td class="paramtype">ImageOption&#160;</td>
+          <td class="paramname"><em>option</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QVariant &amp;&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7541ac674907a1fa2856ee3073baf1fe" name="a7541ac674907a1fa2856ee3073baf1fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7541ac674907a1fa2856ee3073baf1fe">&#9670;&#160;</a></span>supportsOption()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool TgaHandler::supportsOption </td>
+          <td>(</td>
+          <td class="paramtype">ImageOption&#160;</td>
+          <td class="paramname"><em>option</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
   </td>

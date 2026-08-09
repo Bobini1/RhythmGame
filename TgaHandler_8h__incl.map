@@ -1,5 +1,7 @@
 <map id="src/tgaplugin/TgaHandler.h" name="src/tgaplugin/TgaHandler.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,201,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="34,79,173,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,31,106,65,101,65,101,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="38,5,234,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,144,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,33,96,70,92,66,124,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="168,79,229,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="148,29,181,66,177,70,144,33"/>
 </map>

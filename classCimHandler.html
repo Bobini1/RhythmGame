@@ -105,6 +105,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a4f9db8e043c1853963b0fc0da45b245c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae3ca95f72237c16e1976e0bd0a827cfc" id="r_ae3ca95f72237c16e1976e0bd0a827cfc"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCimHandler.html#ae3ca95f72237c16e1976e0bd0a827cfc">read</a> (QImage *image) override</td></tr>
 <tr class="separator:ae3ca95f72237c16e1976e0bd0a827cfc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1fc65b35a1f2f1a0047c65d48559c5e3" id="r_a1fc65b35a1f2f1a0047c65d48559c5e3"><td class="memItemLeft" align="right" valign="top">QVariant&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCimHandler.html#a1fc65b35a1f2f1a0047c65d48559c5e3">option</a> (ImageOption option) const override</td></tr>
+<tr class="separator:a1fc65b35a1f2f1a0047c65d48559c5e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2052b68d1eb0d5dfccf1f9d81f57996" id="r_ae2052b68d1eb0d5dfccf1f9d81f57996"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCimHandler.html#ae2052b68d1eb0d5dfccf1f9d81f57996">setOption</a> (ImageOption <a class="el" href="classCimHandler.html#a1fc65b35a1f2f1a0047c65d48559c5e3">option</a>, const QVariant &amp;<a class="el" href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">value</a>) override</td></tr>
+<tr class="separator:ae2052b68d1eb0d5dfccf1f9d81f57996"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8c3fb5a35f86fef145e689816c18802" id="r_aa8c3fb5a35f86fef145e689816c18802"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCimHandler.html#aa8c3fb5a35f86fef145e689816c18802">supportsOption</a> (ImageOption <a class="el" href="classCimHandler.html#a1fc65b35a1f2f1a0047c65d48559c5e3">option</a>) const override</td></tr>
+<tr class="separator:aa8c3fb5a35f86fef145e689816c18802"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -163,6 +169,32 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a1fc65b35a1f2f1a0047c65d48559c5e3" name="a1fc65b35a1f2f1a0047c65d48559c5e3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1fc65b35a1f2f1a0047c65d48559c5e3">&#9670;&#160;</a></span>option()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QVariant CimHandler::option </td>
+          <td>(</td>
+          <td class="paramtype">ImageOption&#160;</td>
+          <td class="paramname"><em>option</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ae3ca95f72237c16e1976e0bd0a827cfc" name="ae3ca95f72237c16e1976e0bd0a827cfc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae3ca95f72237c16e1976e0bd0a827cfc">&#9670;&#160;</a></span>read()</h2>
 
@@ -178,6 +210,68 @@ Static Public Member Functions</h2></td></tr>
           <td class="paramtype">QImage *&#160;</td>
           <td class="paramname"><em>image</em></td><td>)</td>
           <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae2052b68d1eb0d5dfccf1f9d81f57996" name="ae2052b68d1eb0d5dfccf1f9d81f57996"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2052b68d1eb0d5dfccf1f9d81f57996">&#9670;&#160;</a></span>setOption()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void CimHandler::setOption </td>
+          <td>(</td>
+          <td class="paramtype">ImageOption&#160;</td>
+          <td class="paramname"><em>option</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QVariant &amp;&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa8c3fb5a35f86fef145e689816c18802" name="aa8c3fb5a35f86fef145e689816c18802"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8c3fb5a35f86fef145e689816c18802">&#9670;&#160;</a></span>supportsOption()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool CimHandler::supportsOption </td>
+          <td>(</td>
+          <td class="paramtype">ImageOption&#160;</td>
+          <td class="paramname"><em>option</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
   </td>

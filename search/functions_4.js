@@ -37,7 +37,7 @@ var searchData=
   ['executeandgetall_34',['executeAndGetAll',['../classdb_1_1SqliteCppDb_1_1Statement.html#af3d824cd22b6aa07a7c45320f1f8cbca',1,'db::SqliteCppDb::Statement']]],
   ['exhard_35',['exhard',['../classLr2SelectScoreCounts.html#af5fc9828ee1e7f97f3ceac1a5e03aba2',1,'Lr2SelectScoreCounts']]],
   ['exitarena_36',['exitArena',['../classarena_1_1ArenaSession.html#af3c580d5f9a3d2c8794d909f278edec1',1,'arena::ArenaSession']]],
-  ['exscore_37',['exscore',['../classLr2SelectScoreStats.html#ac7f07822d23ca09764e7361cc1c071d2',1,'Lr2SelectScoreStats::exscore()'],['../classarena_1_1ArenaOpponentTarget.html#ada9187517e9180915a9ff087e03739bd',1,'arena::ArenaOpponentTarget::exScore()']]],
+  ['exscore_37',['exscore',['../classarena_1_1ArenaOpponentTarget.html#ada9187517e9180915a9ff087e03739bd',1,'arena::ArenaOpponentTarget::exScore()'],['../classLr2SelectScoreStats.html#ac7f07822d23ca09764e7361cc1c071d2',1,'Lr2SelectScoreStats::exscore()']]],
   ['extractdxatofile_38',['extractDxaToFile',['../namespacesupport.html#affbabac25c1b9d90cbbc4c5108f195ba',1,'support']]],
   ['extractdxatomem_39',['extractDxaToMem',['../namespacesupport.html#a92b933e74e0eba9efda6b62661999a9a',1,'support']]]
 ];
