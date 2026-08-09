@@ -249,7 +249,7 @@ Item {
     }
     readonly property bool stackScreenActive: screenState.stackActive
     readonly property bool screenUpdatesActive: screenState.updatesActive
-    readonly property int lr2CurrentFps: skinTiming.currentFps
+    readonly property int lr2CurrentFps: Rg.programSettings.presentationFps
     readonly property var lr2InitialClockNow: wallClockState.initialNow
     property alias skinTimingRef: skinTiming
     property alias skinTimerStateRef: skinTiming.skinTimerStateRef
@@ -3748,6 +3748,25 @@ Item {
     function gameplayJudgementOption(side: var, baseOption: var) : var {
         let judgement = side === 2 ? root.gameplayLastJudgement2 : root.gameplayLastJudgement1;
         return judgement >= 0 && judgement <= 5 ? baseOption + (5 - judgement) : -1;
+    }
+
+    function gameplayNowJudgeSourceMatches(side: var, index: var) : var {
+        if (index < 0 || index > 6) {
+            return false;
+        }
+        let scoreSide = side === 2 ? 2 : 1;
+        let judgement = scoreSide === 2
+            ? root.gameplayLastJudgement2
+            : root.gameplayLastJudgement1;
+        let maxGauge = root.gameplayGaugeValue(root.gameplayScore(scoreSide)) >= 100;
+        let hasMaxGaugeVariant = scoreSide === 2
+            ? skinModel.hasNowJudgeMaxGaugeVariant2
+            : skinModel.hasNowJudgeMaxGaugeVariant1;
+        if (index === 6) {
+            return judgement === Judgement.Perfect && maxGauge;
+        }
+        return judgement === index
+            && !(index === Judgement.Perfect && maxGauge && hasMaxGaugeVariant);
     }
 
     function judgementCountForExist(resultOrScore: var, judgement: var) : var {

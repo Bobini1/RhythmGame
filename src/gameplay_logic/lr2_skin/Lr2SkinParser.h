@@ -109,8 +109,10 @@ struct Lr2SrcImage
     Q_PROPERTY(int hiddenDisappearLine MEMBER hiddenDisappearLine)
     Q_PROPERTY(bool hiddenDisappearLineLinkLift MEMBER hiddenDisappearLineLinkLift)
     Q_PROPERTY(bool grooveGaugeEx MEMBER grooveGaugeEx)
+    Q_PROPERTY(bool nowJudge MEMBER nowJudge)
     Q_PROPERTY(int specialType MEMBER specialType)
     Q_PROPERTY(int side MEMBER side)
+    Q_PROPERTY(int judgementIndex MEMBER judgementIndex)
     Q_PROPERTY(QString debugLabel MEMBER debugLabel)
     Q_PROPERTY(QString source MEMBER source)
   public:
@@ -167,8 +169,10 @@ struct Lr2SrcImage
     int hiddenDisappearLine = -1;
     bool hiddenDisappearLineLinkLift = true;
     bool grooveGaugeEx = false;
+    bool nowJudge = false;
     int specialType = None;
     int side = 0;
+    int judgementIndex = -1;
     QString debugLabel;
     QString source;
 

@@ -232,6 +232,16 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 #endif
     set_default_logger(logger);
 
+    if (!qEnvironmentVariableIsSet("QSG_NO_VSYNC")) {
+        qputenv("QSG_NO_VSYNC", QByteArray("1"));
+    }
+    if (!qEnvironmentVariableIsSet("QT_QPA_UPDATE_IDLE_TIME")) {
+        qputenv("QT_QPA_UPDATE_IDLE_TIME", QByteArray("0"));
+    }
+    if (!qEnvironmentVariableIsSet("QSG_USE_SIMPLE_ANIMATION_DRIVER")) {
+        qputenv("QSG_USE_SIMPLE_ANIMATION_DRIVER", QByteArray("1"));
+    }
+
     auto app = input::CustomNotifyApp{ argc, argv };
 
     auto appPath =
@@ -744,6 +754,12 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         if (engine.rootObjects().isEmpty()) {
             throw std::runtime_error{ "Failed to load main qml" };
         }
+        auto* rootWindow =
+          qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst());
+        if (rootWindow == nullptr) {
+            throw std::runtime_error{ "Main QML root is not a QQuickWindow" };
+        }
+        programSettings.attachFrameRateLimiter(rootWindow);
         app.setInputTranslator(&inputTranslator);
 
         return app.exec();

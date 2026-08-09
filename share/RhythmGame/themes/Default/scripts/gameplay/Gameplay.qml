@@ -499,16 +499,10 @@ Rectangle {
 
         Text {
             color: "white"
-            text: "fps: " + frameAnimation.fps.toFixed(0)
+            text: "fps: " + Rg.programSettings.presentationFps
             anchors.top: parent.top
             anchors.right: parent.right
             textFormat: Text.PlainText
-        }
-
-        FrameAnimation {
-            id: frameAnimation
-            property real fps: smoothFrameTime > 0 ? (1.0 / smoothFrameTime) : 0
-            running: true
         }
 
         BgaRenderer {

@@ -312,10 +312,11 @@ Loader {
             readonly property var nowJudgeSource: elemLoader.elementData.src
             readonly property bool nowJudgeSprite: elemLoader.screenRoot.gameplayScreenActive
                 && !!nowJudgeSource
-                && (nowJudgeSource.timer === 46 || nowJudgeSource.timer === 47)
-                && (nowJudgeSource.w || 0) > 0
-                && (nowJudgeSource.h || 0) > 0
-                && (nowJudgeSource.op1 || 0) === 0
+                && !!nowJudgeSource.nowJudge
+            readonly property bool hiddenByNowJudge: nowJudgeSprite
+                && !elemLoader.screenRoot.gameplayNowJudgeSourceMatches(
+                    nowJudgeSource.side,
+                    nowJudgeSource.judgementIndex)
             readonly property int nowJudgeCombo: nowJudgeSprite
                 ? (nowJudgeSource.timer === 47
                     ? elemLoader.screenRoot.gameplayJudgeCombo2
@@ -329,6 +330,7 @@ Loader {
                 : (nowJudgeSource ? nowJudgeSource.h || 30 : 30)
             readonly property int nowJudgeComboDigitWidth: Math.max(1, Math.round(nowJudgeBaseHeight * 22 / 30))
             readonly property real nowJudgeOffsetX: nowJudgeCombo > 0
+                && (nowJudgeSource.op1 || 0) !== 1
                 ? -Math.abs(Math.round(nowJudgeCombo)).toString().length * nowJudgeComboDigitWidth * 0.5
                 : 0
             readonly property int scratchRotationSide: elementState.scratchRotationSide
@@ -414,6 +416,7 @@ Loader {
                     : elemLoader.screenRoot.gameplayDstOffsetHiddenA1
                 forceHidden: imageComponentRoot.hiddenBySelectHover
                     || imageComponentRoot.buttonFrameOverrideValue < -1
+                    || imageComponentRoot.hiddenByNowJudge
                 scratchAngle1: imageComponentRoot.scratchRotationSide === 1 ? playContext.scratchAngle1 : 0
                 scratchAngle2: imageComponentRoot.scratchRotationSide === 2 ? playContext.scratchAngle2 : 0
             }
@@ -792,14 +795,11 @@ Loader {
             readonly property int nowComboSide: numberUsesNowCombo
                 ? (numberSrc.side || (numberSrc.timer === 47 ? 2 : 1))
                 : 0
-            readonly property int nowComboJudgement: !numberUsesNowCombo
-                ? -1
-                : (nowComboSide === 2
-                ? elemLoader.screenRoot.gameplayLastJudgement2
-                : elemLoader.screenRoot.gameplayLastJudgement1)
             readonly property bool hiddenByNowCombo: numberUsesNowCombo
                 && (currentNumberValue <= 0
-                    || (numberSrc.judgementIndex >= 0 && nowComboJudgement !== numberSrc.judgementIndex))
+                    || !elemLoader.screenRoot.gameplayNowJudgeSourceMatches(
+                        nowComboSide,
+                        numberSrc.judgementIndex))
             dsts: elemLoader.elementData.dsts
             srcData: numberSrc
             skinTime: elemLoader.useDirectElementSkinClock && !numberSourceAnimates ? 0 : elemLoader.elementSkinTime

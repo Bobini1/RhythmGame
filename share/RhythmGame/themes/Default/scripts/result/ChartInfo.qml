@@ -97,7 +97,7 @@ WindowBg {
                 Layout.alignment: Qt.AlignVCenter
             }
             ResultNumberText {
-                text: chartInfo.total || "-"
+                text: chartInfo.total ? Math.round(chartInfo.total) : "-"
                 font: chartInfoFont.uiFont({
                     weight: chartInfoFont.fontWeight,
                     variableAxes: chartInfoFont.variableAxes,

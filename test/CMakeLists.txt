@@ -31,6 +31,7 @@ add_executable(RhythmGame_test
         charts/BmsChartReader.test.cpp
         db/SqliteCppDb.test.cpp
         sounds/OpenAlSound.test.cpp
+        image_handlers/ImageHandlerClip.test.cpp
         findTestAssetsFolder.h
         charts/BmsChart.test.cpp
         resource_managers/loadBmsSounds.test.cpp
@@ -58,6 +59,9 @@ target_link_libraries(
         RhythmGame_lib
         RhythmGame_qml
         RhythmGame_lr2_qml
+        dds
+        tga
+        cim
         Catch2::Catch2WithMain
 )
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)

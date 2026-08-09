@@ -191,7 +191,15 @@ Item {
             return 0.5;
         }
     }
-    readonly property bool isSolidFill: !!root.srcData && root.srcData.specialType === 2
+    readonly property bool isSolidBlack: !!root.srcData && root.srcData.specialType === 2
+    readonly property bool isSolidWhite: !!root.srcData && root.srcData.specialType === 5
+    readonly property bool isSolidFill: root.isSolidBlack || root.isSolidWhite
+    readonly property color solidFillColor: root.isSolidWhite ? root.tintColor : "black"
+    // Built-in GR 110/111 sources still need a texture provider so they use
+    // the same LR2 blend implementation as image-backed sprites.
+    readonly property url solidFillTextureSource: root.isSolidFill
+        ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQAAAAA3bvkkAAAACklEQVQI12NoAAAAggCB3UNq9AAAAABJRU5ErkJggg=="
+        : ""
     readonly property bool isHiddenCover: !!root.srcData && !!root.srcData.hiddenCover
     readonly property bool hiddenLineLinksLift: !root.srcData
         || root.srcData.hiddenDisappearLineLinkLift === undefined
@@ -457,11 +465,6 @@ Item {
             smooth: drawState.hasState && drawState.filter !== 0
             mipmap: false
             visible: root.useFastImagePath && status === Image.Ready
-            onStatusChanged: {
-                if (status === Image.Ready) {
-                    root.updateLoadedTextureSize(implicitWidth, implicitHeight);
-                }
-            }
         }
 
         Image {
@@ -475,34 +478,78 @@ Item {
             visible: false
             onStatusChanged: {
                 if (status === Image.Ready) {
+                    // Source bounds must come from this uncropped image. The
+                    // fast path's implicit size is only the decoded clip.
                     root.updateLoadedTextureSize(implicitWidth, implicitHeight);
                 }
             }
         }
 
-        ShaderEffect {
-            anchors.fill: parent
-            visible: root.hasDrawableTexture && !root.useFastImagePath && atlasImage.status === Image.Ready
-            blending: true
-            supportsAtlasTextures: true
-            property var source: atlasImage
-            property color tint: root.tintColor
-            property color transColor: root.transColor
-            property real blendMode: root.blendMode
-            property real colorKeyEnabled: root.effectiveColorKeyEnabled ? 1.0 : 0.0
-            property real tolerance: 0.001
-            property real nearestMode: drawState.hasState && drawState.filter === 0 ? 1.0 : 0.0
-            property vector2d sourceSize: Qt.vector2d(
+        Image {
+            id: solidFillImage
+            source: root.solidFillTextureSource
+            sourceSize.width: 1
+            sourceSize.height: 1
+            cache: true
+            asynchronous: false
+            visible: false
+        }
+
+        readonly property var effectSource: root.isSolidFill ? solidFillImage : atlasImage
+        readonly property bool effectSourceReady: root.isSolidFill
+            ? solidFillImage.status === Image.Ready
+            : atlasImage.status === Image.Ready
+        readonly property rect effectSourceClipRect: root.isSolidFill
+            ? Qt.rect(0, 0, 1, 1)
+            : root.effectiveSourceClipRect
+        readonly property vector4d effectSourceRect: root.isSolidFill
+            ? Qt.vector4d(0, 0, 1, 1)
+            : root.effectiveSourceRect
+        readonly property vector2d effectSourceSize: root.isSolidFill
+            ? Qt.vector2d(1, 1)
+            : Qt.vector2d(
                 Math.max(1, atlasImage.implicitWidth),
                 Math.max(1, atlasImage.implicitHeight))
-            property vector4d sourceRect: root.effectiveSourceRect
+        readonly property color effectTint: root.isSolidFill
+            ? root.solidFillColor
+            : root.tintColor
+        readonly property bool effectColorKeyEnabled: !root.isSolidFill
+            && root.effectiveColorKeyEnabled
+
+        ShaderEffect {
+            anchors.fill: parent
+            visible: (root.hasDrawableTexture || root.isSolidFill)
+                && !root.useFastImagePath
+                && !customBlendSprite.supportedBlendMode
+                && sprite.effectSourceReady
+            blending: true
+            supportsAtlasTextures: true
+            property var source: sprite.effectSource
+            property color tint: sprite.effectTint
+            property color transColor: root.transColor
+            property real blendMode: root.blendMode
+            property real colorKeyEnabled: sprite.effectColorKeyEnabled ? 1.0 : 0.0
+            property real tolerance: 0.001
+            property real nearestMode: drawState.hasState && drawState.filter === 0 ? 1.0 : 0.0
+            property vector2d sourceSize: sprite.effectSourceSize
+            property vector4d sourceRect: sprite.effectSourceRect
             fragmentShader: "qrc:/Lr2/Lr2SpriteAtlas.frag.qsb"
         }
 
-        Rectangle {
-            visible: root.isSolidFill || (!!root.srcData && root.srcData.specialType === 5)
+        Lr2BlendSprite {
+            id: customBlendSprite
             anchors.fill: parent
-            color: root.srcData && root.srcData.specialType === 5 ? root.tintColor : "black"
+            visible: (root.hasDrawableTexture || root.isSolidFill)
+                && !root.useFastImagePath
+                && supportedBlendMode
+                && sprite.effectSourceReady
+            source: sprite.effectSource
+            sourceRect: sprite.effectSourceClipRect
+            tint: sprite.effectTint
+            transColor: root.transColor
+            colorKeyEnabled: sprite.effectColorKeyEnabled
+            smooth: drawState.hasState && drawState.filter !== 0
+            blendMode: root.blendMode
         }
     }
 }

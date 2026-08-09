@@ -646,6 +646,10 @@ Item {
         return item instanceof ChartData;
     }
 
+    function folderForHistoryItem(item: var) : var {
+        return isChart(item) ? item.chartDirectory : item;
+    }
+
     function isEntry(item: var) : var {
         return item instanceof entry;
     }
@@ -1356,7 +1360,9 @@ Item {
     }
 
     function refreshScores() : var {
-        let folder = historyStack.length > 0 ? historyStack[historyStack.length - 1] : "";
+        let folder = historyStack.length > 0
+            ? folderForHistoryItem(historyStack[historyStack.length - 1])
+            : "";
         let scoreDb = Rg.profileList.mainProfile.scoreDb;
         cancelScoreDbReplies();
         if (!folderContentsNeedFullScores()) {
@@ -1422,6 +1428,7 @@ Item {
     }
 
     function open(item: var, initialItem: var) : var {
+        item = folderForHistoryItem(item);
         let folder;
         if (isTable(item)) {
             folder = [...item.levels, ...classCoursesForTable(item)];
@@ -3529,8 +3536,9 @@ Item {
         hideRanking();
         difficultyFilter = 0;
         let directory = currentChart.chartDirectory;
-        if (historyStack.length === 0 || historyStack[historyStack.length - 1] !== directory) {
-            historyStack = historyStack.concat([directory]);
+        if (historyStack.length === 0
+                || folderForHistoryItem(historyStack[historyStack.length - 1]) !== directory) {
+            historyStack = historyStack.concat([currentChart]);
         }
         folderContents = [...folder];
         rebuildFolderIndexes(folderContents);

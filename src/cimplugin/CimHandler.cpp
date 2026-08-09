@@ -190,37 +190,69 @@ CimHandler::read(QImage* image)
     const auto imageWidth = static_cast<int>(width);
     const auto imageHeight = static_cast<int>(height);
 
+    QImage result;
     if (bpp == 4) {
         const QImage wrapped(pixels,
                              imageWidth,
                              imageHeight,
                              imageWidth * 4,
                              QImage::Format_RGBA8888);
-        *image = wrapped.copy();
-        return !image->isNull();
-    }
-
-    if (bpp == 3) {
+        result = wrapped.copy();
+    } else if (bpp == 3) {
         const QImage wrapped(pixels,
                              imageWidth,
                              imageHeight,
                              imageWidth * 3,
                              QImage::Format_RGB888);
-        *image = wrapped.copy();
-        return !image->isNull();
-    }
-
-    QImage result(imageWidth, imageHeight, QImage::Format_RGBA8888);
-    if (result.isNull()) {
-        return false;
-    }
-
-    if (bpp == 2) {
-        copyRgb565ToRgba(result, pixels);
+        result = wrapped.copy();
     } else {
-        copyGrayToRgba(result, pixels);
+        result = QImage(imageWidth, imageHeight, QImage::Format_RGBA8888);
+        if (result.isNull()) {
+            return false;
+        }
+
+        if (bpp == 2) {
+            copyRgb565ToRgba(result, pixels);
+        } else {
+            copyGrayToRgba(result, pixels);
+        }
+    }
+
+    if (m_clipRect.isValid()) {
+        result = result.copy(m_clipRect);
+    }
+    if (m_scaledClipRect.isValid()) {
+        result = result.copy(m_scaledClipRect);
     }
 
     *image = result;
-    return true;
+    return !image->isNull();
+}
+
+QVariant
+CimHandler::option(const ImageOption option) const
+{
+    if (option == ClipRect) {
+        return m_clipRect;
+    }
+    if (option == ScaledClipRect) {
+        return m_scaledClipRect;
+    }
+    return {};
+}
+
+void
+CimHandler::setOption(const ImageOption option, const QVariant& value)
+{
+    if (option == ClipRect) {
+        m_clipRect = value.toRect();
+    } else if (option == ScaledClipRect) {
+        m_scaledClipRect = value.toRect();
+    }
+}
+
+bool
+CimHandler::supportsOption(const ImageOption option) const
+{
+    return option == ClipRect || option == ScaledClipRect;
 }

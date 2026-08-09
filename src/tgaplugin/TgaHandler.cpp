@@ -102,8 +102,42 @@ TgaHandler::read(QImage* image)
           result.scanLine(y), sourcePixels + y * converted->pitch, bytesToCopy);
     }
 
-    *image = result;
     SDL_FreeSurface(converted);
 
-    return true;
+    if (m_clipRect.isValid()) {
+        result = result.copy(m_clipRect);
+    }
+    if (m_scaledClipRect.isValid()) {
+        result = result.copy(m_scaledClipRect);
+    }
+    *image = result;
+    return !image->isNull();
+}
+
+QVariant
+TgaHandler::option(const ImageOption option) const
+{
+    if (option == ClipRect) {
+        return m_clipRect;
+    }
+    if (option == ScaledClipRect) {
+        return m_scaledClipRect;
+    }
+    return {};
+}
+
+void
+TgaHandler::setOption(const ImageOption option, const QVariant& value)
+{
+    if (option == ClipRect) {
+        m_clipRect = value.toRect();
+    } else if (option == ScaledClipRect) {
+        m_scaledClipRect = value.toRect();
+    }
+}
+
+bool
+TgaHandler::supportsOption(const ImageOption option) const
+{
+    return option == ClipRect || option == ScaledClipRect;
 }

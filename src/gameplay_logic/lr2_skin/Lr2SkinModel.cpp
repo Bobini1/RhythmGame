@@ -238,6 +238,19 @@ hasSelectDifficultySourceElement(const QList<Lr2Element>& elements)
       });
 }
 
+bool
+hasNowJudgeMaxGaugeVariant(const QList<Lr2Element>& elements, const int side)
+{
+    return std::ranges::any_of(elements, [side](const Lr2Element& element) {
+        if (element.type != 0 || !element.src.canConvert<Lr2SrcImage>()) {
+            return false;
+        }
+        const auto source = element.src.value<Lr2SrcImage>();
+        return !element.dsts.isEmpty() && source.nowJudge &&
+               source.side == side && source.judgementIndex == 6;
+    });
+}
+
 QSet<int>
 optionIdSet(const QVariantList& options)
 {
@@ -687,6 +700,18 @@ Lr2SkinModel::usesSelectDifficultySource() const
     return m_usesSelectDifficultySource;
 }
 
+bool
+Lr2SkinModel::hasNowJudgeMaxGaugeVariant1() const
+{
+    return m_hasNowJudgeMaxGaugeVariant1;
+}
+
+bool
+Lr2SkinModel::hasNowJudgeMaxGaugeVariant2() const
+{
+    return m_hasNowJudgeMaxGaugeVariant2;
+}
+
 int
 Lr2SkinModel::barCenter() const
 {
@@ -863,6 +888,7 @@ Lr2SkinModel::loadSkin()
           m_hasTransColor || m_reloadBanner || m_usesStageFileSource ||
           m_usesBackBmpSource || m_usesBannerSource ||
           m_usesSelectChartRenderer || m_usesSelectDifficultySource ||
+          m_hasNowJudgeMaxGaugeVariant1 || m_hasNowJudgeMaxGaugeVariant2 ||
           m_barCenter != 0 || m_barAvailableStart != 0 ||
           m_barAvailableEnd != -1 || !m_noteSources.isEmpty() ||
           !m_mineSources.isEmpty() || !m_lnStartSources.isEmpty() ||
@@ -894,6 +920,8 @@ Lr2SkinModel::loadSkin()
         m_usesBannerSource = false;
         m_usesSelectChartRenderer = false;
         m_usesSelectDifficultySource = false;
+        m_hasNowJudgeMaxGaugeVariant1 = false;
+        m_hasNowJudgeMaxGaugeVariant2 = false;
         m_startInput = 0;
         m_sceneTime = 0;
         m_loadStart = 0;
@@ -997,6 +1025,10 @@ Lr2SkinModel::applySkinData(Lr2SkinData skinData)
       hasSelectChartRendererElement(skinData.elements);
     const bool usesSelectDifficultySource =
       hasSelectDifficultySourceElement(skinData.elements);
+    const bool hasNowJudgeMaxGaugeVariant1 =
+      hasNowJudgeMaxGaugeVariant(skinData.elements, 1);
+    const bool hasNowJudgeMaxGaugeVariant2 =
+      hasNowJudgeMaxGaugeVariant(skinData.elements, 2);
     const bool metadataChanged =
       m_startInput != skinData.startInput ||
       m_sceneTime != skinData.sceneTime || m_loadStart != skinData.loadStart ||
@@ -1026,6 +1058,8 @@ Lr2SkinModel::applySkinData(Lr2SkinData skinData)
       m_usesBannerSource != chartAssetUsage.banner ||
       m_usesSelectChartRenderer != usesSelectChartRenderer ||
       m_usesSelectDifficultySource != usesSelectDifficultySource ||
+      m_hasNowJudgeMaxGaugeVariant1 != hasNowJudgeMaxGaugeVariant1 ||
+      m_hasNowJudgeMaxGaugeVariant2 != hasNowJudgeMaxGaugeVariant2 ||
       m_barCenter != skinData.barCenter ||
       m_barAvailableStart != skinData.barAvailableStart ||
       m_barAvailableEnd != skinData.barAvailableEnd ||
@@ -1075,6 +1109,8 @@ Lr2SkinModel::applySkinData(Lr2SkinData skinData)
     m_usesBannerSource = chartAssetUsage.banner;
     m_usesSelectChartRenderer = usesSelectChartRenderer;
     m_usesSelectDifficultySource = usesSelectDifficultySource;
+    m_hasNowJudgeMaxGaugeVariant1 = hasNowJudgeMaxGaugeVariant1;
+    m_hasNowJudgeMaxGaugeVariant2 = hasNowJudgeMaxGaugeVariant2;
     m_barCenter = skinData.barCenter;
     m_barAvailableStart = skinData.barAvailableStart;
     m_barAvailableEnd = skinData.barAvailableEnd;

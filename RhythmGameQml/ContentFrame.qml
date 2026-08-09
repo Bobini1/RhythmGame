@@ -114,9 +114,6 @@ ApplicationWindow {
         property Item activeArenaGameplayItem: null
         property var activeArenaGameplayRunner: null
         property bool fpsOverlayVisible: false
-        property int fpsOverlayValue: -1
-        property int fpsOverlayFrameCount: 0
-        property double fpsOverlayLastSampleMs: 0
 
         function isFullScreen(): var {
             return contentContainer.visibility === Window.FullScreen;
@@ -132,9 +129,6 @@ ApplicationWindow {
 
         function toggleFpsOverlay(): void {
             fpsOverlayVisible = !fpsOverlayVisible;
-            fpsOverlayValue = -1;
-            fpsOverlayFrameCount = 0;
-            fpsOverlayLastSampleMs = 0;
         }
 
         function normalizeLocalPath(path: var): var {
@@ -774,28 +768,6 @@ ApplicationWindow {
                 debugLogLoader.active = !debugLogLoader.active;
             }
         }
-        FrameAnimation {
-            running: globalRoot.fpsOverlayVisible
-
-            onTriggered: {
-                let now = Date.now();
-                if (globalRoot.fpsOverlayLastSampleMs <= 0) {
-                    globalRoot.fpsOverlayLastSampleMs = now;
-                    globalRoot.fpsOverlayFrameCount = 0;
-                    return;
-                }
-                globalRoot.fpsOverlayFrameCount += 1;
-                let elapsed = now - globalRoot.fpsOverlayLastSampleMs;
-                if (globalRoot.fpsOverlayValue < 0 && elapsed > 0) {
-                    globalRoot.fpsOverlayValue = Math.round(1000 / elapsed);
-                }
-                if (elapsed >= 500) {
-                    globalRoot.fpsOverlayValue = Math.round(globalRoot.fpsOverlayFrameCount * 1000 / elapsed);
-                    globalRoot.fpsOverlayFrameCount = 0;
-                    globalRoot.fpsOverlayLastSampleMs = now;
-                }
-            }
-        }
         Rectangle {
             anchors.left: parent.left
             anchors.top: parent.top
@@ -815,7 +787,9 @@ ApplicationWindow {
                 color: "white"
                 font.bold: true
                 font.pixelSize: 18
-                text: (globalRoot.fpsOverlayValue >= 0 ? globalRoot.fpsOverlayValue : "--") + " FPS"
+                text: (Rg.programSettings.presentationFps > 0
+                    ? Rg.programSettings.presentationFps
+                    : "--") + " FPS"
             }
         }
     }

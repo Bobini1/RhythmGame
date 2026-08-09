@@ -737,8 +737,7 @@ int Lr2TimelineFrameState::normalizedBlendMode(int rawBlendMode) const {
     if (rawBlendMode == 10 && !m_supportsInvertedBlend) {
         return 1;
     }
-    if (rawBlendMode == 3 || rawBlendMode == 4 || rawBlendMode == 5 ||
-        rawBlendMode == 6 || rawBlendMode == 9 || rawBlendMode == 11) {
+    if (rawBlendMode == 6 || rawBlendMode == 11) {
         return 1;
     }
     return rawBlendMode;

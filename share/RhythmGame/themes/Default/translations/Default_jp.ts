@@ -1468,51 +1468,61 @@
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="229"/>
+        <source>Maximum FPS</source>
+        <translation>最大FPS</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="230"/>
+        <source>Set to 0 for unlimited.</source>
+        <translation>0に設定すると無制限になります。</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="242"/>
         <source>BGA On</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="238"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="251"/>
         <source>Normal;Extend</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="239"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="252"/>
         <source>LR2 BGA Size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="247"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="260"/>
         <source>Score Graph</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="256"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="269"/>
         <source>Off;Type A;Type B;Type C</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="257"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="270"/>
         <source>Ghost Position</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="287"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="300"/>
         <source>Play defaults</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="295"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="308"/>
         <source>Newest;Best Score;Best Clear;Best Combo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="296"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="309"/>
         <source>Replay Type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="266"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="279"/>
         <source>Percentage;Best Score;Last Score;Next Rank</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1527,68 +1537,68 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="267"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="280"/>
         <source>Score Target Type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="275"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="288"/>
         <source>Target Score Percentage</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="305"/>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="316"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="318"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="329"/>
         <source>Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="306"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="319"/>
         <source>Note Order Algorithm</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="317"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="330"/>
         <source>Note Order Algorithm P2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="327"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="340"/>
         <source>Off;Main;Start;Min;Max;Average</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="328"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="341"/>
         <source>Hi-Speed Fix</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="338"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="351"/>
         <source>Off;Flip;Battle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="339"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="352"/>
         <source>DP Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="350"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="363"/>
         <source>Gauge Type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="359"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="372"/>
         <source>Exclusive;Best;Select to Under</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="360"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="373"/>
         <source>Gauge Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="369"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="382"/>
         <source>Bottom Shiftable Gauge</source>
         <translation type="unfinished"></translation>
     </message>
