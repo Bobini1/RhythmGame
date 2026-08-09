@@ -499,35 +499,10 @@ Rectangle {
 
         Text {
             color: "white"
-            text: "fps: " + presentRate.fps.toFixed(0)
+            text: "fps: " + Rg.programSettings.presentationFps
             anchors.top: parent.top
             anchors.right: parent.right
             textFormat: Text.PlainText
-        }
-
-        Connections {
-            id: presentRate
-
-            property real fps: 0
-            property int frameCount: 0
-            property double lastSampleMs: 0
-
-            target: scaledRoot.Window.window
-
-            function onFrameSwapped() {
-                const now = Date.now();
-                if (presentRate.lastSampleMs <= 0) {
-                    presentRate.lastSampleMs = now;
-                    return;
-                }
-                presentRate.frameCount += 1;
-                const elapsed = now - presentRate.lastSampleMs;
-                if (elapsed >= 500) {
-                    presentRate.fps = presentRate.frameCount * 1000 / elapsed;
-                    presentRate.frameCount = 0;
-                    presentRate.lastSampleMs = now;
-                }
-            }
         }
 
         BgaRenderer {

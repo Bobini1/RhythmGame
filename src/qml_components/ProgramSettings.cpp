@@ -40,6 +40,11 @@ ProgramSettings::getMaxFps() const -> int
 {
     return maxFps.load(std::memory_order_relaxed);
 }
+auto
+ProgramSettings::getPresentationFps() const -> int
+{
+    return presentationFps.load(std::memory_order_relaxed);
+}
 void
 ProgramSettings::setMaxFps(int value)
 {
@@ -55,11 +60,18 @@ void
 ProgramSettings::attachFrameRateLimiter(QQuickWindow* window)
 {
     QObject::disconnect(frameLimiterConnection);
+    QObject::disconnect(presentationCounterConnection);
     frameLimiterConnection = QObject::connect(window,
                                               &QQuickWindow::beforeRendering,
                                               this,
                                               &ProgramSettings::limitFrameRate,
                                               Qt::DirectConnection);
+    presentationCounterConnection =
+      QObject::connect(window,
+                       &QQuickWindow::frameSwapped,
+                       this,
+                       &ProgramSettings::countPresentedFrame,
+                       Qt::DirectConnection);
 }
 void
 ProgramSettings::limitFrameRate()
@@ -86,6 +98,38 @@ ProgramSettings::limitFrameRate()
         std::this_thread::sleep_until(nextFrameStart);
     }
     previousFrameStart = std::chrono::steady_clock::now();
+}
+void
+ProgramSettings::countPresentedFrame()
+{
+    constexpr auto sampleInterval = std::chrono::milliseconds{ 500 };
+    const auto now = std::chrono::steady_clock::now();
+    if (presentationSampleStart == std::chrono::steady_clock::time_point{}) {
+        presentationSampleStart = now;
+        presentedFrameCount = 0;
+        return;
+    }
+
+    ++presentedFrameCount;
+    const auto elapsed = now - presentationSampleStart;
+    if (elapsed < sampleInterval) {
+        return;
+    }
+
+    const auto elapsedNanoseconds =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
+    const auto nextFps = static_cast<int>(
+      (static_cast<std::int64_t>(presentedFrameCount) * 1'000'000'000LL +
+       elapsedNanoseconds / 2) /
+      elapsedNanoseconds);
+    presentedFrameCount = 0;
+    presentationSampleStart = now;
+    if (presentationFps.exchange(nextFps, std::memory_order_relaxed) ==
+        nextFps) {
+        return;
+    }
+    QMetaObject::invokeMethod(
+      this, [this] { emit presentationFpsChanged(); }, Qt::QueuedConnection);
 }
 auto
 ProgramSettings::copyImageToClipboard(const QString& path) -> void

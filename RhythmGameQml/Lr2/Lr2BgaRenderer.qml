@@ -48,7 +48,6 @@ Item {
     readonly property bool drawBaseLayer: !sourceFlag("noBase")
     readonly property bool drawAdditionalLayers: !sourceFlag("noLayer")
     readonly property bool drawPoorLayer: !sourceFlag("noPoor")
-    readonly property bool showNormalLayers: !poorVisible || !drawPoorLayer
     readonly property real sourceW: Math.max(videoBase.sourceRect.width,
                                              videoLayer.sourceRect.width,
                                              videoLayer2.sourceRect.width,
@@ -203,7 +202,7 @@ Item {
 
             anchors.fill: parent
             fillMode: VideoOutput.Stretch
-            visible: root.drawBaseLayer && root.showNormalLayers
+            visible: root.drawBaseLayer
         }
 
         VideoOutput {
@@ -211,7 +210,7 @@ Item {
 
             anchors.fill: parent
             fillMode: VideoOutput.Stretch
-            visible: root.drawAdditionalLayers && root.showNormalLayers
+            visible: root.drawAdditionalLayers
             z: 1
         }
 
@@ -220,7 +219,7 @@ Item {
 
             anchors.fill: parent
             fillMode: VideoOutput.Stretch
-            visible: root.drawAdditionalLayers && root.showNormalLayers
+            visible: root.drawAdditionalLayers
             z: 2
         }
 

@@ -249,7 +249,7 @@ Item {
     }
     readonly property bool stackScreenActive: screenState.stackActive
     readonly property bool screenUpdatesActive: screenState.updatesActive
-    readonly property int lr2CurrentFps: skinTiming.currentFps
+    readonly property int lr2CurrentFps: Rg.programSettings.presentationFps
     readonly property var lr2InitialClockNow: wallClockState.initialNow
     property alias skinTimingRef: skinTiming
     property alias skinTimerStateRef: skinTiming.skinTimerStateRef
