@@ -7,18 +7,19 @@ Item {
 
     width: judgementRow.width
     z: 3
-    visible: false
+    visible: displayWindowActive && contentVisible
 
     required property var score
     required property string judge
     required property var columns
     property bool contentVisible: true
+    property bool displayWindowActive: false
 
     Timer {
         id: hidingTimer
         interval: 500
         onTriggered: {
-            judgement.visible = false;
+            judgement.displayWindowActive = false;
         }
     }
 
@@ -41,7 +42,7 @@ Item {
 
             judgement.lastJudgement = hit.points.judgement;
             judgement.combo = judgement.score.combo;
-            judgement.visible = judgement.contentVisible;
+            judgement.displayWindowActive = true;
             hidingTimer.restart();
         }
         target: judgement.score

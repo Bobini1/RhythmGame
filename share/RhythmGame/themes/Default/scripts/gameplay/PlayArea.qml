@@ -323,7 +323,7 @@ Item {
             id: fastslowImage
             anchors.fill: parent
             source: root.iniImagesUrl + "fastslow/" + playArea.vars.fastslow + (fastslow.fast ? "/fast" : "/slow")
-            opacity: playArea.vars.fastslowEnabled && fastslow.shouldShow && judgements.visible ? 1 : 0
+            opacity: playArea.vars.fastslowEnabled && fastslow.shouldShow && judgements.displayWindowActive ? 1 : 0
         }
         // for preloading
         Image {
@@ -388,7 +388,7 @@ Item {
         color: {
             if (!playArea.pointTargetAvailable
                     || !playArea.vars.ghostScoreEnabled
-                    || !judgements.visible) {
+                    || !judgements.displayWindowActive) {
                 return "transparent";
             }
             return playArea.score.points >= playArea.pointTarget ? "white" : "red";

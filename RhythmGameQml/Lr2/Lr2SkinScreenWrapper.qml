@@ -5403,10 +5403,9 @@ Item {
             }
             let runtimeOptionsChanged = root.updateGameplayHitTimers(root.gameplayHitDisplaySide(1, hit), hit, 1);
             if (runtimeOptionsChanged) {
-                root.requestGameplayRevisionRefresh(1);
-            } else {
-                root.requestGameplayNumberRefresh(1);
+                root.refreshGameplayRuntimeActiveOptions();
             }
+            root.requestGameplayNumberRefresh(1);
         }
         function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(1);
@@ -5433,10 +5432,9 @@ Item {
             }
             let runtimeOptionsChanged = root.updateGameplayHitTimers(root.gameplayHitDisplaySide(2, hit), hit, 2);
             if (runtimeOptionsChanged) {
-                root.requestGameplayRevisionRefresh(2);
-            } else {
-                root.requestGameplayNumberRefresh(2);
+                root.refreshGameplayRuntimeActiveOptions();
             }
+            root.requestGameplayNumberRefresh(2);
         }
         function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(2);
