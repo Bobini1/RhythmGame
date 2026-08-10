@@ -11,7 +11,7 @@
 
 # RhythmGame
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+[English](README.md) | [简体中文](README.zh-CN.md) | [日本語](README_ja.md) | [Español](README_es.md)
 
 一款可自定义的BMS播放器，在Windows 和 Linux 运行。
 
