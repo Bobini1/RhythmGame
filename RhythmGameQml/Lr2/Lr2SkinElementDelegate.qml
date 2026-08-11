@@ -384,7 +384,11 @@ Loader {
                 skinClockMode: imageComponentRoot.spriteSkinClockMode
                 sourceSkinClockMode: imageComponentRoot.spriteSourceSkinClockMode
                 activeOptionsState: elemLoader.elementActiveOptionsState
-                timerFire: elemLoader.dstTimerFire
+                timerFire: elemLoader.usesLiveGameplayDstTimer
+                    ? -2147483648
+                    : elemLoader.dstTimerFire
+                gameplayFrameState: elemLoader.gameplayFrameState
+                useGameplayRhythmTimer: elemLoader.usesLiveGameplayDstTimer
                 sourceTimerFire: elemLoader.srcTimerFire
                 chartAssetSource: elemLoader.directChartAssetSource
                 preferAtlasImagePath: elemLoader.screenRoot.effectiveScreenKey === "select"
@@ -445,6 +449,7 @@ Loader {
             screenRoot: elemLoader.screenRoot
             skinTiming: elemLoader.skinTiming
             skinModel: elemLoader.screenRoot.skinModelRef
+            gameplayFrameState: elemLoader.gameplayFrameState
             skinScale: skinScale
             renderSkinTime: elemLoader.screenRoot.renderSkinTime
             runtimeActiveOptions: elemLoader.skinRuntime && elemLoader.skinRuntime.noteFieldUsesActiveOptions
@@ -670,11 +675,6 @@ Loader {
                         numberRenderer.refreshGameplayValueResolverNumber();
                     }
                 }
-                function onRenderSkinTimeChanged() {
-                    if (numberRenderer.valueResolverNumberHasDependency(16)) {
-                        numberRenderer.refreshGameplayValueResolverNumber();
-                    }
-                }
                 function onGameplayStaticNumberRevisionChanged() {
                     if (numberRenderer.valueResolverNumberHasDependency(32)) {
                         numberRenderer.refreshGameplayValueResolverNumber();
@@ -682,6 +682,11 @@ Loader {
                 }
                 function onGameplayScoresRevisionChanged() {
                     if (numberRenderer.valueResolverNumberHasDependency(64)) {
+                        numberRenderer.refreshGameplayValueResolverNumber();
+                    }
+                }
+                function onGameplayClockNumberRevisionChanged() {
+                    if (numberRenderer.valueResolverNumberHasDependency(128)) {
                         numberRenderer.refreshGameplayValueResolverNumber();
                     }
                 }

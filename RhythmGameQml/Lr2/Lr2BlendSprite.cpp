@@ -164,6 +164,11 @@ class Lr2BlendShader final : public QSGMaterialShader
         pipeline->opAlpha = GraphicsPipelineState::BlendOp::Add;
 
         switch (material->blendMode) {
+            case 2: // DX_BLENDMODE_ADD
+                pipeline->srcColor = GraphicsPipelineState::SrcAlpha;
+                pipeline->dstColor = GraphicsPipelineState::One;
+                pipeline->opColor = GraphicsPipelineState::BlendOp::Add;
+                break;
             case 3: // DX_BLENDMODE_SUB (implemented by DxLib as reverse
                     // subtract)
                 pipeline->srcColor = GraphicsPipelineState::SrcAlpha;
@@ -437,7 +442,8 @@ Lr2BlendSprite::supportedBlendMode() const
 bool
 Lr2BlendSprite::supportsBlendMode(int blendMode)
 {
-    return blendMode == 3 || blendMode == 4 || blendMode == 5 || blendMode == 9;
+    return blendMode == 2 || blendMode == 3 || blendMode == 4 ||
+           blendMode == 5 || blendMode == 9;
 }
 
 QSGNode*

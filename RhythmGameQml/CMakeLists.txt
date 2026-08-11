@@ -10,6 +10,8 @@ set(LR2_SKIN_SOURCES
         Lr2/Lr2BlendSprite.cpp
         Lr2/Lr2GameplayFrameState.h
         Lr2/Lr2GameplayFrameState.cpp
+        Lr2/Lr2GameplayPositionTransform.h
+        Lr2/Lr2GameplayPositionTransform.cpp
         Lr2/Lr2BarPositionMap.h
         Lr2/Lr2BarPositionMap.cpp
         Lr2/Lr2BarBaseStateResolver.h

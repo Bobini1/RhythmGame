@@ -1,6 +1,5 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
-import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import RhythmGameQml
@@ -58,10 +57,23 @@ Item {
     readonly property var vars: profile.vars.themeVars[root.screen][root.themeName]
     readonly property var generalVars: profile.vars.generalVars
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
-    readonly property real position: player.position
-    readonly property real beatPosition: player.beatPosition
     property var pointTarget
     property bool pointTargetAvailable: true
+    property bool viewportReady: false
+
+    function updateVisiblePositionSpans() {
+        if (!viewportReady)
+            return;
+        player.state.setVisiblePositionSpans(
+                    playfield.height / heightMultiplier,
+                    barLinePositioner.height / heightMultiplier);
+    }
+
+    onHeightMultiplierChanged: updateVisiblePositionSpans()
+    Component.onCompleted: {
+        viewportReady = true;
+        updateVisiblePositionSpans();
+    }
 
     Item {
         id: playObjectContainer
@@ -130,9 +142,11 @@ Item {
             z: 0
         }
         BarLinePositioner {
+            id: barLinePositioner
+
             model: playArea.barLinesState
             heightMultiplier: playArea.heightMultiplier
-            position: playArea.position
+            player: playArea.player
 
             anchors {
                 left: parent.left
@@ -142,6 +156,7 @@ Item {
                 topMargin: parent.height * (playArea.generalVars.laneCoverOn * playArea.generalVars.laneCoverRatio)
                 bottom: parent.bottom
             }
+            onHeightChanged: playArea.updateVisiblePositionSpans()
             z: 2
         }
         Playfield {
@@ -159,8 +174,9 @@ Item {
             noteImage: playArea.vars.notes
             mineImage: playArea.vars.mine
             hideLnEnds: playArea.vars.hideLnEnds
-            position: playArea.position
+            player: playArea.player
             liftRatio: playArea.generalVars.liftOn * playArea.generalVars.liftRatio
+            onHeightChanged: playArea.updateVisiblePositionSpans()
             z: 4
         }
         Row {
@@ -211,7 +227,7 @@ Item {
 
             anchors.bottom: judgeLine.bottom
             opacity: {
-                let pos = Math.abs(playArea.beatPosition % 1);
+                let pos = Math.abs(playArea.player.beatPosition % 1);
                 return (pos > 0.5 ? pos : 1 - pos) * 0.2 + 0.1;
             }
             source: root.imagesUrl + "glow/" + playArea.vars.glow
@@ -384,6 +400,7 @@ Item {
     GhostScore {
         id: ghostScore
         fontFile: playArea.vars.ghostScoreFont
+        points: playArea.score.points - playArea.pointTarget
 
         color: {
             if (!playArea.pointTargetAvailable
@@ -392,13 +409,6 @@ Item {
                 return "transparent";
             }
             return playArea.score.points >= playArea.pointTarget ? "white" : "red";
-        }
-
-        FrameAnimation {
-            running: true
-            onTriggered: {
-                ghostScore.points = playArea.score.points - playArea.pointTarget;
-            }
         }
 
         TextMetrics {
@@ -640,14 +650,6 @@ Item {
             }
         }
     }
-    // to get the sourceSize of the bomb image
-    Image {
-        id: bombSize
-
-        source: root.imagesUrl + "bomb/" + playArea.vars.bomb
-        opacity: 0
-    }
-    
     Repeater {
         id: notePreloader
         model: ["red", "black", "white"]

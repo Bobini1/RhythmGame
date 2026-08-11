@@ -237,36 +237,15 @@ Item {
             Component.onCompleted: requestPaint()
         }
 
-        // Red position line – drawn on a Canvas so it sits at the exact
-        // sub-pixel x coordinate.  With antialiasing=true the 1.5 px stroke
-        // is blended across adjacent pixels, giving a constant visual weight
-        // even when the gameplay scene is scaled by a non-integer factor.
-        Canvas {
-            id: positionCanvas
-            anchors.fill: parent
+        Rectangle {
             antialiasing: true
+            color: "#FF0000"
+            height: parent.height
+            width: 1.5
+            x: root.positionRatio * parent.width - width / 2
             visible: root.positionRatio >= 0 && root.positionLineOpacity > 0
             opacity: root.positionLineOpacity
             z: 1
-
-            onPaint: {
-                let ctx = getContext("2d");
-                ctx.clearRect(0, 0, width, height);
-                if (root.positionRatio < 0)
-                    return;
-                let x = root.positionRatio * width;
-                ctx.strokeStyle = "#FF0000";
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, height);
-                ctx.stroke();
-            }
-
-            Connections {
-                target: root
-                function onPositionRatioChanged() { positionCanvas.requestPaint(); }
-            }
         }
     }
 }

@@ -12,6 +12,8 @@
 
 #include <array>
 
+class Lr2GameplayFrameState;
+
 class Lr2SkinTimerState : public QObject {
     Q_OBJECT
     QML_ELEMENT
@@ -22,6 +24,7 @@ class Lr2SkinTimerState : public QObject {
     Q_PROPERTY(int selectScrollUp READ selectScrollUp WRITE setSelectScrollUp NOTIFY selectScrollUpChanged)
     Q_PROPERTY(int selectScrollDown READ selectScrollDown WRITE setSelectScrollDown NOTIFY selectScrollDownChanged)
     Q_PROPERTY(int gameplayRhythmTimerSkinTime READ gameplayRhythmTimerSkinTime WRITE setGameplayRhythmTimerSkinTime NOTIFY gameplayRhythmTimerSkinTimeChanged)
+    Q_PROPERTY(Lr2GameplayFrameState* gameplayFrameState READ gameplayFrameState WRITE setGameplayFrameState NOTIFY gameplayFrameStateChanged)
     Q_PROPERTY(QVariant selectHeldButtonTimerStarts READ selectHeldButtonTimerStarts WRITE setSelectHeldButtonTimerStarts NOTIFY selectHeldButtonTimerStartsChanged)
     Q_PROPERTY(QString screenKey READ screenKey WRITE setScreenKey NOTIFY screenKeyChanged)
     Q_PROPERTY(bool gameplayScreen READ isGameplayScreen WRITE setGameplayScreen NOTIFY gameplayScreenChanged)
@@ -73,6 +76,8 @@ public:
 
     int gameplayRhythmTimerSkinTime() const;
     void setGameplayRhythmTimerSkinTime(int skinTime);
+    Lr2GameplayFrameState* gameplayFrameState() const;
+    void setGameplayFrameState(Lr2GameplayFrameState* state);
 
     QVariant selectHeldButtonTimerStarts() const;
     void setSelectHeldButtonTimerStarts(const QVariant& values);
@@ -180,6 +185,7 @@ signals:
     void selectScrollUpChanged();
     void selectScrollDownChanged();
     void gameplayRhythmTimerSkinTimeChanged();
+    void gameplayFrameStateChanged();
     void selectHeldButtonTimerStartsChanged();
     void screenKeyChanged();
     void gameplayScreenChanged();
@@ -225,6 +231,7 @@ private:
     void resetFrameCache(int cacheFrame) const;
     void notifyTimerFireTimesChanged();
     void notifySelectInfoTimerFireTimesChanged();
+    void reconnectGameplayFrameState();
     bool setInt(int& field, int value);
 
     QPointer<Lr2SkinClock> m_clock;
@@ -235,6 +242,9 @@ private:
     int m_selectScrollUp = 1;
     int m_selectScrollDown = 2;
     int m_gameplayRhythmTimerSkinTime = -1;
+    QPointer<Lr2GameplayFrameState> m_gameplayFrameState;
+    QMetaObject::Connection m_gameplayFrameStateConnection;
+    QMetaObject::Connection m_gameplayFrameStateDestroyedConnection;
     QHash<int, int> m_selectHeldButtonTimerStarts;
     QString m_screenKey;
     bool m_gameplayScreen = false;

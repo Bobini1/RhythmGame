@@ -23,9 +23,10 @@ Item {
     required property var columnStates
     required property string noteImage
     required property string mineImage
-    required property real position
+    required property Player player
     required property bool hideLnEnds
     required property real liftRatio
+    readonly property bool flashing: Math.abs(player.position % 0.5) > 0.25
 
     width: notesRow.width
 
@@ -35,6 +36,9 @@ Item {
         spacing: playfield.spacing
         anchors.top: parent.top
         anchors.bottom: parent.bottom
+        transform: Translate {
+            y: playfield.player.position * playfield.heightMultiplier
+        }
 
         Repeater {
             id: noteColumnRepeater
@@ -67,7 +71,8 @@ Item {
                 mineImage: playfield.mineImage
                 hideLnEnds: playfield.hideLnEnds
                 width: playfield.columnSizes[playfield.columns[index]]
-                position: playfield.position
+                player: playfield.player
+                flashing: playfield.flashing
                 liftRatio: playfield.liftRatio
             }
         }

@@ -11,6 +11,8 @@
 #include <QAbstractProxyModel>
 #include <boost/icl/interval_map.hpp>
 
+#include <optional>
+
 namespace gameplay_logic {
 class NoteState
 {
@@ -47,7 +49,8 @@ class ColumnState final : public QAbstractListModel
 {
     Q_OBJECT
     Q_PROPERTY(bool pressed READ isPressed NOTIFY pressedChanged)
-    Q_PROPERTY(bool holdingLongNote READ isHoldingLongNote NOTIFY holdingLongNoteChanged)
+    Q_PROPERTY(
+      bool holdingLongNote READ isHoldingLongNote NOTIFY holdingLongNoteChanged)
 
     QList<NoteState> notes;
     QList<int> timeToPositionIndexMapping;
@@ -125,8 +128,8 @@ class Filter : public QAbstractProxyModel
     Q_PROPERTY(double bottomPosition READ getBottomPosition WRITE
                  setBottomPosition NOTIFY bottomPositionChanged)
     Q_PROPERTY(bool pressed READ isPressed NOTIFY pressedChanged)
-    Q_PROPERTY(bool holdingLongNote READ isHoldingLongNote NOTIFY
-                 holdingLongNoteChanged)
+    Q_PROPERTY(
+      bool holdingLongNote READ isHoldingLongNote NOTIFY holdingLongNoteChanged)
 
     double topPosition = 0.0;
     double bottomPosition = 0.0;
@@ -148,6 +151,7 @@ class Filter : public QAbstractProxyModel
     void setEffectiveBottomRow(int newEffectiveBottomRow);
     auto getBottomPosition() const -> double { return bottomPosition; }
     void setBottomPosition(double value);
+    Q_INVOKABLE void setVisibleRange(double bottom, double top);
     auto isPressed() const -> bool { return pressed; }
     auto isHoldingLongNote() const -> bool { return holdingLongNote; }
     auto index(int row,
@@ -200,6 +204,7 @@ class BarlineFilter : public QAbstractProxyModel
     void setTopPosition(double value);
     auto getBottomPosition() const -> double { return bottomPosition; }
     void setBottomPosition(double value);
+    Q_INVOKABLE void setVisibleRange(double bottom, double top);
   signals:
     void topPositionChanged();
     void bottomPositionChanged();
@@ -234,6 +239,11 @@ class GameplayState final : public QObject
     BarlineFilter* barLineFilter = nullptr;
     QList<ColumnState*> columnStates;
     QList<Filter*> columnFilters;
+    double position = 0.0;
+    std::optional<double> noteVisiblePositionSpan;
+    std::optional<double> barLineVisiblePositionSpan;
+
+    void updateVisibleRanges();
 
   public:
     GameplayState(QList<ColumnState*> columnStates,
@@ -243,6 +253,9 @@ class GameplayState final : public QObject
     auto getColumnFilters() -> QList<Filter*>;
     auto getBarLinesState() const -> BarLinesState*;
     auto getBarLineFilter() const -> BarlineFilter*;
+    void setPosition(double value);
+    Q_INVOKABLE void setVisiblePositionSpans(double noteSpan,
+                                             double barLineSpan);
 };
 
 } // namespace gameplay_logic

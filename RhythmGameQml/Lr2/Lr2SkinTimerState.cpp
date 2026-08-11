@@ -1,5 +1,7 @@
 #include "Lr2SkinTimerState.h"
 
+#include "Lr2GameplayFrameState.h"
+
 #include "Lr2SkinClock.h"
 
 #include <QVariantMap>
@@ -129,6 +131,53 @@ void Lr2SkinTimerState::setGameplayRhythmTimerSkinTime(int skinTime) {
     m_gameplayRhythmTimerSkinTime = skinTime;
     emit gameplayRhythmTimerSkinTimeChanged();
     notifyTimerFireTimesChanged();
+}
+
+Lr2GameplayFrameState* Lr2SkinTimerState::gameplayFrameState() const {
+    return m_gameplayFrameState;
+}
+
+void Lr2SkinTimerState::setGameplayFrameState(Lr2GameplayFrameState* state) {
+    if (m_gameplayFrameState == state) {
+        return;
+    }
+    m_gameplayFrameState = state;
+    reconnectGameplayFrameState();
+    emit gameplayFrameStateChanged();
+    setGameplayRhythmTimerSkinTime(
+        m_gameplayFrameState ? m_gameplayFrameState->rhythmTimerSkinTime() : -1);
+}
+
+void Lr2SkinTimerState::reconnectGameplayFrameState() {
+    if (m_gameplayFrameStateConnection) {
+        disconnect(m_gameplayFrameStateConnection);
+        m_gameplayFrameStateConnection = {};
+    }
+    if (m_gameplayFrameStateDestroyedConnection) {
+        disconnect(m_gameplayFrameStateDestroyedConnection);
+        m_gameplayFrameStateDestroyedConnection = {};
+    }
+    if (!m_gameplayFrameState) {
+        return;
+    }
+    m_gameplayFrameStateConnection = connect(
+        m_gameplayFrameState,
+        &Lr2GameplayFrameState::rhythmTimerSkinTimeChanged,
+        this,
+        [this] {
+            setGameplayRhythmTimerSkinTime(m_gameplayFrameState->rhythmTimerSkinTime());
+        });
+    m_gameplayFrameStateDestroyedConnection = connect(
+        m_gameplayFrameState,
+        &QObject::destroyed,
+        this,
+        [this] {
+            m_gameplayFrameState = nullptr;
+            m_gameplayFrameStateConnection = {};
+            m_gameplayFrameStateDestroyedConnection = {};
+            emit gameplayFrameStateChanged();
+            setGameplayRhythmTimerSkinTime(-1);
+        });
 }
 
 QVariant Lr2SkinTimerState::selectHeldButtonTimerStarts() const {

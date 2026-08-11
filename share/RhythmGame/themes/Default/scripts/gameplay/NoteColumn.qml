@@ -9,7 +9,7 @@ Item {
     id: column
 
     required property var columnState
-    required property real position
+    required property Player player
     required property string color
     required property string noteImage
     required property string mineImage
@@ -18,18 +18,11 @@ Item {
     required property real noteHeight
     required property bool hideLnEnds
     required property real liftRatio
-
-    onPositionChanged: {
-        let top = column.height / column.heightMultiplier;
-        columnState.topPosition = column.position + top;
-        columnState.bottomPosition = column.position;
-    }
+    required property bool flashing
 
     readonly property url lnBodyInactive: root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_inactive_" + column.color;
     readonly property url lnBodyActive: root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_active_" + column.color;
     readonly property url lnBodyFlashing: root.iniImagesUrl + "notes/" + column.noteImage + "/ln_body_flash_" + column.color;
-    readonly property bool flashing: Math.abs(column.position % 0.5) > 0.25;
-
     readonly property url normalNote: `${root.iniImagesUrl}notes/${column.noteImage}/note_${column.color}`;
     readonly property url lnBegin: `${root.iniImagesUrl}notes/${column.noteImage}/ln_start_${column.color}`;
     readonly property url lnEnd: `${root.iniImagesUrl}notes/${column.noteImage}/ln_end_${column.color}`;
@@ -42,7 +35,7 @@ Item {
             left: parent.left
             right: parent.right
             top: parent.top
-            topMargin: (column.position * column.heightMultiplier + height * (1 - playArea.generalVars.liftOn * playArea.generalVars.liftRatio))
+            topMargin: height * (1 - column.liftRatio)
         }
 
         Repeater {
@@ -58,13 +51,13 @@ Item {
                 readonly property bool held: display.note.type === note.Type.LongNoteBegin && hitData && !display.otherEndHitData
                 readonly property real nextPosition: column.notes[display.index+1]?.time?.position || Infinity
                 visible: display.note.type === note.Type.LongNoteBegin || display.note.type === note.Type.LongNoteEnd || !hitData
-                readonly property bool shouldShowStatic: display.note.type === note.Type.LongNoteBegin && (wasHeld || display.belowBottom) && nextPosition > column.position
+                readonly property bool shouldShowStatic: display.note.type === note.Type.LongNoteBegin && (wasHeld || display.belowBottom) && nextPosition > column.player.position
                 property bool wasHeld: display.note.type === note.Type.LongNoteBegin && hitData && (!display.otherEndHitData || display.otherEndHitData.points.judgement !== Judgement.LnEndSkip)
 
                 anchors {
                     horizontalCenter: parent.horizontalCenter
                     bottom: parent.bottom
-                    bottomMargin: (shouldShowStatic ? column.position : display.note.time.position) * column.heightMultiplier + flickable.height + noteImg.height
+                    bottomMargin: (shouldShowStatic ? column.player.position : display.note.time.position) * column.heightMultiplier + flickable.height + noteImg.height
                 }
                 width: column.width
                 z: -index
@@ -117,7 +110,7 @@ Item {
                                 if (!noteObj.shouldShowStatic) {
                                     return (noteObj.nextPosition - noteObj.display.note.time.position) * column.heightMultiplier - noteImg.height
                                 } else {
-                                    return (noteObj.nextPosition - column.position) * column.heightMultiplier - noteImg.height
+                                    return (noteObj.nextPosition - column.player.position) * column.heightMultiplier - noteImg.height
                                 }
                             }
                             source: {

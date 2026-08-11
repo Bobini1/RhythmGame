@@ -20,7 +20,9 @@ Item {
     property var activeOptionsState: null
     property var activeOptions: []
     property var timers: ({ 0: 0 })
-    property int timerFire: -2147483648
+    property alias timerFire: drawState.timerFire
+    property Lr2GameplayFrameState gameplayFrameState: null
+    property bool useGameplayRhythmTimer: false
     property int sourceTimerFire: -2147483648
     property var chart
     property string chartAssetSource: ""
@@ -78,7 +80,8 @@ Item {
         activeOptionsState: root.activeOptionsState
         activeOptions: root.activeOptions
         timers: root.timers
-        timerFire: root.timerFire
+        gameplayFrameState: root.gameplayFrameState
+        useGameplayRhythmTimer: root.useGameplayRhythmTimer
         stateOverride: root.stateOverride
         stateOverrideSource: root.stateOverrideSource
         forceHidden: root.forceHidden
@@ -140,7 +143,7 @@ Item {
     // Animated sheets crop in the shader so rect changes stay in uniforms.
     // Out-of-bounds LR2 crops also use the shader path: libGDX/beatoraja
     // creates TextureRegions directly and relies on clamp-to-edge sampling.
-    readonly property color tintColor: drawState.tintColor
+    property alias tintColor: drawState.tintColor
     function refreshUseFastImagePath() : void {
         const next = root.hasDrawableTexture
             && !root.preferAtlasImagePath
@@ -194,12 +197,13 @@ Item {
     readonly property bool isSolidBlack: !!root.srcData && root.srcData.specialType === 2
     readonly property bool isSolidWhite: !!root.srcData && root.srcData.specialType === 5
     readonly property bool isSolidFill: root.isSolidBlack || root.isSolidWhite
-    readonly property color solidFillColor: root.isSolidWhite ? root.tintColor : "black"
     // Built-in GR 110/111 sources still need a texture provider so they use
     // the same LR2 blend implementation as image-backed sprites.
-    readonly property url solidFillTextureSource: root.isSolidFill
-        ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQAAAAA3bvkkAAAACklEQVQI12NoAAAAggCB3UNq9AAAAABJRU5ErkJggg=="
-        : ""
+    readonly property url solidFillTextureSource: root.isSolidBlack
+        ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQAAAAA3bvkkAAAACklEQVR42mNgAAAAAgAB5Sfe/AAAAABJRU5ErkJggg=="
+        : (root.isSolidWhite
+            ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQAAAAA3bvkkAAAACklEQVQI12NoAAAAggCB3UNq9AAAAABJRU5ErkJggg=="
+            : "")
     readonly property bool isHiddenCover: !!root.srcData && !!root.srcData.hiddenCover
     readonly property bool hiddenLineLinksLift: !root.srcData
         || root.srcData.hiddenDisappearLineLinkLift === undefined
@@ -510,9 +514,6 @@ Item {
             : Qt.vector2d(
                 Math.max(1, atlasImage.implicitWidth),
                 Math.max(1, atlasImage.implicitHeight))
-        readonly property color effectTint: root.isSolidFill
-            ? root.solidFillColor
-            : root.tintColor
         readonly property bool effectColorKeyEnabled: !root.isSolidFill
             && root.effectiveColorKeyEnabled
 
@@ -525,7 +526,7 @@ Item {
             blending: true
             supportsAtlasTextures: true
             property var source: sprite.effectSource
-            property color tint: sprite.effectTint
+            property color tint: root.tintColor
             property color transColor: root.transColor
             property real blendMode: root.blendMode
             property real colorKeyEnabled: sprite.effectColorKeyEnabled ? 1.0 : 0.0
@@ -545,7 +546,7 @@ Item {
                 && sprite.effectSourceReady
             source: sprite.effectSource
             sourceRect: sprite.effectSourceClipRect
-            tint: sprite.effectTint
+            tint: root.tintColor
             transColor: root.transColor
             colorKeyEnabled: sprite.effectColorKeyEnabled
             smooth: drawState.hasState && drawState.filter !== 0

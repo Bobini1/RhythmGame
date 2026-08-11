@@ -471,6 +471,7 @@ Player::setPosition(BmsGameReferee::Position newPosition)
     if (newPosition != position) {
         const auto delta = newPosition - position;
         position = newPosition;
+        state->setPosition(position);
         emit positionChanged(delta);
     }
 }

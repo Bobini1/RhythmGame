@@ -4,6 +4,8 @@
 
 #include "NoteState.h"
 
+#include <cmath>
+
 namespace gameplay_logic {
 void
 ColumnState::setPressed(bool pressed)
@@ -295,6 +297,12 @@ BarlineFilter::setBottomPosition(double value)
         endInsertRows();
     }
 }
+void
+BarlineFilter::setVisibleRange(double bottom, double top)
+{
+    setTopPosition(top);
+    setBottomPosition(bottom);
+}
 
 QModelIndex
 BarlineFilter::mapToSource(const QModelIndex& proxyIndex) const
@@ -460,6 +468,12 @@ Filter::setBottomPosition(double value)
                    bottomRow));
     }
 }
+void
+Filter::setVisibleRange(double bottom, double top)
+{
+    setTopPosition(top);
+    setBottomPosition(bottom);
+}
 QModelIndex
 Filter::index(int row, int column, const QModelIndex& parent) const
 {
@@ -540,5 +554,41 @@ auto
 GameplayState::getBarLineFilter() const -> BarlineFilter*
 {
     return barLineFilter;
+}
+void
+GameplayState::setPosition(double value)
+{
+    if (position == value) {
+        return;
+    }
+    position = value;
+    updateVisibleRanges();
+}
+void
+GameplayState::setVisiblePositionSpans(double noteSpan, double barLineSpan)
+{
+    if (!std::isfinite(noteSpan) || noteSpan < 0.0 ||
+        !std::isfinite(barLineSpan) || barLineSpan < 0.0) {
+        return;
+    }
+    if (noteVisiblePositionSpan == noteSpan &&
+        barLineVisiblePositionSpan == barLineSpan) {
+        return;
+    }
+    noteVisiblePositionSpan = noteSpan;
+    barLineVisiblePositionSpan = barLineSpan;
+    updateVisibleRanges();
+}
+void
+GameplayState::updateVisibleRanges()
+{
+    if (!noteVisiblePositionSpan || !barLineVisiblePositionSpan) {
+        return;
+    }
+    for (auto* const filter : columnFilters) {
+        filter->setVisibleRange(position, position + *noteVisiblePositionSpan);
+    }
+    barLineFilter->setVisibleRange(position,
+                                   position + *barLineVisiblePositionSpan);
 }
 } // namespace gameplay_logic

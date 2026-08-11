@@ -1,5 +1,6 @@
 #include "Lr2TimelineFrameState.h"
 
+#include "Lr2GameplayFrameState.h"
 #include "Lr2SkinRuntimeTypes.h"
 
 #include <algorithm>
@@ -132,8 +133,36 @@ void Lr2TimelineFrameState::setTimerFire(int timerFire) {
         return;
     }
     m_timerFire = timerFire;
-    m_timeline.setTimerFire(m_timerFire);
+    updateEffectiveTimerFire();
     emit timerFireChanged();
+}
+
+Lr2GameplayFrameState* Lr2TimelineFrameState::gameplayFrameState() const {
+    return m_gameplayFrameState;
+}
+
+void Lr2TimelineFrameState::setGameplayFrameState(Lr2GameplayFrameState* state) {
+    if (m_gameplayFrameState == state) {
+        return;
+    }
+    m_gameplayFrameState = state;
+    reconnectGameplayFrameState();
+    emit gameplayFrameStateChanged();
+    updateEffectiveTimerFire();
+}
+
+bool Lr2TimelineFrameState::useGameplayRhythmTimer() const {
+    return m_useGameplayRhythmTimer;
+}
+
+void Lr2TimelineFrameState::setUseGameplayRhythmTimer(bool enabled) {
+    if (m_useGameplayRhythmTimer == enabled) {
+        return;
+    }
+    m_useGameplayRhythmTimer = enabled;
+    reconnectGameplayFrameState();
+    emit useGameplayRhythmTimerChanged();
+    updateEffectiveTimerFire();
 }
 
 QVariant Lr2TimelineFrameState::stateOverride() const {
@@ -610,6 +639,46 @@ void Lr2TimelineFrameState::updateTimelineTimers() {
     m_timelineTimers = nextTimelineTimers;
     m_timeline.setTimers(m_timelineTimers);
     emit timelineTimersChanged();
+}
+
+void Lr2TimelineFrameState::reconnectGameplayFrameState() {
+    if (m_gameplayFrameStateConnection) {
+        disconnect(m_gameplayFrameStateConnection);
+        m_gameplayFrameStateConnection = {};
+    }
+    if (m_gameplayFrameStateDestroyedConnection) {
+        disconnect(m_gameplayFrameStateDestroyedConnection);
+        m_gameplayFrameStateDestroyedConnection = {};
+    }
+    if (!m_useGameplayRhythmTimer || !m_gameplayFrameState) {
+        return;
+    }
+    m_gameplayFrameStateConnection = connect(
+        m_gameplayFrameState,
+        &Lr2GameplayFrameState::rhythmTimerSkinTimeChanged,
+        this,
+        &Lr2TimelineFrameState::updateEffectiveTimerFire);
+    m_gameplayFrameStateDestroyedConnection = connect(
+        m_gameplayFrameState,
+        &QObject::destroyed,
+        this,
+        [this] {
+            m_gameplayFrameState = nullptr;
+            m_gameplayFrameStateConnection = {};
+            m_gameplayFrameStateDestroyedConnection = {};
+            emit gameplayFrameStateChanged();
+            updateEffectiveTimerFire();
+        });
+}
+
+void Lr2TimelineFrameState::updateEffectiveTimerFire() {
+    m_timeline.setTimerFire(effectiveTimerFire());
+}
+
+int Lr2TimelineFrameState::effectiveTimerFire() const {
+    return m_useGameplayRhythmTimer && m_gameplayFrameState
+        ? m_gameplayFrameState->rhythmTimerSkinTime()
+        : m_timerFire;
 }
 
 void Lr2TimelineFrameState::updateFrame() {

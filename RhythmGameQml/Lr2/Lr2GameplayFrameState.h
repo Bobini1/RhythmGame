@@ -11,20 +11,25 @@ class CourseRunner;
 class Player;
 } // namespace gameplay_logic
 
-class Lr2GameplayFrameState : public QObject {
+class Lr2GameplayFrameState : public QObject
+{
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(QObject* chart READ chart WRITE setChart NOTIFY chartChanged)
-    Q_PROPERTY(qreal progressPosition READ progressPosition NOTIFY progressPositionChanged)
+    Q_PROPERTY(qreal progressPosition READ progressPosition NOTIFY
+                 progressPositionChanged)
     Q_PROPERTY(qreal position1 READ position1 NOTIFY position1Changed)
     Q_PROPERTY(qreal position2 READ position2 NOTIFY position2Changed)
     Q_PROPERTY(qreal gaugeValue1 READ gaugeValue1 NOTIFY gaugeValue1Changed)
     Q_PROPERTY(qreal gaugeValue2 READ gaugeValue2 NOTIFY gaugeValue2Changed)
-    Q_PROPERTY(QString activeGaugeName1 READ activeGaugeName1 NOTIFY activeGaugeName1Changed)
-    Q_PROPERTY(QString activeGaugeName2 READ activeGaugeName2 NOTIFY activeGaugeName2Changed)
-    Q_PROPERTY(int rhythmTimerSkinTime READ rhythmTimerSkinTime NOTIFY rhythmTimerSkinTimeChanged)
+    Q_PROPERTY(QString activeGaugeName1 READ activeGaugeName1 NOTIFY
+                 activeGaugeName1Changed)
+    Q_PROPERTY(QString activeGaugeName2 READ activeGaugeName2 NOTIFY
+                 activeGaugeName2Changed)
+    Q_PROPERTY(int rhythmTimerSkinTime READ rhythmTimerSkinTime NOTIFY
+                 rhythmTimerSkinTimeChanged)
 
-public:
+  public:
     explicit Lr2GameplayFrameState(QObject* parent = nullptr);
 
     QObject* chart() const;
@@ -33,6 +38,7 @@ public:
     qreal progressPosition() const;
     qreal position1() const;
     qreal position2() const;
+    qreal positionAtRenderTime(int side) const;
     qreal gaugeValue1() const;
     qreal gaugeValue2() const;
     QString activeGaugeName1() const;
@@ -42,7 +48,7 @@ public:
     Q_INVOKABLE void refresh(int frameSkinTime);
     Q_INVOKABLE void reset();
 
-signals:
+  signals:
     void chartChanged();
     void progressPositionChanged();
     void position1Changed();
@@ -53,14 +59,18 @@ signals:
     void activeGaugeName2Changed();
     void rhythmTimerSkinTimeChanged();
 
-private:
-    struct GaugeSnapshot {
+  private:
+    struct GaugeSnapshot
+    {
         qreal value = 0.0;
         QString name;
     };
 
     void cacheChartObjects();
-    static GaugeSnapshot activeGaugeForPlayer(const gameplay_logic::Player* player);
+    void reconnectGaugeSignals();
+    void refreshGaugeStates();
+    static GaugeSnapshot activeGaugeForPlayer(
+      const gameplay_logic::Player* player);
     void setProgressPosition(qreal value);
     void setPosition1(qreal value);
     void setPosition2(qreal value);
@@ -78,6 +88,7 @@ private:
     QPointer<gameplay_logic::CourseRunner> m_course;
     QPointer<gameplay_logic::Player> m_player1;
     QPointer<gameplay_logic::Player> m_player2;
+    QList<QMetaObject::Connection> m_gaugeConnections;
     bool m_useDoublePlayLanes = false;
     int m_lastProgressFrameSkinTime = -1;
     qreal m_progressPosition = 0.0;

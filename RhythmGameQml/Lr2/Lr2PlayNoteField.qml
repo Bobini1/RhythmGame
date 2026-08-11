@@ -9,6 +9,9 @@ Item {
     property var screenRoot
     property var skinTiming: null
     property var skinModel
+    property Lr2GameplayFrameState gameplayFrameState: screenRoot
+        ? screenRoot.gameplayFrameStateRef
+        : null
     property real skinScale: 1
     property int renderSkinTime: 0
     property var runtimeActiveOptions: []
@@ -28,15 +31,6 @@ Item {
         && !!skinModel
         && (screenRoot.gameplayScreenActive === undefined || screenRoot.gameplayScreenActive)
         && !!root.playerForLr2Index(0)
-    readonly property var gameplayFrameState: screenRoot ? screenRoot.gameplayFrameStateRef : null
-    readonly property var fallbackPlayer1: gameplayFrameState ? null : root.playerForLr2Index(0)
-    readonly property var fallbackPlayer2: gameplayFrameState ? null : root.playerForLr2Index(10)
-    readonly property real sampledPosition1: gameplayFrameState
-        ? gameplayFrameState.position1 || 0
-        : (fallbackPlayer1 ? fallbackPlayer1.position || 0 : 0)
-    readonly property real sampledPosition2: gameplayFrameState
-        ? gameplayFrameState.position2 || 0
-        : (fallbackPlayer2 ? fallbackPlayer2.position || 0 : 0)
     function listValue(list: var, index: var) : var {
         return list && index >= 0 && index < list.length ? list[index] : null;
     }
@@ -386,6 +380,65 @@ Item {
         return Math.max(0.0001, baseSpeed * Math.max(0, Math.min(1 - laneCoverMod, 1)));
     }
 
+    function visualPosition(player: var, side: int) : real {
+        if (gameplayFrameState) {
+            return side === 2 ? gameplayFrameState.position2 : gameplayFrameState.position1;
+        }
+        return player ? player.position || 0 : 0;
+    }
+
+    function noteVisiblePositionSpan(player: var) : var {
+        let span = 0;
+        for (let index of laneIndexes) {
+            if (playerForLr2Index(index) !== player) {
+                continue;
+            }
+            let dst = noteDstState(index);
+            if (!dst) {
+                continue;
+            }
+            let side = sideForLr2Index(index);
+            let multiplier = heightMultiplier(player, sideSpeedHeight(side, dst));
+            if (multiplier > 0) {
+                span = Math.max(span, laneVisibleTravelHeight(side, dst, false) / multiplier);
+            }
+        }
+        return span;
+    }
+
+    function barLineVisiblePositionSpan(player: var) : var {
+        let span = 0;
+        for (let index of lineIndexes) {
+            let side = index === 1 ? 2 : 1;
+            let linePlayer = playerForLr2Index(side === 2 ? 10 : 0);
+            if (linePlayer !== player) {
+                continue;
+            }
+            let dst = lineDstState(index);
+            if (!dst) {
+                continue;
+            }
+            let multiplier = heightMultiplier(player, sideSpeedHeight(side, dst));
+            if (multiplier > 0) {
+                span = Math.max(span, laneVisibleTravelHeight(side, dst, false) / multiplier);
+            }
+        }
+        return span;
+    }
+
+    function syncPlayerViewport(player: var) : void {
+        if (!player || !player.state || !player.state.setVisiblePositionSpans) {
+            return;
+        }
+        let noteSpan = noteVisiblePositionSpan(player);
+        let barLineSpan = barLineVisiblePositionSpan(player);
+        if (noteSpan > 0) {
+            player.state.setVisiblePositionSpans(
+                noteSpan,
+                barLineSpan > 0 ? barLineSpan : noteSpan);
+        }
+    }
+
     function notePosition(display: var) : var {
         return display && display.note && display.note.time ? display.note.time.position || 0 : 0;
     }
@@ -451,8 +504,7 @@ Item {
             property real multiplier: root.heightMultiplier(
                 player,
                 root.sideSpeedHeight(side, dstState))
-            property real playerPosition: side === 2 ? root.sampledPosition2 : root.sampledPosition1
-            property real layerSkinY: root.laneBottom(side, dstState) + playerPosition * multiplier
+            readonly property real laneBottomPosition: root.laneBottom(side, dstState)
             property bool clipActive: root.hidSudClipActive(side)
             property real clipTopSkin: root.hidSudClipTop(side, dstState)
             property real clipBottomSkin: root.hidSudClipBottom(side, dstState)
@@ -462,14 +514,10 @@ Item {
             z: -1
 
             function syncBarLineWindow() : var {
-                if (!lineArea.barLinesState || !lineArea.dstState || lineArea.multiplier <= 0) {
-                    return;
-                }
-                lineArea.barLinesState.topPosition = lineArea.playerPosition + lineArea.travelHeight / lineArea.multiplier;
-                lineArea.barLinesState.bottomPosition = lineArea.playerPosition;
+                root.syncPlayerViewport(lineArea.player);
             }
 
-            onPlayerPositionChanged: syncBarLineWindow()
+            onPlayerChanged: syncBarLineWindow()
             onBarLinesStateChanged: syncBarLineWindow()
             onDstStateChanged: syncBarLineWindow()
             onTravelHeightChanged: syncBarLineWindow()
@@ -491,7 +539,13 @@ Item {
 
                     width: parent.width
                     height: lineArea.height
-                    y: lineArea.layerSkinY * root.skinScale - lineClip.y
+                    y: lineArea.laneBottomPosition * root.skinScale - lineClip.y
+                    transform: Lr2GameplayPositionTransform {
+                        frameState: root.gameplayFrameState
+                        player: lineArea.player
+                        side: lineArea.side
+                        multiplier: lineArea.multiplier * root.skinScale
+                    }
 
                     Repeater {
                         model: lineArea.barLinesState || []
@@ -571,8 +625,7 @@ Item {
             property real multiplier: root.heightMultiplier(
                 player,
                 root.sideSpeedHeight(side, dstState))
-            property real playerPosition: side === 2 ? root.sampledPosition2 : root.sampledPosition1
-            property real layerSkinY: root.laneBottom(side, dstState) + playerPosition * multiplier
+            readonly property real laneBottomPosition: root.laneBottom(side, dstState)
             property bool clipActive: root.hidSudClipActive(side)
             property real clipTopSkin: root.hidSudClipTop(side, dstState)
             property real clipBottomSkin: root.hidSudClipBottom(side, dstState)
@@ -581,11 +634,7 @@ Item {
             height: parent.height
 
             function syncColumnWindow() : var {
-                if (!lane.columnState || !lane.dstState || lane.multiplier <= 0) {
-                    return;
-                }
-                lane.columnState.topPosition = lane.playerPosition + lane.travelHeight / lane.multiplier;
-                lane.columnState.bottomPosition = lane.playerPosition;
+                root.syncPlayerViewport(lane.player);
             }
 
             function sourceForDisplay(display: var) : var {
@@ -606,15 +655,13 @@ Item {
                 }
             }
 
-            onPlayerPositionChanged: Qt.callLater(syncColumnWindow)
-            onColumnStateChanged: Qt.callLater(syncColumnWindow)
-            onDstStateChanged: Qt.callLater(syncColumnWindow)
-            onTravelHeightChanged: Qt.callLater(syncColumnWindow)
-            onMultiplierChanged: Qt.callLater(syncColumnWindow)
-            onHeightChanged: Qt.callLater(syncColumnWindow)
-            Component.onCompleted: {
-                Qt.callLater(syncColumnWindow);
-            }
+            onPlayerChanged: syncColumnWindow()
+            onColumnStateChanged: syncColumnWindow()
+            onDstStateChanged: syncColumnWindow()
+            onTravelHeightChanged: syncColumnWindow()
+            onMultiplierChanged: syncColumnWindow()
+            onHeightChanged: syncColumnWindow()
+            Component.onCompleted: syncColumnWindow()
 
             Item {
                 id: noteClip
@@ -631,7 +678,13 @@ Item {
 
                     width: parent.width
                     height: lane.height
-                    y: lane.layerSkinY * root.skinScale - noteClip.y
+                    y: lane.laneBottomPosition * root.skinScale - noteClip.y
+                    transform: Lr2GameplayPositionTransform {
+                        frameState: root.gameplayFrameState
+                        player: lane.player
+                        side: lane.side
+                        multiplier: lane.multiplier * root.skinScale
+                    }
 
                     Repeater {
                         model: lane.columnState || []
@@ -653,23 +706,20 @@ Item {
                                 && display.note.type === note.Type.LongNoteBegin
                                 && hitData
                                 && !display.otherEndHitData
-                            readonly property bool staticLongNote: display
+                            readonly property bool staticLongNoteCandidate: display
                                 && display.note
                                 && display.note.type === note.Type.LongNoteBegin
                                 && (heldLongNote || display.belowBottom)
-                                && root.nextNotePosition(display, lane.notes) > lane.playerPosition
+                            readonly property real staticPlayerPosition: staticLongNoteCandidate
+                                ? root.visualPosition(lane.player, lane.side)
+                                : 0
+                            readonly property bool staticLongNote: staticLongNoteCandidate
+                                && root.nextNotePosition(display, lane.notes) > staticPlayerPosition
                             readonly property real localY: (staticLongNote
-                                ? -lane.playerPosition
+                                ? -staticPlayerPosition
                                 : -root.notePosition(display)) * lane.multiplier
                             readonly property var noteSource: lane.sourceForDisplay(display)
-                            readonly property var lnBodySource: heldLongNote
-                                ? (lane.lnBodyActiveSource || lane.lnBodyInactiveSource)
-                                : (lane.lnBodyInactiveSource || lane.lnBodyActiveSource)
-                            readonly property int lnTimer: 70 + lane.lr2Index
                             readonly property int noteSourceTimerFire: root.sourceTimerFireFor(noteSource)
-                            readonly property int lnBodySourceTimerFire: root.sourceTimerFireFor(
-                                lnBodySource,
-                                heldLongNote ? lnTimer : 0)
                             readonly property var noteState: root.spriteState(
                                 lane.dstState,
                                 localY,
@@ -685,22 +735,32 @@ Item {
 
                                 active: noteItem.visible
                                     && display.note.type === note.Type.LongNoteBegin
-                                    && !!noteItem.lnBodySource
+                                    && !!(noteItem.heldLongNote
+                                        ? (lane.lnBodyActiveSource || lane.lnBodyInactiveSource)
+                                        : (lane.lnBodyInactiveSource || lane.lnBodyActiveSource))
                                     && root.nextNotePosition(display, lane.notes) < Infinity
                                 asynchronous: !!root.screenRoot
                                     && root.screenRoot.customizeMode === true
 
                                 sourceComponent: Component {
                                     Lr2FastSprite {
-                                        srcData: noteItem.lnBodySource
+                                        readonly property var bodySource: noteItem.heldLongNote
+                                            ? (lane.lnBodyActiveSource || lane.lnBodyInactiveSource)
+                                            : (lane.lnBodyInactiveSource || lane.lnBodyActiveSource)
+                                        readonly property int bodyTimer: 70 + lane.lr2Index
+                                        readonly property int bodyTimerFire: root.sourceTimerFireFor(
+                                            bodySource,
+                                            noteItem.heldLongNote ? bodyTimer : 0)
+
+                                        srcData: bodySource
                                         asynchronousLoading: !!root.screenRoot
                                             && root.screenRoot.customizeMode === true
                                         skinTime: root.sourceSkinTimeFor(
-                                            noteItem.lnBodySource,
-                                            noteItem.lnBodySourceTimerFire,
-                                            noteItem.heldLongNote ? noteItem.lnTimer : 0)
+                                            bodySource,
+                                            bodyTimerFire,
+                                            noteItem.heldLongNote ? bodyTimer : 0)
                                         timers: null
-                                        sourceTimerFire: noteItem.lnBodySourceTimerFire
+                                        sourceTimerFire: bodyTimerFire
                                         scaleOverride: root.skinScale
                                         tileVertically: true
                                         stateData: {

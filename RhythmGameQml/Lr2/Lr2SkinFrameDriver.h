@@ -47,7 +47,7 @@ public:
     int fpsSampleIntervalMs() const;
     void setFpsSampleIntervalMs(int value);
 
-    Q_INVOKABLE void tick(qreal smoothFrameTime);
+    Q_INVOKABLE void tick();
     Q_INVOKABLE void requestClockRestart();
 
 signals:
@@ -79,4 +79,5 @@ private:
     int m_currentFps = 0;
     int m_fpsSampleIntervalMs = 250;
     qint64 m_lastFpsSampleMs = 0;
+    int m_framesSinceFpsSample = 0;
 };

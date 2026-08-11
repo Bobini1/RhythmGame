@@ -19,7 +19,7 @@ TEST_CASE("LR2 custom scene-graph blending covers destination-dependent modes",
 {
     CHECK_FALSE(Lr2BlendSprite::supportsBlendMode(0));
     CHECK_FALSE(Lr2BlendSprite::supportsBlendMode(1));
-    CHECK_FALSE(Lr2BlendSprite::supportsBlendMode(2));
+    CHECK(Lr2BlendSprite::supportsBlendMode(2));
     CHECK(Lr2BlendSprite::supportsBlendMode(3));
     CHECK(Lr2BlendSprite::supportsBlendMode(4));
     CHECK(Lr2BlendSprite::supportsBlendMode(5));

@@ -25,11 +25,11 @@ Lr2NativeCursor {
         : 0
     readonly property int cursorSrcTimer: cursorSrcData ? (cursorSrcData.timer || 0) : 0
     property Lr2TimelineState cursorTimelineState: Lr2TimelineState {
-        enabled: cursor.rootReady && !!cursor.cursorSrcData
+        enabled: cursor.active && cursor.rootReady && !!cursor.cursorSrcData
         dsts: cursor.cursorDsts
         skinTime: cursor.rootReady ? cursor.root.renderSkinTime : 0
         timers: null
-        timerFire: cursor.skinTimerLookup
+        timerFire: cursor.active && cursor.skinTimerLookup
             ? cursor.skinTimerLookup.skinTimerFireTime(cursor.cursorDstTimer)
             : -1
         activeOptions: cursor.rootReady && usesActiveOptionsFor(cursor.cursorDsts)
@@ -58,11 +58,11 @@ Lr2NativeCursor {
         return absPath;
     }
     property Lr2AnimationFrameState animationFrameState: Lr2AnimationFrameState {
-        enabled: cursor.rootReady && !!cursor.cursorSrcData
+        enabled: cursor.active && cursor.rootReady && !!cursor.cursorSrcData
         sourceData: cursor.cursorSrcData
         skinTime: cursor.rootReady ? cursor.root.renderSkinTime : 0
         timers: null
-        timerFire: cursor.skinTimerLookup
+        timerFire: cursor.active && cursor.skinTimerLookup
             ? cursor.skinTimerLookup.skinTimerFireTime(cursor.cursorSrcTimer)
             : -1
     }

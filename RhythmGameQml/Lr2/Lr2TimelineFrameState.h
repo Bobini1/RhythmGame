@@ -13,6 +13,7 @@
 
 class Lr2SkinClock;
 class Lr2SkinElementActiveOptionsState;
+class Lr2GameplayFrameState;
 
 class Lr2TimelineFrameState : public QObject {
     Q_OBJECT
@@ -25,6 +26,8 @@ class Lr2TimelineFrameState : public QObject {
     Q_PROPERTY(QVariant activeOptions READ activeOptions WRITE setActiveOptions NOTIFY activeOptionsChanged)
     Q_PROPERTY(QVariant timers READ timers WRITE setTimers NOTIFY timersChanged)
     Q_PROPERTY(int timerFire READ timerFire WRITE setTimerFire NOTIFY timerFireChanged)
+    Q_PROPERTY(Lr2GameplayFrameState* gameplayFrameState READ gameplayFrameState WRITE setGameplayFrameState NOTIFY gameplayFrameStateChanged)
+    Q_PROPERTY(bool useGameplayRhythmTimer READ useGameplayRhythmTimer WRITE setUseGameplayRhythmTimer NOTIFY useGameplayRhythmTimerChanged)
     Q_PROPERTY(QVariant stateOverride READ stateOverride WRITE setStateOverride NOTIFY stateOverrideChanged)
     Q_PROPERTY(Lr2TimelineState* stateOverrideSource READ stateOverrideSource WRITE setStateOverrideSource NOTIFY stateOverrideSourceChanged)
     Q_PROPERTY(bool stateOverrideEnabled READ stateOverrideEnabled WRITE setStateOverrideEnabled NOTIFY stateOverrideChanged)
@@ -92,6 +95,10 @@ public:
     void setTimers(const QVariant& timers);
     int timerFire() const;
     void setTimerFire(int timerFire);
+    Lr2GameplayFrameState* gameplayFrameState() const;
+    void setGameplayFrameState(Lr2GameplayFrameState* state);
+    bool useGameplayRhythmTimer() const;
+    void setUseGameplayRhythmTimer(bool enabled);
     QVariant stateOverride() const;
     void setStateOverride(const QVariant& stateOverride);
     Lr2TimelineState* stateOverrideSource() const;
@@ -166,6 +173,8 @@ signals:
     void activeOptionsChanged();
     void timersChanged();
     void timerFireChanged();
+    void gameplayFrameStateChanged();
+    void useGameplayRhythmTimerChanged();
     void stateOverrideChanged();
     void stateOverrideSourceChanged();
     void forceHiddenChanged();
@@ -211,6 +220,9 @@ private:
     void refreshEffectiveStateOverride();
     void updateTimelineConfiguration();
     void updateTimelineTimers();
+    void reconnectGameplayFrameState();
+    void updateEffectiveTimerFire();
+    int effectiveTimerFire() const;
     int normalizedBlendMode(int rawBlendMode) const;
 
 private slots:
@@ -226,6 +238,10 @@ private:
     QVariant m_activeOptions = QVariantList {};
     QVariant m_timers = QVariantMap { { QStringLiteral("0"), 0 } };
     int m_timerFire = -2147483648;
+    QPointer<Lr2GameplayFrameState> m_gameplayFrameState;
+    QMetaObject::Connection m_gameplayFrameStateConnection;
+    QMetaObject::Connection m_gameplayFrameStateDestroyedConnection;
+    bool m_useGameplayRhythmTimer = false;
     bool m_directStateOverrideEnabled = false;
     Lr2TimelineStateValue m_directStateOverrideValue;
     QPointer<Lr2TimelineState> m_stateOverrideSource;

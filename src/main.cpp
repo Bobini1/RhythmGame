@@ -238,10 +238,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     if (!qEnvironmentVariableIsSet("QT_QPA_UPDATE_IDLE_TIME")) {
         qputenv("QT_QPA_UPDATE_IDLE_TIME", QByteArray("0"));
     }
-    if (!qEnvironmentVariableIsSet("QSG_USE_SIMPLE_ANIMATION_DRIVER")) {
-        qputenv("QSG_USE_SIMPLE_ANIMATION_DRIVER", QByteArray("1"));
-    }
-
     auto app = input::CustomNotifyApp{ argc, argv };
 
     auto appPath =

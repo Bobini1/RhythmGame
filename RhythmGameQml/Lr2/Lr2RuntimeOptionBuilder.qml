@@ -984,16 +984,16 @@ QtObject {
         let currentRankFirst = side === 2 ? 210 : 200;
         if (root.runtimeOptionRangeUsed(usedOptions, currentRankFirst, currentRankFirst + 7)) {
             let currentRank = host.gameplayRankOption(score, currentRankFirst, true);
-            if (currentRank >= 0) {
-                root.addOption(options, currentRank);
-            }
+            root.setRuntimeOptionRange(
+                options,
+                currentRankFirst,
+                currentRankFirst + 7,
+                currentRank);
         }
         if (side === 1) {
             if (root.runtimeOptionRangeUsed(usedOptions, 220, 227)) {
                 let totalRank = host.gameplayRankOption(score, 220, false);
-                if (totalRank >= 0) {
-                    root.addOption(options, totalRank);
-                }
+                root.setRuntimeOptionRange(options, 220, 227, totalRank);
             }
             if (root.runtimeOptionRangeUsed(usedOptions, 300, 308)) {
                 root.addOption(options, host.gameplayExactRankOption(score, 300));

@@ -116,6 +116,7 @@ Item {
     property int gameplayNumberRevision1: 0
     property int gameplayNumberRevision2: 0
     property int gameplayStaticNumberRevision: 0
+    property int gameplayClockNumberRevision: 0
     property int gameplayTimerRevision: 0
     property bool gameplayRevisionRefreshPending: false
     property bool gameplayNumberRevision1Pending: false
@@ -228,28 +229,15 @@ Item {
     readonly property var gameplayPlayer1: root.chart ? root.chart.player1 : null
     readonly property var gameplayPlayer2: root.chart ? root.chart.player2 : null
     readonly property var gameplayRhythmTimerPlayer: root.gameplayPlayer1 || root.gameplayPlayer2
-    readonly property int gameplayRhythmTimerSkinTime: {
-        if (root.gameplayScreenActive) {
-            return gameplayFrameState.rhythmTimerSkinTime;
-        }
-        let player = root.gameplayRhythmTimerPlayer;
-        if (!player) {
-            return -1;
-        }
-        let beatPosition = Number(player.beatPosition || 0);
-        if (beatPosition > 0) {
-            let rhythm = (beatPosition - Math.floor(beatPosition)) * 1000;
-            return Math.max(0, Math.round(root.renderSkinTime - rhythm));
-        }
-        let bpm = Math.max(1, Number(player.bpm || 0));
-        let elapsedMs = Math.max(0, Number(player.elapsed || 0)) / 1000000;
-        let beatMs = 60000 / bpm;
-        let rhythm = beatMs > 0 ? (elapsedMs % beatMs) * 1000 / beatMs : 0;
-        return Math.max(0, Math.round(root.renderSkinTime - rhythm));
-    }
+    property alias gameplayRhythmTimerSkinTime: gameplayFrameState.rhythmTimerSkinTime
     readonly property bool stackScreenActive: screenState.stackActive
     readonly property bool screenUpdatesActive: screenState.updatesActive
     readonly property int lr2CurrentFps: Rg.programSettings.presentationFps
+    onLr2CurrentFpsChanged: {
+        if (root.gameplayScreenActive) {
+            root.gameplayClockNumberRevision++;
+        }
+    }
     readonly property var lr2InitialClockNow: wallClockState.initialNow
     property alias skinTimingRef: skinTiming
     property alias skinTimerStateRef: skinTiming.skinTimerStateRef
@@ -2360,6 +2348,9 @@ Item {
 
     function updateLr2DateTimeNumbers() : void {
         wallClockState.update();
+        if (root.gameplayScreenActive) {
+            root.gameplayClockNumberRevision++;
+        }
     }
 
     function chartStatusValue(status: var) : var {
@@ -5612,6 +5603,14 @@ Item {
     Lr2GameplayFrameState {
         id: gameplayFrameState
         chart: root.chart || null
+    }
+
+    Connections {
+        target: root.gameplayScreenActive ? root.gameplayPlayer1 : null
+
+        function onBpmChanged() {
+            root.gameplayClockNumberRevision++;
+        }
     }
 
     Lr2SkinTiming {

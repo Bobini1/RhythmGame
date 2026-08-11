@@ -102,7 +102,7 @@ void Lr2SkinFrameDriver::setFpsSampleIntervalMs(int value) {
     emit fpsSampleIntervalMsChanged();
 }
 
-void Lr2SkinFrameDriver::tick(qreal smoothFrameTime) {
+void Lr2SkinFrameDriver::tick() {
     if (!m_clock) {
         return;
     }
@@ -115,11 +115,18 @@ void Lr2SkinFrameDriver::tick(qreal smoothFrameTime) {
         m_clock->restartSelectInfoTimer();
     }
 
-    if (nowMs - m_lastFpsSampleMs >= m_fpsSampleIntervalMs) {
+    if (m_lastFpsSampleMs <= 0 || nowMs < m_lastFpsSampleMs) {
         m_lastFpsSampleMs = nowMs;
-        setCurrentFps(smoothFrameTime > 0.0
-            ? static_cast<int>(std::lround(1.0 / smoothFrameTime))
-            : 0);
+        m_framesSinceFpsSample = 0;
+    }
+    ++m_framesSinceFpsSample;
+    const qint64 fpsSampleElapsedMs = nowMs - m_lastFpsSampleMs;
+    if (fpsSampleElapsedMs >= m_fpsSampleIntervalMs) {
+        setCurrentFps(static_cast<int>(std::lround(
+            static_cast<qreal>(m_framesSinceFpsSample) * 1000.0
+            / static_cast<qreal>(fpsSampleElapsedMs))));
+        m_lastFpsSampleMs = nowMs;
+        m_framesSinceFpsSample = 0;
     }
 
     if (m_gameplayScreen && m_gameplayFrameState) {
@@ -174,5 +181,5 @@ void Lr2SkinFrameDriver::tickFrameAnimation() {
     if (!m_frameAnimation) {
         return;
     }
-    tick(m_frameAnimation->property("smoothFrameTime").toReal());
+    tick();
 }

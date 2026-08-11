@@ -2180,7 +2180,7 @@ QtObject {
 
         let num = src ? (src.num || 0) : 0;
         if (num === 20 || (num >= 160 && num <= 164)) {
-            return 16;
+            return 128;
         }
         if (num === 11 || num === 15 || num === 211 || num === 213
                 || (num >= 120 && num <= 136) || num === 526 || num === 521
@@ -2191,7 +2191,7 @@ QtObject {
             return 15;
         }
         if (num >= 423 && num <= 428) {
-            return 21;
+            return 133;
         }
         if (num === 10 || num === 12 || num === 13 || num === 14
                 || num === 201 || num === 210 || num === 212
@@ -2241,6 +2241,9 @@ QtObject {
         }
         if ((dependencyMask & 64) !== 0) {
             root.gameplayScoresRevision;
+        }
+        if ((dependencyMask & 128) !== 0) {
+            root.gameplayClockNumberRevision;
         }
     }
 
