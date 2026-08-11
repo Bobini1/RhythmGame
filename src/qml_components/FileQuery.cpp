@@ -297,6 +297,12 @@ FileQuery::FileQuery(resource_managers::SongAssetStore* assetStore,
 }
 
 auto
+FileQuery::localFileUrl(const QString& path) const -> QString
+{
+    return path.isEmpty() ? QString{} : QUrl::fromLocalFile(path).toString();
+}
+
+auto
 FileQuery::readTextFile(const QString& path) const -> QString
 {
     if (assetStore) {

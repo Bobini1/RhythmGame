@@ -160,8 +160,7 @@ ApplicationWindow {
             if (/^file:\/\//i.test(value) || /^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) {
                 return value;
             }
-            value = value.replace(/\\/g, "/");
-            return value[0] === "/" ? "file://" + encodeURI(value) : "file:///" + encodeURI(value);
+            return Rg.fileQuery.localFileUrl(value);
         }
 
         function openLocalFolder(path: var): var {

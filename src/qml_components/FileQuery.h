@@ -22,6 +22,7 @@ class FileQuery : public QObject
   public:
     explicit FileQuery(resource_managers::SongAssetStore* assetStore = nullptr,
                        QObject* parent = nullptr);
+    Q_INVOKABLE QString localFileUrl(const QString& path) const;
     Q_INVOKABLE QString readTextFile(const QString& path) const;
     /**
      * @brief Get a list of all files in a directory EXCLUDING ini files.

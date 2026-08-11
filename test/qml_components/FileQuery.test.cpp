@@ -4,6 +4,7 @@
 
 #include <QFile>
 #include <QTemporaryDir>
+#include <QUrl>
 
 namespace {
 
@@ -73,4 +74,17 @@ TEST_CASE("FileQuery lists selectable files with Unicode filenames",
       qml_components::FileQuery().getSelectableFilesForDirectory(
         tempDir.path());
     CHECK(files.contains(filename));
+}
+
+TEST_CASE("FileQuery preserves hashes in local file URLs", "[FileQuery][paths]")
+{
+    QTemporaryDir tempDir;
+    REQUIRE(tempDir.isValid());
+
+    const auto path = tempDir.filePath(QStringLiteral("song#mix"));
+    const auto url = QUrl(qml_components::FileQuery().localFileUrl(path));
+
+    CHECK(url.isLocalFile());
+    CHECK(url.fragment().isEmpty());
+    CHECK(url.toLocalFile() == path);
 }
