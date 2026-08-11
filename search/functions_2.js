@@ -25,7 +25,7 @@ var searchData=
   ['chartdata_22',['chartdata',['../classLr2SelectDetailState.html#a426e6b646272e3e49e3bea9361a31483',1,'Lr2SelectDetailState::chartData()'],['../classgameplay__logic_1_1ChartData.html#ac24538e77db8ca5e7d1550c8a31073b3',1,'gameplay_logic::ChartData::ChartData()']]],
   ['chartdatachanged_23',['chartDataChanged',['../classLr2SelectDetailState.html#a34e9af72ed3f2162116adaf48d13a3a8',1,'Lr2SelectDetailState']]],
   ['chartfactory_24',['ChartFactory',['../classresource__managers_1_1ChartFactory.html#a9773bf41df73825066dc324691bd02f3',1,'resource_managers::ChartFactory']]],
-  ['chartfoldermodel_25',['chartfoldermodel',['../classLr2SelectItemModel.html#a9f681f500235956bc7cf4ff76ca8a7a9',1,'Lr2SelectItemModel::chartFolderModel()'],['../classresource__managers_1_1ChartFolderModel.html#a75688fe39ff1b78c4fbb1f1dc288d5ee',1,'resource_managers::ChartFolderModel::ChartFolderModel()']]],
+  ['chartfoldermodel_25',['chartfoldermodel',['../classresource__managers_1_1ChartFolderModel.html#a75688fe39ff1b78c4fbb1f1dc288d5ee',1,'resource_managers::ChartFolderModel::ChartFolderModel()'],['../classLr2SelectItemModel.html#a9f681f500235956bc7cf4ff76ca8a7a9',1,'Lr2SelectItemModel::chartFolderModel() const']]],
   ['chartfoldermodelchanged_26',['chartFolderModelChanged',['../classLr2SelectItemModel.html#a05439c54a3283ad3d386a6c23161ad68',1,'Lr2SelectItemModel']]],
   ['chartidchanged_27',['chartIdChanged',['../classqml__components_1_1OnlineRankingModel.html#a5d576277c5336fd7fc9c774eec5e95c0',1,'qml_components::OnlineRankingModel']]],
   ['chartlikechanged_28',['chartLikeChanged',['../classLr2SelectBarCell.html#a7f9ea4dbaddcaf0a848ef12338fdaf71',1,'Lr2SelectBarCell']]],

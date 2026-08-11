@@ -77,6 +77,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="Lr2SkinTimerState_8h_source.html">Lr2SkinTimerState.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="Lr2GameplayFrameState_8h_source.html">Lr2GameplayFrameState.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="Lr2SkinClock_8h_source.html">Lr2SkinClock.h</a>&quot;</code><br />
 <code>#include &lt;QVariantMap&gt;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
@@ -86,38 +87,44 @@ Include dependency graph for Lr2SkinTimerState.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="Lr2SkinTimerState_8cpp__incl.png" border="0" usemap="#aRhythmGameQml_2Lr2_2Lr2SkinTimerState_8cpp" alt=""/></div>
 <map name="aRhythmGameQml_2Lr2_2Lr2SkinTimerState_8cpp" id="aRhythmGameQml_2Lr2_2Lr2SkinTimerState_8cpp">
-<area shape="rect" title=" " alt="" coords="662,5,877,45"/>
-<area shape="rect" href="Lr2SkinTimerState_8h.html" title=" " alt="" coords="415,93,569,119"/>
-<area shape="poly" title=" " alt="" coords="704,48,547,92,545,87,702,43"/>
-<area shape="rect" href="Lr2SkinClock_8h.html" title=" " alt="" coords="693,167,811,192"/>
-<area shape="poly" title=" " alt="" coords="744,48,723,68,707,94,704,110,709,126,730,156,726,159,704,129,699,111,701,92,719,65,741,44"/>
-<area shape="rect" title=" " alt="" coords="716,93,823,119"/>
-<area shape="poly" title=" " alt="" coords="772,46,772,79,767,79,767,46"/>
-<area shape="rect" title=" " alt="" coords="847,93,932,119"/>
-<area shape="poly" title=" " alt="" coords="800,43,862,84,859,88,797,48"/>
-<area shape="rect" title=" " alt="" coords="957,93,1019,119"/>
-<area shape="poly" title=" " alt="" coords="823,43,944,86,943,91,821,48"/>
-<area shape="poly" title=" " alt="" coords="534,116,697,160,696,166,533,121"/>
-<area shape="rect" title=" " alt="" coords="715,240,789,265"/>
-<area shape="poly" title=" " alt="" coords="515,116,605,164,722,231,719,235,603,169,513,121"/>
-<area shape="rect" title=" " alt="" coords="502,240,690,265"/>
-<area shape="poly" title=" " alt="" coords="520,116,552,136,581,165,594,196,598,226,593,227,589,197,576,168,549,140,517,121"/>
-<area shape="rect" title=" " alt="" coords="5,167,112,192"/>
-<area shape="poly" title=" " alt="" coords="420,121,126,169,125,164,420,116"/>
-<area shape="rect" title=" " alt="" coords="137,167,215,192"/>
-<area shape="poly" title=" " alt="" coords="442,121,229,169,228,164,441,116"/>
-<area shape="rect" title=" " alt="" coords="239,167,305,192"/>
-<area shape="poly" title=" " alt="" coords="457,121,318,166,317,161,456,116"/>
-<area shape="rect" title=" " alt="" coords="329,167,383,192"/>
-<area shape="poly" title=" " alt="" coords="471,121,391,163,389,158,469,116"/>
-<area shape="rect" title=" " alt="" coords="407,167,486,192"/>
-<area shape="poly" title=" " alt="" coords="487,120,464,157,459,154,482,118"/>
-<area shape="rect" title=" " alt="" coords="511,167,567,192"/>
-<area shape="poly" title=" " alt="" coords="502,118,526,154,521,157,497,120"/>
-<area shape="poly" title=" " alt="" coords="755,192,755,226,749,226,749,192"/>
-<area shape="rect" title=" " alt="" coords="814,240,885,265"/>
-<area shape="poly" title=" " alt="" coords="769,190,824,229,821,234,766,194"/>
-<area shape="poly" title=" " alt="" coords="728,194,635,237,633,232,726,190"/>
+<area shape="rect" title=" " alt="" coords="445,5,660,45"/>
+<area shape="rect" href="Lr2SkinTimerState_8h.html" title=" " alt="" coords="315,93,470,119"/>
+<area shape="poly" title=" " alt="" coords="516,48,430,90,427,85,513,43"/>
+<area shape="rect" href="Lr2SkinClock_8h.html" title=" " alt="" coords="40,167,159,192"/>
+<area shape="poly" title=" " alt="" coords="472,48,391,69,304,96,214,130,137,163,135,159,212,125,302,91,389,64,471,43"/>
+<area shape="rect" href="Lr2GameplayFrameState_8h.html" title=" " alt="" coords="717,167,913,192"/>
+<area shape="poly" title=" " alt="" coords="543,46,528,82,528,101,535,117,558,128,604,140,724,162,723,167,603,145,556,133,531,121,522,102,523,81,538,44"/>
+<area shape="rect" title=" " alt="" coords="545,93,651,119"/>
+<area shape="poly" title=" " alt="" coords="566,44,587,80,582,83,561,47"/>
+<area shape="rect" title=" " alt="" coords="675,93,761,119"/>
+<area shape="poly" title=" " alt="" coords="593,43,683,85,680,90,591,48"/>
+<area shape="rect" title=" " alt="" coords="785,93,848,119"/>
+<area shape="poly" title=" " alt="" coords="617,43,773,89,771,94,615,48"/>
+<area shape="poly" title=" " alt="" coords="346,121,161,166,159,161,345,116"/>
+<area shape="rect" title=" " alt="" coords="642,240,717,265"/>
+<area shape="poly" title=" " alt="" coords="471,114,578,133,625,147,656,165,667,178,674,194,681,225,676,227,669,196,662,181,652,169,623,152,577,138,470,119"/>
+<area shape="rect" title=" " alt="" coords="5,240,193,265"/>
+<area shape="poly" title=" " alt="" coords="315,111,235,116,149,126,75,143,47,154,29,168,25,176,24,184,31,200,47,216,67,231,64,235,44,221,27,203,19,185,20,175,25,165,45,150,73,138,148,120,234,110,315,106"/>
+<area shape="rect" title=" " alt="" coords="445,167,551,192"/>
+<area shape="poly" title=" " alt="" coords="411,116,471,157,468,161,408,121"/>
+<area shape="rect" title=" " alt="" coords="844,240,923,265"/>
+<area shape="poly" title=" " alt="" coords="470,112,750,140,873,154,928,165,935,182,932,199,922,217,909,232,905,228,917,213,927,198,930,182,924,169,872,160,750,145,470,117"/>
+<area shape="rect" title=" " alt="" coords="576,167,641,192"/>
+<area shape="poly" title=" " alt="" coords="428,116,564,160,562,166,427,121"/>
+<area shape="rect" title=" " alt="" coords="183,167,237,192"/>
+<area shape="poly" title=" " alt="" coords="364,121,251,165,249,160,362,116"/>
+<area shape="rect" title=" " alt="" coords="261,167,340,192"/>
+<area shape="poly" title=" " alt="" coords="380,121,328,160,325,156,376,117"/>
+<area shape="rect" title=" " alt="" coords="365,167,421,192"/>
+<area shape="poly" title=" " alt="" coords="395,119,395,153,390,153,390,119"/>
+<area shape="poly" title=" " alt="" coords="159,188,172,189,428,221,628,243,628,249,427,227,171,195,159,193"/>
+<area shape="rect" title=" " alt="" coords="383,240,453,265"/>
+<area shape="poly" title=" " alt="" coords="151,189,370,238,369,243,150,195"/>
+<area shape="poly" title=" " alt="" coords="102,192,102,226,97,226,97,192"/>
+<area shape="poly" title=" " alt="" coords="795,194,715,236,712,231,792,190"/>
+<area shape="poly" title=" " alt="" coords="752,195,468,245,467,240,751,189"/>
+<area shape="poly" title=" " alt="" coords="718,193,207,243,207,238,717,188"/>
+<area shape="poly" title=" " alt="" coords="828,190,865,228,861,232,825,194"/>
 </map>
 </div>
 </div></div><!-- contents -->
