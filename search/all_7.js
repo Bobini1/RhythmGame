@@ -104,7 +104,7 @@ var searchData=
   ['getbanner_101',['getBanner',['../classgameplay__logic_1_1ChartData.html#aae36ddc9ffffb021fdb2fc58f1d7b1d2',1,'gameplay_logic::ChartData']]],
   ['getbannersource_102',['getBannerSource',['../classgameplay__logic_1_1ChartData.html#a434f5484a15aecda1cb0edd88dac8da2',1,'gameplay_logic::ChartData']]],
   ['getbarlinefilter_103',['getBarLineFilter',['../classgameplay__logic_1_1GameplayState.html#a93a95a9de28b335fe50868385c9e5f86',1,'gameplay_logic::GameplayState']]],
-  ['getbarlines_104',['getbarlines',['../classgameplay__logic_1_1BarLinesState.html#a28fa75db4d16dcaf0c2b108c8f3f1c7f',1,'gameplay_logic::BarLinesState::getBarlines()'],['../classgameplay__logic_1_1BmsNotes.html#a25ca040ce67de9228910e69cf977a0bf',1,'gameplay_logic::BmsNotes::getBarLines()']]],
+  ['getbarlines_104',['getbarlines',['../classgameplay__logic_1_1BmsNotes.html#a25ca040ce67de9228910e69cf977a0bf',1,'gameplay_logic::BmsNotes::getBarLines()'],['../classgameplay__logic_1_1BarLinesState.html#a28fa75db4d16dcaf0c2b108c8f3f1c7f',1,'gameplay_logic::BarLinesState::getBarlines()']]],
   ['getbarlinesstate_105',['getBarLinesState',['../classgameplay__logic_1_1GameplayState.html#aef71e98a7540bf20a73daa8cd0ee2415',1,'gameplay_logic::GameplayState']]],
   ['getbattleactive_106',['getBattleActive',['../classqml__components_1_1ProfileList.html#a17e6dc23b0cfe4fcf2ccd7177ef3e410',1,'qml_components::ProfileList']]],
   ['getbattleallowed_107',['getBattleAllowed',['../classqml__components_1_1ProfileList.html#a701d0fc39b0ef0dd9a60158c5aa8ebd1',1,'qml_components::ProfileList']]],

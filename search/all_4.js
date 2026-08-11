@@ -63,7 +63,7 @@ var searchData=
   ['developer_20mode_20targets_60',['Developer mode targets',['../md_DEV__ENGINE.html#autotoc_md19',1,'']]],
   ['development_61',['development',['../md_DEV__ENGINE.html',1,'Engine Development'],['../md_DEV__THEME.html',1,'Theme Development']]],
   ['deviation_62',['deviation',['../classgameplay__logic_1_1BmsPoints.html#af065d142171b6f10f27afc50b33177a8',1,'gameplay_logic::BmsPoints']]],
-  ['device_63',['device',['../classsounds_1_1AudioEngine.html#a013e4c84be49003ce1aaf77a055316bc',1,'sounds::AudioEngine::device'],['../classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290',1,'input::Key::Device'],['../classinput_1_1Key.html#a1ddf7a5c8ea1860aa44588c9adc7c1d5',1,'input::Key::device']]],
+  ['device_63',['device',['../classinput_1_1Key.html#a1ddf7a5c8ea1860aa44588c9adc7c1d5',1,'input::Key::device'],['../classsounds_1_1AudioEngine.html#a013e4c84be49003ce1aaf77a055316bc',1,'sounds::AudioEngine::device'],['../classinput_1_1Key.html#a015a64c0ae6491d8bd329f95d2fe0290',1,'input::Key::Device']]],
   ['devicechanged_64',['deviceChanged',['../classsounds_1_1AudioEngine.html#a3a55b0f3698a0c660532c66f203db7d6',1,'sounds::AudioEngine']]],
   ['deviceid_65',['DeviceId',['../structsounds_1_1AudioEngine_1_1DeviceId.html',1,'sounds::AudioEngine']]],
   ['devicenames_66',['deviceNames',['../classsounds_1_1AudioEngine.html#a0cfb686165007295c58eeef242dc0f63',1,'sounds::AudioEngine']]],
