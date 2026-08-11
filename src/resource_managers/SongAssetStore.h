@@ -40,7 +40,8 @@ class SongAssetStore : public QObject
     explicit SongAssetStore(QObject* parent = nullptr);
     ~SongAssetStore() override;
 
-    [[nodiscard]] auto read(const std::filesystem::path& virtualPath) const
+    [[nodiscard]] auto read(const std::filesystem::path& virtualPath,
+                            const std::atomic_bool* stop = nullptr) const
       -> QByteArray;
     [[nodiscard]] auto materialize(const std::filesystem::path& virtualPath,
                                    const std::atomic_bool* stop = nullptr) const

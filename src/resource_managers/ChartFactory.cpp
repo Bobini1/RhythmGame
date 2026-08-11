@@ -12,6 +12,10 @@
 #include "support/GeneratePermutation.h"
 #include "support/QStringToPath.h"
 #include "support/PathToQString.h"
+#include "support/PathToUtfString.h"
+#include <QByteArrayView>
+#include <QDir>
+#include <QHash>
 #include <QImageReader>
 #include <QVideoFrame>
 #include <QGuiApplication>
@@ -35,20 +39,10 @@ convertImageToFrame(const QImage& image) -> std::unique_ptr<QVideoFrame>
 }
 
 auto
-loadBmp(std::filesystem::path path) -> QImage
+prepareBmp(QImage image) -> QImage
 {
-    auto original = path;
-    // remove extension
-    const auto pathQString = support::pathToQString(path.replace_extension());
-    // QImage will try out a few different extensions
-    auto image = QImage(pathQString);
     if (image.isNull()) {
-        // try the EXACT extension that was declared. Helps with uppercase
-        // extensions on Linux
-        image = QImage(support::pathToQString(original));
-        if (image.isNull()) {
-            return {};
-        }
+        return {};
     }
     image.convertTo(QImage::Format_RGBA8888);
     auto size = image.size();
@@ -68,6 +62,32 @@ loadBmp(std::filesystem::path path) -> QImage
           QRect{ -widthDiff / 2, 0, size.width(), size.height() });
     }
     return image;
+}
+
+auto
+loadBmp(std::filesystem::path path) -> QImage
+{
+    auto original = path;
+    // remove extension
+    const auto pathQString = support::pathToQString(path.replace_extension());
+    // QImage will try out a few different extensions
+    auto image = QImage(pathQString);
+    if (image.isNull()) {
+        // try the EXACT extension that was declared. Helps with uppercase
+        // extensions on Linux
+        image = QImage(support::pathToQString(original));
+        if (image.isNull()) {
+            return {};
+        }
+    }
+    return prepareBmp(std::move(image));
+}
+
+auto
+loadBmp(const QByteArrayView encoded) -> QImage
+{
+    return prepareBmp(QImage::fromData(
+      reinterpret_cast<const uchar*>(encoded.data()), encoded.size()));
 }
 
 auto
@@ -106,7 +126,8 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaBase,
         std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaLayer2,
         std::unordered_map<uint64_t, std::filesystem::path> bmps,
         QThread* thread,
-        std::filesystem::path path)
+        std::filesystem::path path,
+        SongAssetStore* assetStore)
   -> std::unique_ptr<qml_components::BgaContainer>
 {
     try {
@@ -151,19 +172,33 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaBase,
         {
             uint64_t id;
             std::filesystem::path path;
+            bool requested;
             QVideoFrame* frame;
         };
 
         // load all images first
         auto loadedBgaFrames =
           QtConcurrent::blockingMapped<QList<FrameLoadingResult>>(
-            requested, [path](auto bmp) -> FrameLoadingResult {
+            requested, [path, assetStore](auto bmp) -> FrameLoadingResult {
                 auto filePath = path / bmp.second.path;
-                auto ret = FrameLoadingResult{ bmp.first, filePath, {} };
+                auto ret = FrameLoadingResult{
+                    bmp.first, filePath, bmp.second.requested, {}
+                };
                 if (!bmp.second.requested) {
                     return ret;
                 }
-                auto image = loadBmp(filePath);
+                auto image = QImage{};
+                if (assetStore && assetStore->isArchived(filePath)) {
+                    try {
+                        image = loadBmp(assetStore->read(filePath));
+                    } catch (const std::exception& error) {
+                        spdlog::warn("Could not read archived BGA {}: {}",
+                                     support::pathToUtfString(filePath),
+                                     error.what());
+                    }
+                } else {
+                    image = loadBmp(filePath);
+                }
                 if (image.isNull()) {
                     return ret;
                 }
@@ -176,21 +211,40 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaBase,
         auto videos = std::unordered_map<uint64_t, QMediaPlayer*>{};
         auto nullFrames =
           std::ranges::count_if(loadedBgaFrames, [](const auto& frame) {
-              return frame.frame == nullptr;
+              return frame.requested && frame.frame == nullptr;
           });
         std::latch videoLatch{ nullFrames };
         auto currentThread = QThread::currentThread();
         for (auto& frame : loadedBgaFrames) {
+            if (!frame.requested) {
+                continue;
+            }
             if (frame.frame) {
                 frames.emplace(frame.id,
                                std::unique_ptr<QVideoFrame>(frame.frame));
             } else {
+                const auto id = frame.id;
+                const auto path = frame.path;
                 QMetaObject::invokeMethod(
                   QGuiApplication::instance(),
-                  [&] {
-                      if (auto video = loadBmpVideo(frame.path)) {
+                  [&, assetStore, id, path] {
+                      auto videoPath = path;
+                      if (assetStore && assetStore->isArchived(videoPath)) {
+                          try {
+                              videoPath = assetStore->materialize(videoPath);
+                          } catch (const std::exception& error) {
+                              spdlog::warn(
+                                "Could not materialize archived BGA video {}: "
+                                "{}",
+                                support::pathToUtfString(path),
+                                error.what());
+                              videoLatch.count_down();
+                              return;
+                          }
+                      }
+                      if (auto video = loadBmpVideo(videoPath)) {
                           video->moveToThread(currentThread);
-                          videos.emplace(frame.id, video.release());
+                          videos.emplace(id, video.release());
                       }
                       videoLatch.count_down();
                   },
@@ -635,31 +689,29 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
 {
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getChartDirectory());
-    if (assetStore->isArchived(path)) {
-        try {
-            auto requested = std::vector<std::filesystem::path>{};
-            requested.reserve(wavs.size() + bmps.size());
-            for (const auto& resource : { &wavs, &bmps }) {
-                for (const auto& [id, relativePath] : *resource) {
-                    Q_UNUSED(id);
-                    requested.push_back(relativePath);
-                }
+    const auto archived = assetStore->isArchived(path);
+    auto encodedWavs = charts::EncodedSounds{};
+    if (archived) {
+        auto uniqueSounds = QHash<QString, charts::EncodedSound>{};
+        for (const auto& [id, relativePath] : wavs) {
+            auto key = support::pathToQString(relativePath);
+            key.replace('\\', '/');
+            key = QDir::cleanPath(key).toCaseFolded();
+            if (const auto found = uniqueSounds.constFind(key);
+                found != uniqueSounds.cend()) {
+                encodedWavs.emplace(id, *found);
+                continue;
             }
-            const auto materialized =
-              assetStore->materializeRelative(path, requested);
-            for (auto* resource : { &wavs, &bmps }) {
-                for (auto& [id, relativePath] : *resource) {
-                    Q_UNUSED(id);
-                    if (const auto resolved = materialized.find(relativePath);
-                        resolved != materialized.end()) {
-                        relativePath = resolved->second;
-                    }
-                }
+            try {
+                auto encoded = std::make_shared<const QByteArray>(
+                  assetStore->read(path / relativePath));
+                uniqueSounds.insert(key, encoded);
+                encodedWavs.emplace(id, std::move(encoded));
+            } catch (const std::exception& error) {
+                spdlog::warn("Failed to read archived sound {}: {}",
+                             support::pathToUtfString(path / relativePath),
+                             error.what());
             }
-        } catch (const std::exception& error) {
-            spdlog::warn("Failed to materialize chart assets for {}: {}",
-                         chartData->getPath().toStdString(),
-                         error.what());
         }
     }
     auto components1 = getComponentsForPlayer(player1,
@@ -686,6 +738,15 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
     }
 
     auto* soundTask = [&]() -> SoundTask* {
+        if (archived) {
+            if (!notesData.bmsonSlices.empty()) {
+                return new SoundTask(engine,
+                                     std::move(encodedWavs),
+                                     std::move(notesData.bmsonSlices),
+                                     std::move(notesData.bmsonFusions));
+            }
+            return new SoundTask(engine, std::move(encodedWavs));
+        }
         if (!notesData.bmsonSlices.empty()) {
             return new SoundTask(engine,
                                  path,
@@ -702,14 +763,16 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                     bgaLayer2 = std::move(notesData.bgaLayer2),
                     bmps = std::move(bmps),
                     thread = QGuiApplication::instance()->thread(),
-                    path]() mutable {
+                    path,
+                    assetStore = assetStore]() mutable {
         return loadBga(std::move(bgaBase),
                        std::move(bgaPoor),
                        std::move(bgaLayer),
                        std::move(bgaLayer2),
                        std::move(bmps),
                        thread,
-                       std::move(path));
+                       std::move(path),
+                       assetStore);
     };
     auto bga = QtConcurrent::run(std::move(bgaTask));
     auto* player1Object = [&]() -> gameplay_logic::Player* {
@@ -842,6 +905,12 @@ SoundTask::SoundTask(sounds::AudioEngine* engine,
   , engine(engine)
 {
 }
+SoundTask::SoundTask(sounds::AudioEngine* engine, charts::EncodedSounds wavs)
+  : encodedWavs(std::move(wavs))
+  , memoryBacked(true)
+  , engine(engine)
+{
+}
 SoundTask::SoundTask(
   sounds::AudioEngine* engine,
   std::filesystem::path path,
@@ -856,9 +925,35 @@ SoundTask::SoundTask(
   , isBmson(true)
 {
 }
+SoundTask::SoundTask(
+  sounds::AudioEngine* engine,
+  charts::EncodedSounds channels,
+  std::vector<charts::BmsNotesData::BmsonSliceInfo> slices,
+  std::unordered_map<uint64_t, std::vector<uint64_t>> fusions)
+  : encodedWavs(std::move(channels))
+  , memoryBacked(true)
+  , engine(engine)
+  , bmsonSlices(std::move(slices))
+  , bmsonFusions(std::move(fusions))
+  , isBmson(true)
+{
+}
 void
 SoundTask::run()
 {
+    if (memoryBacked) {
+        auto sounds =
+          std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>{};
+        if (isBmson) {
+            sounds = charts::loadBmsonSounds(
+              engine, encodedWavs, bmsonSlices, bmsonFusions);
+        } else {
+            sounds = charts::loadBmsSounds(engine, encodedWavs);
+        }
+        encodedWavs.clear();
+        emit soundsLoaded(std::move(sounds));
+        return;
+    }
     if (isBmson) {
         emit soundsLoaded(charts::loadBmsonSounds(
           engine, wavs, bmsonSlices, bmsonFusions, path));

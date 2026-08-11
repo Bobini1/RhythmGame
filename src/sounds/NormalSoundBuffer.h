@@ -6,9 +6,11 @@
 #define RHYTHMGAME_NORMALSOUNDBUFFER_H
 
 #include "SoundBuffer.h"
-#include <vector>
+#include <QByteArrayView>
+
 #include <filesystem>
 #include <span>
+#include <vector>
 
 namespace sounds {
 class AudioEngine;
@@ -30,6 +32,12 @@ class NormalSoundBuffer : public SoundBuffer
      */
     explicit NormalSoundBuffer(AudioEngine* engine,
                                const std::filesystem::path& filename);
+
+    /**
+     * @brief Creates a new sound buffer from an encoded file in
+     * memory.
+     */
+    explicit NormalSoundBuffer(AudioEngine* engine, QByteArrayView encoded);
 
     auto getFrames() const -> ma_uint64 override;
 

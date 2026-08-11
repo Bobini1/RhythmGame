@@ -1,8 +1,8 @@
 #include "SongAssetImageProvider.h"
 
 #include "SongAssetStore.h"
-#include "support/PathToQString.h"
 
+#include <QBuffer>
 #include <QImageReader>
 #include <QQuickImageResponse>
 #include <QQuickTextureFactory>
@@ -34,13 +34,17 @@ class SongAssetImageResponse final
     {
         try {
             if (!cancelled.load()) {
-                const auto localPath = store->materialize(
-                  SongAssetStore::pathFromUrl(
-                    QStringLiteral("image://song-assets/") + id),
-                  &cancelled);
+                auto contents =
+                  store->read(SongAssetStore::pathFromUrl(
+                                QStringLiteral("image://song-assets/") + id),
+                              &cancelled);
                 if (!cancelled.load()) {
-                    auto reader =
-                      QImageReader{ support::pathToQString(localPath) };
+                    auto buffer = QBuffer{ &contents };
+                    if (!buffer.open(QIODevice::ReadOnly)) {
+                        throw std::runtime_error(
+                          "Could not open archived image buffer");
+                    }
+                    auto reader = QImageReader{ &buffer };
                     reader.setAutoTransform(true);
                     if (requestedSize.isValid()) {
                         reader.setScaledSize(requestedSize);

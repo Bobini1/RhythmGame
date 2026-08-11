@@ -15,7 +15,9 @@
 #include "sounds/NormalSoundBuffer.h"
 
 #include <QByteArray>
+#include <QFile>
 
+#include <support/PathToQString.h>
 #include <support/UtfStringToPath.h>
 
 namespace {
@@ -46,6 +48,30 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
     auto sound2 = std::dynamic_pointer_cast<sounds::NormalSound>(sounds.at(2));
     REQUIRE(sound2 != nullptr);
     REQUIRE(sound1->getBuffer() == sound2->getBuffer());
+}
+
+TEST_CASE("Sounds are loaded from encoded archive entries in memory",
+          "[loadBmsSounds]")
+{
+    qputenv("RHYTHMGAME_AUDIO_BACKEND", QByteArrayLiteral("Null"));
+    const auto path = findTestAssetsFolder() / "supportedSoundFormats" /
+                      "audiocheck.net_sin_1000Hz_-3dBFS_0.2s_44.1k.ogg";
+    auto file = QFile{ support::pathToQString(path) };
+    REQUIRE(file.open(QIODevice::ReadOnly));
+    auto encoded = std::make_shared<const QByteArray>(file.readAll());
+    const auto wavs = charts::EncodedSounds{ { 1, encoded }, { 2, encoded } };
+
+    auto engine = sounds::AudioEngine{};
+    auto loaded = charts::loadBmsSounds(&engine, wavs);
+
+    REQUIRE(loaded.size() == 2);
+    const auto first =
+      std::dynamic_pointer_cast<sounds::NormalSound>(loaded.at(1));
+    const auto second =
+      std::dynamic_pointer_cast<sounds::NormalSound>(loaded.at(2));
+    REQUIRE(first);
+    REQUIRE(second);
+    CHECK(first->getBuffer() == second->getBuffer());
 }
 
 TEST_CASE("Even when the extension says wav, allow loading other extensions",

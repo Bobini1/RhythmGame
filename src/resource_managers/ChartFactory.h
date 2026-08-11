@@ -6,6 +6,7 @@
 #define RHYTHMGAME_CHARTFACTORY_H
 
 #include "ChartDataFactory.h"
+#include "loadBmsSounds.h"
 #include "gameplay_logic/ChartRunner.h"
 #include "input/InputTranslator.h"
 #include "charts/BmsNotesData.h"
@@ -24,6 +25,8 @@ class SoundTask : public QObject
     Q_OBJECT
     std::filesystem::path path;
     std::unordered_map<uint64_t, std::filesystem::path> wavs;
+    charts::EncodedSounds encodedWavs;
+    bool memoryBacked = false;
     sounds::AudioEngine* engine;
 
     // bmson-specific (empty for BMS)
@@ -36,10 +39,15 @@ class SoundTask : public QObject
     SoundTask(sounds::AudioEngine* engine,
               std::filesystem::path path,
               std::unordered_map<uint64_t, std::filesystem::path> wavs);
+    SoundTask(sounds::AudioEngine* engine, charts::EncodedSounds wavs);
     /// Constructor for bmson charts.
     SoundTask(sounds::AudioEngine* engine,
               std::filesystem::path path,
               std::unordered_map<uint64_t, std::filesystem::path> channelPaths,
+              std::vector<charts::BmsNotesData::BmsonSliceInfo> slices,
+              std::unordered_map<uint64_t, std::vector<uint64_t>> fusions);
+    SoundTask(sounds::AudioEngine* engine,
+              charts::EncodedSounds channels,
               std::vector<charts::BmsNotesData::BmsonSliceInfo> slices,
               std::unordered_map<uint64_t, std::vector<uint64_t>> fusions);
     void run();

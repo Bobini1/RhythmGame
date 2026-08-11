@@ -8,15 +8,25 @@
 #include "charts/BmsNotesData.h"
 #include "sounds/AudioEngine.h"
 
-#include <unordered_map>
+#include <QByteArray>
+
 #include <filesystem>
+#include <memory>
+#include <unordered_map>
 #include "sounds/Sound.h"
 
 namespace charts {
+using EncodedSound = std::shared_ptr<const QByteArray>;
+using EncodedSounds = std::unordered_map<uint64_t, EncodedSound>;
+
 auto
 loadBmsSounds(sounds::AudioEngine* engine,
               const std::unordered_map<uint64_t, std::filesystem::path>& wavs,
               const std::filesystem::path& path)
+  -> std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>;
+
+auto
+loadBmsSounds(sounds::AudioEngine* engine, const EncodedSounds& wavs)
   -> std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>;
 
 /**
@@ -35,6 +45,14 @@ loadBmsonSounds(
   const std::vector<BmsNotesData::BmsonSliceInfo>& slices,
   const std::unordered_map<uint64_t, std::vector<uint64_t>>& fusions,
   const std::filesystem::path& basePath)
+  -> std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>;
+
+auto
+loadBmsonSounds(
+  sounds::AudioEngine* engine,
+  const EncodedSounds& channels,
+  const std::vector<BmsNotesData::BmsonSliceInfo>& slices,
+  const std::unordered_map<uint64_t, std::vector<uint64_t>>& fusions)
   -> std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>;
 
 } // namespace charts

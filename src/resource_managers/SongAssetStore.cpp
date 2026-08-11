@@ -423,13 +423,48 @@ struct IndexedZipLookup
     zip_uint64_t index{};
 };
 
+class TemporaryArchiveFile
+{
+  public:
+    explicit TemporaryArchiveFile(std::filesystem::path path)
+      : path(std::move(path))
+    {
+    }
+
+    ~TemporaryArchiveFile()
+    {
+        auto error = std::error_code{};
+        std::filesystem::remove(path, error);
+        if (error) {
+            spdlog::warn("Could not remove temporary nested ZIP {}: {}",
+                         support::pathToQString(path).toStdString(),
+                         error.message());
+        }
+    }
+
+    TemporaryArchiveFile(const TemporaryArchiveFile&) = delete;
+    TemporaryArchiveFile& operator=(const TemporaryArchiveFile&) = delete;
+    TemporaryArchiveFile(TemporaryArchiveFile&&) = delete;
+    TemporaryArchiveFile& operator=(TemporaryArchiveFile&&) = delete;
+
+    [[nodiscard]] auto getPath() const -> const std::filesystem::path&
+    {
+        return path;
+    }
+
+  private:
+    std::filesystem::path path;
+};
+
 class IndexedZipArchive : public std::enable_shared_from_this<IndexedZipArchive>
 {
   public:
     IndexedZipArchive(ZipArchiveHandle archive,
-                      std::shared_ptr<IndexedZipArchive> parent = {})
+                      std::shared_ptr<IndexedZipArchive> parent = {},
+                      std::shared_ptr<TemporaryArchiveFile> temporaryFile = {})
       : archive(std::move(archive))
       , parent(std::move(parent))
+      , temporaryFile(std::move(temporaryFile))
     {
         buildIndex();
     }
@@ -438,6 +473,7 @@ class IndexedZipArchive : public std::enable_shared_from_this<IndexedZipArchive>
     {
         auto locks = lockParents();
         archive.reset();
+        temporaryFile.reset();
     }
 
     IndexedZipArchive(const IndexedZipArchive&) = delete;
@@ -675,6 +711,7 @@ class IndexedZipArchive : public std::enable_shared_from_this<IndexedZipArchive>
 
     ZipArchiveHandle archive;
     std::shared_ptr<IndexedZipArchive> parent;
+    std::shared_ptr<TemporaryArchiveFile> temporaryFile;
     mutable std::mutex mutex;
     std::vector<IndexedZipEntry> entries;
     std::vector<IndexedZipLookup> exactEntries;
@@ -947,6 +984,13 @@ class SongAssetStore::Impl
         QString internalDirectory;
     };
 
+    struct LocatedEntry
+    {
+        std::shared_ptr<IndexedZipArchive> archive;
+        zip_uint64_t index;
+        std::filesystem::path virtualPath;
+    };
+
     explicit Impl(std::filesystem::path materializationDirectory)
       : materializationDirectory(std::move(materializationDirectory))
     {
@@ -1006,9 +1050,7 @@ class SongAssetStore::Impl
 
         auto opened = parent->openNested(index);
         if (!opened) {
-            const auto local =
-              materializeEntry(parent, index, virtualPath, stop);
-            opened = physicalArchive(local);
+            opened = openTemporaryNestedArchive(parent, index, stop);
         }
 
         auto lock = std::scoped_lock{ cacheMutex };
@@ -1022,6 +1064,35 @@ class SongAssetStore::Impl
         archives.insert(key, opened);
         retainNestedArchive(key, opened);
         return opened;
+    }
+
+    [[nodiscard]] auto openTemporaryNestedArchive(
+      const std::shared_ptr<IndexedZipArchive>& parent,
+      const zip_uint64_t index,
+      const std::atomic_bool* stop) const -> std::shared_ptr<IndexedZipArchive>
+    {
+        throwIfCancelled(stop);
+        auto temporary =
+          QTemporaryFile{ support::pathToQString(materializationDirectory) +
+                          QStringLiteral("/nested-XXXXXX.zip") };
+        if (!temporary.open()) {
+            throw std::runtime_error(
+              "Could not create temporary nested ZIP archive");
+        }
+        parent->extract(index, temporary, stop);
+        if (!temporary.flush()) {
+            throw std::runtime_error(
+              "Could not flush temporary nested ZIP archive");
+        }
+        temporary.close();
+        const auto temporaryPath = support::qStringToPath(temporary.fileName());
+        temporary.setAutoRemove(false);
+        auto temporaryFile =
+          std::make_shared<TemporaryArchiveFile>(temporaryPath);
+        return std::make_shared<IndexedZipArchive>(
+          openPhysicalZip(temporaryFile->getPath()),
+          nullptr,
+          std::move(temporaryFile));
     }
 
     [[nodiscard]] auto materializeEntry(
@@ -1139,6 +1210,57 @@ class SongAssetStore::Impl
                 remaining.remove(0, 1);
             }
         }
+    }
+
+    [[nodiscard]] auto locateEntry(const std::filesystem::path& virtualPath,
+                                   const std::atomic_bool* stop = nullptr) const
+      -> std::optional<LocatedEntry>
+    {
+        const auto container =
+          locateContainer(virtualPath.parent_path() / "", stop);
+        if (!container) {
+            return std::nullopt;
+        }
+
+        auto selected = std::optional<zip_uint64_t>{};
+        const auto candidates =
+          candidatePaths(support::pathToQString(virtualPath.filename()));
+        for (const auto& candidate : candidates) {
+            const auto internal = normalizeArchivePath(
+              joinVirtual(container->internalDirectory, candidate));
+            if (internal.isEmpty()) {
+                continue;
+            }
+            if (const auto exact = container->archive->findExact(internal);
+                exact && !container->archive->entry(*exact).encrypted) {
+                selected = exact;
+                break;
+            }
+        }
+        if (!selected) {
+            for (const auto& candidate : candidates) {
+                const auto fallback = container->archive->findUniqueBasename(
+                  QFileInfo(candidate).fileName());
+                if (!fallback ||
+                    container->archive->entry(*fallback).encrypted) {
+                    continue;
+                }
+                selected = fallback;
+                break;
+            }
+        }
+        if (!selected) {
+            return std::nullopt;
+        }
+
+        const auto& entry = container->archive->entry(*selected);
+        return LocatedEntry{
+            container->archive,
+            *selected,
+            support::qStringToPath(
+              joinVirtual(support::pathToQString(container->virtualArchivePath),
+                          entry.path))
+        };
     }
 
   private:
@@ -1356,11 +1478,11 @@ SongAssetStore::walkArchive(const std::filesystem::path& archivePath,
                     spdlog::error("{}", supportError.toStdString());
                     continue;
                 }
-                pending.push_back({ {},
-                                    current.archive,
-                                    currentEntryIndex,
-                                    nestedVirtualPath,
-                                    virtualPath + '/' });
+                pending.push_front({ {},
+                                     current.archive,
+                                     currentEntryIndex,
+                                     nestedVirtualPath,
+                                     virtualPath + '/' });
                 continue;
             }
 
@@ -1443,57 +1565,45 @@ SongAssetStore::materializeRequested(
             existingMaterialization(materializationDirectory, virtualPath)) {
             continue;
         }
-        const auto parent = virtualPath.parent_path() / "";
-        const auto container = impl->locateContainer(parent, stop);
-        if (!container) {
+        const auto located = impl->locateEntry(virtualPath, stop);
+        if (!located) {
             continue;
         }
-        const auto candidates =
-          candidatePaths(support::pathToQString(virtualPath.filename()));
-        auto selected = std::optional<zip_uint64_t>{};
-        for (const auto& candidate : candidates) {
-            const auto internal = normalizeArchivePath(
-              joinVirtual(container->internalDirectory, candidate));
-            if (internal.isEmpty()) {
-                continue;
-            }
-            if (const auto exact = container->archive->findExact(internal);
-                exact && !container->archive->entry(*exact).encrypted) {
-                selected = exact;
-                break;
-            }
-        }
-        if (!selected) {
-            for (const auto& candidate : candidates) {
-                const auto fallback = container->archive->findUniqueBasename(
-                  QFileInfo(candidate).fileName());
-                if (!fallback ||
-                    container->archive->entry(*fallback).encrypted) {
-                    continue;
-                }
-                selected = fallback;
-                break;
-            }
-        }
-        if (!selected) {
-            continue;
-        }
-
-        const auto& entry = container->archive->entry(*selected);
-        const auto entryVirtualPath = support::qStringToPath(joinVirtual(
-          support::pathToQString(container->virtualArchivePath), entry.path));
         const auto local = impl->materializeEntry(
-          container->archive, *selected, entryVirtualPath, stop);
+          located->archive, located->index, located->virtualPath, stop);
         recordMaterializationResolution(
           materializationDirectory, virtualPath, local);
     }
 }
 
 auto
-SongAssetStore::read(const std::filesystem::path& virtualPath) const
-  -> QByteArray
+SongAssetStore::read(const std::filesystem::path& virtualPath,
+                     const std::atomic_bool* stop) const -> QByteArray
 {
-    const auto localPath = materialize(virtualPath);
+    throwIfCancelled(stop);
+    if (isArchived(virtualPath)) {
+        const auto located = impl->locateEntry(virtualPath, stop);
+        if (!located) {
+            throw std::runtime_error(QStringLiteral("Song asset not found: %1")
+                                       .arg(support::pathToQString(virtualPath))
+                                       .toStdString());
+        }
+        return located->archive->read(located->index, stop);
+    }
+
+    auto localPath = virtualPath;
+    auto error = std::error_code{};
+    if (!std::filesystem::is_regular_file(localPath, error)) {
+        const auto resolved = resolveLocalAssets(virtualPath.parent_path(),
+                                                 { virtualPath.filename() });
+        const auto found = resolved.find(virtualPath.filename());
+        if (found == resolved.end()) {
+            throw std::runtime_error(QStringLiteral("Song asset not found: %1")
+                                       .arg(support::pathToQString(virtualPath))
+                                       .toStdString());
+        }
+        localPath = found->second;
+    }
     auto file = QFile{ support::pathToQString(localPath) };
     if (!file.open(QIODevice::ReadOnly)) {
         throw std::runtime_error(QStringLiteral("Could not open song asset %1")

@@ -9,7 +9,6 @@
 #include "sounds/NormalSoundBuffer.h"
 #include "sounds/SlicedSoundBuffer.h"
 #include "sounds/SoundBuffer.h"
-#include "support/PathToQString.h"
 #include "support/PathToUtfString.h"
 
 #include <optional>
@@ -97,6 +96,100 @@ createLowerCaseFilesMap(std::filesystem::path dirToSearch)
         }
     }
     return lowerCaseFilesMap;
+}
+
+auto
+loadEncodedBuffers(sounds::AudioEngine* engine,
+                   const EncodedSounds& encodedSounds)
+  -> std::unordered_map<EncodedSound,
+                        std::shared_ptr<const sounds::SoundBuffer>>
+{
+    auto uniqueSounds = std::unordered_set<EncodedSound>{};
+    uniqueSounds.reserve(encodedSounds.size());
+    for (const auto& [id, encoded] : encodedSounds) {
+        Q_UNUSED(id);
+        if (encoded) {
+            uniqueSounds.insert(encoded);
+        }
+    }
+    return QtConcurrent::blockingMappedReduced<
+      std::unordered_map<EncodedSound,
+                         std::shared_ptr<const sounds::SoundBuffer>>>(
+      uniqueSounds,
+      [engine](const EncodedSound& encoded)
+        -> std::optional<
+          std::pair<EncodedSound, std::shared_ptr<const sounds::SoundBuffer>>> {
+          try {
+              return std::pair{
+                  encoded,
+                  std::make_shared<const sounds::NormalSoundBuffer>(
+                    engine, QByteArrayView{ *encoded })
+              };
+          } catch (const std::exception& error) {
+              spdlog::warn("Failed to load archived sound: {}", error.what());
+              return std::nullopt;
+          }
+      },
+      [](auto& buffers, const auto& decoded) {
+          if (decoded) {
+              buffers.emplace(decoded->first, decoded->second);
+          }
+      });
+}
+
+auto
+createBmsonSounds(
+  sounds::AudioEngine* engine,
+  const std::unordered_map<uint64_t,
+                           std::shared_ptr<const sounds::SoundBuffer>>&
+    channelBuffers,
+  const std::vector<BmsNotesData::BmsonSliceInfo>& slices,
+  const std::unordered_map<uint64_t, std::vector<uint64_t>>& fusions)
+  -> std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
+{
+    const auto sampleRate = static_cast<double>(engine->getSampleRate());
+    auto result =
+      std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>{};
+
+    for (const auto& slice : slices) {
+        const auto bufIt = channelBuffers.find(slice.channelIndex);
+        if (bufIt == channelBuffers.end()) {
+            continue;
+        }
+        const auto& fullBuffer = bufIt->second;
+        const auto totalFrames = fullBuffer->getFrames();
+
+        auto startFrame =
+          static_cast<ma_uint64>(slice.startSeconds * sampleRate);
+        auto endFrame =
+          slice.endSeconds < 0.0
+            ? totalFrames
+            : static_cast<ma_uint64>(slice.endSeconds * sampleRate);
+        startFrame = std::min(startFrame, totalFrames);
+        endFrame = std::clamp(endFrame, startFrame, totalFrames);
+
+        auto slicedBuffer = std::make_shared<sounds::SlicedSoundBuffer>(
+          fullBuffer, startFrame, endFrame - startFrame);
+        result.emplace(slice.soundId,
+                       std::make_shared<sounds::NormalSound>(
+                         engine, std::move(slicedBuffer)));
+    }
+
+    for (const auto& [fusedId, sliceIds] : fusions) {
+        auto children = std::vector<std::shared_ptr<sounds::Sound>>{};
+        for (const auto sliceId : sliceIds) {
+            if (const auto found = result.find(sliceId);
+                found != result.end()) {
+                children.push_back(found->second);
+            }
+        }
+        if (!children.empty()) {
+            result.emplace(
+              fusedId,
+              std::make_shared<sounds::MultiSound>(std::move(children)));
+        }
+    }
+    return result;
 }
 
 auto
@@ -189,6 +282,30 @@ loadBmsSounds(sounds::AudioEngine* engine,
 }
 
 auto
+loadBmsSounds(sounds::AudioEngine* engine, const EncodedSounds& wavs)
+  -> std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
+{
+    const auto start = std::chrono::high_resolution_clock::now();
+    const auto buffers = loadEncodedBuffers(engine, wavs);
+    auto result =
+      std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>{};
+    result.reserve(wavs.size());
+    for (const auto& [id, encoded] : wavs) {
+        if (const auto found = buffers.find(encoded); found != buffers.end()) {
+            result.emplace(
+              id, std::make_shared<sounds::NormalSound>(engine, found->second));
+        }
+    }
+    const auto end = std::chrono::high_resolution_clock::now();
+    spdlog::info(
+      "Loading {} archived sounds took: {} ms",
+      buffers.size(),
+      std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
+        .count());
+    return result;
+}
+
+auto
 loadBmsonSounds(
   sounds::AudioEngine* engine,
   const std::unordered_map<uint64_t, std::filesystem::path>& channelPaths,
@@ -263,54 +380,40 @@ loadBmsonSounds(
         }
     }
 
-    // 3. Create sliced sounds
-    auto sampleRate = static_cast<double>(engine->getSampleRate());
-    auto result =
-      std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>{};
-
-    for (const auto& slice : slices) {
-        auto bufIt = channelBuffers.find(slice.channelIndex);
-        if (bufIt == channelBuffers.end()) {
-            continue;
-        }
-        const auto& fullBuffer = bufIt->second;
-        auto totalFrames = fullBuffer->getFrames();
-
-        auto startFrame =
-          static_cast<ma_uint64>(slice.startSeconds * sampleRate);
-        auto endFrame =
-          slice.endSeconds < 0.0
-            ? totalFrames
-            : static_cast<ma_uint64>(slice.endSeconds * sampleRate);
-        startFrame = std::min(startFrame, totalFrames);
-        endFrame = std::clamp(endFrame, startFrame, totalFrames);
-        auto frameCount = endFrame - startFrame;
-
-        auto slicedBuf = std::make_shared<sounds::SlicedSoundBuffer>(
-          fullBuffer, startFrame, frameCount);
-        result.emplace(
-          slice.soundId,
-          std::make_shared<sounds::NormalSound>(engine, std::move(slicedBuf)));
-    }
-
-    // 4. Create MultiSounds for fused notes
-    for (const auto& [fusedId, sliceIds] : fusions) {
-        auto children = std::vector<std::shared_ptr<sounds::Sound>>{};
-        for (auto sid : sliceIds) {
-            if (auto it = result.find(sid); it != result.end()) {
-                children.push_back(it->second);
-            }
-        }
-        if (!children.empty()) {
-            result.emplace(
-              fusedId,
-              std::make_shared<sounds::MultiSound>(std::move(children)));
-        }
-    }
+    auto result = createBmsonSounds(engine, channelBuffers, slices, fusions);
 
     auto end = std::chrono::high_resolution_clock::now();
     spdlog::info(
       "Loading {} bmson sound slices took: {} ms",
+      result.size(),
+      std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
+        .count());
+    return result;
+}
+
+auto
+loadBmsonSounds(
+  sounds::AudioEngine* engine,
+  const EncodedSounds& channels,
+  const std::vector<BmsNotesData::BmsonSliceInfo>& slices,
+  const std::unordered_map<uint64_t, std::vector<uint64_t>>& fusions)
+  -> std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
+{
+    const auto start = std::chrono::high_resolution_clock::now();
+    const auto buffers = loadEncodedBuffers(engine, channels);
+    auto channelBuffers =
+      std::unordered_map<uint64_t,
+                         std::shared_ptr<const sounds::SoundBuffer>>{};
+    channelBuffers.reserve(channels.size());
+    for (const auto& [id, encoded] : channels) {
+        if (const auto found = buffers.find(encoded); found != buffers.end()) {
+            channelBuffers.emplace(id, found->second);
+        }
+    }
+    auto result = createBmsonSounds(engine, channelBuffers, slices, fusions);
+    const auto end = std::chrono::high_resolution_clock::now();
+    spdlog::info(
+      "Loading {} archived bmson sound slices took: {} ms",
       result.size(),
       std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
         .count());

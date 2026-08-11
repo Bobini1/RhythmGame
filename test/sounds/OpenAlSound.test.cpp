@@ -8,8 +8,10 @@
 #include "sounds/AudioPlayer.h"
 #include "sounds/NormalSoundBuffer.h"
 #include "sounds/SoundBuffer.h"
+#include "support/PathToQString.h"
 
 #include <QByteArray>
+#include <QFile>
 
 TEST_CASE("OpenAlSound supports formats", "[sounds][FFmpegOpenAlSound]")
 {
@@ -19,8 +21,27 @@ TEST_CASE("OpenAlSound supports formats", "[sounds][FFmpegOpenAlSound]")
            findTestAssetsFolder() / "supportedSoundFormats";
          const auto& entry : std::filesystem::directory_iterator(soundFolder)) {
         auto filename = entry.path().string();
-        auto sound = sounds::NormalSoundBuffer(&engine, filename.c_str());
+        auto sound =
+          sounds::NormalSoundBuffer(&engine, std::filesystem::path{ filename });
     }
+}
+
+TEST_CASE("NormalSoundBuffer decodes an encoded sound from memory",
+          "[sounds][NormalSoundBuffer]")
+{
+    qputenv("RHYTHMGAME_AUDIO_BACKEND", QByteArrayLiteral("Null"));
+    auto engine = sounds::AudioEngine{};
+    const auto path = findTestAssetsFolder() / "supportedSoundFormats" /
+                      "audiocheck.net_sin_1000Hz_-3dBFS_0.2s_44.1k.ogg";
+    auto file = QFile{ support::pathToQString(path) };
+    REQUIRE(file.open(QIODevice::ReadOnly));
+    const auto encoded = file.readAll();
+
+    const auto fromFile = sounds::NormalSoundBuffer{ &engine, path };
+    const auto fromMemory = sounds::NormalSoundBuffer{ &engine, encoded };
+
+    CHECK(fromMemory.getFrames() == fromFile.getFrames());
+    CHECK(fromMemory.getSamples().size() == fromFile.getSamples().size());
 }
 
 TEST_CASE("AudioPlayer distinguishes playback intent from a loaded sound",

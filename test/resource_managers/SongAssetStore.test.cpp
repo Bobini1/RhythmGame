@@ -5,8 +5,11 @@
 #include "resource_managers/SongAssetImageProvider.h"
 #include "resource_managers/SongAssetStore.h"
 #include "resource_managers/SongDbScanner.h"
+#include "sounds/AudioEngine.h"
+#include "sounds/AudioPlayer.h"
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
+#include "../findTestAssetsFolder.h"
 
 #include <zip.h>
 #include <zlib.h>
@@ -259,6 +262,15 @@ TEST_CASE("SongAssetStore traverses and resolves nested song archives")
     REQUIRE(materialized.contains(requestedBanner));
     CHECK(readFile(materialized.at(requestedSound)) == sound);
     CHECK(readFile(materialized.at(requestedBanner)) == banner);
+    auto materializedExtensions = QSet<QString>{};
+    for (const auto& entry : std::filesystem::directory_iterator(
+           materialized.at(requestedSound).parent_path())) {
+        if (entry.is_regular_file()) {
+            materializedExtensions.insert(
+              support::pathToQString(entry.path().extension()).toLower());
+        }
+    }
+    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".bms")));
     const auto repeatedBanner =
       store.materializeRelative(virtualDirectory, { requestedBanner });
     REQUIRE(repeatedBanner.contains(requestedBanner));
@@ -284,7 +296,9 @@ TEST_CASE("SongAssetImageProvider loads an archived image through QML")
     const auto root = support::qStringToPath(temporaryDirectory.path());
     const auto archivePath = root / L"東方音弾遊戯7.zip";
     const auto virtualImage = archivePath / "song" / "stage.png";
-    writeZip(archivePath, { { "song/stage.png", makePng() } });
+    writeZip(archivePath,
+             { { "song/stage.png", makePng() },
+               { "song/video.mp4", QByteArray{ "video" } } });
 
     auto store = resource_managers::SongAssetStore{};
     auto engine = QQmlEngine{};
@@ -315,6 +329,68 @@ TEST_CASE("SongAssetImageProvider loads an archived image through QML")
         QCoreApplication::processEvents(QEventLoop::AllEvents, 50);
     }
     CHECK(image->property("status").toInt() == imageReady);
+
+    const auto materializedVideo =
+      store.materialize(archivePath / "song" / "video.mp4");
+    auto materializedExtensions = QSet<QString>{};
+    for (const auto& entry :
+         std::filesystem::directory_iterator(materializedVideo.parent_path())) {
+        if (entry.is_regular_file()) {
+            materializedExtensions.insert(
+              support::pathToQString(entry.path().extension()).toLower());
+        }
+    }
+    CHECK(materializedExtensions.contains(QStringLiteral(".mp4")));
+    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".png")));
+}
+
+TEST_CASE("AudioPlayer loads an archived preview without a disk copy")
+{
+    ensureGuiApplication();
+    qputenv("RHYTHMGAME_AUDIO_BACKEND", QByteArrayLiteral("Null"));
+    auto temporaryDirectory = QTemporaryDir{};
+    REQUIRE(temporaryDirectory.isValid());
+    const auto root = support::qStringToPath(temporaryDirectory.path());
+    const auto archivePath = root / "songs.zip";
+    const auto previewPath = findTestAssetsFolder() / "supportedSoundFormats" /
+                             "audiocheck.net_sin_1000Hz_-3dBFS_0.2s_44.1k.ogg";
+    auto previewFile = QFile{ support::pathToQString(previewPath) };
+    REQUIRE(previewFile.open(QIODevice::ReadOnly));
+    writeZip(archivePath,
+             { { "song/preview.ogg", previewFile.readAll() },
+               { "song/video.mp4", QByteArray{ "video" } } });
+
+    auto store = resource_managers::SongAssetStore{};
+    auto audioEngine = sounds::AudioEngine{};
+    sounds::AudioPlayer::engine = &audioEngine;
+    sounds::AudioPlayer::assetStore = &store;
+    {
+        auto player = sounds::AudioPlayer{};
+        player.setSource(resource_managers::SongAssetStore::audioUrl(
+          archivePath / "song" / "preview.ogg"));
+
+        auto elapsed = QElapsedTimer{};
+        elapsed.start();
+        while (!player.isLoaded() && elapsed.elapsed() < 5000) {
+            QCoreApplication::processEvents(QEventLoop::AllEvents, 50);
+        }
+        CHECK(player.isLoaded());
+        CHECK(player.playOverlapping());
+
+        const auto materializedVideo =
+          store.materialize(archivePath / "song" / "video.mp4");
+        auto materializedExtensions = QSet<QString>{};
+        for (const auto& entry : std::filesystem::directory_iterator(
+               materializedVideo.parent_path())) {
+            if (entry.is_regular_file()) {
+                materializedExtensions.insert(
+                  support::pathToQString(entry.path().extension()).toLower());
+            }
+        }
+        CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".ogg")));
+    }
+    sounds::AudioPlayer::assetStore = nullptr;
+    sounds::AudioPlayer::engine = nullptr;
 }
 
 TEST_CASE("SongAssetStore falls back for compressed nested ZIP entries")
@@ -334,6 +410,63 @@ TEST_CASE("SongAssetStore falls back for compressed nested ZIP entries")
     auto store = resource_managers::SongAssetStore{};
     CHECK(store.read(outer / "packs" / "song.zip" / "song" / "chart.bms") ==
           chart);
+}
+
+TEST_CASE("SongAssetStore evicts temporary compressed nested ZIPs")
+{
+    auto temporaryDirectory = QTemporaryDir{};
+    REQUIRE(temporaryDirectory.isValid());
+    const auto root = support::qStringToPath(temporaryDirectory.path());
+    const auto outer = root / "collection.zip";
+    auto nestedPacks = std::vector<std::pair<std::string, QByteArray>>{};
+    constexpr auto packCount = 40;
+    nestedPacks.reserve(packCount + 1);
+    const auto child = root / "child.zip";
+    writeZip(child,
+             { { "nested/chart.bms", QByteArray{ "#TITLE Nested\n" } } });
+    const auto childBytes = readFile(child);
+    for (auto index = 0; index < packCount; ++index) {
+        const auto name = QStringLiteral("pack-%1").arg(index, 3, 10, u'0');
+        const auto inner = root / support::qStringToPath(name + ".zip");
+        writeZip(inner,
+                 { { "song/chart.bms", QByteArray{ "#TITLE Pack\n" } },
+                   { "nested/child.zip", childBytes } });
+        nestedPacks.emplace_back(
+          (QStringLiteral("packs/") + name + QStringLiteral(".zip"))
+            .toStdString(),
+          readFile(inner));
+    }
+    nestedPacks.emplace_back("marker.mp4", QByteArray{ "marker" });
+    writeZip(outer, nestedPacks, ZIP_FL_ENC_UTF_8, false);
+
+    auto store = resource_managers::SongAssetStore{};
+    const auto marker = store.materialize(outer / "marker.mp4");
+    const auto countTemporaryZips = [&marker] {
+        auto count = size_t{};
+        for (const auto& entry :
+             std::filesystem::directory_iterator(marker.parent_path())) {
+            if (entry.is_regular_file() && entry.path().extension() == ".zip") {
+                ++count;
+            }
+        }
+        return count;
+    };
+    auto chartCount = 0;
+    auto maximumTemporaryZipCount = size_t{};
+    store.walkArchive(
+      outer,
+      [](const auto& path) { return path.extension() == ".bms"; },
+      [&chartCount, &maximumTemporaryZipCount, &countTemporaryZips](
+        auto entry) {
+          if (entry.contents) {
+              ++chartCount;
+              maximumTemporaryZipCount =
+                std::max(maximumTemporaryZipCount, countTemporaryZips());
+          }
+      });
+    REQUIRE(chartCount == packCount * 2);
+    CHECK(maximumTemporaryZipCount <= 32);
+    CHECK(countTemporaryZips() <= 32);
 }
 
 TEST_CASE("SongAssetStore decodes legacy CP932 ZIP entry names")
@@ -589,7 +722,14 @@ TEST_CASE(
     CHECK(support::pathToQString(first.filename()).startsWith("source-"));
 
     auto cancelled = std::atomic_bool{ true };
-    CHECK_THROWS(store.materialize(firstArchive / relative, &cancelled));
+    auto cancelledRequestThrew = false;
+    try {
+        static_cast<void>(
+          store.materialize(firstArchive / relative, &cancelled));
+    } catch (const std::runtime_error&) {
+        cancelledRequestThrew = true;
+    }
+    CHECK(cancelledRequestThrew);
 
     const auto replacement = QByteArray{ "replacement image bytes are newer" };
     const auto replacementArchive = root / "replacement.zip";

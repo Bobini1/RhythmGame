@@ -6,6 +6,7 @@
 #define RHYTHMGAME_AUDIOPLAYER_H
 #include "Sound.h"
 
+#include <QByteArray>
 #include <QObject>
 #include <QTimer>
 #include <qqmlintegration.h>
@@ -39,10 +40,18 @@ class AudioPlayer : public QObject
     Q_PROPERTY(bool loaded READ isLoaded NOTIFY loadedChanged)
     Q_PROPERTY(float length READ getLength NOTIFY lengthChanged)
 
+    struct OverlappingSound
+    {
+        std::unique_ptr<ma_decoder> memoryDecoder;
+        std::unique_ptr<ma_sound> sound;
+    };
+
     QString source;
     QString resolvedSource;
+    QByteArray encodedSource;
+    std::unique_ptr<ma_decoder> memoryDecoder;
     std::unique_ptr<ma_sound> sound;
-    std::vector<std::unique_ptr<ma_sound>> overlappingSounds;
+    std::vector<OverlappingSound> overlappingSounds;
     double volume = 1.0;
     bool looping = false;
     bool playing = false;
@@ -58,6 +67,13 @@ class AudioPlayer : public QObject
     void cleanupOverlappingSounds();
     void stopOverlappingSounds();
     void loadResolvedSource(QString value);
+    void loadEncodedSource(QByteArray value);
+    [[nodiscard]] bool initializeMemorySound(
+      std::unique_ptr<ma_decoder>& decoder,
+      std::unique_ptr<ma_sound>& targetSound);
+    void clearMemoryDecoder();
+    void finishLoadingSound(float previousLength);
+    void failLoadingSound(float previousLength);
     void setLoaded(bool value);
 
   public:
@@ -68,7 +84,7 @@ class AudioPlayer : public QObject
     void resetSource();
     void setPlaying(bool value);
     Q_INVOKABLE void play();
-    Q_INVOKABLE void playOverlapping();
+    Q_INVOKABLE bool playOverlapping();
     Q_INVOKABLE void stop();
     auto isPlaying() const -> bool;
     auto isLoaded() const -> bool;

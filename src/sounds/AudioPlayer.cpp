@@ -6,7 +6,6 @@
 
 #include "AudioEngine.h"
 #include "resource_managers/SongAssetStore.h"
-#include "support/PathToQString.h"
 #include <QFileInfo>
 #include <QFutureWatcher>
 #include <QtConcurrentRun>
@@ -17,21 +16,30 @@ void
 AudioPlayer::onDeviceChanged()
 {
     stopOverlappingSounds();
-    if (!sound || resolvedSource.isEmpty()) {
+    if (!sound || (resolvedSource.isEmpty() && encodedSource.isEmpty())) {
         return;
     }
     auto isPlayingNow = isPlaying();
     auto cursor = ma_uint64{};
-    auto currentPcmFrame =
-      ma_sound_get_cursor_in_pcm_frames(sound.get(), &cursor);
+    ma_sound_get_cursor_in_pcm_frames(sound.get(), &cursor);
     ma_sound_uninit(sound.get());
-    if (ma_sound_init_from_file_w(engine->getEngine(),
-                                  resolvedSource.toStdWString().c_str(),
-                                  MA_SOUND_FLAG_NO_PITCH |
-                                    MA_SOUND_FLAG_NO_SPATIALIZATION,
-                                  nullptr,
-                                  nullptr,
-                                  sound.get()) != MA_SUCCESS) {
+    sound.reset();
+    auto initialized = false;
+    if (!encodedSource.isEmpty()) {
+        clearMemoryDecoder();
+        initialized = initializeMemorySound(memoryDecoder, sound);
+    } else {
+        sound = std::make_unique<ma_sound>();
+        initialized =
+          ma_sound_init_from_file_w(engine->getEngine(),
+                                    resolvedSource.toStdWString().c_str(),
+                                    MA_SOUND_FLAG_NO_PITCH |
+                                      MA_SOUND_FLAG_NO_SPATIALIZATION,
+                                    nullptr,
+                                    nullptr,
+                                    sound.get()) == MA_SUCCESS;
+    }
+    if (!initialized) {
         spdlog::error("Failed to load sound: {}", source.toStdString());
         sound.reset();
         setLoaded(false);
@@ -40,7 +48,7 @@ AudioPlayer::onDeviceChanged()
     ma_sound_set_looping(sound.get(), looping ? MA_TRUE : MA_FALSE);
     ma_sound_set_volume(sound.get(), volume);
     ma_sound_set_fade_in_milliseconds(sound.get(), 0, volume, fadeInMillis);
-    ma_sound_seek_to_pcm_frame(sound.get(), currentPcmFrame);
+    ma_sound_seek_to_pcm_frame(sound.get(), cursor);
     auto lengthInSeconds = 0.0f;
     ma_sound_get_length_in_seconds(sound.get(), &lengthInSeconds);
     playingFinishedTimer.setInterval(static_cast<int>(lengthInSeconds * 1000));
@@ -109,6 +117,7 @@ AudioPlayer::~AudioPlayer()
     if (sound) {
         ma_sound_uninit(sound.get());
     }
+    clearMemoryDecoder();
 }
 auto
 AudioPlayer::getSource() const -> QString
@@ -133,6 +142,8 @@ AudioPlayer::setSource(const QString& value)
         ma_sound_uninit(sound.get());
         sound.reset();
     }
+    clearMemoryDecoder();
+    encodedSource.clear();
     setLoaded(false);
     playingFinishedTimer.stop();
     if (length != 0.0f) {
@@ -153,32 +164,31 @@ AudioPlayer::setSource(const QString& value)
         auto* store = assetStore;
         auto cancellation = std::make_shared<std::atomic_bool>(false);
         sourceCancellation = cancellation;
-        auto* watcher = new QFutureWatcher<std::filesystem::path>{ this };
-        connect(
-          watcher,
-          &QFutureWatcher<std::filesystem::path>::finished,
-          this,
-          [this, watcher, generation, value, cancellation] {
-              try {
-                  const auto localPath = watcher->result();
-                  if (generation == sourceGeneration && source == value) {
-                      loadResolvedSource(support::pathToQString(localPath));
-                  }
-              } catch (const std::exception& error) {
-                  if (generation == sourceGeneration && source == value) {
-                      spdlog::error("Failed to load archived sound {}: {}",
-                                    value.toStdString(),
-                                    error.what());
-                      stop();
-                  }
-              }
-              if (sourceCancellation == cancellation) {
-                  sourceCancellation.reset();
-              }
-              watcher->deleteLater();
-          });
+        auto* watcher = new QFutureWatcher<QByteArray>{ this };
+        connect(watcher,
+                &QFutureWatcher<QByteArray>::finished,
+                this,
+                [this, watcher, generation, value, cancellation] {
+                    try {
+                        if (generation == sourceGeneration && source == value) {
+                            loadEncodedSource(watcher->result());
+                        }
+                    } catch (const std::exception& error) {
+                        if (generation == sourceGeneration && source == value) {
+                            spdlog::error(
+                              "Failed to load archived sound {}: {}",
+                              value.toStdString(),
+                              error.what());
+                            stop();
+                        }
+                    }
+                    if (sourceCancellation == cancellation) {
+                        sourceCancellation.reset();
+                    }
+                    watcher->deleteLater();
+                });
         watcher->setFuture(QtConcurrent::run([store, value, cancellation] {
-            return store->materialize(
+            return store->read(
               resource_managers::SongAssetStore::pathFromUrl(value),
               cancellation.get());
         }));
@@ -190,6 +200,8 @@ AudioPlayer::setSource(const QString& value)
 void
 AudioPlayer::loadResolvedSource(QString value)
 {
+    clearMemoryDecoder();
+    encodedSource.clear();
     auto fileinfo = QFileInfo(value);
     if (fileinfo.suffix().isEmpty()) {
         auto suffixes = QStringList{ "wav", "flac", "ogg", "mp3" };
@@ -212,15 +224,15 @@ AudioPlayer::loadResolvedSource(QString value)
                                   nullptr,
                                   sound.get()) != MA_SUCCESS) {
         spdlog::error("Failed to load sound: {}", value.toStdString());
-        sound.reset();
-        stop();
-        playingFinishedTimer.setInterval(0);
-        length = 0.0f;
-        if (previousLength != length) {
-            emit lengthChanged();
-        }
+        failLoadingSound(previousLength);
         return;
     }
+    finishLoadingSound(previousLength);
+}
+
+void
+AudioPlayer::finishLoadingSound(const float previousLength)
+{
     ma_sound_set_looping(sound.get(), looping ? MA_TRUE : MA_FALSE);
     ma_sound_set_volume(sound.get(), volume);
     ma_sound_set_fade_in_milliseconds(sound.get(), 0, volume, fadeInMillis);
@@ -240,6 +252,75 @@ AudioPlayer::loadResolvedSource(QString value)
         }
     }
 }
+
+void
+AudioPlayer::failLoadingSound(const float previousLength)
+{
+    sound.reset();
+    setLoaded(false);
+    stop();
+    playingFinishedTimer.setInterval(0);
+    length = 0.0f;
+    if (previousLength != length) {
+        emit lengthChanged();
+    }
+}
+
+bool
+AudioPlayer::initializeMemorySound(std::unique_ptr<ma_decoder>& decoder,
+                                   std::unique_ptr<ma_sound>& targetSound)
+{
+    decoder = std::make_unique<ma_decoder>();
+    const auto config =
+      ma_decoder_config_init(ma_format_f32,
+                             static_cast<ma_uint32>(engine->getChannels()),
+                             static_cast<ma_uint32>(engine->getSampleRate()));
+    if (ma_decoder_init_memory(encodedSource.constData(),
+                               static_cast<size_t>(encodedSource.size()),
+                               &config,
+                               decoder.get()) != MA_SUCCESS) {
+        decoder.reset();
+        return false;
+    }
+    targetSound = std::make_unique<ma_sound>();
+    if (ma_sound_init_from_data_source(engine->getEngine(),
+                                       &decoder->ds,
+                                       MA_SOUND_FLAG_NO_PITCH |
+                                         MA_SOUND_FLAG_NO_SPATIALIZATION,
+                                       nullptr,
+                                       targetSound.get()) != MA_SUCCESS) {
+        targetSound.reset();
+        ma_decoder_uninit(decoder.get());
+        decoder.reset();
+        return false;
+    }
+    return true;
+}
+
+void
+AudioPlayer::clearMemoryDecoder()
+{
+    if (memoryDecoder) {
+        ma_decoder_uninit(memoryDecoder.get());
+        memoryDecoder.reset();
+    }
+}
+
+void
+AudioPlayer::loadEncodedSource(QByteArray value)
+{
+    resolvedSource.clear();
+    encodedSource = std::move(value);
+    const auto previousLength = length;
+    if (encodedSource.isEmpty() ||
+        !initializeMemorySound(memoryDecoder, sound)) {
+        spdlog::error("Failed to load archived sound: {}",
+                      source.toStdString());
+        failLoadingSound(previousLength);
+        return;
+    }
+    finishLoadingSound(previousLength);
+}
 void
 AudioPlayer::resetSource()
 {
@@ -253,6 +334,8 @@ AudioPlayer::resetSource()
         ma_sound_uninit(sound.get());
         sound.reset();
     }
+    clearMemoryDecoder();
+    encodedSource.clear();
     setLoaded(false);
     if (!source.isEmpty()) {
         source.clear();
@@ -283,10 +366,13 @@ void
 AudioPlayer::cleanupOverlappingSounds()
 {
     auto finished = std::erase_if(overlappingSounds, [](auto& instance) {
-        if (ma_sound_at_end(instance.get()) == 0) {
+        if (ma_sound_at_end(instance.sound.get()) == 0) {
             return false;
         }
-        ma_sound_uninit(instance.get());
+        ma_sound_uninit(instance.sound.get());
+        if (instance.memoryDecoder) {
+            ma_decoder_uninit(instance.memoryDecoder.get());
+        }
         return true;
     });
     if (finished > 0 && overlappingSounds.empty()) {
@@ -298,8 +384,11 @@ AudioPlayer::stopOverlappingSounds()
 {
     overlappingCleanupTimer.stop();
     for (const auto& instance : overlappingSounds) {
-        ma_sound_stop(instance.get());
-        ma_sound_uninit(instance.get());
+        ma_sound_stop(instance.sound.get());
+        ma_sound_uninit(instance.sound.get());
+        if (instance.memoryDecoder) {
+            ma_decoder_uninit(instance.memoryDecoder.get());
+        }
     }
     overlappingSounds.clear();
 }
@@ -323,36 +412,49 @@ AudioPlayer::play()
     playing = true;
     emit playingChanged();
 }
-void
-AudioPlayer::playOverlapping()
+auto
+AudioPlayer::playOverlapping() -> bool
 {
     if (!sound) {
-        return;
+        return false;
     }
     cleanupOverlappingSounds();
-    auto instance = std::make_unique<ma_sound>();
-    if (ma_sound_init_copy(engine->getEngine(),
-                           sound.get(),
-                           MA_SOUND_FLAG_NO_PITCH |
-                             MA_SOUND_FLAG_NO_SPATIALIZATION,
-                           nullptr,
-                           instance.get()) != MA_SUCCESS) {
-        spdlog::error("Failed to clone sound: {}", source.toStdString());
-        return;
+    auto instance = OverlappingSound{};
+    auto initialized = false;
+    if (encodedSource.isEmpty()) {
+        instance.sound = std::make_unique<ma_sound>();
+        initialized = ma_sound_init_copy(engine->getEngine(),
+                                         sound.get(),
+                                         MA_SOUND_FLAG_NO_PITCH |
+                                           MA_SOUND_FLAG_NO_SPATIALIZATION,
+                                         nullptr,
+                                         instance.sound.get()) == MA_SUCCESS;
+    } else {
+        initialized =
+          initializeMemorySound(instance.memoryDecoder, instance.sound);
     }
-    ma_sound_set_looping(instance.get(), MA_FALSE);
-    ma_sound_set_volume(instance.get(), volume);
-    ma_sound_set_fade_in_milliseconds(instance.get(), 0, volume, fadeInMillis);
-    ma_sound_seek_to_pcm_frame(instance.get(), 0);
-    if (ma_sound_start(instance.get()) != MA_SUCCESS) {
+    if (!initialized) {
+        spdlog::error("Failed to clone sound: {}", source.toStdString());
+        return false;
+    }
+    ma_sound_set_looping(instance.sound.get(), MA_FALSE);
+    ma_sound_set_volume(instance.sound.get(), volume);
+    ma_sound_set_fade_in_milliseconds(
+      instance.sound.get(), 0, volume, fadeInMillis);
+    ma_sound_seek_to_pcm_frame(instance.sound.get(), 0);
+    if (ma_sound_start(instance.sound.get()) != MA_SUCCESS) {
         spdlog::error("Failed to play sound: {}", source.toStdString());
-        ma_sound_uninit(instance.get());
-        return;
+        ma_sound_uninit(instance.sound.get());
+        if (instance.memoryDecoder) {
+            ma_decoder_uninit(instance.memoryDecoder.get());
+        }
+        return false;
     }
     overlappingSounds.push_back(std::move(instance));
     if (!overlappingCleanupTimer.isActive()) {
         overlappingCleanupTimer.start();
     }
+    return true;
 }
 void
 AudioPlayer::stop()
