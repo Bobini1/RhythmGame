@@ -81,6 +81,7 @@ struct Source {
     bool sliderRefNumber = false;
     bool imageSet = false;
     int side = 0;
+    bool nowCombo = false;
     bool hasKind = false;
     int kind = 0;
     int graphType = 0;
@@ -149,6 +150,8 @@ bool sourceTreeCyclesContinuously(const QVariant& value);
 bool sourceTreeUsesChartAsset(const QVariant& value);
 int chartAssetSourceType(const Source& source);
 bool sourceUsesDynamicTimer(const Source& source);
+int gameplayNumberDependencyMask(const Source& source);
+bool elementTypeUsesGameplayHitEvents(int type);
 bool isSelectBarElement(int type, const Source& source);
 qreal selectBarElementLayer(int type, const Source& source);
 int staticNoteElementSortId(const QVariantList& noteDsts);

@@ -21,6 +21,14 @@ using gameplay_logic::lr2_skin::Lr2SrcText;
 
 namespace {
 
+constexpr int GameplayNumberScore1Dependency = 1 << 0;
+constexpr int GameplayNumberScore2Dependency = 1 << 1;
+constexpr int GameplayNumberJudge1Dependency = 1 << 2;
+constexpr int GameplayNumberJudge2Dependency = 1 << 3;
+constexpr int GameplayNumberStaticDependency = 1 << 5;
+constexpr int GameplayNumberScoresDependency = 1 << 6;
+constexpr int GameplayNumberClockDependency = 1 << 7;
+
 int mapInt(const QVariantMap& map, const QString& name, int fallback) {
     const auto it = map.constFind(name);
     return it == map.constEnd() || !it->isValid() || it->isNull()
@@ -570,6 +578,7 @@ bool readSource(const QVariant& value, Source& source) {
         source.cycle = parsed.cycle;
         source.timer = parsed.timer;
         source.side = parsed.side;
+        source.nowCombo = parsed.nowCombo;
         source.path = parsed.source;
         return true;
     }
@@ -668,6 +677,7 @@ bool readSource(const QVariant& value, Source& source) {
         source.sliderRefNumber = mapBool(map, QStringLiteral("sliderRefNumber"), false);
         source.imageSet = mapBool(map, QStringLiteral("imageSet"), false);
         source.side = mapInt(map, QStringLiteral("side"), 0);
+        source.nowCombo = mapBool(map, QStringLiteral("nowCombo"), false);
         source.hasKind = mapHas(map, QStringLiteral("kind"));
         source.kind = mapInt(map, QStringLiteral("kind"), 0);
         source.graphType = mapInt(map, QStringLiteral("graphType"), 0);
@@ -724,6 +734,7 @@ bool readSource(const QVariant& value, Source& source) {
     source.sliderRefNumber = jsBool(jsValue, QStringLiteral("sliderRefNumber"), false);
     source.imageSet = jsBool(jsValue, QStringLiteral("imageSet"), false);
     source.side = jsInt(jsValue, QStringLiteral("side"), 0);
+    source.nowCombo = jsBool(jsValue, QStringLiteral("nowCombo"), false);
     source.hasKind = jsHas(jsValue, QStringLiteral("kind"));
     source.kind = jsInt(jsValue, QStringLiteral("kind"), 0);
     source.graphType = jsInt(jsValue, QStringLiteral("graphType"), 0);
@@ -1153,6 +1164,60 @@ int chartAssetSourceType(const Source& source) {
 
 bool sourceUsesDynamicTimer(const Source& source) {
     return source.valid && source.timer != 0 && source.cycle > 0;
+}
+
+int gameplayNumberDependencyMask(const Source& source) {
+    if (source.nowCombo) {
+        return (source.side != 0 ? source.side : (source.timer == 47 ? 2 : 1)) == 2
+            ? GameplayNumberJudge2Dependency
+            : GameplayNumberJudge1Dependency;
+    }
+
+    const int num = source.num;
+    if (num == 20 || (num >= 160 && num <= 164)) {
+        return GameplayNumberClockDependency;
+    }
+    if (num == 11 || num == 15 || num == 211 || num == 213
+        || (num >= 120 && num <= 136) || num == 526 || num == 521
+        || (num >= 510 && num <= 519) || (num >= 1610 && num <= 1699)) {
+        return GameplayNumberScore2Dependency | GameplayNumberJudge2Dependency;
+    }
+    if (num == 430) {
+        return GameplayNumberScore1Dependency | GameplayNumberScore2Dependency
+            | GameplayNumberJudge1Dependency | GameplayNumberJudge2Dependency;
+    }
+    if (num >= 423 && num <= 428) {
+        return GameplayNumberScore1Dependency | GameplayNumberJudge1Dependency
+            | GameplayNumberClockDependency;
+    }
+    if (num == 10 || num == 12 || num == 13 || num == 14
+        || num == 201 || num == 210 || num == 212
+        || (num >= 214 && num <= 218) || num == 295 || num == 301
+        || (num >= 296 && num <= 299)
+        || (num >= 310 && num <= 315)
+        || (num >= 100 && num <= 116) || num == 407
+        || (num >= 400 && num <= 429)
+        || (num >= 500 && num <= 509) || num == 520 || num == 522
+        || num == 525 || num == 527 || (num >= 360 && num <= 366)
+        || (num >= 1510 && num <= 1599)) {
+        return GameplayNumberScore1Dependency | GameplayNumberJudge1Dependency;
+    }
+    if (num >= 370 && num <= 376) {
+        return GameplayNumberScore2Dependency | GameplayNumberJudge2Dependency;
+    }
+    if (num == 42 || num == 90 || num == 91 || num == 92
+        || num == 106 || num == 126 || num == 165
+        || num == 290 || num == 291
+        || (num >= 350 && num <= 365) || num == 368
+        || num == 1163 || num == 1164) {
+        return GameplayNumberStaticDependency;
+    }
+    return GameplayNumberScore1Dependency | GameplayNumberScore2Dependency
+        | GameplayNumberScoresDependency;
+}
+
+bool elementTypeUsesGameplayHitEvents(int type) {
+    return type == 10 || type == 11 || type == 14 || type == 15;
 }
 
 bool isSelectBarElement(int type, const Source& source) {

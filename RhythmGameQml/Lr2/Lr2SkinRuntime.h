@@ -2,6 +2,7 @@
 
 #include "Lr2SkinElementActiveOptionsState.h"
 #include "Lr2SkinElementDescriptorValue.h"
+#include "Lr2SkinElementNumberState.h"
 #include "Lr2SkinRuntimeTypes.h"
 #include "Lr2SkinTimerState.h"
 
@@ -14,6 +15,8 @@
 #include <QSet>
 #include <QVariant>
 #include <QtQml/qqmlregistration.h>
+
+#include <array>
 
 class Lr2SkinElementTimerState;
 
@@ -32,6 +35,7 @@ class Lr2SkinRuntime : public QObject {
     Q_PROPERTY(QVariantList noteDstTimerFires READ noteDstTimerFires NOTIFY noteDstTimerFiresChanged)
     Q_PROPERTY(QVariantList lineDstTimerFires READ lineDstTimerFires NOTIFY lineDstTimerFiresChanged)
     Q_PROPERTY(bool noteFieldUsesActiveOptions READ noteFieldUsesActiveOptions NOTIFY noteFieldUsesActiveOptionsChanged)
+    Q_PROPERTY(bool usesGameplayHitEvents READ usesGameplayHitEvents NOTIFY usesGameplayHitEventsChanged)
 
 public:
     explicit Lr2SkinRuntime(QObject* parent = nullptr);
@@ -77,7 +81,10 @@ public:
     Q_INVOKABLE bool dstTimerCanFire(int index) const;
     Q_INVOKABLE bool srcTimerCanFire(int index) const;
     Q_INVOKABLE QObject* elementTimerState(int index) const;
+    Q_INVOKABLE Lr2SkinElementNumberState* elementNumberState(int index) const;
+    Q_INVOKABLE void refreshGameplayNumbers(int dirtyMask);
     bool noteFieldUsesActiveOptions() const;
+    bool usesGameplayHitEvents() const;
 
 signals:
     void skinModelChanged();
@@ -91,6 +98,7 @@ signals:
     void noteDstTimerFiresChanged();
     void lineDstTimerFiresChanged();
     void noteFieldUsesActiveOptionsChanged();
+    void usesGameplayHitEventsChanged();
 
 private slots:
     void rebuildDescriptors();
@@ -146,11 +154,13 @@ private:
     const ElementDescriptor* descriptorAt(int index) const;
     void updateTimerFiresForIndexes(const QVector<int>& indexes);
     void ensureElementTimerStateCount(int count);
+    void ensureElementNumberStateCount(int count);
     void ensureElementActiveOptionsStateCount(int count);
     void updateElementTimerState(int index, const TimerSnapshot& snapshot);
     bool updateElementActiveOptionsState(int index, const QVariantList& activeOptions, bool active);
     void updateSelectBarElementSortZ();
     void resetElementTimerStates();
+    void resetElementNumberStates();
     void resetElementActiveOptionsStates();
     void reconnectSkinModel();
     void reconnectTimerState();
@@ -167,7 +177,11 @@ private:
     QVector<ElementDescriptor> m_descriptors;
     int m_descriptorRevision = 0;
     QVector<Lr2SkinElementTimerState*> m_elementTimerStates;
+    QVector<Lr2SkinElementNumberState*> m_elementNumberStates;
     QVector<Lr2SkinElementActiveOptionsState*> m_elementActiveOptionsStates;
+    std::array<QVector<int>, 8> m_numberDescriptorIndexesByDependency;
+    QVector<int> m_numberRefreshIndexMarks;
+    int m_numberRefreshMark = 0;
     QVector<int> m_activeOptionDescriptorIndexes;
     QHash<int, QVector<int>> m_activeOptionDescriptorIndexesByOption;
     QVector<int> m_activeOptionRefreshIndexMarks;
@@ -181,6 +195,7 @@ private:
     QVariantList m_noteDstTimerFires;
     QVariantList m_lineDstTimerFires;
     bool m_noteFieldUsesActiveOptions = false;
+    bool m_usesGameplayHitEvents = false;
     QList<QMetaObject::Connection> m_skinModelConnections;
     QList<QMetaObject::Connection> m_timerStateConnections;
 };

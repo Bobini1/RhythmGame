@@ -437,10 +437,15 @@ Item {
         return cache;
     }
 
-    function fillLiveGraphFrom(values: var, column: var, percent: var) : void {
-        let start = Math.max(0, Math.min(values.length, column));
-        for (let i = start; i < values.length; ++i) {
-            values[i] = percent;
+    function applyLiveGraphUpdates(values: var, updates: var) : void {
+        // Keep updates as flat column/value pairs to avoid per-hit object allocation.
+        let end = values.length;
+        for (let update = updates.length - 2; update >= 0 && end > 0; update -= 2) {
+            let start = Math.max(0, Math.min(end, updates[update]));
+            for (let i = start; i < end; ++i) {
+                values[i] = updates[update + 1];
+            }
+            end = start;
         }
     }
 
@@ -475,16 +480,17 @@ Item {
                 || cache.eventIndex > events.length) {
             cache = root.resetLiveGraphCache(cache, key, count, 0);
         }
+        let updates = [];
         for (let i = cache.eventIndex; i < events.length; ++i) {
             let event = events[i];
             if (event && event.noteRemoved && event.points && event.points.value !== undefined) {
                 cache.points += event.points.value || 0;
-                root.fillLiveGraphFrom(
-                    cache.values,
+                updates.push(
                     root.eventColumn(event, fieldW, step, length),
                     scorePercent(cache.points, maxPoints));
             }
         }
+        root.applyLiveGraphUpdates(cache.values, updates);
         cache.eventIndex = events.length;
         return cache.values;
     }
@@ -556,16 +562,17 @@ Item {
                 || cache.eventIndex > events.length) {
             cache = root.resetLiveGraphCache(cache, key, count, 0);
         }
+        let updates = [];
         for (let i = cache.eventIndex; i < events.length; ++i) {
             let event = events[i];
             if (event && event.noteRemoved && event.points) {
                 cache.points += perNotePoints;
-                root.fillLiveGraphFrom(
-                    cache.values,
+                updates.push(
                     root.eventColumn(event, fieldW, step, length),
                     scorePercent(cache.points, maxPoints));
             }
         }
+        root.applyLiveGraphUpdates(cache.values, updates);
         cache.eventIndex = events.length;
         return cache.values;
     }
@@ -629,16 +636,17 @@ Item {
             return cache;
         }
 
+        let updates = [];
         for (let i = cache.historyIndex; i < history.length; ++i) {
             let entry = history[i];
             if (entry && entry.gauge !== undefined) {
                 cache.value = entry.gauge;
-                root.fillLiveGraphFrom(
-                    cache.values,
+                updates.push(
                     root.eventColumn(entry, fieldW, step, length),
                     clampPercent(cache.value * 100 / maxGauge));
             }
         }
+        root.applyLiveGraphUpdates(cache.values, updates);
         cache.historyIndex = history.length;
         return cache;
     }

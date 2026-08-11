@@ -79,6 +79,17 @@ Item {
             ? (score.replayData.hitEvents || [])
             : [];
     }
+    property var timingCacheStore: ({
+        score: null,
+        sourceW: 0,
+        eventCount: -1,
+        displayDist: [],
+        fullDist: [],
+        count: 0,
+        sum: 0,
+        sumSq: 0,
+        maxCount: 10
+    })
     readonly property var timingData: {
         root.replayDataRevision;
         return buildTimingData();
@@ -170,13 +181,25 @@ Item {
     }
 
     function buildTimingData() : var {
-        let displayDist = root.emptyDistribution(root.sourceW);
-        let fullDist = root.emptyDistribution(301);
-        let count = 0;
-        let sum = 0;
-        let sumSq = 0;
         let events = root.resultEvents || [];
-        for (let i = 0; i < events.length; ++i) {
+        let cache = root.timingCacheStore;
+        let reusable = cache.score === root.score
+            && cache.sourceW === root.sourceW
+            && cache.eventCount >= 0
+            && cache.eventCount <= events.length;
+        if (!reusable) {
+            cache.score = root.score;
+            cache.sourceW = root.sourceW;
+            cache.eventCount = 0;
+            cache.displayDist = root.emptyDistribution(root.sourceW);
+            cache.fullDist = root.emptyDistribution(301);
+            cache.count = 0;
+            cache.sum = 0;
+            cache.sumSq = 0;
+            cache.maxCount = 10;
+        }
+
+        for (let i = cache.eventCount; i < events.length; ++i) {
             let hit = events[i];
             if (!hit || !hit.noteRemoved) {
                 continue;
@@ -189,38 +212,39 @@ Item {
             if (ms < -150 || ms > 150) {
                 continue;
             }
-            ++count;
-            sum += ms;
-            sumSq += ms * ms;
-            fullDist[ms + 150] = (fullDist[ms + 150] || 0) + 1;
+            ++cache.count;
+            cache.sum += ms;
+            cache.sumSq += ms * ms;
+            let fullIndex = ms + 150;
+            let fullCount = (cache.fullDist[fullIndex] || 0) + 1;
+            cache.fullDist[fullIndex] = fullCount;
+            let requiredMax = fullCount > 10
+                ? Math.floor(fullCount / 10) * 10 + 10
+                : 10;
+            cache.maxCount = Math.max(cache.maxCount, requiredMax);
 
             let displayIndex = root.center + ms;
-            if (displayIndex >= 0 && displayIndex < displayDist.length) {
-                displayDist[displayIndex] = (displayDist[displayIndex] || 0) + 1;
+            if (displayIndex >= 0 && displayIndex < cache.displayDist.length) {
+                cache.displayDist[displayIndex] = (cache.displayDist[displayIndex] || 0) + 1;
             }
         }
-
-        let maxCount = 10;
-        for (let j = 0; j < fullDist.length; ++j) {
-            if (fullDist[j] > maxCount) {
-                maxCount = Math.floor(fullDist[j] / 10) * 10 + 10;
-            }
-        }
+        cache.eventCount = events.length;
 
         let average = 0;
         let stddev = -1;
-        if (count > 0) {
-            average = sum / count;
-            stddev = Math.sqrt(Math.max(0, sumSq / count - average * average));
+        if (cache.count > 0) {
+            average = cache.sum / cache.count;
+            stddev = Math.sqrt(Math.max(0,
+                cache.sumSq / cache.count - average * average));
         }
 
         return {
-            dist: displayDist,
-            maxCount: maxCount,
+            dist: cache.displayDist,
+            maxCount: cache.maxCount,
             average: average,
             stddev: stddev,
-            hasAverage: count > 0,
-            hasStddev: count > 0
+            hasAverage: cache.count > 0,
+            hasStddev: cache.count > 0
         };
     }
 

@@ -85,6 +85,9 @@ Loader {
     readonly property var elementTimerState: elemLoader.skinRuntime
         ? elemLoader.skinRuntime.elementTimerState(elementIndex)
         : null
+    readonly property var elementNumberState: elemLoader.skinRuntime
+        ? elemLoader.skinRuntime.elementNumberState(elementIndex)
+        : null
     readonly property int dstTimerFire: {
         if (!elemLoader.usesDynamicDstTimer) {
             return elemLoader.dstTimer === 0 ? 0 : -1;
@@ -197,12 +200,6 @@ Loader {
     function resolvedNumberValue(src: var) : int {
         return elemLoader.valueResolver
             ? elemLoader.valueResolver.numberValue(src)
-            : 0;
-    }
-
-    function resolvedGameplayNumberDependencyMask(src: var) : int {
-        return elemLoader.valueResolver
-            ? elemLoader.valueResolver.gameplayNumberDependencyMask(src)
             : 0;
     }
 
@@ -600,7 +597,12 @@ Loader {
             readonly property int valueResolverNumberDependencyMask: valueResolverNumberNeeded
                 && elemLoader.screenRoot.gameplayScreenActive
                 && !valueResolverNumberUsesSelectSnapshot
-                ? elemLoader.resolvedGameplayNumberDependencyMask(numberSrc)
+                && elemLoader.elementNumberState
+                ? elemLoader.elementNumberState.dependencyMask
+                : 0
+            readonly property int gameplayNumberRefreshRevision: valueResolverNumberDependencyMask !== 0
+                && elemLoader.elementNumberState
+                ? elemLoader.elementNumberState.revision
                 : 0
             readonly property int valueResolverNumberSnapshotRevision: valueResolverNumberUsesSelectSnapshot
                 ? selectContext.focusedSelectNumberRevisionForId(numberId)
@@ -620,9 +622,6 @@ Loader {
                 if (valueResolverNumber !== nextValue) {
                     valueResolverNumber = nextValue;
                 }
-            }
-            function valueResolverNumberHasDependency(mask: int) : bool {
-                return (valueResolverNumberDependencyMask & mask) !== 0;
             }
             function refreshGameplayValueResolverNumber() {
                 if (valueResolverNumberDependencyMask === 0) {
@@ -646,50 +645,11 @@ Loader {
                 refreshValueResolverNumber();
             }
             onValueResolverNumberSnapshotRevisionChanged: refreshValueResolverNumber()
+            onGameplayNumberRefreshRevisionChanged: refreshGameplayValueResolverNumber()
             onGameplayValueResolverNumberChanged: refreshValueResolverNumber()
             onNumberSrcChanged: {
                 refreshGameplayValueResolverNumber();
                 refreshValueResolverNumber();
-            }
-            Connections {
-                target: elemLoader.screenRoot
-                enabled: numberRenderer.valueResolverNumberDependencyMask !== 0
-
-                function onGameplayNumberRevision1Changed() {
-                    if (numberRenderer.valueResolverNumberHasDependency(1)) {
-                        numberRenderer.refreshGameplayValueResolverNumber();
-                    }
-                }
-                function onGameplayNumberRevision2Changed() {
-                    if (numberRenderer.valueResolverNumberHasDependency(2)) {
-                        numberRenderer.refreshGameplayValueResolverNumber();
-                    }
-                }
-                function onGameplayJudgeRevision1Changed() {
-                    if (numberRenderer.valueResolverNumberHasDependency(4)) {
-                        numberRenderer.refreshGameplayValueResolverNumber();
-                    }
-                }
-                function onGameplayJudgeRevision2Changed() {
-                    if (numberRenderer.valueResolverNumberHasDependency(8)) {
-                        numberRenderer.refreshGameplayValueResolverNumber();
-                    }
-                }
-                function onGameplayStaticNumberRevisionChanged() {
-                    if (numberRenderer.valueResolverNumberHasDependency(32)) {
-                        numberRenderer.refreshGameplayValueResolverNumber();
-                    }
-                }
-                function onGameplayScoresRevisionChanged() {
-                    if (numberRenderer.valueResolverNumberHasDependency(64)) {
-                        numberRenderer.refreshGameplayValueResolverNumber();
-                    }
-                }
-                function onGameplayClockNumberRevisionChanged() {
-                    if (numberRenderer.valueResolverNumberHasDependency(128)) {
-                        numberRenderer.refreshGameplayValueResolverNumber();
-                    }
-                }
             }
             Connections {
                 target: elemLoader.screenRoot

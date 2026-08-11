@@ -113,14 +113,16 @@ Item {
     property int gameplayRevision: 0
     property string skinClockRestartKey: ""
     property bool skinClockRestartLoaded: false
-    property int gameplayNumberRevision1: 0
-    property int gameplayNumberRevision2: 0
-    property int gameplayStaticNumberRevision: 0
-    property int gameplayClockNumberRevision: 0
     property int gameplayTimerRevision: 0
     property bool gameplayRevisionRefreshPending: false
-    property bool gameplayNumberRevision1Pending: false
-    property bool gameplayNumberRevision2Pending: false
+    readonly property int gameplayNumberScore1Dependency: 1
+    readonly property int gameplayNumberScore2Dependency: 2
+    readonly property int gameplayNumberJudge1Dependency: 4
+    readonly property int gameplayNumberJudge2Dependency: 8
+    readonly property int gameplayNumberStaticDependency: 32
+    readonly property int gameplayNumberScoresDependency: 64
+    readonly property int gameplayNumberClockDependency: 128
+    property int gameplayNumberDirtyMaskPending: 0
     property bool gameplayTimerRevisionPending: false
     property bool gameplayNumberRevisionFlushPending: false
     property bool gameplayTimerRevisionFlushPending: false
@@ -140,8 +142,6 @@ Item {
     property int gameplayLastJudgement2: -1
     property int gameplayJudgeCombo1: 0
     property int gameplayJudgeCombo2: 0
-    property int gameplayJudgeRevision1: 0
-    property int gameplayJudgeRevision2: 0
     property var gameplayJudgeTimingCounts1: ({ early: [0, 0, 0, 0, 0, 0], late: [0, 0, 0, 0, 0, 0] })
     property var gameplayJudgeTimingCounts2: ({ early: [0, 0, 0, 0, 0, 0], late: [0, 0, 0, 0, 0, 0] })
     property var gameplayJudgeTimingStats1: ({ count: 0, sum: 0, sumSq: 0 })
@@ -235,7 +235,7 @@ Item {
     readonly property int lr2CurrentFps: Rg.programSettings.presentationFps
     onLr2CurrentFpsChanged: {
         if (root.gameplayScreenActive) {
-            root.gameplayClockNumberRevision++;
+            skinRuntime.refreshGameplayNumbers(root.gameplayNumberClockDependency);
         }
     }
     readonly property var lr2InitialClockNow: wallClockState.initialNow
@@ -2349,7 +2349,7 @@ Item {
     function updateLr2DateTimeNumbers() : void {
         wallClockState.update();
         if (root.gameplayScreenActive) {
-            root.gameplayClockNumberRevision++;
+            skinRuntime.refreshGameplayNumbers(root.gameplayNumberClockDependency);
         }
     }
 
@@ -3137,6 +3137,9 @@ Item {
     }
 
     function appendGameplayGraphHit(side: var, hit: var) : void {
+        if (!skinRuntime.usesGameplayHitEvents) {
+            return;
+        }
         if (root.gameplayGraphHitOffset(side, hit) < 0) {
             return;
         }
@@ -3404,6 +3407,7 @@ Item {
         let request = root.gameplayScoreRequest;
         root.gameplayScores1 = [];
         root.gameplayScoresRevision += 1;
+        skinRuntime.refreshGameplayNumbers(root.gameplayNumberScoresDependency);
         root.resetGameplayScoreReplayers();
 
         if (!root.gameplayScreenActive) {
@@ -3427,6 +3431,7 @@ Item {
                 : [];
             root.gameplayScores1 = scores;
             root.gameplayScoresRevision += 1;
+            skinRuntime.refreshGameplayNumbers(root.gameplayNumberScoresDependency);
             root.resetGameplayScoreReplayers();
         });
     }
@@ -3792,26 +3797,26 @@ Item {
         root.queueResolvedTextRefresh();
     }
 
-    function bumpGameplayNumberRevision(side: var) : void {
-        if (side === 2) {
-            root.gameplayNumberRevision2++;
-        } else if (side === 1) {
-            root.gameplayNumberRevision1++;
-        } else {
-            root.gameplayNumberRevision1++;
-            root.gameplayNumberRevision2++;
+    function refreshGameplayNumbersForSide(side: var) : void {
+        skinRuntime.refreshGameplayNumbers(root.gameplayNumberSideMask(side));
+    }
+
+    function gameplayNumberSideMask(side: var) : int {
+        if (side === 1) {
+            return root.gameplayNumberScore1Dependency;
         }
+        if (side === 2) {
+            return root.gameplayNumberScore2Dependency;
+        }
+        return root.gameplayNumberScore1Dependency | root.gameplayNumberScore2Dependency;
     }
 
     function markGameplayNumberRefresh(side: var) : void {
-        if (side === 1) {
-            root.gameplayNumberRevision1Pending = true;
-        } else if (side === 2) {
-            root.gameplayNumberRevision2Pending = true;
-        } else {
-            root.gameplayNumberRevision1Pending = true;
-            root.gameplayNumberRevision2Pending = true;
-        }
+        root.markGameplayNumberDependencyRefresh(root.gameplayNumberSideMask(side));
+    }
+
+    function markGameplayNumberDependencyRefresh(dependencyMask: var) : void {
+        root.gameplayNumberDirtyMaskPending |= Math.max(0, Math.floor(dependencyMask || 0));
     }
 
     function requestGameplayNumberRefresh(side: var) : var {
@@ -3845,21 +3850,15 @@ Item {
 
     function flushGameplayNumberRefresh() : void {
         if (!root.gameplayNumberRevisionFlushPending
-                && !root.gameplayNumberRevision1Pending
-                && !root.gameplayNumberRevision2Pending) {
+                && root.gameplayNumberDirtyMaskPending === 0) {
             return;
         }
 
-        let refreshNumbers1 = root.gameplayNumberRevision1Pending;
-        let refreshNumbers2 = root.gameplayNumberRevision2Pending;
+        let dependencyMask = root.gameplayNumberDirtyMaskPending;
         root.gameplayNumberRevisionFlushPending = false;
-        root.gameplayNumberRevision1Pending = false;
-        root.gameplayNumberRevision2Pending = false;
-        if (refreshNumbers1) {
-            root.bumpGameplayNumberRevision(1);
-        }
-        if (refreshNumbers2) {
-            root.bumpGameplayNumberRevision(2);
+        root.gameplayNumberDirtyMaskPending = 0;
+        if (dependencyMask !== 0) {
+            skinRuntime.refreshGameplayNumbers(dependencyMask);
         }
     }
 
@@ -3913,8 +3912,8 @@ Item {
         }
     }
 
-    function updateGameplayStaticNumberRevision() : void {
-        root.gameplayStaticNumberRevision++;
+    function refreshGameplayStaticNumbers() : void {
+        skinRuntime.refreshGameplayNumbers(root.gameplayNumberStaticDependency);
         root.queueResolvedTextRefresh();
     }
 
@@ -3986,8 +3985,9 @@ Item {
         root.gameplayLastJudgement2 = -1;
         root.gameplayJudgeCombo1 = 0;
         root.gameplayJudgeCombo2 = 0;
-        root.gameplayJudgeRevision1 = 0;
-        root.gameplayJudgeRevision2 = 0;
+        root.gameplayNumberDirtyMaskPending = 0;
+        skinRuntime.refreshGameplayNumbers(
+            root.gameplayNumberJudge1Dependency | root.gameplayNumberJudge2Dependency);
         root.gameplayJudgeTimingCounts1 = root.emptyJudgeTimingCounts();
         root.gameplayJudgeTimingCounts2 = root.emptyJudgeTimingCounts();
         root.gameplayJudgeTimingStats1 = root.emptyJudgeTimingStats();
@@ -4284,7 +4284,7 @@ Item {
                 }
                 root.gameplayLastJudgement2 = judgement;
                 root.gameplayJudgeCombo2 = displayCombo;
-                root.gameplayJudgeRevision2++;
+                root.markGameplayNumberDependencyRefresh(root.gameplayNumberJudge2Dependency);
             } else {
                 root.gameplayJudgeSkinTime1 = root.renderSkinTime;
                 root.setGameplayTimerValue(46, root.gameplayJudgeSkinTime1);
@@ -4293,7 +4293,7 @@ Item {
                 }
                 root.gameplayLastJudgement1 = judgement;
                 root.gameplayJudgeCombo1 = displayCombo;
-                root.gameplayJudgeRevision1++;
+                root.markGameplayNumberDependencyRefresh(root.gameplayNumberJudge1Dependency);
             }
             if (root.gameplayJudgementRuntimeOptionsUsed(displaySide)) {
                 runtimeOptionsChanged = true;
@@ -5356,8 +5356,8 @@ Item {
         ignoreUnknownSignals: true
         function onCurrentChartIndexChanged() : void {
             root.gameplayRevision++;
-            root.bumpGameplayNumberRevision(0);
-            root.updateGameplayStaticNumberRevision();
+            root.refreshGameplayNumbersForSide(0);
+            root.refreshGameplayStaticNumbers();
             root.refreshGameplayRuntimeActiveOptions();
             root.gameplayResultOpened = false;
             root.gameplayCourseResultPending = false;
@@ -5372,8 +5372,8 @@ Item {
         }
         function onStatusChanged() : void {
             root.gameplayRevision++;
-            root.bumpGameplayNumberRevision(0);
-            root.updateGameplayStaticNumberRevision();
+            root.refreshGameplayNumbersForSide(0);
+            root.refreshGameplayStaticNumbers();
             root.refreshGameplayRuntimeActiveOptions();
             root.handleGameplayStatusChanged();
             root.updateGameplayTargetScoreTimer();
@@ -5397,6 +5397,7 @@ Item {
                 root.refreshGameplayRuntimeActiveOptions();
             }
             root.requestGameplayNumberRefresh(1);
+            root.flushGameplayNumberRefresh();
         }
         function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(1);
@@ -5426,6 +5427,7 @@ Item {
                 root.refreshGameplayRuntimeActiveOptions();
             }
             root.requestGameplayNumberRefresh(2);
+            root.flushGameplayNumberRefresh();
         }
         function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(2);
@@ -5609,7 +5611,7 @@ Item {
         target: root.gameplayScreenActive ? root.gameplayPlayer1 : null
 
         function onBpmChanged() {
-            root.gameplayClockNumberRevision++;
+            skinRuntime.refreshGameplayNumbers(root.gameplayNumberClockDependency);
         }
     }
 

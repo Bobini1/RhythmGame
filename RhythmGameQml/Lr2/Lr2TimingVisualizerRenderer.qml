@@ -60,6 +60,12 @@ Item {
         ? score.replayData.revision
         : 0
     property var recentEvents: []
+    property var recentEventsCacheStore: ({
+        score: null,
+        center: 0,
+        eventCount: -1,
+        events: []
+    })
 
     function chartDstExtent(fieldSize: var, stateSize: var) : var {
         let size = Math.abs(Number(stateSize || 0));
@@ -161,11 +167,22 @@ Item {
     }
 
     function recentTimingEvents() : var {
-        let result = [];
         let events = root.score && root.score.replayData
             ? (root.score.replayData.hitEvents || [])
             : [];
-        for (let i = events.length - 1; i >= 0 && result.length < 100; --i) {
+        let cache = root.recentEventsCacheStore;
+        let reusable = cache.score === root.score
+            && cache.center === root.center
+            && cache.eventCount >= 0
+            && cache.eventCount <= events.length;
+        if (!reusable) {
+            cache.score = root.score;
+            cache.center = root.center;
+            cache.eventCount = 0;
+            cache.events = [];
+        }
+
+        for (let i = cache.eventCount; i < events.length; ++i) {
             let hit = events[i];
             if (!hit || !hit.noteRemoved) {
                 continue;
@@ -177,9 +194,13 @@ Item {
             if (offset < -root.center || offset > root.center) {
                 continue;
             }
-            result.unshift(offset);
+            cache.events.push(offset);
+            if (cache.events.length > 100) {
+                cache.events.splice(0, cache.events.length - 100);
+            }
         }
-        return result;
+        cache.eventCount = events.length;
+        return cache.events.slice();
     }
 
     function updateRecentEvents() : void {

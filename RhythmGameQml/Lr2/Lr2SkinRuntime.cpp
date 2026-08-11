@@ -1,6 +1,7 @@
 #include "Lr2SkinRuntime.h"
 
 #include "Lr2SkinElementActiveOptionsState.h"
+#include "Lr2SkinElementNumberState.h"
 #include "Lr2SkinElementTimerState.h"
 #include "Lr2SkinTimerState.h"
 #include "gameplay_logic/lr2_skin/Lr2SkinParser.h"
@@ -346,12 +347,54 @@ QObject* Lr2SkinRuntime::elementTimerState(int index) const {
         : nullptr;
 }
 
+Lr2SkinElementNumberState* Lr2SkinRuntime::elementNumberState(int index) const {
+    return index >= 0 && index < m_elementNumberStates.size()
+        ? m_elementNumberStates.at(index)
+        : nullptr;
+}
+
+void Lr2SkinRuntime::refreshGameplayNumbers(int dirtyMask) {
+    dirtyMask &= 0xff;
+    if (dirtyMask == 0 || m_elementNumberStates.isEmpty()) {
+        return;
+    }
+
+    if (m_numberRefreshIndexMarks.size() < m_elementNumberStates.size()) {
+        m_numberRefreshIndexMarks.fill(0, m_elementNumberStates.size());
+    }
+    if (m_numberRefreshMark == std::numeric_limits<int>::max()) {
+        m_numberRefreshIndexMarks.fill(0);
+        m_numberRefreshMark = 1;
+    } else {
+        ++m_numberRefreshMark;
+    }
+
+    for (int bit = 0; bit < static_cast<int>(m_numberDescriptorIndexesByDependency.size()); ++bit) {
+        if ((dirtyMask & (1 << bit)) == 0) {
+            continue;
+        }
+        for (int index : m_numberDescriptorIndexesByDependency[bit]) {
+            if (index < 0 || index >= m_elementNumberStates.size()
+                || m_numberRefreshIndexMarks[index] == m_numberRefreshMark) {
+                continue;
+            }
+            m_numberRefreshIndexMarks[index] = m_numberRefreshMark;
+            m_elementNumberStates[index]->refresh();
+        }
+    }
+}
+
 bool Lr2SkinRuntime::noteFieldUsesActiveOptions() const {
     return m_noteFieldUsesActiveOptions;
 }
 
+bool Lr2SkinRuntime::usesGameplayHitEvents() const {
+    return m_usesGameplayHitEvents;
+}
+
 void Lr2SkinRuntime::rebuildDescriptors() {
     const bool previousNoteFieldUsesActiveOptions = m_noteFieldUsesActiveOptions;
+    const bool previousUsesGameplayHitEvents = m_usesGameplayHitEvents;
     m_descriptors.clear();
     m_activeOptionDescriptorIndexes.clear();
     m_activeOptionDescriptorIndexesByOption.clear();
@@ -364,12 +407,22 @@ void Lr2SkinRuntime::rebuildDescriptors() {
     m_noteLaneDescriptors.clear();
     m_lineLaneDescriptors.clear();
     m_noteFieldUsesActiveOptions = false;
+    m_usesGameplayHitEvents = false;
+    for (QVector<int>& indexes : m_numberDescriptorIndexesByDependency) {
+        indexes.clear();
+    }
+    m_numberRefreshIndexMarks.clear();
+    m_numberRefreshMark = 0;
 
     if (!m_skinModel) {
         resetElementTimerStates();
+        resetElementNumberStates();
         resetElementActiveOptionsStates();
         if (m_noteFieldUsesActiveOptions != previousNoteFieldUsesActiveOptions) {
             emit noteFieldUsesActiveOptionsChanged();
+        }
+        if (m_usesGameplayHitEvents != previousUsesGameplayHitEvents) {
+            emit usesGameplayHitEventsChanged();
         }
         notifyElementDataChanged();
         updateNoteFieldTimerFires();
@@ -398,12 +451,24 @@ void Lr2SkinRuntime::rebuildDescriptors() {
     const int rows = m_skinModel->rowCount();
     m_descriptors.reserve(rows);
     ensureElementTimerStateCount(rows);
+    ensureElementNumberStateCount(rows);
     ensureElementActiveOptionsStateCount(rows);
     for (int row = 0; row < rows; ++row) {
         const int type = modelData(row, "type").toInt();
         const QVariant source = modelData(row, "src");
         const QVariantList dsts = rt::readVariantList(modelData(row, "dsts"));
         ElementDescriptor descriptor = buildDescriptor(row, type, source, dsts, noteDsts);
+        const int numberDependencyMask = m_gameplayScreen && type == 1
+            ? rt::gameplayNumberDependencyMask(descriptor.source)
+            : 0;
+        m_elementNumberStates[row]->setDependencyMask(numberDependencyMask);
+        for (int bit = 0; bit < static_cast<int>(m_numberDescriptorIndexesByDependency.size()); ++bit) {
+            if ((numberDependencyMask & (1 << bit)) != 0) {
+                m_numberDescriptorIndexesByDependency[bit].append(row);
+            }
+        }
+        m_usesGameplayHitEvents = m_usesGameplayHitEvents
+            || (m_gameplayScreen && rt::elementTypeUsesGameplayHitEvents(type));
         const bool usesGeneralTimer = (descriptor.usesDynamicDstTimer && descriptor.dstTimer != 11)
             || (descriptor.usesDynamicSrcTimer && descriptor.srcTimer != 11);
         const bool usesSelectInfoTimer = descriptor.dstTimer == 11 || descriptor.srcTimer == 11;
@@ -434,6 +499,9 @@ void Lr2SkinRuntime::rebuildDescriptors() {
     for (int row = rows; row < m_elementTimerStates.size(); ++row) {
         updateElementTimerState(row, TimerSnapshot {});
     }
+    for (int row = rows; row < m_elementNumberStates.size(); ++row) {
+        m_elementNumberStates[row]->setDependencyMask(0);
+    }
     for (int row = rows; row < m_elementActiveOptionsStates.size(); ++row) {
         updateElementActiveOptionsState(row, QVariantList {}, false);
     }
@@ -451,6 +519,9 @@ void Lr2SkinRuntime::rebuildDescriptors() {
 
     if (m_noteFieldUsesActiveOptions != previousNoteFieldUsesActiveOptions) {
         emit noteFieldUsesActiveOptionsChanged();
+    }
+    if (m_usesGameplayHitEvents != previousUsesGameplayHitEvents) {
+        emit usesGameplayHitEventsChanged();
     }
     notifyElementDataChanged();
     updateNoteFieldTimerFires();
@@ -525,6 +596,12 @@ void Lr2SkinRuntime::ensureElementTimerStateCount(int count) {
     }
 }
 
+void Lr2SkinRuntime::ensureElementNumberStateCount(int count) {
+    while (m_elementNumberStates.size() < count) {
+        m_elementNumberStates.append(new Lr2SkinElementNumberState(this));
+    }
+}
+
 void Lr2SkinRuntime::ensureElementActiveOptionsStateCount(int count) {
     while (m_elementActiveOptionsStates.size() < count) {
         m_elementActiveOptionsStates.append(new Lr2SkinElementActiveOptionsState(this));
@@ -576,6 +653,14 @@ void Lr2SkinRuntime::resetElementTimerStates() {
     for (auto* timerState : std::as_const(m_elementTimerStates)) {
         if (timerState) {
             timerState->setSnapshot(false, -1, false, -1);
+        }
+    }
+}
+
+void Lr2SkinRuntime::resetElementNumberStates() {
+    for (auto* numberState : std::as_const(m_elementNumberStates)) {
+        if (numberState) {
+            numberState->setDependencyMask(0);
         }
     }
 }

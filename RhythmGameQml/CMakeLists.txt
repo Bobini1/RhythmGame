@@ -52,6 +52,8 @@ set(LR2_SKIN_SOURCES
         Lr2/Lr2SkinTimerState.cpp
         Lr2/Lr2SkinElementTimerState.h
         Lr2/Lr2SkinElementTimerState.cpp
+        Lr2/Lr2SkinElementNumberState.h
+        Lr2/Lr2SkinElementNumberState.cpp
         Lr2/Lr2SkinElementActiveOptionsState.h
         Lr2/Lr2SkinElementActiveOptionsState.cpp
         Lr2/Lr2SkinElementDescriptorValue.h

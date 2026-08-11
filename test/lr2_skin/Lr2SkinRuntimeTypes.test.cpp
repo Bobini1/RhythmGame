@@ -2,6 +2,7 @@
 #include "Lr2BarPositionedItem.h"
 #include "Lr2BlendSprite.h"
 #include "Lr2SkinElementActiveOptionsState.h"
+#include "Lr2SkinElementNumberState.h"
 #include "Lr2SkinTimerState.h"
 #include "Lr2TimelineFrameState.h"
 #include "Lr2TimelineState.h"
@@ -332,4 +333,67 @@ TEST_CASE("LR2 runtime note sort ignores sparse empty note lanes",
     CHECK(staticNoteElementSortId(
             QVariantList{ QVariant::fromValue(QVariantList{}),
                           QVariant::fromValue(QVariantList{}) }) == 0);
+}
+
+TEST_CASE("LR2 gameplay numbers keep their targeted dependency masks",
+          "[lr2][runtime][number]")
+{
+    Source source;
+    source.valid = true;
+
+    const auto maskFor = [&source](int number) {
+        source.num = number;
+        return gameplayNumberDependencyMask(source);
+    };
+
+    CHECK(maskFor(20) == 128);
+    CHECK(maskFor(11) == 10);
+    CHECK(maskFor(430) == 15);
+    CHECK(maskFor(423) == 133);
+    CHECK(maskFor(201) == 5);
+    CHECK(maskFor(370) == 10);
+    CHECK(maskFor(42) == 32);
+    CHECK(maskFor(0) == 67);
+
+    source.nowCombo = true;
+    source.side = 1;
+    CHECK(gameplayNumberDependencyMask(source) == 4);
+    source.side = 2;
+    CHECK(gameplayNumberDependencyMask(source) == 8);
+}
+
+TEST_CASE("LR2 gameplay hit history is retained only for live chart elements",
+          "[lr2][runtime][chart]")
+{
+    CHECK(elementTypeUsesGameplayHitEvents(10));
+    CHECK(elementTypeUsesGameplayHitEvents(11));
+    CHECK(elementTypeUsesGameplayHitEvents(14));
+    CHECK(elementTypeUsesGameplayHitEvents(15));
+    CHECK_FALSE(elementTypeUsesGameplayHitEvents(0));
+    CHECK_FALSE(elementTypeUsesGameplayHitEvents(1));
+    CHECK_FALSE(elementTypeUsesGameplayHitEvents(12));
+}
+
+TEST_CASE("LR2 element number state notifies only on real state changes",
+          "[lr2][runtime][number]")
+{
+    Lr2SkinElementNumberState state;
+    int dependencyChanges = 0;
+    int revisionChanges = 0;
+    QObject::connect(&state,
+                     &Lr2SkinElementNumberState::dependencyMaskChanged,
+                     [&dependencyChanges]() { ++dependencyChanges; });
+    QObject::connect(&state,
+                     &Lr2SkinElementNumberState::revisionChanged,
+                     [&revisionChanges]() { ++revisionChanges; });
+
+    state.setDependencyMask(5);
+    state.setDependencyMask(5);
+    CHECK(state.dependencyMask() == 5);
+    CHECK(dependencyChanges == 1);
+
+    state.refresh();
+    state.refresh();
+    CHECK(state.revision() == 2);
+    CHECK(revisionChanges == 2);
 }
