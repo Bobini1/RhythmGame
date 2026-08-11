@@ -88,9 +88,10 @@ find_package(libremidi CONFIG REQUIRED)
 
 find_package(magic_enum REQUIRED)
 
-# <------------ libarchive (song packages) --------------->
+# <------------ libzip (song packages) --------------->
 
-find_package(LibArchive REQUIRED)
+find_package(Iconv REQUIRED)
+find_package(libzip CONFIG REQUIRED)
 
 # <------------ zlib / zlib-ng (Unpacking beatoraja's replay data) --------------->
 # Prefer zlib-ng in compat mode (zlib-ng::zlib) when available (e.g. vcpkg).
@@ -400,7 +401,7 @@ if (NOT Stb_FOUND)
 else ()
     target_link_libraries(RhythmGame_lib PUBLIC ${Stb_LIBRARIES})
 endif ()
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 libremidi Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::WebSockets Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog_header_only foonathan::lexy magic_enum::magic_enum LibArchive::LibArchive $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 libremidi Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::WebSockets Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog_header_only foonathan::lexy magic_enum::magic_enum Iconv::Iconv libzip::zip $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
 target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
 
 if (WIN32)

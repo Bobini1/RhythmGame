@@ -9,6 +9,7 @@
 #include <atomic>
 #include <filesystem>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <unordered_map>
 #include <vector>
@@ -37,6 +38,7 @@ class SongAssetStore : public QObject
     using EntryVisitor = std::function<void(ArchiveEntry entry)>;
 
     explicit SongAssetStore(QObject* parent = nullptr);
+    ~SongAssetStore() override;
 
     [[nodiscard]] auto read(const std::filesystem::path& virtualPath) const
       -> QByteArray;
@@ -83,12 +85,15 @@ class SongAssetStore : public QObject
       const QString& virtualPath) const;
 
   private:
+    class Impl;
+
     void materializeRequested(
       const std::vector<std::filesystem::path>& virtualPaths,
       const std::atomic_bool* stop = nullptr) const;
 
     QTemporaryDir temporaryDirectory;
     std::filesystem::path materializationDirectory;
+    std::unique_ptr<Impl> impl;
 };
 
 } // namespace resource_managers

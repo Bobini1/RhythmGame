@@ -8,10 +8,11 @@
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
 
-#include <archive.h>
-#include <archive_entry.h>
+#include <zip.h>
+#include <zlib.h>
 
 #include <QBuffer>
+#include <QDataStream>
 #include <QElapsedTimer>
 #include <QFile>
 #include <QFileInfo>
@@ -37,63 +38,97 @@
 
 namespace {
 
-struct ArchiveWriteDeleter
+struct ZipWriteDeleter
 {
-    void operator()(archive* value) const
+    void operator()(zip_t* value) const
     {
         if (value) {
-            archive_write_close(value);
-            archive_write_free(value);
+            zip_discard(value);
         }
     }
 };
 
-using ArchiveWriter = std::unique_ptr<archive, ArchiveWriteDeleter>;
+using ZipWriter = std::unique_ptr<zip_t, ZipWriteDeleter>;
 
-using ArchiveFormatSetter = int (*)(archive*);
-
-void
-writeArchive(const std::filesystem::path& target,
-             const std::vector<std::pair<std::string, QByteArray>>& files,
-             ArchiveFormatSetter setFormat)
+auto
+openZipWriter(const std::filesystem::path& target) -> ZipWriter
 {
-    auto writer = ArchiveWriter{ archive_write_new() };
-    REQUIRE(writer);
-    REQUIRE(setFormat(writer.get()) == ARCHIVE_OK);
+    auto error = zip_error_t{};
+    zip_error_init(&error);
 #ifdef _WIN32
-    REQUIRE(archive_write_open_filename_w(writer.get(), target.c_str()) ==
-            ARCHIVE_OK);
+    auto* source =
+      zip_source_win32w_create(target.c_str(), 0, ZIP_LENGTH_TO_END, &error);
 #else
-    REQUIRE(archive_write_open_filename(writer.get(), target.c_str()) ==
-            ARCHIVE_OK);
+    auto* source =
+      zip_source_file_create(target.c_str(), 0, ZIP_LENGTH_TO_END, &error);
 #endif
-    for (const auto& [path, contents] : files) {
-        auto* entry = archive_entry_new();
-        REQUIRE(entry);
-        archive_entry_set_pathname(entry, path.c_str());
-        archive_entry_set_filetype(entry, AE_IFREG);
-        archive_entry_set_perm(entry, 0644);
-        archive_entry_set_size(entry, contents.size());
-        REQUIRE(archive_write_header(writer.get(), entry) == ARCHIVE_OK);
-        REQUIRE(archive_write_data(writer.get(),
-                                   contents.constData(),
-                                   contents.size()) == contents.size());
-        archive_entry_free(entry);
+    INFO(zip_error_strerror(&error));
+    REQUIRE(source);
+    auto writer = ZipWriter{ zip_open_from_source(
+      source, ZIP_CREATE | ZIP_TRUNCATE, &error) };
+    if (!writer) {
+        zip_source_free(source);
     }
+    INFO(zip_error_strerror(&error));
+    REQUIRE(writer);
+    zip_error_fini(&error);
+    return writer;
 }
 
 void
 writeZip(const std::filesystem::path& target,
-         const std::vector<std::pair<std::string, QByteArray>>& files)
+         const std::vector<std::pair<std::string, QByteArray>>& files,
+         const zip_flags_t nameFlags = ZIP_FL_ENC_UTF_8,
+         const bool storeNestedArchives = true)
 {
-    writeArchive(target, files, archive_write_set_format_zip);
+    if (files.empty()) {
+        auto file = QFile{ support::pathToQString(target) };
+        REQUIRE(file.open(QIODevice::WriteOnly));
+        const auto emptyZip =
+          QByteArray::fromHex("504b0506000000000000000000000000000000000000");
+        REQUIRE(file.write(emptyZip) == emptyZip.size());
+        return;
+    }
+    auto writer = openZipWriter(target);
+    for (const auto& [path, contents] : files) {
+        auto* source =
+          zip_source_buffer(writer.get(),
+                            contents.constData(),
+                            static_cast<zip_uint64_t>(contents.size()),
+                            0);
+        REQUIRE(source);
+        const auto index =
+          zip_file_add(writer.get(), path.c_str(), source, nameFlags);
+        if (index < 0) {
+            zip_source_free(source);
+        }
+        INFO(zip_strerror(writer.get()));
+        REQUIRE(index >= 0);
+        const auto nestedZip =
+          path.size() >= 4 && QString::fromStdString(path).endsWith(
+                                QStringLiteral(".zip"), Qt::CaseInsensitive);
+        const auto method =
+          storeNestedArchives && nestedZip ? ZIP_CM_STORE : ZIP_CM_DEFLATE;
+        REQUIRE(zip_set_file_compression(
+                  writer.get(), static_cast<zip_uint64_t>(index), method, 0) ==
+                0);
+    }
+    auto* archive = writer.release();
+    const auto result = zip_close(archive);
+    if (result != 0) {
+        const auto error = QString::fromUtf8(zip_strerror(archive));
+        zip_discard(archive);
+        FAIL(error.toStdString());
+    }
 }
 
 void
 writeSevenZip(const std::filesystem::path& target,
-              const std::vector<std::pair<std::string, QByteArray>>& files)
+              const std::vector<std::pair<std::string, QByteArray>>&)
 {
-    writeArchive(target, files, archive_write_set_format_7zip);
+    auto file = QFile{ support::pathToQString(target) };
+    REQUIRE(file.open(QIODevice::WriteOnly));
+    REQUIRE(file.write(QByteArray::fromHex("377abcaf271c0004")) == 8);
 }
 
 auto
@@ -102,6 +137,48 @@ readFile(const std::filesystem::path& path) -> QByteArray
     auto file = QFile{ support::pathToQString(path) };
     REQUIRE(file.open(QIODevice::ReadOnly));
     return file.readAll();
+}
+
+void
+writeStoredZipWithRawName(const std::filesystem::path& archivePath,
+                          const QByteArrayView name,
+                          const QByteArrayView contents,
+                          const quint16 flags = 0)
+{
+    const auto crc = static_cast<quint32>(
+      crc32(0,
+            reinterpret_cast<const Bytef*>(contents.data()),
+            static_cast<uInt>(contents.size())));
+    auto archive = QByteArray{};
+    auto stream = QDataStream{ &archive, QIODevice::WriteOnly };
+    stream.setByteOrder(QDataStream::LittleEndian);
+    stream << quint32{ 0x04034b50 } << quint16{ 20 } << flags << quint16{ 0 }
+           << quint16{ 0 } << quint16{ 0 } << crc
+           << quint32{ static_cast<quint32>(contents.size()) }
+           << quint32{ static_cast<quint32>(contents.size()) }
+           << quint16{ static_cast<quint16>(name.size()) } << quint16{ 0 };
+    REQUIRE(stream.writeRawData(name.data(), name.size()) == name.size());
+    REQUIRE(stream.writeRawData(contents.data(), contents.size()) ==
+            contents.size());
+
+    const auto centralOffset = static_cast<quint32>(archive.size());
+    stream << quint32{ 0x02014b50 } << quint16{ 20 } << quint16{ 20 } << flags
+           << quint16{ 0 } << quint16{ 0 } << quint16{ 0 } << crc
+           << quint32{ static_cast<quint32>(contents.size()) }
+           << quint32{ static_cast<quint32>(contents.size()) }
+           << quint16{ static_cast<quint16>(name.size()) } << quint16{ 0 }
+           << quint16{ 0 } << quint16{ 0 } << quint16{ 0 } << quint32{ 0 }
+           << quint32{ 0 };
+    REQUIRE(stream.writeRawData(name.data(), name.size()) == name.size());
+    const auto centralSize =
+      static_cast<quint32>(archive.size()) - centralOffset;
+    stream << quint32{ 0x06054b50 } << quint16{ 0 } << quint16{ 0 }
+           << quint16{ 1 } << quint16{ 1 } << centralSize << centralOffset
+           << quint16{ 0 };
+
+    auto file = QFile{ support::pathToQString(archivePath) };
+    REQUIRE(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    REQUIRE(file.write(archive) == archive.size());
 }
 
 auto
@@ -238,6 +315,126 @@ TEST_CASE("SongAssetImageProvider loads an archived image through QML")
         QCoreApplication::processEvents(QEventLoop::AllEvents, 50);
     }
     CHECK(image->property("status").toInt() == imageReady);
+}
+
+TEST_CASE("SongAssetStore falls back for compressed nested ZIP entries")
+{
+    auto temporaryDirectory = QTemporaryDir{};
+    REQUIRE(temporaryDirectory.isValid());
+    const auto root = support::qStringToPath(temporaryDirectory.path());
+    const auto inner = root / "song.zip";
+    const auto outer = root / "collection.zip";
+    const auto chart = QByteArray{ "#TITLE Compressed nested ZIP\n" };
+    writeZip(inner, { { "song/chart.bms", chart } });
+    writeZip(outer,
+             { { "packs/song.zip", readFile(inner) } },
+             ZIP_FL_ENC_UTF_8,
+             false);
+
+    auto store = resource_managers::SongAssetStore{};
+    CHECK(store.read(outer / "packs" / "song.zip" / "song" / "chart.bms") ==
+          chart);
+}
+
+TEST_CASE("SongAssetStore decodes legacy CP932 ZIP entry names")
+{
+    auto temporaryDirectory = QTemporaryDir{};
+    REQUIRE(temporaryDirectory.isValid());
+    const auto root = support::qStringToPath(temporaryDirectory.path());
+    const auto archivePath = root / "legacy.zip";
+    const auto chart = QByteArray{ "#TITLE Legacy name\n" };
+    const auto rawPath = QByteArray{ "\x93\x8c\x95\xfb/chart.bms", 14 };
+    writeStoredZipWithRawName(archivePath, rawPath, chart);
+
+    auto store = resource_managers::SongAssetStore{};
+    auto charts = std::vector<std::filesystem::path>{};
+    store.walkArchive(
+      archivePath,
+      [](const auto& path) { return path.extension() == ".bms"; },
+      [&charts](auto entry) {
+          if (entry.contents) {
+              charts.push_back(std::move(entry.virtualPath));
+          }
+      });
+
+    const auto expected = archivePath / L"東方" / "chart.bms";
+    REQUIRE(charts.size() == 1);
+    CHECK(charts.front() == expected);
+    CHECK(store.read(expected) == chart);
+}
+
+TEST_CASE("SongAssetStore uses the ZIP UTF-8 flag to disambiguate entry names")
+{
+    auto temporaryDirectory = QTemporaryDir{};
+    REQUIRE(temporaryDirectory.isValid());
+    const auto root = support::qStringToPath(temporaryDirectory.path());
+    const auto rawPath = QByteArray{ "\xC2\xA1/chart.bms", 12 };
+    const auto chart = QByteArray{ "#TITLE Ambiguous name\n" };
+
+    const auto legacyArchive = root / "legacy-ambiguous.zip";
+    writeStoredZipWithRawName(legacyArchive, rawPath, chart);
+    auto store = resource_managers::SongAssetStore{};
+    const auto legacyDirectory = support::qStringToPath(QStringLiteral("ﾂ｡"));
+    CHECK(store.read(legacyArchive / legacyDirectory / "chart.bms") == chart);
+
+    const auto utf8Archive = root / "utf8-ambiguous.zip";
+    writeStoredZipWithRawName(utf8Archive, rawPath, chart, 0x0800);
+    const auto utf8Directory = support::qStringToPath(QStringLiteral("¡"));
+    CHECK(store.read(utf8Archive / utf8Directory / "chart.bms") == chart);
+}
+
+TEST_CASE("SongAssetStore keeps a large stored nested pack directly browsable")
+{
+    auto temporaryDirectory = QTemporaryDir{};
+    REQUIRE(temporaryDirectory.isValid());
+    const auto root = support::qStringToPath(temporaryDirectory.path());
+    const auto outer = root / "collection.zip";
+    const auto stage = makePng();
+    auto nestedPacks = std::vector<std::pair<std::string, QByteArray>>{};
+    constexpr auto packCount = 64;
+    nestedPacks.reserve(packCount);
+    for (auto index = 0; index < packCount; ++index) {
+        const auto name = QStringLiteral("pack-%1").arg(index, 3, 10, u'0');
+        const auto inner = root / support::qStringToPath(name + ".zip");
+        writeZip(inner,
+                 { { "song/chart.bms", QByteArray{ "#TITLE Pack\n" } },
+                   { "song/stage.png", stage },
+                   { "song/preview.ogg", QByteArray{ "preview" } },
+                   { "song/readme.txt", QByteArray{ "readme" } } });
+        nestedPacks.emplace_back(
+          (QStringLiteral("packs/") + name + QStringLiteral(".zip"))
+            .toStdString(),
+          readFile(inner));
+    }
+    writeZip(outer, nestedPacks);
+
+    auto store = resource_managers::SongAssetStore{};
+    auto chartCount = 0;
+    store.walkArchive(
+      outer,
+      [](const auto& path) { return path.extension() == ".bms"; },
+      [&chartCount](auto entry) {
+          if (entry.contents) {
+              ++chartCount;
+          }
+      });
+    REQUIRE(chartCount == packCount);
+
+    const auto selectedDirectory =
+      outer / "packs" / "pack-063.zip" / "song" / "";
+    const auto requestedStage = std::filesystem::path{ "stage" };
+    const auto requestedPreview = std::filesystem::path{ "preview.ogg" };
+    const auto assets = store.materializeRelative(
+      selectedDirectory, { requestedStage, requestedPreview });
+    REQUIRE(assets.contains(requestedStage));
+    REQUIRE(assets.contains(requestedPreview));
+    CHECK(readFile(assets.at(requestedStage)) == stage);
+    CHECK(readFile(assets.at(requestedPreview)) == QByteArray{ "preview" });
+
+    for (const auto& entry : std::filesystem::directory_iterator(
+           assets.at(requestedStage).parent_path())) {
+        CHECK(entry.path().extension() != ".zip");
+    }
 }
 
 TEST_CASE("SongAssetStore recognizes split archive names")
@@ -395,7 +592,13 @@ TEST_CASE(
     CHECK_THROWS(store.materialize(firstArchive / relative, &cancelled));
 
     const auto replacement = QByteArray{ "replacement image bytes are newer" };
-    writeZip(firstArchive, { { "song/banner.png", replacement } });
+    const auto replacementArchive = root / "replacement.zip";
+    writeZip(replacementArchive, { { "song/banner.png", replacement } });
+    const auto replacementBytes = readFile(replacementArchive);
+    auto revisedArchive = QFile{ support::pathToQString(firstArchive) };
+    REQUIRE(revisedArchive.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    REQUIRE(revisedArchive.write(replacementBytes) == replacementBytes.size());
+    revisedArchive.close();
     const auto revised = store.materialize(firstArchive / relative);
 
     CHECK(revised != first);
@@ -517,23 +720,6 @@ TEST_CASE(
     auto stopped = std::atomic_bool{ false };
     scanner.scanDirectory(root, [](const QString&) {}, &stopped);
 
-    const auto nestedArchive = store.materialize(outer / "set" / "song1.zip");
-    auto materializedExtensions = QSet<QString>{};
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(
-           nestedArchive.parent_path())) {
-        if (!entry.is_regular_file()) {
-            continue;
-        }
-        const auto extension =
-          support::pathToQString(entry.path().extension()).toLower();
-        materializedExtensions.insert(extension);
-    }
-    CHECK(materializedExtensions.contains(QStringLiteral(".zip")));
-    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".png")));
-    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".bmp")));
-    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".ogg")));
-    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".txt")));
-
     auto charts =
       database
         .createStatement("SELECT path, chart_directory, title FROM charts")
@@ -577,6 +763,20 @@ TEST_CASE(
     auto stageFileReader =
       QImageReader{ support::pathToQString(materializedStageFile) };
     CHECK(stageFileReader.read().size() == QSize{ 2, 3 });
+
+    auto materializedExtensions = QSet<QString>{};
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(
+           materializedStageFile.parent_path())) {
+        if (entry.is_regular_file()) {
+            materializedExtensions.insert(
+              support::pathToQString(entry.path().extension()).toLower());
+        }
+    }
+    CHECK(materializedExtensions.contains(QStringLiteral(".png")));
+    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".zip")));
+    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".bmp")));
+    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".ogg")));
+    CHECK_FALSE(materializedExtensions.contains(QStringLiteral(".txt")));
     delete chartData;
 
     const auto preview =

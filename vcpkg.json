@@ -8,13 +8,13 @@
     "boost-pfr",
     "fmt",
     "foonathan-lexy",
+    "libiconv",
     {
-      "name": "libarchive",
+      "name": "libzip",
       "default-features": false,
       "features": [
         "bzip2",
-        "lz4",
-        "lzma",
+        "liblzma",
         "zstd"
       ]
     },
