@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.14</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.15</span>
    </div>
   </td>
  </tr>
@@ -182,7 +182,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span> </div>
 <div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    Q_INVOKABLE <span class="keywordtype">bool</span> <a class="code hl_function" href="classLr2SelectNavigationController.html#afa35613d805d340a6e093fe3b956554c">refreshFocusedState</a>();</div>
 <div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    Q_INVOKABLE <span class="keywordtype">bool</span> <a class="code hl_function" href="classLr2SelectNavigationController.html#a7ed3d39a3b98becc25686c38476fe1e7">touchSelection</a>();</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    Q_INVOKABLE <span class="keywordtype">bool</span> <a class="code hl_function" href="classLr2SelectNavigationController.html#a7f3813095b0049da0e086f2ffd319020">commitLogicalSelection</a>(<span class="keywordtype">int</span> index);</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    Q_INVOKABLE <span class="keywordtype">bool</span> <a class="code hl_function" href="classLr2SelectNavigationController.html#a7f3813095b0049da0e086f2ffd319020">commitLogicalSelection</a>(<span class="keywordtype">int</span> <a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>);</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    Q_INVOKABLE <span class="keywordtype">bool</span> <a class="code hl_function" href="classLr2SelectNavigationController.html#a534b859937fd9e0e1062a1d07ab23bf6">syncCurrentToVisual</a>(<span class="keywordtype">int</span> cursorBaseIndex = -1);</div>
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    Q_INVOKABLE <span class="keywordtype">bool</span> <a class="code hl_function" href="classLr2SelectNavigationController.html#aaa0fb7bc4da9aed7089557ad49d724cf">publishCursorBaseIndex</a>(<span class="keywordtype">bool</span> force = false);</div>
 <div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    Q_INVOKABLE <span class="keywordtype">void</span> <a class="code hl_function" href="classLr2SelectNavigationController.html#abee76c57233a9f0c3fdfdf0c146d11e1">invalidateFocusedState</a>();</div>
@@ -219,9 +219,9 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00135" name="l00135"></a><span class="lineno"><a class="line" href="classLr2SelectNavigationController.html#a9b02bce13aaffe266f40c85e90b52c6a">  135</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classLr2SelectNavigationController.html#a9b02bce13aaffe266f40c85e90b52c6a">entryChangeSoundsRequested</a>(<span class="keywordtype">int</span> <a class="code hl_variable" href="Lr2SkinParser_8cpp.html#ad43c3812e6d13e0518d9f8b8f463ffcf">count</a>);</div>
 <div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span> </div>
 <div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>private:</div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    <span class="keywordtype">int</span> normalizeIndex(<span class="keywordtype">int</span> index) const;</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    <span class="keywordtype">int</span> normalizeIndex(<span class="keywordtype">int</span> <a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>) const;</div>
 <div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    <span class="keywordtype">int</span> animatedTopbarFixed() const;</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    qreal nearestVisualIndex(<span class="keywordtype">int</span> index, qreal anchor) const;</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    qreal nearestVisualIndex(<span class="keywordtype">int</span> <a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>, qreal anchor) const;</div>
 <div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>    <span class="keywordtype">bool</span> visualMoveActive() const;</div>
 <div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>    <span class="keywordtype">void</span> emitEntryChangeSoundsRequested(<span class="keywordtype">int</span> <a class="code hl_variable" href="Lr2SkinParser_8cpp.html#ad43c3812e6d13e0518d9f8b8f463ffcf">count</a>);</div>
 <div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>    <span class="keywordtype">bool</span> beginVisualMove(<span class="keywordtype">int</span> durationMs, qreal nowMs);</div>
@@ -259,6 +259,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aLr2SelectVisualState_8h_html"><div class="ttname"><a href="Lr2SelectVisualState_8h.html">Lr2SelectVisualState.h</a></div></div>
 <div class="ttc" id="aLr2SkinParser_8cpp_html_ad43c3812e6d13e0518d9f8b8f463ffcf"><div class="ttname"><a href="Lr2SkinParser_8cpp.html#ad43c3812e6d13e0518d9f8b8f463ffcf">count</a></div><div class="ttdeci">int count</div><div class="ttdef"><b>Definition</b> Lr2SkinParser.cpp:1065</div></div>
 <div class="ttc" id="aOnlineRankingModel_8cpp_html_a4a003dfcaab794f27de8a4f45b85940e"><div class="ttname"><a href="OnlineRankingModel_8cpp.html#a4a003dfcaab794f27de8a4f45b85940e">entries</a></div><div class="ttdeci">QList&lt; RankingEntry &gt; entries</div><div class="ttdef"><b>Definition</b> OnlineRankingModel.cpp:566</div></div>
+<div class="ttc" id="aSongAssetStore_8cpp_html_a24a69b440b6b0c63948e0ea1afc2ec4d"><div class="ttname"><a href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a></div><div class="ttdeci">zip_uint64_t index</div><div class="ttdef"><b>Definition</b> SongAssetStore.cpp:423</div></div>
 <div class="ttc" id="aclassLr2SelectNavigationController_html"><div class="ttname"><a href="classLr2SelectNavigationController.html">Lr2SelectNavigationController</a></div><div class="ttdef"><b>Definition</b> Lr2SelectNavigationController.h:12</div></div>
 <div class="ttc" id="aclassLr2SelectNavigationController_html_a004aff26ee92b96263a4d5ed32fe8f8a"><div class="ttname"><a href="classLr2SelectNavigationController.html#a004aff26ee92b96263a4d5ed32fe8f8a">Lr2SelectNavigationController::lr2SpeedNextChanged</a></div><div class="ttdeci">void lr2SpeedNextChanged()</div></div>
 <div class="ttc" id="aclassLr2SelectNavigationController_html_a01163f1d865629c543fe433fd3363cf8"><div class="ttname"><a href="classLr2SelectNavigationController.html#a01163f1d865629c543fe433fd3363cf8">Lr2SelectNavigationController::targetIndexChanged</a></div><div class="ttdeci">void targetIndexChanged()</div></div>

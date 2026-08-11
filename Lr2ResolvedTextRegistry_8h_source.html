@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.14</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.15</span>
    </div>
   </td>
  </tr>
@@ -114,7 +114,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classLr2ResolvedTextRegistry.html#a45f47d4f535bcf878fec724c57146548">releaseTextId</a>(<span class="keywordtype">int</span> sourceTextId, <a class="code hl_class" href="classLr2ResolvedText.html">Lr2ResolvedText</a>* listener = <span class="keywordtype">nullptr</span>);</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    Q_INVOKABLE <span class="keywordtype">void</span> <a class="code hl_function" href="classLr2ResolvedTextRegistry.html#aa59faa117a89dd37b074dc27ee72050a">setText</a>(<span class="keywordtype">int</span> sourceTextId, const QString&amp; text);</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    Q_INVOKABLE <span class="keywordtype">int</span> <a class="code hl_function" href="classLr2ResolvedTextRegistry.html#a84c6c4e3a1e54622cfdd099d5eceaeaa">activeTextIdAt</a>(<span class="keywordtype">int</span> index) const;</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    Q_INVOKABLE <span class="keywordtype">int</span> <a class="code hl_function" href="classLr2ResolvedTextRegistry.html#a84c6c4e3a1e54622cfdd099d5eceaeaa">activeTextIdAt</a>(<span class="keywordtype">int</span> <a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>) const;</div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    Q_INVOKABLE <span class="keywordtype">bool</span> <a class="code hl_function" href="classLr2ResolvedTextRegistry.html#a3239f17219b2bafc54a723e414ada101">isTextIdActive</a>(<span class="keywordtype">int</span> sourceTextId) const;</div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    Q_INVOKABLE <span class="keywordtype">void</span> <a class="code hl_function" href="classLr2ResolvedTextRegistry.html#a5aa921bcb6056c0d8848609470303d67">queueAllTextRefresh</a>();</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    Q_INVOKABLE <span class="keywordtype">void</span> <a class="code hl_function" href="classLr2ResolvedTextRegistry.html#a36fbfb9c24e87b0e424312abc4a1eb63">queueTextRefreshIds</a>(const QList&lt;<span class="keywordtype">int</span>&gt;&amp; sourceTextIds);</div>
@@ -140,6 +140,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keywordtype">bool</span> m_queuedTextRefreshAll = false;</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>};</div>
 </div>
+<div class="ttc" id="aSongAssetStore_8cpp_html_a24a69b440b6b0c63948e0ea1afc2ec4d"><div class="ttname"><a href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a></div><div class="ttdeci">zip_uint64_t index</div><div class="ttdef"><b>Definition</b> SongAssetStore.cpp:423</div></div>
 <div class="ttc" id="aclassLr2ResolvedTextRegistry_html"><div class="ttname"><a href="classLr2ResolvedTextRegistry.html">Lr2ResolvedTextRegistry</a></div><div class="ttdef"><b>Definition</b> Lr2ResolvedTextRegistry.h:14</div></div>
 <div class="ttc" id="aclassLr2ResolvedTextRegistry_html_a3239f17219b2bafc54a723e414ada101"><div class="ttname"><a href="classLr2ResolvedTextRegistry.html#a3239f17219b2bafc54a723e414ada101">Lr2ResolvedTextRegistry::isTextIdActive</a></div><div class="ttdeci">Q_INVOKABLE bool isTextIdActive(int sourceTextId) const</div><div class="ttdef"><b>Definition</b> Lr2ResolvedTextRegistry.cpp:75</div></div>
 <div class="ttc" id="aclassLr2ResolvedTextRegistry_html_a36fbfb9c24e87b0e424312abc4a1eb63"><div class="ttname"><a href="classLr2ResolvedTextRegistry.html#a36fbfb9c24e87b0e424312abc4a1eb63">Lr2ResolvedTextRegistry::queueTextRefreshIds</a></div><div class="ttdeci">Q_INVOKABLE void queueTextRefreshIds(const QList&lt; int &gt; &amp;sourceTextIds)</div><div class="ttdef"><b>Definition</b> Lr2ResolvedTextRegistry.cpp:84</div></div>

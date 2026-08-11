@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.14</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.15</span>
    </div>
   </td>
  </tr>
@@ -138,7 +138,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classLr2SelectBarModel.html">Lr2SelectBarModel</a>(QObject* parent = <span class="keyword">nullptr</span>);</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keywordtype">int</span> <a class="code hl_function" href="classLr2SelectBarModel.html#a141b0a4e2559e46e65c591278425f1a5">rowCount</a>(<span class="keyword">const</span> QModelIndex&amp; parent = QModelIndex()) <span class="keyword">const override</span>;</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    QVariant <a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>(<span class="keyword">const</span> QModelIndex&amp; index, <span class="keywordtype">int</span> role = Qt::DisplayRole) <span class="keyword">const override</span>;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    QVariant <a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>(<span class="keyword">const</span> QModelIndex&amp; <a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>, <span class="keywordtype">int</span> role = Qt::DisplayRole) <span class="keyword">const override</span>;</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    QHash&lt;int, QByteArray&gt; <a class="code hl_function" href="classLr2SelectBarModel.html#a3becaee5be1150291e747a7f517f2de8">roleNames</a>() <span class="keyword">const override</span>;</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <a class="code hl_class" href="classLr2SelectItemModel.html">Lr2SelectItemModel</a>* <a class="code hl_property" href="classLr2SelectBarModel.html#a6c24341cebd8ef88343d75b4f0fdd14b">sourceModel</a>() <span class="keyword">const</span>;</div>
@@ -154,7 +154,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classLr2SelectBarModel.html#aad61aa4dace41bef210a8c1c9e6b3aa1">setCenterRow</a>(<span class="keywordtype">int</span> row);</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <span class="keywordtype">int</span> <a class="code hl_property" href="classLr2SelectBarModel.html#afae400f8aa6c7e7be8ef9653a044c034">currentIndex</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classLr2SelectBarModel.html#a2dc81cc44613c5d1fbe0271df56c3da2">setCurrentIndex</a>(<span class="keywordtype">int</span> index);</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classLr2SelectBarModel.html#a2dc81cc44613c5d1fbe0271df56c3da2">setCurrentIndex</a>(<span class="keywordtype">int</span> <a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>);</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    <a class="code hl_class" href="classLr2SelectVisualState.html">Lr2SelectVisualState</a>* <a class="code hl_property" href="classLr2SelectBarModel.html#aada82ca8ff33783351ee24bdeeb77439">visualState</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classLr2SelectBarModel.html#a8ebcca2e69d8cff5a22941ca7431395d">setVisualState</a>(<a class="code hl_class" href="classLr2SelectVisualState.html">Lr2SelectVisualState</a>* state);</div>
@@ -221,6 +221,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aLr2SelectItemModel_8h_html"><div class="ttname"><a href="Lr2SelectItemModel_8h.html">Lr2SelectItemModel.h</a></div></div>
 <div class="ttc" id="aLr2SelectVisualState_8h_html"><div class="ttname"><a href="Lr2SelectVisualState_8h.html">Lr2SelectVisualState.h</a></div></div>
 <div class="ttc" id="aLr2SkinParser_8cpp_html_ad43c3812e6d13e0518d9f8b8f463ffcf"><div class="ttname"><a href="Lr2SkinParser_8cpp.html#ad43c3812e6d13e0518d9f8b8f463ffcf">count</a></div><div class="ttdeci">int count</div><div class="ttdef"><b>Definition</b> Lr2SkinParser.cpp:1065</div></div>
+<div class="ttc" id="aSongAssetStore_8cpp_html_a24a69b440b6b0c63948e0ea1afc2ec4d"><div class="ttname"><a href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a></div><div class="ttdeci">zip_uint64_t index</div><div class="ttdef"><b>Definition</b> SongAssetStore.cpp:423</div></div>
 <div class="ttc" id="aclassLr2SelectBarCell_html"><div class="ttname"><a href="classLr2SelectBarCell.html">Lr2SelectBarCell</a></div><div class="ttdef"><b>Definition</b> Lr2SelectBarCell.h:8</div></div>
 <div class="ttc" id="aclassLr2SelectBarModel_html"><div class="ttname"><a href="classLr2SelectBarModel.html">Lr2SelectBarModel</a></div><div class="ttdef"><b>Definition</b> Lr2SelectBarModel.h:14</div></div>
 <div class="ttc" id="aclassLr2SelectBarModel_html_a076e2226dde217bc948313468b85162b"><div class="ttname"><a href="classLr2SelectBarModel.html#a076e2226dde217bc948313468b85162b">Lr2SelectBarModel::currentIndexChanged</a></div><div class="ttdeci">void currentIndexChanged()</div></div>

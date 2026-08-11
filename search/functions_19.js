@@ -27,7 +27,8 @@ var searchData=
   ['_7eqtwebsocketarenatransport_24',['~QtWebSocketArenaTransport',['../classarena_1_1QtWebSocketArenaTransport.html#a36680c9d67f12e14ed3872403b52f78a',1,'arena::QtWebSocketArenaTransport']]],
   ['_7escanningqueue_25',['~ScanningQueue',['../classqml__components_1_1ScanningQueue.html#a3e24f8831eb22472e0a4547064c3d2fc',1,'qml_components::ScanningQueue']]],
   ['_7escoredb_26',['~ScoreDb',['../classqml__components_1_1ScoreDb.html#a5dcc6ce34100f08c5838abf668ce53ac',1,'qml_components::ScoreDb']]],
-  ['_7esound_27',['~Sound',['../classsounds_1_1Sound.html#a53677ac57e388b995fc5dc7afd5e5ffe',1,'sounds::Sound']]],
-  ['_7esoundbuffer_28',['~SoundBuffer',['../classsounds_1_1SoundBuffer.html#a0f086c2f0c0bf16f9682f4855bdbbb40',1,'sounds::SoundBuffer']]],
-  ['_7esqlitearenainventorysource_29',['~SqliteArenaInventorySource',['../classarena_1_1SqliteArenaInventorySource.html#a3faefbd32f217defd679c3f99367df3e',1,'arena::SqliteArenaInventorySource']]]
+  ['_7esongassetstore_27',['~SongAssetStore',['../classresource__managers_1_1SongAssetStore.html#a6e5eb4fbbdffb4340defc7183e14b7aa',1,'resource_managers::SongAssetStore']]],
+  ['_7esound_28',['~Sound',['../classsounds_1_1Sound.html#a53677ac57e388b995fc5dc7afd5e5ffe',1,'sounds::Sound']]],
+  ['_7esoundbuffer_29',['~SoundBuffer',['../classsounds_1_1SoundBuffer.html#a0f086c2f0c0bf16f9682f4855bdbbb40',1,'sounds::SoundBuffer']]],
+  ['_7esqlitearenainventorysource_30',['~SqliteArenaInventorySource',['../classarena_1_1SqliteArenaInventorySource.html#a3faefbd32f217defd679c3f99367df3e',1,'arena::SqliteArenaInventorySource']]]
 ];

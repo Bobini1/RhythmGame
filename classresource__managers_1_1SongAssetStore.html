@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.14</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.15</span>
    </div>
   </td>
  </tr>
@@ -109,6 +109,8 @@ Collaboration diagram for resource_managers::SongAssetStore:</div>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structresource__managers_1_1SongAssetStore_1_1ArchiveEntry.html">ArchiveEntry</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore_1_1Impl.html">Impl</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -121,13 +123,15 @@ Public Types</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a9913ad5a24db0ce3d2f5bb67af40e277" id="r_a9913ad5a24db0ce3d2f5bb67af40e277"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore.html#a9913ad5a24db0ce3d2f5bb67af40e277">SongAssetStore</a> (QObject *parent=nullptr)</td></tr>
 <tr class="separator:a9913ad5a24db0ce3d2f5bb67af40e277"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa775fa73a6bff0a79104aeee92d74df0" id="r_aa775fa73a6bff0a79104aeee92d74df0"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore.html#aa775fa73a6bff0a79104aeee92d74df0">read</a> (const std::filesystem::path &amp;virtualPath) const -&gt; QByteArray</td></tr>
-<tr class="separator:aa775fa73a6bff0a79104aeee92d74df0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e5eb4fbbdffb4340defc7183e14b7aa" id="r_a6e5eb4fbbdffb4340defc7183e14b7aa"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore.html#a6e5eb4fbbdffb4340defc7183e14b7aa">~SongAssetStore</a> () override</td></tr>
+<tr class="separator:a6e5eb4fbbdffb4340defc7183e14b7aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11df62dc9182f33e4dee99a09cf04580" id="r_a11df62dc9182f33e4dee99a09cf04580"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore.html#a11df62dc9182f33e4dee99a09cf04580">read</a> (const std::filesystem::path &amp;virtualPath, const std::atomic_bool *stop=nullptr) const -&gt; QByteArray</td></tr>
+<tr class="separator:a11df62dc9182f33e4dee99a09cf04580"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa6d543a983750d7397fc981a7031b9a2" id="r_aa6d543a983750d7397fc981a7031b9a2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore.html#aa6d543a983750d7397fc981a7031b9a2">materialize</a> (const std::filesystem::path &amp;virtualPath, const std::atomic_bool *stop=nullptr) const -&gt; std::filesystem::path</td></tr>
 <tr class="separator:aa6d543a983750d7397fc981a7031b9a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91f2b5f4f402503749c2f0f6ecbe6b64" id="r_a91f2b5f4f402503749c2f0f6ecbe6b64"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore.html#a91f2b5f4f402503749c2f0f6ecbe6b64">materializeRelative</a> (const std::filesystem::path &amp;virtualDirectory, const std::vector&lt; std::filesystem::path &gt; &amp;relativePaths, const std::atomic_bool *stop=nullptr) const -&gt; std::unordered_map&lt; std::filesystem::path, std::filesystem::path &gt;</td></tr>
 <tr class="separator:a91f2b5f4f402503749c2f0f6ecbe6b64"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8d650521e41523cb29642a3f1725148d" id="r_a8d650521e41523cb29642a3f1725148d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore.html#a8d650521e41523cb29642a3f1725148d">walkArchive</a> (const std::filesystem::path &amp;<a class="el" href="SongAssetStore_8cpp.html#ac3a8d7e1d712c0d2bca7a4c49d35845c">archivePath</a>, const <a class="el" href="classresource__managers_1_1SongAssetStore.html#a366901fe76ca8c8227bad79265eed5ec">WantsContents</a> &amp;wantsContents, const <a class="el" href="classresource__managers_1_1SongAssetStore.html#a54f4d33ba3b5ab4d9906289d753c466a">EntryVisitor</a> &amp;visitor, std::atomic_bool *stop=nullptr) const</td></tr>
+<tr class="memitem:a8d650521e41523cb29642a3f1725148d" id="r_a8d650521e41523cb29642a3f1725148d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore.html#a8d650521e41523cb29642a3f1725148d">walkArchive</a> (const std::filesystem::path &amp;archivePath, const <a class="el" href="classresource__managers_1_1SongAssetStore.html#a366901fe76ca8c8227bad79265eed5ec">WantsContents</a> &amp;wantsContents, const <a class="el" href="classresource__managers_1_1SongAssetStore.html#a54f4d33ba3b5ab4d9906289d753c466a">EntryVisitor</a> &amp;visitor, std::atomic_bool *stop=nullptr) const</td></tr>
 <tr class="separator:a8d650521e41523cb29642a3f1725148d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6addc4dbe016ab9885941152be2a30d9" id="r_a6addc4dbe016ab9885941152be2a30d9"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore.html#a6addc4dbe016ab9885941152be2a30d9">isArchived</a> (const std::filesystem::path &amp;virtualPath) const -&gt; bool</td></tr>
 <tr class="separator:a6addc4dbe016ab9885941152be2a30d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -211,6 +215,31 @@ Static Public Member Functions</h2></td></tr>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6e5eb4fbbdffb4340defc7183e14b7aa" name="a6e5eb4fbbdffb4340defc7183e14b7aa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e5eb4fbbdffb4340defc7183e14b7aa">&#9670;&#160;</a></span>~SongAssetStore()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">resource_managers::SongAssetStore::~SongAssetStore </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">default</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -606,8 +635,8 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="aa775fa73a6bff0a79104aeee92d74df0" name="aa775fa73a6bff0a79104aeee92d74df0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa775fa73a6bff0a79104aeee92d74df0">&#9670;&#160;</a></span>read()</h2>
+<a id="a11df62dc9182f33e4dee99a09cf04580" name="a11df62dc9182f33e4dee99a09cf04580"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11df62dc9182f33e4dee99a09cf04580">&#9670;&#160;</a></span>read()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -616,8 +645,18 @@ Static Public Member Functions</h2></td></tr>
           <td class="memname">auto resource_managers::SongAssetStore::read </td>
           <td>(</td>
           <td class="paramtype">const std::filesystem::path &amp;&#160;</td>
-          <td class="paramname"><em>virtualPath</em></td><td>)</td>
-          <td> const -&gt; QByteArray</td>
+          <td class="paramname"><em>virtualPath</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::atomic_bool *&#160;</td>
+          <td class="paramname"><em>stop</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; QByteArray</td>
         </tr>
       </table>
 </div><div class="memdoc">

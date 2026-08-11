@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.14</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.15</span>
    </div>
   </td>
  </tr>
@@ -230,6 +230,10 @@ Typedefs</h2></td></tr>
 <tr class="separator:a4c14dc6c399e78f7d4d146f8fd387fa8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a099e3e39abd30b330e36f1f32592c237" id="r_a099e3e39abd30b330e36f1f32592c237"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a099e3e39abd30b330e36f1f32592c237">meter_t</a> = std::pair&lt; int64_t, double &gt;</td></tr>
 <tr class="separator:a099e3e39abd30b330e36f1f32592c237"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17c12d9ec32aa42e5e15e9e6495c3b7a" id="r_a17c12d9ec32aa42e5e15e9e6495c3b7a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a17c12d9ec32aa42e5e15e9e6495c3b7a">EncodedSound</a> = std::shared_ptr&lt; const QByteArray &gt;</td></tr>
+<tr class="separator:a17c12d9ec32aa42e5e15e9e6495c3b7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3356effa7eb5b83f9b4ae6d7613e43d9" id="r_a3356effa7eb5b83f9b4ae6d7613e43d9"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a3356effa7eb5b83f9b4ae6d7613e43d9">EncodedSounds</a> = std::unordered_map&lt; uint64_t, <a class="el" href="namespacecharts.html#a17c12d9ec32aa42e5e15e9e6495c3b7a">EncodedSound</a> &gt;</td></tr>
+<tr class="separator:a3356effa7eb5b83f9b4ae6d7613e43d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -249,11 +253,19 @@ Functions</h2></td></tr>
 <tr class="separator:a7538b4a28f3a1a40238f6bbe6fdca69c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a055f9dbcbc667dcb0557a1aa307e60af" id="r_a055f9dbcbc667dcb0557a1aa307e60af"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a055f9dbcbc667dcb0557a1aa307e60af">createLowerCaseFilesMap</a> (std::filesystem::path dirToSearch) -&gt; std::unordered_map&lt; std::string, std::filesystem::path &gt;</td></tr>
 <tr class="separator:a055f9dbcbc667dcb0557a1aa307e60af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a969c806381e751a8a18e48a497906bc1" id="r_a969c806381e751a8a18e48a497906bc1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a969c806381e751a8a18e48a497906bc1">loadEncodedBuffers</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const <a class="el" href="namespacecharts.html#a3356effa7eb5b83f9b4ae6d7613e43d9">EncodedSounds</a> &amp;encodedSounds) -&gt; std::unordered_map&lt; <a class="el" href="namespacecharts.html#a17c12d9ec32aa42e5e15e9e6495c3b7a">EncodedSound</a>, std::shared_ptr&lt; const <a class="el" href="classsounds_1_1SoundBuffer.html">sounds::SoundBuffer</a> &gt; &gt;</td></tr>
+<tr class="separator:a969c806381e751a8a18e48a497906bc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77f89b4a19df82f5a096c14959c2fdc8" id="r_a77f89b4a19df82f5a096c14959c2fdc8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a77f89b4a19df82f5a096c14959c2fdc8">createBmsonSounds</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const std::unordered_map&lt; uint64_t, std::shared_ptr&lt; const <a class="el" href="classsounds_1_1SoundBuffer.html">sounds::SoundBuffer</a> &gt; &gt; &amp;channelBuffers, const std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1BmsonSliceInfo.html">BmsNotesData::BmsonSliceInfo</a> &gt; &amp;slices, const std::unordered_map&lt; uint64_t, std::vector&lt; uint64_t &gt; &gt; &amp;fusions) -&gt; std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td></tr>
+<tr class="separator:a77f89b4a19df82f5a096c14959c2fdc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad7c2fd536d5a265c9585904f13b491e2" id="r_ad7c2fd536d5a265c9585904f13b491e2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#ad7c2fd536d5a265c9585904f13b491e2">loadBmsSounds</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const std::unordered_map&lt; uint64_t, std::filesystem::path &gt; &amp;wavs, const std::filesystem::path &amp;<a class="el" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>) -&gt; std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td></tr>
 <tr class="separator:ad7c2fd536d5a265c9585904f13b491e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6e6800edbcab72fe961f17462807b07" id="r_aa6e6800edbcab72fe961f17462807b07"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#aa6e6800edbcab72fe961f17462807b07">loadBmsSounds</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const <a class="el" href="namespacecharts.html#a3356effa7eb5b83f9b4ae6d7613e43d9">EncodedSounds</a> &amp;wavs) -&gt; std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td></tr>
+<tr class="separator:aa6e6800edbcab72fe961f17462807b07"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2b91ab975ce7eac5a9b3d5c27907b537" id="r_a2b91ab975ce7eac5a9b3d5c27907b537"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a2b91ab975ce7eac5a9b3d5c27907b537">loadBmsonSounds</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const std::unordered_map&lt; uint64_t, std::filesystem::path &gt; &amp;channelPaths, const std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1BmsonSliceInfo.html">BmsNotesData::BmsonSliceInfo</a> &gt; &amp;slices, const std::unordered_map&lt; uint64_t, std::vector&lt; uint64_t &gt; &gt; &amp;fusions, const std::filesystem::path &amp;basePath) -&gt; std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td></tr>
 <tr class="memdesc:a2b91ab975ce7eac5a9b3d5c27907b537"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads and slices sounds for a bmson chart.  <br /></td></tr>
 <tr class="separator:a2b91ab975ce7eac5a9b3d5c27907b537"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a079a73c4a58f0c5f3484e86127d97a7e" id="r_a079a73c4a58f0c5f3484e86127d97a7e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a079a73c4a58f0c5f3484e86127d97a7e">loadBmsonSounds</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const <a class="el" href="namespacecharts.html#a3356effa7eb5b83f9b4ae6d7613e43d9">EncodedSounds</a> &amp;channels, const std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1BmsonSliceInfo.html">BmsNotesData::BmsonSliceInfo</a> &gt; &amp;slices, const std::unordered_map&lt; uint64_t, std::vector&lt; uint64_t &gt; &gt; &amp;fusions) -&gt; std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td></tr>
+<tr class="separator:a079a73c4a58f0c5f3484e86127d97a7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Classes and functions related to loading and calculating offsets in BMS charts. </p>
@@ -266,6 +278,34 @@ Functions</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="namespacecharts.html#a6a1590504088a4fc0ffb3f1219e8e888">charts::bmp_t</a> = typedef std::pair&lt;uint16_t, std::string&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a17c12d9ec32aa42e5e15e9e6495c3b7a" name="a17c12d9ec32aa42e5e15e9e6495c3b7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17c12d9ec32aa42e5e15e9e6495c3b7a">&#9670;&#160;</a></span>EncodedSound</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespacecharts.html#a17c12d9ec32aa42e5e15e9e6495c3b7a">charts::EncodedSound</a> = typedef std::shared_ptr&lt;const QByteArray&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3356effa7eb5b83f9b4ae6d7613e43d9" name="a3356effa7eb5b83f9b4ae6d7613e43d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3356effa7eb5b83f9b4ae6d7613e43d9">&#9670;&#160;</a></span>EncodedSounds</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespacecharts.html#a3356effa7eb5b83f9b4ae6d7613e43d9">charts::EncodedSounds</a> = typedef std::unordered_map&lt;uint64_t, <a class="el" href="namespacecharts.html#a17c12d9ec32aa42e5e15e9e6495c3b7a">EncodedSound</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -400,6 +440,47 @@ template&lt;std::integral T&gt; </div>
 
 </div>
 </div>
+<a id="a77f89b4a19df82f5a096c14959c2fdc8" name="a77f89b4a19df82f5a096c14959c2fdc8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77f89b4a19df82f5a096c14959c2fdc8">&#9670;&#160;</a></span>createBmsonSounds()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto charts::createBmsonSounds </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *&#160;</td>
+          <td class="paramname"><em>engine</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::unordered_map&lt; uint64_t, std::shared_ptr&lt; const <a class="el" href="classsounds_1_1SoundBuffer.html">sounds::SoundBuffer</a> &gt; &gt; &amp;&#160;</td>
+          <td class="paramname"><em>channelBuffers</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1BmsonSliceInfo.html">BmsNotesData::BmsonSliceInfo</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>slices</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::unordered_map&lt; uint64_t, std::vector&lt; uint64_t &gt; &gt; &amp;&#160;</td>
+          <td class="paramname"><em>fusions</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; std::unordered_map&lt;uint64_t, std::shared_ptr&lt;<a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a>&gt;&gt;
+</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a055f9dbcbc667dcb0557a1aa307e60af" name="a055f9dbcbc667dcb0557a1aa307e60af"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a055f9dbcbc667dcb0557a1aa307e60af">&#9670;&#160;</a></span>createLowerCaseFilesMap()</h2>
 
@@ -467,8 +548,48 @@ template&lt;std::integral T&gt; </div>
 
 </div>
 </div>
+<a id="a079a73c4a58f0c5f3484e86127d97a7e" name="a079a73c4a58f0c5f3484e86127d97a7e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a079a73c4a58f0c5f3484e86127d97a7e">&#9670;&#160;</a></span>loadBmsonSounds() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto charts::loadBmsonSounds </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *&#160;</td>
+          <td class="paramname"><em>engine</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacecharts.html#a3356effa7eb5b83f9b4ae6d7613e43d9">EncodedSounds</a> &amp;&#160;</td>
+          <td class="paramname"><em>channels</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1BmsonSliceInfo.html">BmsNotesData::BmsonSliceInfo</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>slices</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::unordered_map&lt; uint64_t, std::vector&lt; uint64_t &gt; &gt; &amp;&#160;</td>
+          <td class="paramname"><em>fusions</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt;  std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a2b91ab975ce7eac5a9b3d5c27907b537" name="a2b91ab975ce7eac5a9b3d5c27907b537"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2b91ab975ce7eac5a9b3d5c27907b537">&#9670;&#160;</a></span>loadBmsonSounds()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b91ab975ce7eac5a9b3d5c27907b537">&#9670;&#160;</a></span>loadBmsonSounds() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -526,8 +647,36 @@ template&lt;std::integral T&gt; </div>
 
 </div>
 </div>
+<a id="aa6e6800edbcab72fe961f17462807b07" name="aa6e6800edbcab72fe961f17462807b07"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa6e6800edbcab72fe961f17462807b07">&#9670;&#160;</a></span>loadBmsSounds() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto charts::loadBmsSounds </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *&#160;</td>
+          <td class="paramname"><em>engine</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacecharts.html#a3356effa7eb5b83f9b4ae6d7613e43d9">EncodedSounds</a> &amp;&#160;</td>
+          <td class="paramname"><em>wavs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt;  std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ad7c2fd536d5a265c9585904f13b491e2" name="ad7c2fd536d5a265c9585904f13b491e2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad7c2fd536d5a265c9585904f13b491e2">&#9670;&#160;</a></span>loadBmsSounds()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7c2fd536d5a265c9585904f13b491e2">&#9670;&#160;</a></span>loadBmsSounds() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -554,6 +703,36 @@ template&lt;std::integral T&gt; </div>
           <td></td>
           <td>)</td>
           <td></td><td> -&gt;  std::unordered_map&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="classsounds_1_1Sound.html">sounds::Sound</a> &gt; &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a969c806381e751a8a18e48a497906bc1" name="a969c806381e751a8a18e48a497906bc1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a969c806381e751a8a18e48a497906bc1">&#9670;&#160;</a></span>loadEncodedBuffers()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto charts::loadEncodedBuffers </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *&#160;</td>
+          <td class="paramname"><em>engine</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacecharts.html#a3356effa7eb5b83f9b4ae6d7613e43d9">EncodedSounds</a> &amp;&#160;</td>
+          <td class="paramname"><em>encodedSounds</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; std::unordered_map&lt;<a class="el" href="namespacecharts.html#a17c12d9ec32aa42e5e15e9e6495c3b7a">EncodedSound</a>,
+                        std::shared_ptr&lt;const <a class="el" href="classsounds_1_1SoundBuffer.html">sounds::SoundBuffer</a>&gt;&gt;
+</td>
         </tr>
       </table>
 </div><div class="memdoc">

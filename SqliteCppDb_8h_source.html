@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.14</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.15</span>
    </div>
   </td>
  </tr>
@@ -114,9 +114,9 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>                  SQLite::Database* <a class="code hl_namespace" href="namespacedb.html">db</a>);</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>        <span class="keyword">template</span>&lt;<span class="keyword">typename</span>... T&gt;</div>
 <div class="foldopen" id="foldopen00042" data-start="{" data-end="}">
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="classdb_1_1SqliteCppDb_1_1Statement.html#a7d942f828dcd478e48280126a9d2e09a">   42</a></span>        <span class="keyword">auto</span> <a class="code hl_function" href="classdb_1_1SqliteCppDb_1_1Statement.html#a7d942f828dcd478e48280126a9d2e09a">bind</a>(<span class="keywordtype">int</span> index, T&amp;&amp;... values) -&gt; <span class="keywordtype">void</span></div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="classdb_1_1SqliteCppDb_1_1Statement.html#a7d942f828dcd478e48280126a9d2e09a">   42</a></span>        <span class="keyword">auto</span> <a class="code hl_function" href="classdb_1_1SqliteCppDb_1_1Statement.html#a7d942f828dcd478e48280126a9d2e09a">bind</a>(<span class="keywordtype">int</span> <a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>, T&amp;&amp;... values) -&gt; <span class="keywordtype">void</span></div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>        {</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>            statement.bind(index, std::forward&lt;T&gt;(values)...);</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>            statement.bind(<a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>, std::forward&lt;T&gt;(values)...);</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>        }</div>
 </div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>        <span class="keyword">template</span>&lt;<span class="keyword">typename</span>... T&gt;</div>
@@ -160,34 +160,34 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
 <div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>      <span class="keyword">private</span>:</div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>        <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ElemType&gt;</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>        <span class="keyword">static</span> <span class="keyword">auto</span> getElem(SQLite::Statement&amp; statement, <span class="keywordtype">int</span> index) -&gt; ElemType</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>        <span class="keyword">static</span> <span class="keyword">auto</span> getElem(SQLite::Statement&amp; statement, <span class="keywordtype">int</span> <a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>) -&gt; ElemType</div>
 <div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>        {</div>
 <div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>            <span class="comment">// This if is necessary for MSVC (don&#39;t ask me why)</span></div>
 <div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (std::is_same_v&lt;ElemType, std::string&gt;) {</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>                <span class="keywordflow">return</span> statement.getColumn(index).getString();</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>                <span class="keywordflow">return</span> statement.getColumn(<a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>).getString();</div>
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>            } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>                <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>ElemType<span class="keyword">&gt;</span>(statement.getColumn(index));</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>                <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>ElemType<span class="keyword">&gt;</span>(statement.getColumn(<a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>));</div>
 <div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>            }</div>
 <div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>        }</div>
 <div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
 <div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>        <span class="keyword">template</span>&lt;std::default_initializable Ret&gt;</div>
 <div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>        <span class="keywordtype">void</span> writeRow(SQLite::Statement&amp; statement, Ret&amp; ret)<span class="keyword"> const</span></div>
 <div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span><span class="keyword">        </span>{</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>            <span class="keywordtype">int</span> index = 0;</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>            writeRow(statement, ret, index);</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>            <span class="keywordtype">int</span> <a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a> = 0;</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>            writeRow(statement, ret, <a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>);</div>
 <div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>        }</div>
 <div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
 <div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>        <span class="keyword">template</span>&lt;std::default_initializable Ret&gt;</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>        <span class="keywordtype">void</span> writeRow(SQLite::Statement&amp; stmt, Ret&amp; ret, <span class="keywordtype">int</span>&amp; index)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>        <span class="keywordtype">void</span> writeRow(SQLite::Statement&amp; stmt, Ret&amp; ret, <span class="keywordtype">int</span>&amp; <a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>)<span class="keyword"> const</span></div>
 <div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span><span class="keyword">        </span>{</div>
 <div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (std::convertible_to&lt;SQLite::Column, Ret&gt; || std::is_same_v&lt;Ret, std::string&gt;) {</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>                ret = getElem&lt;std::remove_cvref_t&lt;Ret&gt;&gt;(stmt, index++);</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>                ret = getElem&lt;std::remove_cvref_t&lt;Ret&gt;&gt;(stmt, <a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>++);</div>
 <div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>            } <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>                <span class="keyword">constexpr</span> <span class="keywordtype">size_t</span> tupleSize = support::tupleSizeV&lt;Ret&gt;;</div>
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>                <span class="keyword">constexpr</span> <span class="keyword">auto</span> indices =</div>
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>                  std::make_integer_sequence&lt;int, static_cast&lt;int&gt;(tupleSize)&gt;();</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>                [<span class="keyword">this</span>, &amp;stmt, &amp;ret, &amp;index]&lt;<span class="keywordtype">int</span>... N&gt;(std::integer_sequence&lt;int, N...&gt;) {</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>                    (writeRow(stmt, support::get&lt;N&gt;(ret), index), ...);</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>                [<span class="keyword">this</span>, &amp;stmt, &amp;ret, &amp;<a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>]&lt;<span class="keywordtype">int</span>... N&gt;(std::integer_sequence&lt;int, N...&gt;) {</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>                    (writeRow(stmt, support::get&lt;N&gt;(ret), <a class="code hl_variable" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>), ...);</div>
 <div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>                }(indices);</div>
 <div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>            }</div>
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>        }</div>
@@ -204,6 +204,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span> </div>
 <div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_SQLITECPPDB_H</span></div>
 <div class="ttc" id="aScoreDb_8cpp_html_a737031dda0f6361193cddc1b0f1c9a5e"><div class="ttname"><a href="ScoreDb_8cpp.html#a737031dda0f6361193cddc1b0f1c9a5e">result</a></div><div class="ttdeci">Result result</div><div class="ttdef"><b>Definition</b> ScoreDb.cpp:108</div></div>
+<div class="ttc" id="aSongAssetStore_8cpp_html_a24a69b440b6b0c63948e0ea1afc2ec4d"><div class="ttname"><a href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a></div><div class="ttdeci">zip_uint64_t index</div><div class="ttdef"><b>Definition</b> SongAssetStore.cpp:423</div></div>
 <div class="ttc" id="aTupleSize_8h_html"><div class="ttname"><a href="TupleSize_8h.html">TupleSize.h</a></div></div>
 <div class="ttc" id="aclassdb_1_1SqliteCppDb_1_1Statement_html"><div class="ttname"><a href="classdb_1_1SqliteCppDb_1_1Statement.html">db::SqliteCppDb::Statement</a></div><div class="ttdoc">Wrapper for SQLiteCpp::Statement.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:34</div></div>
 <div class="ttc" id="aclassdb_1_1SqliteCppDb_1_1Statement_html_a03295a4ffffd3a640dc3bf80556b93bb"><div class="ttname"><a href="classdb_1_1SqliteCppDb_1_1Statement.html#a03295a4ffffd3a640dc3bf80556b93bb">db::SqliteCppDb::Statement::bind</a></div><div class="ttdeci">auto bind(const std::string &amp;name, T &amp;&amp;... values) -&gt; void</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:47</div></div>

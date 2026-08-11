@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['data_0',['data',['../Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b',1,'data:&#160;Lr2FontCache.cpp'],['../structsupport_1_1DXArchiveSegment.html#aba8186df68042621e7003d591e4357fb',1,'support::DXArchiveSegment::data']]],
+  ['data_0',['data',['../structsupport_1_1DXArchiveSegment.html#aba8186df68042621e7003d591e4357fb',1,'support::DXArchiveSegment::data'],['../Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b',1,'data:&#160;Lr2FontCache.cpp']]],
   ['dataaddress_1',['DataAddress',['../namespacedxa.html#a5fadc0faea06721fdea8b048415d61e5',1,'dxa']]],
   ['datasize_2',['DataSize',['../namespacedxa.html#aa492e86baecc3c577a247d4a42fe26c8',1,'dxa']]],
   ['datastartaddress_3',['DataStartAddress',['../namespacedxa.html#a049dc0e985610c582c95540722788853',1,'dxa']]],
@@ -20,10 +20,10 @@ var searchData=
   ['denominator_17',['denominator',['../structcharts_1_1Snap.html#a5bfe54e56fc91f929903c4f5cb9f532c',1,'charts::Snap']]],
   ['difficulty_18',['difficulty',['../structcharts_1_1ParsedBmsChart_1_1Tags.html#a62add25cdfc49ea72d365be72450b421',1,'charts::ParsedBmsChart::Tags::difficulty'],['../structgameplay__logic_1_1ChartData_1_1DTO.html#a16b97e018bea95581cd22ec49b8e2cb1',1,'gameplay_logic::ChartData::DTO::difficulty']]],
   ['direction_19',['direction',['../structinput_1_1InputTranslator_1_1Scratch.html#a56d3aa6ccf48aaed7fcae6d4ea9c1089',1,'input::InputTranslator::Scratch']]],
-  ['directory_20',['directory',['../structgameplay__logic_1_1ChartData_1_1DTO.html#a6f40ecbde8b665d8a6ac55d590e6b554',1,'gameplay_logic::ChartData::DTO::directory'],['../Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41',1,'directory:&#160;Lr2SkinParser.cpp']]],
+  ['directory_20',['directory',['../structgameplay__logic_1_1ChartData_1_1DTO.html#a6f40ecbde8b665d8a6ac55d590e6b554',1,'gameplay_logic::ChartData::DTO::directory'],['../SongAssetStore_8cpp.html#a8688c1b68f89fed3848e4e6793d6e700',1,'directory:&#160;SongAssetStore.cpp'],['../Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41',1,'directory:&#160;Lr2SkinParser.cpp']]],
   ['directorytablestartaddress_21',['DirectoryTableStartAddress',['../namespacedxa.html#af70923a9b7adee40271035b235646682',1,'dxa']]],
-  ['displaymessagekey_22',['displaymessagekey',['../structarena_1_1FatalError.html#a3e1b63d6609794faf30f06e93e02365b',1,'arena::FatalError::displayMessageKey'],['../structarena_1_1CommandError.html#ac5104f66af5235e309de3fe50ece7d21',1,'arena::CommandError::displayMessageKey']]],
-  ['displayname_23',['displayname',['../structarena_1_1PublicIdentity.html#a84702c855ca0cca3d4b3faa5b62e846b',1,'arena::PublicIdentity::displayName'],['../ArenaOpponentTarget_8cpp.html#aaff8ec2dc3dda01acf1b1db2f0676d77',1,'displayName:&#160;ArenaOpponentTarget.cpp'],['../structarena_1_1RoomMemberPreview.html#a50be7f08b9ed79004ddfc82554f02fd6',1,'arena::RoomMemberPreview::displayName']]],
+  ['displaymessagekey_22',['displaymessagekey',['../structarena_1_1CommandError.html#ac5104f66af5235e309de3fe50ece7d21',1,'arena::CommandError::displayMessageKey'],['../structarena_1_1FatalError.html#a3e1b63d6609794faf30f06e93e02365b',1,'arena::FatalError::displayMessageKey']]],
+  ['displayname_23',['displayname',['../ArenaOpponentTarget_8cpp.html#aaff8ec2dc3dda01acf1b1db2f0676d77',1,'displayName:&#160;ArenaOpponentTarget.cpp'],['../structarena_1_1RoomMemberPreview.html#a50be7f08b9ed79004ddfc82554f02fd6',1,'arena::RoomMemberPreview::displayName'],['../structarena_1_1PublicIdentity.html#a84702c855ca0cca3d4b3faa5b62e846b',1,'arena::PublicIdentity::displayName']]],
   ['divx_24',['divX',['../structlr2skin_1_1runtime_1_1Source.html#a6b4a4c7693ab73f986f790576b6b5517',1,'lr2skin::runtime::Source']]],
   ['divy_25',['divY',['../structlr2skin_1_1runtime_1_1Source.html#a205147305cd68b91b073ee17e0a4815f',1,'lr2skin::runtime::Source']]],
   ['doubleoption_26',['doubleOption',['../BeatorajaReplayImporter_8cpp.html#acb6ed8bc0868b97d9e2309b896d6beea',1,'BeatorajaReplayImporter.cpp']]],

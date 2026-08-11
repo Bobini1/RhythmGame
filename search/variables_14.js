@@ -5,6 +5,6 @@ var searchData=
   ['valuemilli_2',['valueMilli',['../structarena_1_1GaugeSnapshot.html#ade2b91f65809342fb669c9ef42b54474',1,'arena::GaugeSnapshot']]],
   ['vectordigest_3',['vectordigest',['../structarena_1_1InventoryUploadCommit.html#aabfde34e21a22820576b8e5ab91759fc',1,'arena::InventoryUploadCommit::vectorDigest'],['../structarena_1_1InventoryUploadReady.html#ae798a4ed2ca1acb1444308733743c7a9',1,'arena::InventoryUploadReady::vectorDigest'],['../structarena_1_1InventoryUploadBegin.html#a415aa5f1d1249789e65dbd7843318e8c',1,'arena::InventoryUploadBegin::vectorDigest'],['../ArenaProtocol_8cpp.html#a1b8ca37a732ba6c92222212c24412bc6',1,'vectorDigest:&#160;ArenaProtocol.cpp']]],
   ['version_4',['Version',['../namespacedxa.html#af9559f3bda0b51cbd93d06f32011a938',1,'dxa']]],
-  ['virtualarchivepath_5',['virtualArchivePath',['../SongAssetStore_8cpp.html#ad82c161ef9c94f5babf7aadd3cc88419',1,'SongAssetStore.cpp']]],
-  ['virtualpath_6',['virtualPath',['../structresource__managers_1_1SongAssetStore_1_1ArchiveEntry.html#a6a1dcd3f4af2bad008aba65216ba4682',1,'resource_managers::SongAssetStore::ArchiveEntry']]]
+  ['virtualarchivepath_5',['virtualArchivePath',['../structresource__managers_1_1SongAssetStore_1_1Impl_1_1LocatedContainer.html#ae02a78ac5195edb352fff044b4c7327c',1,'resource_managers::SongAssetStore::Impl::LocatedContainer']]],
+  ['virtualpath_6',['virtualpath',['../structresource__managers_1_1SongAssetStore_1_1Impl_1_1LocatedEntry.html#aa42fa19ab9ce190e1fd7695772685e1f',1,'resource_managers::SongAssetStore::Impl::LocatedEntry::virtualPath'],['../structresource__managers_1_1SongAssetStore_1_1ArchiveEntry.html#a6a1dcd3f4af2bad008aba65216ba4682',1,'resource_managers::SongAssetStore::ArchiveEntry::virtualPath']]]
 ];
