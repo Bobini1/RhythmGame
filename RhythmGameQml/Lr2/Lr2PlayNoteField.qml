@@ -543,6 +543,7 @@ Item {
                     transform: Lr2GameplayPositionTransform {
                         frameState: root.gameplayFrameState
                         player: lineArea.player
+                        targetItem: lineLayer
                         side: lineArea.side
                         multiplier: lineArea.multiplier * root.skinScale
                     }
@@ -682,6 +683,7 @@ Item {
                     transform: Lr2GameplayPositionTransform {
                         frameState: root.gameplayFrameState
                         player: lane.player
+                        targetItem: noteLayer
                         side: lane.side
                         multiplier: lane.multiplier * root.skinScale
                     }

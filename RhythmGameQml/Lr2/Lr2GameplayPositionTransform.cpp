@@ -4,6 +4,7 @@
 #include "gameplay_logic/ChartRunner.h"
 
 #include <QMatrix4x4>
+#include <QQuickWindow>
 
 #include <cmath>
 
@@ -47,6 +48,48 @@ Lr2GameplayPositionTransform::setPlayer(QObject* player)
     m_player = player;
     reconnectPositionSignal();
     emit playerChanged();
+    update();
+}
+
+QQuickItem*
+Lr2GameplayPositionTransform::targetItem() const
+{
+    return m_targetItem;
+}
+
+void
+Lr2GameplayPositionTransform::setTargetItem(QQuickItem* item)
+{
+    if (m_targetItem == item) {
+        return;
+    }
+
+    if (m_targetWindowConnection) {
+        disconnect(m_targetWindowConnection);
+        m_targetWindowConnection = {};
+    }
+    if (m_targetDestroyedConnection) {
+        disconnect(m_targetDestroyedConnection);
+        m_targetDestroyedConnection = {};
+    }
+
+    m_targetItem = item;
+    if (m_targetItem) {
+        m_targetWindowConnection =
+          connect(m_targetItem,
+                  &QQuickItem::windowChanged,
+                  this,
+                  &Lr2GameplayPositionTransform::reconnectRenderFrameSignal);
+        m_targetDestroyedConnection =
+          connect(m_targetItem, &QObject::destroyed, this, [this]() {
+              m_targetItem = nullptr;
+              reconnectRenderFrameSignal(nullptr);
+              emit targetItemChanged();
+          });
+    }
+
+    reconnectRenderFrameSignal(m_targetItem ? m_targetItem->window() : nullptr);
+    emit targetItemChanged();
     update();
 }
 
@@ -134,4 +177,28 @@ Lr2GameplayPositionTransform::reconnectPositionSignal()
                                 this,
                                 &Lr2GameplayPositionTransform::update);
     }
+}
+
+void
+Lr2GameplayPositionTransform::reconnectRenderFrameSignal(QQuickWindow* window)
+{
+    if (m_renderFrameConnection) {
+        disconnect(m_renderFrameConnection);
+        m_renderFrameConnection = {};
+    }
+
+    if (window) {
+        m_renderFrameConnection =
+          connect(window,
+                  &QQuickWindow::beforeSynchronizing,
+                  this,
+                  &Lr2GameplayPositionTransform::updateForRenderFrame,
+                  Qt::DirectConnection);
+    }
+}
+
+void
+Lr2GameplayPositionTransform::updateForRenderFrame()
+{
+    update();
 }
