@@ -19,7 +19,7 @@ var searchData=
   ['uploadscores_16',['uploadScores',['../classresource__managers_1_1Profile.html#a9c84bb4f46654dad009e1fc9f9a166b2',1,'resource_managers::Profile']]],
   ['uppercase_17',['uppercase',['../classLr2BitmapFontTexture.html#aeba3c7d74f6ddd83e3f1d5334b08a80f',1,'Lr2BitmapFontTexture']]],
   ['uppercasechanged_18',['uppercaseChanged',['../classLr2BitmapFontTexture.html#aa6292565544c5c8a2915735a1f1281a3',1,'Lr2BitmapFontTexture']]],
-  ['upsert_19',['upsert',['../classarena_1_1ArenaRoomListModel.html#af142a2ab904f079294ae1d9e0227c7c7',1,'arena::ArenaRoomListModel::upsert()'],['../classarena_1_1ArenaMemberListModel.html#a5ae972618e235212931b6a9e65e9bc4e',1,'arena::ArenaMemberListModel::upsert()'],['../classarena_1_1ArenaChatModel.html#a22f675a52992cfd7a941cbb2860ec26c',1,'arena::ArenaChatModel::upsert()']]],
+  ['upsert_19',['upsert',['../classarena_1_1ArenaChatModel.html#a22f675a52992cfd7a941cbb2860ec26c',1,'arena::ArenaChatModel::upsert()'],['../classarena_1_1ArenaRoomListModel.html#af142a2ab904f079294ae1d9e0227c7c7',1,'arena::ArenaRoomListModel::upsert()'],['../classarena_1_1ArenaMemberListModel.html#a5ae972618e235212931b6a9e65e9bc4e',1,'arena::ArenaMemberListModel::upsert()']]],
   ['usebeatorajabartexttypes_20',['useBeatorajaBarTextTypes',['../classLr2SelectItemModel.html#a830a36394005ebfd03f798d2129629d1',1,'Lr2SelectItemModel']]],
   ['usebeatorajaselectoptions_21',['useBeatorajaSelectOptions',['../classLr2SelectItemModel.html#a27d11a596b44c2fd52622f3ed051e83a',1,'Lr2SelectItemModel']]],
   ['usedelementoptions_22',['usedElementOptions',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a7b9cbaed019dfe86ca4b8acd2b5aa924',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]],
@@ -34,10 +34,12 @@ var searchData=
   ['usesbannersource_31',['usesBannerSource',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#af2fa0a6abe600b97bd6e271de2019f5c',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]],
   ['usesdynamictimer_32',['usesDynamicTimer',['../classLr2TimelineState.html#abc7c3146ebca24637790c788549b0445',1,'Lr2TimelineState']]],
   ['usesdynamictimerfor_33',['usesDynamicTimerFor',['../classLr2TimelineState.html#a461864911feab8c87b31a833121e6974',1,'Lr2TimelineState']]],
-  ['useslotrow_34',['useSlotRow',['../classLr2BarPositionedItem.html#a2a2103e96fa358ce5119ca27dfba6295',1,'Lr2BarPositionedItem']]],
-  ['useslotrowchanged_35',['useSlotRowChanged',['../classLr2BarPositionedItem.html#a14355b009b79b51dc5036f5f0da1cf3e',1,'Lr2BarPositionedItem']]],
-  ['usesselectchartrenderer_36',['usesSelectChartRenderer',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a9b1e0e4cb366f69a4bb24e2f4bd5ca73',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]],
-  ['usesselectdifficultysource_37',['usesSelectDifficultySource',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a7f039dccf69022a03fb59724840fcd1a',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]],
-  ['usesstagefilesource_38',['usesStageFileSource',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a21aaf353daaaf0dc80b216557a29a6a0',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]],
-  ['utfstringtopath_39',['utfStringToPath',['../namespacesupport.html#a612974d26f4e28e48dfbf405a89227d8',1,'support']]]
+  ['usesgameplayhitevents_34',['usesGameplayHitEvents',['../classLr2SkinRuntime.html#a59abfdc8b49ec74df32e791b8d444b07',1,'Lr2SkinRuntime']]],
+  ['usesgameplayhiteventschanged_35',['usesGameplayHitEventsChanged',['../classLr2SkinRuntime.html#a4983885c9d8ee736ab71fa8237c756ad',1,'Lr2SkinRuntime']]],
+  ['useslotrow_36',['useSlotRow',['../classLr2BarPositionedItem.html#a2a2103e96fa358ce5119ca27dfba6295',1,'Lr2BarPositionedItem']]],
+  ['useslotrowchanged_37',['useSlotRowChanged',['../classLr2BarPositionedItem.html#a14355b009b79b51dc5036f5f0da1cf3e',1,'Lr2BarPositionedItem']]],
+  ['usesselectchartrenderer_38',['usesSelectChartRenderer',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a9b1e0e4cb366f69a4bb24e2f4bd5ca73',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]],
+  ['usesselectdifficultysource_39',['usesSelectDifficultySource',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a7f039dccf69022a03fb59724840fcd1a',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]],
+  ['usesstagefilesource_40',['usesStageFileSource',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a21aaf353daaaf0dc80b216557a29a6a0',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]],
+  ['utfstringtopath_41',['utfStringToPath',['../namespacesupport.html#a612974d26f4e28e48dfbf405a89227d8',1,'support']]]
 ];
