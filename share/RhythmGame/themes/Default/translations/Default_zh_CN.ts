@@ -1061,7 +1061,7 @@
         <source>Last winner: %1</source>
         <comment>Arena last round winner count</comment>
         <translation>
-        <numerusform>上一局获胜者: %1</numerusform>
+            <numerusform>上一局获胜者: %1</numerusform>
         </translation>
     </message>
 </context>
@@ -1350,7 +1350,7 @@
 <context>
     <name>Gameplay</name>
     <message>
-        <location filename="../scripts/gameplay/Gameplay.qml" line="857"/>
+        <location filename="../scripts/gameplay/Gameplay.qml" line="851"/>
         <source>Arena gameplay panel</source>
         <translation>大厅游戏面板</translation>
     </message>
@@ -2044,12 +2044,12 @@
 <context>
     <name>Lr2SkinScreenWrapper</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2921"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2912"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation>截图已保存至 %1 并复制到剪贴板。</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2923"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2914"/>
         <source>Failed to save screenshot.</source>
         <translation>截图保存失败。</translation>
     </message>
@@ -2691,17 +2691,17 @@
 <context>
     <name>Select</name>
     <message>
-        <location filename="../scripts/select/Select.qml" line="319"/>
+        <location filename="../scripts/select/Select.qml" line="321"/>
         <source>Press Start twice to toggle ready.</source>
         <translation>按两次开始以准备。</translation>
     </message>
     <message>
-        <location filename="../scripts/select/Select.qml" line="617"/>
+        <location filename="../scripts/select/Select.qml" line="638"/>
         <source>Score Details</source>
         <translation>得分详情</translation>
     </message>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="663"/>
+        <location filename="../scripts/select/Select.qml" line="684"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>找到 %n 个谱面</numerusform>

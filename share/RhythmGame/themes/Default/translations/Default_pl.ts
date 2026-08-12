@@ -1362,7 +1362,7 @@
 <context>
     <name>Gameplay</name>
     <message>
-        <location filename="../scripts/gameplay/Gameplay.qml" line="857"/>
+        <location filename="../scripts/gameplay/Gameplay.qml" line="851"/>
         <source>Arena gameplay panel</source>
         <translation>Panel areny w grze</translation>
     </message>
@@ -2058,12 +2058,12 @@
 <context>
     <name>Lr2SkinScreenWrapper</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2921"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2912"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation>Zapisano zrzut ekranu do %1 i schowka.</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2923"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2914"/>
         <source>Failed to save screenshot.</source>
         <translation>Nie udało się zapisać zrzutu ekranu.</translation>
     </message>
@@ -2705,17 +2705,17 @@
 <context>
     <name>Select</name>
     <message>
-        <location filename="../scripts/select/Select.qml" line="319"/>
+        <location filename="../scripts/select/Select.qml" line="321"/>
         <source>Press Start twice to toggle ready.</source>
         <translation>Naciśnij dwukrotnie start, żeby przełączyć stan gotowości</translation>
     </message>
     <message>
-        <location filename="../scripts/select/Select.qml" line="617"/>
+        <location filename="../scripts/select/Select.qml" line="638"/>
         <source>Score Details</source>
         <translation>Szczegóły wyniku</translation>
     </message>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="663"/>
+        <location filename="../scripts/select/Select.qml" line="684"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>Znaleziono %n chart</numerusform>
