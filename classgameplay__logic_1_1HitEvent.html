@@ -108,6 +108,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a98a6faa5d0465e979bb8db7aea4b3d72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb3e9c34c6f03bda9de5d9e09613e93c" id="r_acb3e9c34c6f03bda9de5d9e09613e93c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1HitEvent.html#acb3e9c34c6f03bda9de5d9e09613e93c">getHitOffset</a> () const -&gt; DeltaTime</td></tr>
 <tr class="separator:acb3e9c34c6f03bda9de5d9e09613e93c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f6e068aa987542cfa2c9e8eed6560e8" id="r_a4f6e068aa987542cfa2c9e8eed6560e8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1HitEvent.html#a4f6e068aa987542cfa2c9e8eed6560e8">getJudgement</a> () const -&gt; int</td></tr>
+<tr class="separator:a4f6e068aa987542cfa2c9e8eed6560e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a83eda48d9fcc595bba032a769155e527" id="r_a83eda48d9fcc595bba032a769155e527"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1HitEvent.html#a83eda48d9fcc595bba032a769155e527">getDeviation</a> () const -&gt; DeltaTime</td></tr>
+<tr class="separator:a83eda48d9fcc595bba032a769155e527"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7dd46d7aff90e8bb512ded2f3e4d4707" id="r_a7dd46d7aff90e8bb512ded2f3e4d4707"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1HitEvent.html#a7dd46d7aff90e8bb512ded2f3e4d4707">getPoints</a> () const -&gt; QVariant</td></tr>
 <tr class="separator:a7dd46d7aff90e8bb512ded2f3e4d4707"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af06335a6711ae6a3782ba7016fd35732" id="r_af06335a6711ae6a3782ba7016fd35732"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1HitEvent.html#af06335a6711ae6a3782ba7016fd35732">getPointsOptional</a> () const -&gt; std::optional&lt; <a class="el" href="classgameplay__logic_1_1BmsPoints.html">BmsPoints</a> &gt;</td></tr>
@@ -143,6 +147,12 @@ Properties</h2></td></tr>
 <tr class="memitem:ad31e1e7d8f121d4c5290e4766341e086" id="r_ad31e1e7d8f121d4c5290e4766341e086"><td class="memItemLeft" align="right" valign="top">DeltaTime&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1HitEvent.html#ad31e1e7d8f121d4c5290e4766341e086">hitOffset</a></td></tr>
 <tr class="memdesc:ad31e1e7d8f121d4c5290e4766341e086"><td class="mdescLeft">&#160;</td><td class="mdescRight">The offset from the note's perfect hit time when this event happened.  <br /></td></tr>
 <tr class="separator:ad31e1e7d8f121d4c5290e4766341e086"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb5ec9b5b29004d7c02c3ae9e43a2369" id="r_afb5ec9b5b29004d7c02c3ae9e43a2369"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1HitEvent.html#afb5ec9b5b29004d7c02c3ae9e43a2369">judgement</a></td></tr>
+<tr class="memdesc:afb5ec9b5b29004d7c02c3ae9e43a2369"><td class="mdescLeft">&#160;</td><td class="mdescRight">Judgement awarded for this event, or -1 when none was awarded.  <br /></td></tr>
+<tr class="separator:afb5ec9b5b29004d7c02c3ae9e43a2369"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c991457d1dafec88338b9d6bfbe3995" id="r_a4c991457d1dafec88338b9d6bfbe3995"><td class="memItemLeft" align="right" valign="top">DeltaTime&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1HitEvent.html#a4c991457d1dafec88338b9d6bfbe3995">deviation</a></td></tr>
+<tr class="memdesc:a4c991457d1dafec88338b9d6bfbe3995"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signed timing deviation in nanoseconds, or 0 when unavailable.  <br /></td></tr>
+<tr class="separator:a4c991457d1dafec88338b9d6bfbe3995"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af5a137447274708c274a35d8b8355436" id="r_af5a137447274708c274a35d8b8355436"><td class="memItemLeft" align="right" valign="top">QVariant&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1HitEvent.html#af5a137447274708c274a35d8b8355436">points</a></td></tr>
 <tr class="memdesc:af5a137447274708c274a35d8b8355436"><td class="mdescLeft">&#160;</td><td class="mdescRight">The points awarded for this hit.  <br /></td></tr>
 <tr class="separator:af5a137447274708c274a35d8b8355436"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -381,6 +391,23 @@ Friends</h2></td></tr>
 
 </div>
 </div>
+<a id="a83eda48d9fcc595bba032a769155e527" name="a83eda48d9fcc595bba032a769155e527"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a83eda48d9fcc595bba032a769155e527">&#9670;&#160;</a></span>getDeviation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::HitEvent::getDeviation </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; DeltaTime</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="acb3e9c34c6f03bda9de5d9e09613e93c" name="acb3e9c34c6f03bda9de5d9e09613e93c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acb3e9c34c6f03bda9de5d9e09613e93c">&#9670;&#160;</a></span>getHitOffset()</h2>
 
@@ -392,6 +419,23 @@ Friends</h2></td></tr>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const -&gt; DeltaTime</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4f6e068aa987542cfa2c9e8eed6560e8" name="a4f6e068aa987542cfa2c9e8eed6560e8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4f6e068aa987542cfa2c9e8eed6560e8">&#9670;&#160;</a></span>getJudgement()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::HitEvent::getJudgement </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; int</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -746,6 +790,30 @@ Friends</h2></td></tr>
 
 </div>
 </div>
+<a id="a4c991457d1dafec88338b9d6bfbe3995" name="a4c991457d1dafec88338b9d6bfbe3995"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4c991457d1dafec88338b9d6bfbe3995">&#9670;&#160;</a></span>deviation</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">DeltaTime gameplay_logic::HitEvent::deviation</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Signed timing deviation in nanoseconds, or 0 when unavailable. </p>
+
+</div>
+</div>
 <a id="ad31e1e7d8f121d4c5290e4766341e086" name="ad31e1e7d8f121d4c5290e4766341e086"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad31e1e7d8f121d4c5290e4766341e086">&#9670;&#160;</a></span>hitOffset</h2>
 
@@ -768,6 +836,30 @@ Friends</h2></td></tr>
 
 <p>The offset from the note's perfect hit time when this event happened. </p>
 <p>Will be 0 for hits that hit nothing. </p><dl class="section note"><dt>Note</dt><dd>This simply forwards the value from <a class="el" href="classgameplay__logic_1_1BmsPoints.html#af065d142171b6f10f27afc50b33177a8">BmsPoints::deviation</a>. </dd></dl>
+
+</div>
+</div>
+<a id="afb5ec9b5b29004d7c02c3ae9e43a2369" name="afb5ec9b5b29004d7c02c3ae9e43a2369"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afb5ec9b5b29004d7c02c3ae9e43a2369">&#9670;&#160;</a></span>judgement</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gameplay_logic::HitEvent::judgement</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Judgement awarded for this event, or -1 when none was awarded. </p>
 
 </div>
 </div>

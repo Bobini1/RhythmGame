@@ -8,7 +8,7 @@ var searchData=
   ['dependencymask_5',['dependencyMask',['../classLr2SkinElementNumberState.html#ab56aa32ccf2490e7faed065f6acf6704',1,'Lr2SkinElementNumberState']]],
   ['descriptorrevision_6',['descriptorRevision',['../classLr2SkinRuntime.html#ae7246d27b0e2eccc5d523bccc7af856d',1,'Lr2SkinRuntime']]],
   ['devcolor_7',['devColor',['../structgameplay__logic_1_1lr2__skin_1_1Lr2SrcTimingChart.html#a3f211ca2e45043464f4717bc713c48f9',1,'gameplay_logic::lr2_skin::Lr2SrcTimingChart']]],
-  ['deviation_8',['deviation',['../classgameplay__logic_1_1BmsPoints.html#af065d142171b6f10f27afc50b33177a8',1,'gameplay_logic::BmsPoints']]],
+  ['deviation_8',['deviation',['../classgameplay__logic_1_1BmsPoints.html#af065d142171b6f10f27afc50b33177a8',1,'gameplay_logic::BmsPoints::deviation'],['../classgameplay__logic_1_1HitEvent.html#a4c991457d1dafec88338b9d6bfbe3995',1,'gameplay_logic::HitEvent::deviation']]],
   ['device_9',['device',['../classinput_1_1Key.html#a1ddf7a5c8ea1860aa44588c9adc7c1d5',1,'input::Key::device'],['../classsounds_1_1AudioEngine.html#a013e4c84be49003ce1aaf77a055316bc',1,'sounds::AudioEngine::device']]],
   ['devicenames_10',['deviceNames',['../classsounds_1_1AudioEngine.html#a0cfb686165007295c58eeef242dc0f63',1,'sounds::AudioEngine']]],
   ['difficulty_11',['difficulty',['../classgameplay__logic_1_1ChartData.html#a5ee33547dc94fe2a08c949d25eab7202',1,'gameplay_logic::ChartData::difficulty'],['../classLr2SelectBarCell.html#a4d219727e2edf98ec39e0e367dce38b2',1,'Lr2SelectBarCell::difficulty']]],

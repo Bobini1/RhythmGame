@@ -15,6 +15,7 @@ var searchData=
   ['optionids_12',['optionIds',['../structLr2SelectScoreSummaryData.html#a0776c37ba74e9b8ae094185d86a54e68',1,'Lr2SelectScoreSummaryData']]],
   ['order_13',['order',['../BeatorajaReplayImporter_8cpp.html#ac85d5511fdb8d162a7278bfb440ae420',1,'BeatorajaReplayImporter.cpp']]],
   ['originalurl_14',['originalUrl',['../structresource__managers_1_1Course.html#a0c1aec607f88abace49b94b92ab8473c',1,'resource_managers::Course']]],
-  ['owner_15',['owner',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#a82615b84b75dcbe8496c0623dd05b8f9',1,'gameplay_logic::BmsResult::DTO']]],
-  ['ownermemberid_16',['ownermemberid',['../structarena_1_1RoomSnapshot.html#a870ed03c1cbf6ebe74afd73faffbca81',1,'arena::RoomSnapshot::ownerMemberId'],['../structarena_1_1RoomOwnerChanged.html#a70ff4cc05c5e268a5a6aced49269e499',1,'arena::RoomOwnerChanged::ownerMemberId']]]
+  ['otherendhit_15',['otherEndHit',['../classgameplay__logic_1_1NoteState.html#ac639e1d4822b14ec02d92fb1215b810a',1,'gameplay_logic::NoteState']]],
+  ['owner_16',['owner',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#a82615b84b75dcbe8496c0623dd05b8f9',1,'gameplay_logic::BmsResult::DTO']]],
+  ['ownermemberid_17',['ownermemberid',['../structarena_1_1RoomSnapshot.html#a870ed03c1cbf6ebe74afd73faffbca81',1,'arena::RoomSnapshot::ownerMemberId'],['../structarena_1_1RoomOwnerChanged.html#a70ff4cc05c5e268a5a6aced49269e499',1,'arena::RoomOwnerChanged::ownerMemberId']]]
 ];

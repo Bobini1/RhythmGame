@@ -30,13 +30,14 @@ var searchData=
   ['noteorderalgorithmp2changed_27',['noteOrderAlgorithmP2Changed',['../classresource__managers_1_1GeneralVars.html#af7d545f56ba606487aa4fb908ae20b40',1,'resource_managers::GeneralVars']]],
   ['notescreentimemillischanged_28',['noteScreenTimeMillisChanged',['../classresource__managers_1_1GeneralVars.html#a608661ddc8960280e9abbf3fddb9aee9',1,'resource_managers::GeneralVars']]],
   ['notesources_29',['noteSources',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a15a2efe698e8312676c0ea27854a7ecb',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]],
-  ['notify_30',['notify',['../classinput_1_1CustomNotifyApp.html#aa6279691de622c9d7249080680ae729f',1,'input::CustomNotifyApp']]],
-  ['notifyhit_31',['notifyHit',['../classqml__components_1_1ScoreReplayer.html#a27686dff14dd59c39d455928eb20a370',1,'qml_components::ScoreReplayer']]],
-  ['nowbarfixed_32',['nowBarFixed',['../classLr2SelectNavigationController.html#a9cac5fcfdb56852fc753942c900e425c',1,'Lr2SelectNavigationController']]],
-  ['nowbarfixedchanged_33',['nowBarFixedChanged',['../classLr2SelectNavigationController.html#ae9740abb22632086dbfd587326e0f6c3',1,'Lr2SelectNavigationController']]],
-  ['nowms_34',['nowMs',['../classLr2SkinClock.html#af52f24d3ac7babafa66b853dabbbc9a9',1,'Lr2SkinClock']]],
-  ['nowmschanged_35',['nowMsChanged',['../classLr2SkinClock.html#aaccfac4e4a0b44ab191162a96d6e0c9f',1,'Lr2SkinClock']]],
-  ['numbervalueforvariant_36',['numberValueForVariant',['../classLr2SelectBarCell.html#acdadb11c9119dd9912fb4b0104102d81',1,'Lr2SelectBarCell']]],
-  ['numbervalueorinvisibleforvariant_37',['numberValueOrInvisibleForVariant',['../classLr2SelectBarCell.html#a6970cdc89cef3cc2e5a3cf01564b9b2a',1,'Lr2SelectBarCell']]],
-  ['numbervisible_38',['numberVisible',['../classLr2SelectBarCell.html#a6339d09ab8c37ea9433129305e323086',1,'Lr2SelectBarCell']]]
+  ['notetypeat_30',['noteTypeAt',['../classgameplay__logic_1_1GameplayState.html#a7883ec5c327459664bfe1bd2c0fe1a52',1,'gameplay_logic::GameplayState']]],
+  ['notify_31',['notify',['../classinput_1_1CustomNotifyApp.html#aa6279691de622c9d7249080680ae729f',1,'input::CustomNotifyApp']]],
+  ['notifyhit_32',['notifyHit',['../classqml__components_1_1ScoreReplayer.html#a27686dff14dd59c39d455928eb20a370',1,'qml_components::ScoreReplayer']]],
+  ['nowbarfixed_33',['nowBarFixed',['../classLr2SelectNavigationController.html#a9cac5fcfdb56852fc753942c900e425c',1,'Lr2SelectNavigationController']]],
+  ['nowbarfixedchanged_34',['nowBarFixedChanged',['../classLr2SelectNavigationController.html#ae9740abb22632086dbfd587326e0f6c3',1,'Lr2SelectNavigationController']]],
+  ['nowms_35',['nowMs',['../classLr2SkinClock.html#af52f24d3ac7babafa66b853dabbbc9a9',1,'Lr2SkinClock']]],
+  ['nowmschanged_36',['nowMsChanged',['../classLr2SkinClock.html#aaccfac4e4a0b44ab191162a96d6e0c9f',1,'Lr2SkinClock']]],
+  ['numbervalueforvariant_37',['numberValueForVariant',['../classLr2SelectBarCell.html#acdadb11c9119dd9912fb4b0104102d81',1,'Lr2SelectBarCell']]],
+  ['numbervalueorinvisibleforvariant_38',['numberValueOrInvisibleForVariant',['../classLr2SelectBarCell.html#a6970cdc89cef3cc2e5a3cf01564b9b2a',1,'Lr2SelectBarCell']]],
+  ['numbervisible_39',['numberVisible',['../classLr2SelectBarCell.html#a6339d09ab8c37ea9433129305e323086',1,'Lr2SelectBarCell']]]
 ];

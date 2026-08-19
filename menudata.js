@@ -241,7 +241,8 @@ var menudata={children:[
 {text:"r",url:"functions_eval.html#index_r"},
 {text:"s",url:"functions_eval.html#index_s"},
 {text:"t",url:"functions_eval.html#index_t"},
-{text:"u",url:"functions_eval.html#index_u"}]},
+{text:"u",url:"functions_eval.html#index_u"},
+{text:"v",url:"functions_eval.html#index_v"}]},
 {text:"Properties",url:"functions_prop.html",children:[
 {text:"a",url:"functions_prop.html#index_a"},
 {text:"b",url:"functions_prop_b.html#index_b"},

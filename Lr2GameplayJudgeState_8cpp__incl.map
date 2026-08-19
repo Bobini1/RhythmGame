@@ -1,0 +1,20 @@
+<map id="RhythmGameQml/Lr2/Lr2GameplayJudgeState.cpp" name="RhythmGameQml/Lr2/Lr2GameplayJudgeState.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="290,5,545,45"/>
+<area shape="rect" id="Node000002" href="$Lr2GameplayJudgeState_8h.html" title=" " alt="" coords="241,93,431,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="399,47,360,85,356,82,396,44"/>
+<area shape="rect" id="Node000007" href="$Judgement_8h.html" title=" " alt="" coords="5,93,216,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="345,48,170,92,168,87,343,43"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="456,93,541,119"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="439,44,478,82,475,85,435,47"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="566,93,629,119"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="462,43,559,85,557,90,459,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="73,167,148,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="301,121,161,165,159,160,299,116"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="173,167,361,192"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="326,121,289,159,285,155,323,117"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="385,167,441,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="350,117,392,155,389,159,347,121"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="466,167,537,192"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="364,116,463,159,461,164,362,121"/>
+<area shape="poly" id="edge7_Node000007_Node000003" title=" " alt="" coords="113,119,113,153,108,153,108,119"/>
+</map>

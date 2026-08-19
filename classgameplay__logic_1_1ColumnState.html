@@ -74,6 +74,7 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#signals">Signals</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#properties">Properties</a> &#124;
@@ -107,6 +108,24 @@ Collaboration diagram for gameplay_logic::ColumnState:</div>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a3412f4a915ceff6aa5db4d864c4b0f4a" id="r_a3412f4a915ceff6aa5db4d864c4b0f4a"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#a3412f4a915ceff6aa5db4d864c4b0f4a">Role</a> { <br />
+&#160;&#160;<a class="el" href="classgameplay__logic_1_1ColumnState.html#a3412f4a915ceff6aa5db4d864c4b0f4aa0f96b560a7eed51161335a0540d3bde1">NoteTypeRole</a> = Qt::UserRole + 1
+, <a class="el" href="classgameplay__logic_1_1ColumnState.html#a3412f4a915ceff6aa5db4d864c4b0f4aabe071662a418c44b25a709edb29d9a02">NotePositionRole</a>
+, <a class="el" href="classgameplay__logic_1_1ColumnState.html#a3412f4a915ceff6aa5db4d864c4b0f4aaaecfe1da8d4895e736801b8651892f2e">NoteHitRole</a>
+, <a class="el" href="classgameplay__logic_1_1ColumnState.html#a3412f4a915ceff6aa5db4d864c4b0f4aa63f929e6232114c857162102726828ed">NoteOtherEndHitRole</a>
+, <br />
+&#160;&#160;<a class="el" href="classgameplay__logic_1_1ColumnState.html#a3412f4a915ceff6aa5db4d864c4b0f4aa5f594db511a524b9fbe77444c4e712df">BelowBottomRole</a>
+, <a class="el" href="classgameplay__logic_1_1ColumnState.html#a3412f4a915ceff6aa5db4d864c4b0f4aac3361e2316719cbe8bebe44bf9f554d9">LongNoteEndPositionRole</a>
+, <a class="el" href="classgameplay__logic_1_1ColumnState.html#a3412f4a915ceff6aa5db4d864c4b0f4aaf4648e745ce127977e620c3adf3a0a3e">VisibleNoteRole</a>
+, <a class="el" href="classgameplay__logic_1_1ColumnState.html#a3412f4a915ceff6aa5db4d864c4b0f4aa69aae820ab9bfc8c3f3b6d196a25e4d7">HeldLongNoteRole</a>
+, <br />
+&#160;&#160;<a class="el" href="classgameplay__logic_1_1ColumnState.html#a3412f4a915ceff6aa5db4d864c4b0f4aac7dcd260bceb977b2f65cfd8009abac2">StaticLongNoteCandidateRole</a>
+<br />
+ }</td></tr>
+<tr class="separator:a3412f4a915ceff6aa5db4d864c4b0f4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:aeb29d502b8e70cadb3db7199daf3f11a" id="r_aeb29d502b8e70cadb3db7199daf3f11a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#aeb29d502b8e70cadb3db7199daf3f11a">pressedChanged</a> ()</td></tr>
@@ -122,6 +141,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a3dea84f17f304a915995dcd24a69fe4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16d70183851fb1f254424f1aea026035" id="r_a16d70183851fb1f254424f1aea026035"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#a16d70183851fb1f254424f1aea026035">data</a> (const QModelIndex &amp;<a class="el" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>, int role) const -&gt; QVariant override</td></tr>
 <tr class="separator:a16d70183851fb1f254424f1aea026035"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a197c39b890630fcede4dea4cfa0ee059" id="r_a197c39b890630fcede4dea4cfa0ee059"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#a197c39b890630fcede4dea4cfa0ee059">roleNames</a> () const -&gt; QHash&lt; int, QByteArray &gt; override</td></tr>
+<tr class="separator:a197c39b890630fcede4dea4cfa0ee059"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a821ee584defa860a0381343b37af9e6b" id="r_a821ee584defa860a0381343b37af9e6b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#a821ee584defa860a0381343b37af9e6b">onHitEvent</a> (<a class="el" href="classgameplay__logic_1_1HitEvent.html">HitEvent</a> hit)</td></tr>
 <tr class="separator:a821ee584defa860a0381343b37af9e6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a10c2c1d1aff36a0037c7583a8cc64a0a" id="r_a10c2c1d1aff36a0037c7583a8cc64a0a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#a10c2c1d1aff36a0037c7583a8cc64a0a">isPressed</a> () const -&gt; bool</td></tr>
@@ -148,7 +169,33 @@ Properties</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The state of a single column, including its notes and whether it is currently pressed. </p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="classgameplay__logic_1_1NoteState.html">NoteState</a> </dd></dl>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+</div><h2 class="groupheader">Member Enumeration Documentation</h2>
+<a id="a3412f4a915ceff6aa5db4d864c4b0f4a" name="a3412f4a915ceff6aa5db4d864c4b0f4a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3412f4a915ceff6aa5db4d864c4b0f4a">&#9670;&#160;</a></span>Role</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="classgameplay__logic_1_1ColumnState.html#a3412f4a915ceff6aa5db4d864c4b0f4a">gameplay_logic::ColumnState::Role</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a3412f4a915ceff6aa5db4d864c4b0f4aa0f96b560a7eed51161335a0540d3bde1" name="a3412f4a915ceff6aa5db4d864c4b0f4aa0f96b560a7eed51161335a0540d3bde1"></a>NoteTypeRole&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3412f4a915ceff6aa5db4d864c4b0f4aabe071662a418c44b25a709edb29d9a02" name="a3412f4a915ceff6aa5db4d864c4b0f4aabe071662a418c44b25a709edb29d9a02"></a>NotePositionRole&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3412f4a915ceff6aa5db4d864c4b0f4aaaecfe1da8d4895e736801b8651892f2e" name="a3412f4a915ceff6aa5db4d864c4b0f4aaaecfe1da8d4895e736801b8651892f2e"></a>NoteHitRole&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3412f4a915ceff6aa5db4d864c4b0f4aa63f929e6232114c857162102726828ed" name="a3412f4a915ceff6aa5db4d864c4b0f4aa63f929e6232114c857162102726828ed"></a>NoteOtherEndHitRole&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3412f4a915ceff6aa5db4d864c4b0f4aa5f594db511a524b9fbe77444c4e712df" name="a3412f4a915ceff6aa5db4d864c4b0f4aa5f594db511a524b9fbe77444c4e712df"></a>BelowBottomRole&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3412f4a915ceff6aa5db4d864c4b0f4aac3361e2316719cbe8bebe44bf9f554d9" name="a3412f4a915ceff6aa5db4d864c4b0f4aac3361e2316719cbe8bebe44bf9f554d9"></a>LongNoteEndPositionRole&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3412f4a915ceff6aa5db4d864c4b0f4aaf4648e745ce127977e620c3adf3a0a3e" name="a3412f4a915ceff6aa5db4d864c4b0f4aaf4648e745ce127977e620c3adf3a0a3e"></a>VisibleNoteRole&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3412f4a915ceff6aa5db4d864c4b0f4aa69aae820ab9bfc8c3f3b6d196a25e4d7" name="a3412f4a915ceff6aa5db4d864c4b0f4aa69aae820ab9bfc8c3f3b6d196a25e4d7"></a>HeldLongNoteRole&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3412f4a915ceff6aa5db4d864c4b0f4aac7dcd260bceb977b2f65cfd8009abac2" name="a3412f4a915ceff6aa5db4d864c4b0f4aac7dcd260bceb977b2f65cfd8009abac2"></a>StaticLongNoteCandidateRole&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a241ba1720fdd980b6a11233fe84041bf" name="a241ba1720fdd980b6a11233fe84041bf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a241ba1720fdd980b6a11233fe84041bf">&#9670;&#160;</a></span>ColumnState()</h2>
 
@@ -406,6 +453,31 @@ Properties</h2></td></tr>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a197c39b890630fcede4dea4cfa0ee059" name="a197c39b890630fcede4dea4cfa0ee059"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a197c39b890630fcede4dea4cfa0ee059">&#9670;&#160;</a></span>roleNames()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::ColumnState::roleNames </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; QHash&lt;int, QByteArray&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
