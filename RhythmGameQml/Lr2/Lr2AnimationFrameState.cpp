@@ -168,6 +168,8 @@ void Lr2AnimationFrameState::setTextureWidth(int textureWidth) {
 
     m_textureWidth = textureWidth;
     emit textureWidthChanged();
+    emit textureSizeChanged();
+    updateSourceRegionExceedsTextureBounds();
     updateFrameIndex();
 }
 
@@ -183,7 +185,28 @@ void Lr2AnimationFrameState::setTextureHeight(int textureHeight) {
 
     m_textureHeight = textureHeight;
     emit textureHeightChanged();
+    emit textureSizeChanged();
+    updateSourceRegionExceedsTextureBounds();
     updateFrameIndex();
+}
+
+QVector2D Lr2AnimationFrameState::textureSize() const {
+    return QVector2D(static_cast<float>(std::max(1, m_textureWidth)),
+                     static_cast<float>(std::max(1, m_textureHeight)));
+}
+
+qreal Lr2AnimationFrameState::sourceHeightRatio() const {
+    return m_sourceHeightRatio;
+}
+
+void Lr2AnimationFrameState::setSourceHeightRatio(qreal ratio) {
+    ratio = std::clamp(ratio, 0.0, 1.0);
+    if (qFuzzyCompare(m_sourceHeightRatio, ratio)) {
+        return;
+    }
+    m_sourceHeightRatio = ratio;
+    emit sourceHeightRatioChanged();
+    updateEffectiveSourceRects();
 }
 
 int Lr2AnimationFrameState::frameIndex() const {
@@ -198,10 +221,56 @@ QRectF Lr2AnimationFrameState::sourceClipRect() const {
     return m_sourceClipRect;
 }
 
+QVector4D Lr2AnimationFrameState::effectiveSourceRect() const {
+    return m_effectiveSourceRect;
+}
+
+QRectF Lr2AnimationFrameState::effectiveSourceClipRect() const {
+    return m_effectiveSourceClipRect;
+}
+
+bool Lr2AnimationFrameState::sourceRegionExceedsTextureBounds() const {
+    return m_sourceRegionExceedsTextureBounds;
+}
+
 void Lr2AnimationFrameState::rebuildSource() {
     Source next;
     rt::readSource(m_sourceData, next);
     m_source = next;
+    updateSourceRegionExceedsTextureBounds();
+}
+
+void Lr2AnimationFrameState::updateSourceRegionExceedsTextureBounds() {
+    const bool next = m_source.valid
+        && m_source.w > 0
+        && m_source.h > 0
+        && m_textureWidth > 0
+        && m_textureHeight > 0
+        && (m_source.x < 0
+            || m_source.y < 0
+            || static_cast<qint64>(m_source.x) + m_source.w > m_textureWidth
+            || static_cast<qint64>(m_source.y) + m_source.h > m_textureHeight);
+    if (m_sourceRegionExceedsTextureBounds == next) {
+        return;
+    }
+    m_sourceRegionExceedsTextureBounds = next;
+    emit sourceRegionExceedsTextureBoundsChanged();
+}
+
+void Lr2AnimationFrameState::updateEffectiveSourceRects() {
+    QVector4D nextRect = m_sourceRect;
+    nextRect.setW(nextRect.w() * static_cast<float>(m_sourceHeightRatio));
+    if (m_effectiveSourceRect != nextRect) {
+        m_effectiveSourceRect = nextRect;
+        emit effectiveSourceRectChanged();
+    }
+
+    QRectF nextClipRect = m_sourceClipRect;
+    nextClipRect.setHeight(nextClipRect.height() * m_sourceHeightRatio);
+    if (m_effectiveSourceClipRect != nextClipRect) {
+        m_effectiveSourceClipRect = nextClipRect;
+        emit effectiveSourceClipRectChanged();
+    }
 }
 
 void Lr2AnimationFrameState::reconnectClock() {
@@ -308,6 +377,9 @@ void Lr2AnimationFrameState::updateFrameIndex() {
     if (clipRectChanged) {
         m_sourceClipRect = nextClipRect;
         emit sourceClipRectChanged();
+    }
+    if (rectChanged || clipRectChanged) {
+        updateEffectiveSourceRects();
     }
 }
 

@@ -326,9 +326,19 @@ Loader {
                 ? Math.abs(nowJudgeDst.h)
                 : (nowJudgeSource ? nowJudgeSource.h || 30 : 30)
             readonly property int nowJudgeComboDigitWidth: Math.max(1, Math.round(nowJudgeBaseHeight * 22 / 30))
+            readonly property int nowJudgeComboDigits: nowJudgeCombo >= 1000000000 ? 10
+                : nowJudgeCombo >= 100000000 ? 9
+                : nowJudgeCombo >= 10000000 ? 8
+                : nowJudgeCombo >= 1000000 ? 7
+                : nowJudgeCombo >= 100000 ? 6
+                : nowJudgeCombo >= 10000 ? 5
+                : nowJudgeCombo >= 1000 ? 4
+                : nowJudgeCombo >= 100 ? 3
+                : nowJudgeCombo >= 10 ? 2
+                : 1
             readonly property real nowJudgeOffsetX: nowJudgeCombo > 0
                 && (nowJudgeSource.op1 || 0) !== 1
-                ? -Math.abs(Math.round(nowJudgeCombo)).toString().length * nowJudgeComboDigitWidth * 0.5
+                ? -nowJudgeComboDigits * nowJudgeComboDigitWidth * 0.5
                 : 0
             readonly property int scratchRotationSide: elementState.scratchRotationSide
             readonly property bool useDirectSkinClock: elementState.spriteUsesDirectSkinClock
@@ -630,7 +640,7 @@ Loader {
                     }
                     return;
                 }
-                const nextValue = elemLoader.resolvedNumberValue(numberSrc);
+                const nextValue = elemLoader.screenRoot.resolveGameplayNumberValue(numberSrc);
                 if (gameplayValueResolverNumber !== nextValue) {
                     gameplayValueResolverNumber = nextValue;
                 }

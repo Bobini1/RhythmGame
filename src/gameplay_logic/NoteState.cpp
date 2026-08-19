@@ -38,12 +38,14 @@ ColumnState::ColumnState(QList<NoteState> notes, QObject* parent)
         timeToPositionIndexMapping[this->notes[i].index] = i;
     }
     for (int i = 0; i < this->notes.size(); ++i) {
-        const auto& noteState = this->notes[i];
+        auto& noteState = this->notes[i];
         if (noteState.note.type != Note::Type::LongNoteBegin) {
             continue;
         }
-        auto otherEnd =
-          this->notes[mapTimeIndexToPositionIndex(noteState.index + 1)];
+        const auto otherEndIndex =
+          mapTimeIndexToPositionIndex(noteState.index + 1);
+        const auto& otherEnd = this->notes[otherEndIndex];
+        noteState.longNoteEndPosition = otherEnd.note.time.position;
         auto lo =
           std::min(noteState.note.time.position, otherEnd.note.time.position);
         auto hi =
@@ -72,10 +74,51 @@ ColumnState::data(const QModelIndex& index, int role) const -> QVariant
     if (!index.isValid()) {
         return {};
     }
-    if (role == Qt::DisplayRole) {
-        return QVariant::fromValue(notes.at(index.row()));
+    const auto& note = notes.at(index.row());
+    switch (role) {
+        case Qt::DisplayRole:
+            return QVariant::fromValue(note);
+        case NoteTypeRole:
+            return QVariant::fromValue(note.note.type);
+        case NotePositionRole:
+            return note.note.time.position;
+        case NoteHitRole:
+            return note.hit;
+        case NoteOtherEndHitRole:
+            return note.otherEndHit;
+        case BelowBottomRole:
+            return note.belowBottom;
+        case LongNoteEndPositionRole:
+            return note.longNoteEndPosition;
+        case VisibleNoteRole:
+            return note.note.type == Note::Type::LongNoteBegin
+              || note.note.type == Note::Type::LongNoteEnd || !note.hit;
+        case HeldLongNoteRole:
+            return note.note.type == Note::Type::LongNoteBegin && note.hit
+              && !note.otherEndHit;
+        case StaticLongNoteCandidateRole:
+            return note.note.type == Note::Type::LongNoteBegin
+              && ((note.hit && !note.otherEndHit) || note.belowBottom);
+        default:
+            return {};
     }
-    return {};
+}
+
+auto
+ColumnState::roleNames() const -> QHash<int, QByteArray>
+{
+    return {
+        { Qt::DisplayRole, "display" },
+        { NoteTypeRole, "noteType" },
+        { NotePositionRole, "notePosition" },
+        { NoteHitRole, "noteHit" },
+        { NoteOtherEndHitRole, "noteOtherEndHit" },
+        { BelowBottomRole, "belowBottom" },
+        { LongNoteEndPositionRole, "longNoteEndPosition" },
+        { VisibleNoteRole, "visibleNote" },
+        { HeldLongNoteRole, "heldLongNote" },
+        { StaticLongNoteCandidateRole, "staticLongNoteCandidate" },
+    };
 }
 void
 ColumnState::onHitEvent(HitEvent hit)
@@ -92,8 +135,14 @@ ColumnState::onHitEvent(HitEvent hit)
     }
     auto& note = notes[mapTimeIndexToPositionIndex(hit.getNoteIndex())];
     note.hitData = QVariant::fromValue(hit);
+    note.hit = true;
     const auto changedIndex = mapTimeIndexToPositionIndex(hit.getNoteIndex());
-    emit dataChanged(index(changedIndex), index(changedIndex));
+    emit dataChanged(index(changedIndex),
+                     index(changedIndex),
+                     { NoteHitRole,
+                       VisibleNoteRole,
+                       HeldLongNoteRole,
+                       StaticLongNoteCandidateRole });
     if (note.note.type == Note::Type::LongNoteBegin) {
         if (hit.getAction() == HitEvent::Action::Press &&
             hit.getNoteRemoved()) {
@@ -102,13 +151,23 @@ ColumnState::onHitEvent(HitEvent hit)
         auto changedIndex = mapTimeIndexToPositionIndex(hit.getNoteIndex() + 1);
         auto& nextNote = notes[changedIndex];
         nextNote.otherEndHitData = note.hitData;
-        emit dataChanged(index(changedIndex), index(changedIndex));
+        nextNote.otherEndHit = true;
+        emit dataChanged(index(changedIndex),
+                         index(changedIndex),
+                         { NoteOtherEndHitRole,
+                           HeldLongNoteRole,
+                           StaticLongNoteCandidateRole });
     } else if (note.note.type == Note::Type::LongNoteEnd) {
         setHoldingLongNote(false);
         auto changedIndex = mapTimeIndexToPositionIndex(hit.getNoteIndex() - 1);
         auto& prevNote = notes[changedIndex];
         prevNote.otherEndHitData = note.hitData;
-        emit dataChanged(index(changedIndex), index(changedIndex));
+        prevNote.otherEndHit = true;
+        emit dataChanged(index(changedIndex),
+                         index(changedIndex),
+                         { NoteOtherEndHitRole,
+                           HeldLongNoteRole,
+                           StaticLongNoteCandidateRole });
     }
 }
 auto
@@ -450,7 +509,9 @@ Filter::setBottomPosition(double value)
         }
         emit columnState->dataChanged(
           columnState->index(oldBottomRow, 0, QModelIndex()),
-          columnState->index(newBottomRow - 1, 0, QModelIndex()));
+          columnState->index(newBottomRow - 1, 0, QModelIndex()),
+          { ColumnState::BelowBottomRole,
+            ColumnState::StaticLongNoteCandidateRole });
     } else if (newBottomRow < bottomRow) {
         for (int i = newBottomRow; i < oldBottomRow; ++i) {
             auto& note = columnState->getNotes()[i];
@@ -458,7 +519,9 @@ Filter::setBottomPosition(double value)
         }
         emit columnState->dataChanged(
           columnState->index(newBottomRow, 0, QModelIndex()),
-          columnState->index(oldBottomRow - 1, 0, QModelIndex()));
+          columnState->index(oldBottomRow - 1, 0, QModelIndex()),
+          { ColumnState::BelowBottomRole,
+            ColumnState::StaticLongNoteCandidateRole });
     }
     if (oldBottomRow != newBottomRow) {
         bottomRow = newBottomRow;
@@ -544,6 +607,22 @@ auto
 GameplayState::getColumnFilters() -> QList<Filter*>
 {
     return columnFilters;
+}
+int
+GameplayState::noteTypeAt(int column, int noteIndex) const
+{
+    if (column < 0 || column >= columnStates.size() || noteIndex < 0) {
+        return -1;
+    }
+    const auto* columnState = columnStates.at(column);
+    const auto& notes = columnState->getNotes();
+    if (noteIndex >= notes.size()) {
+        return -1;
+    }
+    const auto mappedIndex = columnState->mapTimeIndexToPositionIndex(noteIndex);
+    return mappedIndex >= 0 && mappedIndex < notes.size()
+             ? static_cast<int>(notes.at(mappedIndex).note.type)
+             : -1;
 }
 auto
 GameplayState::getBarLinesState() const -> BarLinesState*

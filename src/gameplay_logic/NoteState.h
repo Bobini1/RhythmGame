@@ -11,6 +11,7 @@
 #include <QAbstractProxyModel>
 #include <boost/icl/interval_map.hpp>
 
+#include <limits>
 #include <optional>
 
 namespace gameplay_logic {
@@ -37,7 +38,10 @@ class NoteState
     qint64 index;
     QVariant hitData = QVariant::fromValue(nullptr);
     QVariant otherEndHitData = QVariant::fromValue(nullptr);
-    bool belowBottom;
+    bool hit = false;
+    bool otherEndHit = false;
+    bool belowBottom = false;
+    double longNoteEndPosition = std::numeric_limits<double>::infinity();
 };
 
 /**
@@ -62,9 +66,23 @@ class ColumnState final : public QAbstractListModel
     void setHoldingLongNote(bool holdingLongNote);
 
   public:
+    enum Role
+    {
+        NoteTypeRole = Qt::UserRole + 1,
+        NotePositionRole,
+        NoteHitRole,
+        NoteOtherEndHitRole,
+        BelowBottomRole,
+        LongNoteEndPositionRole,
+        VisibleNoteRole,
+        HeldLongNoteRole,
+        StaticLongNoteCandidateRole,
+    };
+
     explicit ColumnState(QList<NoteState> notes, QObject* parent = nullptr);
     auto rowCount(const QModelIndex& parent) const -> int override;
     auto data(const QModelIndex& index, int role) const -> QVariant override;
+    auto roleNames() const -> QHash<int, QByteArray> override;
     void onHitEvent(HitEvent hit);
     auto isPressed() const -> bool;
     auto isHoldingLongNote() const -> bool;
@@ -253,6 +271,7 @@ class GameplayState final : public QObject
     auto getColumnFilters() -> QList<Filter*>;
     auto getBarLinesState() const -> BarLinesState*;
     auto getBarLineFilter() const -> BarlineFilter*;
+    Q_INVOKABLE int noteTypeAt(int column, int noteIndex) const;
     void setPosition(double value);
     Q_INVOKABLE void setVisiblePositionSpans(double noteSpan,
                                              double barLineSpan);

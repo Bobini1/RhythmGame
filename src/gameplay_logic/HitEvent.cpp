@@ -10,6 +10,16 @@ HitEvent::getOffsetFromStart() const -> DeltaTime
     return offsetFromStart;
 }
 auto
+HitEvent::getJudgement() const -> int
+{
+    return points.has_value() ? static_cast<int>(points->getJudgement()) : -1;
+}
+auto
+HitEvent::getDeviation() const -> DeltaTime
+{
+    return points.has_value() ? points->getDeviation() : 0;
+}
+auto
 HitEvent::getPoints() const -> QVariant
 {
     return points.has_value() ? QVariant::fromValue(points.value())

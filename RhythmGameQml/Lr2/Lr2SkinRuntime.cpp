@@ -375,6 +375,8 @@ void Lr2SkinRuntime::refreshGameplayNumbers(int dirtyMask) {
         }
         for (int index : m_numberDescriptorIndexesByDependency[bit]) {
             if (index < 0 || index >= m_elementNumberStates.size()
+                || index >= m_descriptors.size()
+                || !m_descriptors[index].elementActive
                 || m_numberRefreshIndexMarks[index] == m_numberRefreshMark) {
                 continue;
             }
@@ -1084,6 +1086,7 @@ void Lr2SkinRuntime::refreshActiveOptions(const QVector<int>& changedOptionIds) 
         if (!changedOptionIds.isEmpty() && descriptor.elementActive == nextElementActive) {
             continue;
         }
+        const bool becameActive = !descriptor.elementActive && nextElementActive;
         descriptor.elementActive = nextElementActive;
         descriptor.elementActiveOptions = usesElementActiveOptions && descriptor.elementActive
             ? activeOptionsForMatchedDst(descriptor.dsts.front())
@@ -1092,6 +1095,11 @@ void Lr2SkinRuntime::refreshActiveOptions(const QVector<int>& changedOptionIds) 
                                                     descriptor.elementActiveOptions,
                                                     descriptor.elementActive)
             || anyChanged;
+        if (becameActive && descriptor.index >= 0
+            && descriptor.index < m_elementNumberStates.size()
+            && m_elementNumberStates[descriptor.index]->dependencyMask() != 0) {
+            m_elementNumberStates[descriptor.index]->refresh();
+        }
     }
     if (!anyChanged) {
         return;

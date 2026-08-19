@@ -17,6 +17,10 @@ Image {
     property int frameOverride: -1
     property bool preloadTexture: false
     property bool useAtlasShader: false
+    property real stateXOverride: NaN
+    property real stateYOverride: NaN
+    property real stateWidthOverride: NaN
+    property real stateHeightOverride: NaN
 
     readonly property bool hasTextureSource: !!srcData
         && !!srcData.source
@@ -30,6 +34,7 @@ Image {
         ? Lr2SkinUtils.fileUrlForPath(srcData.source)
         : ""
     property Lr2AnimationFrameState animationFrameState: Lr2AnimationFrameState {
+        id: animationFrameStateObject
         enabled: !!root.srcData || root.frameOverride >= 0
         sourceData: root.srcData
         skinTime: root.skinTime
@@ -40,10 +45,18 @@ Image {
         textureHeight: root.useAtlasShader ? Math.max(0, atlasImage.implicitHeight) : 0
     }
     readonly property int frameIndex: animationFrameState.frameIndex
-    readonly property real stateX: stateData ? stateData.x || 0 : 0
-    readonly property real stateY: stateData ? stateData.y || 0 : 0
-    readonly property real stateW: stateData ? stateData.w || 0 : 0
-    readonly property real stateH: stateData ? stateData.h || 0 : 0
+    readonly property real stateX: isNaN(stateXOverride)
+        ? (stateData ? stateData.x || 0 : 0)
+        : stateXOverride
+    readonly property real stateY: isNaN(stateYOverride)
+        ? (stateData ? stateData.y || 0 : 0)
+        : stateYOverride
+    readonly property real stateW: isNaN(stateWidthOverride)
+        ? (stateData ? stateData.w || 0 : 0)
+        : stateWidthOverride
+    readonly property real stateH: isNaN(stateHeightOverride)
+        ? (stateData ? stateData.h || 0 : 0)
+        : stateHeightOverride
     readonly property int stateFilter: stateData ? stateData.filter || 0 : 0
     readonly property real drawX: stateX + (stateW < 0 ? stateW : 0)
     readonly property real drawY: stateY + (stateH < 0 ? stateH : 0)
@@ -91,10 +104,8 @@ Image {
         property real colorKeyEnabled: 0
         property real tolerance: 0.001
         property real nearestMode: root.stateFilter === 0 ? 1 : 0
-        property vector2d sourceSize: Qt.vector2d(
-            Math.max(1, atlasImage.implicitWidth),
-            Math.max(1, atlasImage.implicitHeight))
-        property vector4d sourceRect: root.animationFrameState.sourceRect
+        property alias sourceSize: animationFrameStateObject.textureSize
+        property alias sourceRect: animationFrameStateObject.sourceRect
         fragmentShader: "qrc:/Lr2/Lr2SpriteAtlas.frag.qsb"
     }
 }

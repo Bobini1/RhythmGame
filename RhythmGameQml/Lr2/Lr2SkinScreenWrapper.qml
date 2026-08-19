@@ -123,6 +123,9 @@ Item {
     readonly property int gameplayNumberScoresDependency: 64
     readonly property int gameplayNumberClockDependency: 128
     property int gameplayNumberDirtyMaskPending: 0
+    property int gameplayNumberValueCacheRevision: 1
+    property var gameplayNumberValueCache: []
+    property var gameplayNumberValueCacheRevisions: []
     property bool gameplayTimerRevisionPending: false
     property bool gameplayNumberRevisionFlushPending: false
     property bool gameplayTimerRevisionFlushPending: false
@@ -142,10 +145,6 @@ Item {
     property int gameplayLastJudgement2: -1
     property int gameplayJudgeCombo1: 0
     property int gameplayJudgeCombo2: 0
-    property var gameplayJudgeTimingCounts1: ({ early: [0, 0, 0, 0, 0, 0], late: [0, 0, 0, 0, 0, 0] })
-    property var gameplayJudgeTimingCounts2: ({ early: [0, 0, 0, 0, 0, 0], late: [0, 0, 0, 0, 0, 0] })
-    property var gameplayJudgeTimingStats1: ({ count: 0, sum: 0, sumSq: 0 })
-    property var gameplayJudgeTimingStats2: ({ count: 0, sum: 0, sumSq: 0 })
     property var gameplayHitEvents1: []
     property var gameplayHitEvents2: []
     property int gameplayHitEventsRevision1: 0
@@ -175,12 +174,8 @@ Item {
         property var replayData: gameplayGraphReplayData2
     }
 
-    property int gameplayLastJudgeTiming1: 0
-    property int gameplayLastJudgeTiming2: 0
-    property var gameplayJudgeLaneValues1: []
-    property var gameplayJudgeLaneValues2: []
-    property int gameplayJudgeNowValue1: 0
-    property int gameplayJudgeNowValue2: 0
+    readonly property alias gameplayLastJudgeTiming1: gameplayJudgeState.lastJudgeTiming1
+    readonly property alias gameplayLastJudgeTiming2: gameplayJudgeState.lastJudgeTiming2
     property int gameplayLastMissSkinTime1: -1
     property int gameplayLastMissSkinTime2: -1
     readonly property bool gameplayPoorBgaVisible1: root.gameplayLastMissSkinTime1 >= 0
@@ -206,6 +201,8 @@ Item {
     property int gameplayScorePrintEndSkinTime1: 0
     property int gameplayScorePrintEndSkinTime2: 0
     property var gameplayScores1: []
+    property var gameplayBestSavedScoreCache: null
+    property var gameplayLastSavedScoreCache: null
     property int gameplayScoresRevision: 0
     property int gameplayScoreRequest: 0
     property var pendingGameplayScoreDbReply: null
@@ -235,7 +232,7 @@ Item {
     readonly property int lr2CurrentFps: Rg.programSettings.presentationFps
     onLr2CurrentFpsChanged: {
         if (root.gameplayScreenActive) {
-            skinRuntime.refreshGameplayNumbers(root.gameplayNumberClockDependency);
+            root.refreshGameplayNumbers(root.gameplayNumberClockDependency);
         }
     }
     readonly property var lr2InitialClockNow: wallClockState.initialNow
@@ -2349,7 +2346,7 @@ Item {
     function updateLr2DateTimeNumbers() : void {
         wallClockState.update();
         if (root.gameplayScreenActive) {
-            skinRuntime.refreshGameplayNumbers(root.gameplayNumberClockDependency);
+            root.refreshGameplayNumbers(root.gameplayNumberClockDependency);
         }
     }
 
@@ -2628,11 +2625,10 @@ Item {
         }
     }
 
-    function gameplayHitCountsAsPlayed(hit: var) : var {
-        if (!hit || !hit.points) {
+    function gameplayHitCountsAsPlayed(judgement: var) : var {
+        if (judgement < 0) {
             return false;
         }
-        let judgement = hit.points.judgement;
         return judgement !== Judgement.Poor
             && judgement !== Judgement.EmptyPoor
             && judgement !== Judgement.MineHit
@@ -2740,18 +2736,12 @@ Item {
     function judgementTimingBucket(judgement: var) : var { return resultState.judgementTimingBucket(judgement); }
     function hitDeviationNanos(hit: var) : var { return resultState.hitDeviationNanos(hit); }
     function hitDeviationMillis(hit: var) : var { return resultState.hitDeviationMillis(hit); }
-    function judgementUpdatesJudgeTimingValue(judgement: var) : var { return resultState.judgementUpdatesJudgeTimingValue(judgement); }
     function cloneJudgeTimingCounts(counts: var) : var { return resultState.cloneJudgeTimingCounts(counts); }
-    function emptyJudgeLaneValues() : var { return resultState.emptyJudgeLaneValues(); }
-    function nowJudgeValue(judgement: var) : var { return resultState.nowJudgeValue(judgement); }
-    function laneJudgeValue(judgement: var, timing: var) : var { return resultState.laneJudgeValue(judgement, timing); }
-    function setGameplayJudgeLaneValue(scoreSide: var, hit: var, value: var) : void { resultState.setGameplayJudgeLaneValue(scoreSide, hit, value); }
-    function gameplayJudgeValueForId(num: var) : var { return resultState.gameplayJudgeValueForId(num); }
-    function recordGameplayJudgeTiming(scoreSide: var, hit: var) : void { resultState.recordGameplayJudgeTiming(scoreSide, hit); }
-    function gameplayJudgeTimingNumber(num: var, side: var) : var { return resultState.gameplayJudgeTimingNumber(num, side); }
-    function gameplayJudgeTimingStats(side: var) : var { return resultState.gameplayJudgeTimingStats(side); }
-    function timingStatsMean(stats: var) : var { return resultState.timingStatsMean(stats); }
-    function timingStatsStdDev(stats: var) : var { return resultState.timingStatsStdDev(stats); }
+    function gameplayJudgeValueForId(num: var) : var { return gameplayJudgeState.judgeValueForId(num); }
+    function recordGameplayJudgeTiming(scoreSide: var, judgement: var, deviationNanos: var, lane: var) : void { gameplayJudgeState.record(scoreSide, judgement, deviationNanos, lane); }
+    function gameplayJudgeTimingNumber(num: var, side: var) : var { return gameplayJudgeState.timingNumber(num, side); }
+    function gameplayJudgeTimingMean(side: var) : real { return gameplayJudgeState.timingMean(side); }
+    function gameplayJudgeTimingStdDev(side: var) : real { return gameplayJudgeState.timingStdDev(side); }
     function resultJudgeTimingNumber(num: var, side: var) : var { return resultState.resultJudgeTimingNumber(num, side); }
     function judgeTimingCount(counts: var, bucket: var, early: var) : var { return resultState.judgeTimingCount(counts, bucket, early); }
     function judgeTimingNumberFromCounts(num: var, counts: var) : var { return resultState.judgeTimingNumberFromCounts(num, counts); }
@@ -3105,7 +3095,7 @@ Item {
             return;
         }
         root.gameplayHitEventsPublishPending = true;
-        Qt.callLater(() => root.publishGameplayHitEvents());
+        Qt.callLater(root.publishGameplayHitEvents);
     }
 
     function publishGameplayHitEvents() : void {
@@ -3198,8 +3188,11 @@ Item {
     }
 
     function gameplayBestSavedScore() : var {
-        root.gameplayScoresRevision;
-        let scores = root.gameplayScores1 || [];
+        return root.gameplayBestSavedScoreCache;
+    }
+
+    function updateGameplaySavedScoreCaches(scores: var) : void {
+        scores = scores || [];
         let best = null;
         let bestPoints = -1;
         for (let score of scores) {
@@ -3209,13 +3202,12 @@ Item {
                 bestPoints = points;
             }
         }
-        return best;
+        root.gameplayBestSavedScoreCache = best;
+        root.gameplayLastSavedScoreCache = scores.length > 0 ? scores[0] : null;
     }
 
     function gameplayLastSavedScore() : var {
-        root.gameplayScoresRevision;
-        let scores = root.gameplayScores1 || [];
-        return scores.length > 0 ? scores[0] : null;
+        return root.gameplayLastSavedScoreCache;
     }
 
     function nextRankTargetPoints(savedPoints: var, maxPoints: var) : var {
@@ -3406,8 +3398,9 @@ Item {
         root.gameplayScoreRequest += 1;
         let request = root.gameplayScoreRequest;
         root.gameplayScores1 = [];
+        root.updateGameplaySavedScoreCaches(root.gameplayScores1);
         root.gameplayScoresRevision += 1;
-        skinRuntime.refreshGameplayNumbers(root.gameplayNumberScoresDependency);
+        root.refreshGameplayNumbers(root.gameplayNumberScoresDependency);
         root.resetGameplayScoreReplayers();
 
         if (!root.gameplayScreenActive) {
@@ -3430,8 +3423,9 @@ Item {
                 ? (result.scores[md5] || result.scores[md5.toLowerCase()] || [])
                 : [];
             root.gameplayScores1 = scores;
+            root.updateGameplaySavedScoreCaches(scores);
             root.gameplayScoresRevision += 1;
-            skinRuntime.refreshGameplayNumbers(root.gameplayNumberScoresDependency);
+            root.refreshGameplayNumbers(root.gameplayNumberScoresDependency);
             root.resetGameplayScoreReplayers();
         });
     }
@@ -3797,8 +3791,48 @@ Item {
         root.queueResolvedTextRefresh();
     }
 
+    function advanceGameplayNumberValueCacheRevision() : void {
+        if (root.gameplayNumberValueCacheRevision >= 1000000000) {
+            root.gameplayNumberValueCache = [];
+            root.gameplayNumberValueCacheRevisions = [];
+            root.gameplayNumberValueCacheRevision = 1;
+            return;
+        }
+        root.gameplayNumberValueCacheRevision++;
+    }
+
+    function resolveGameplayNumberValue(src: var) : int {
+        if (!src) {
+            return 0;
+        }
+        let key;
+        if (src.nowCombo) {
+            const side = (src.side || (src.timer === 47 ? 2 : 1)) === 2 ? 2 : 1;
+            key = 4096 + side;
+        } else {
+            const numberId = Math.floor(src.num || 0);
+            if (numberId < 0 || numberId >= 4096) {
+                return valueResolver.numberValue(src);
+            }
+            key = numberId;
+        }
+        if (root.gameplayNumberValueCacheRevisions[key]
+                === root.gameplayNumberValueCacheRevision) {
+            return root.gameplayNumberValueCache[key];
+        }
+        const value = valueResolver.numberValue(src);
+        root.gameplayNumberValueCache[key] = value;
+        root.gameplayNumberValueCacheRevisions[key] = root.gameplayNumberValueCacheRevision;
+        return value;
+    }
+
+    function refreshGameplayNumbers(dependencyMask: int) : void {
+        root.advanceGameplayNumberValueCacheRevision();
+        skinRuntime.refreshGameplayNumbers(dependencyMask);
+    }
+
     function refreshGameplayNumbersForSide(side: var) : void {
-        skinRuntime.refreshGameplayNumbers(root.gameplayNumberSideMask(side));
+        root.refreshGameplayNumbers(root.gameplayNumberSideMask(side));
     }
 
     function gameplayNumberSideMask(side: var) : int {
@@ -3828,7 +3862,7 @@ Item {
             return;
         }
         root.gameplayNumberRevisionFlushPending = true;
-        Qt.callLater(() => root.flushGameplayNumberRefresh());
+        Qt.callLater(root.flushGameplayNumberRefresh);
     }
 
     function requestGameplayRevisionRefresh(side: var) : var {
@@ -3839,7 +3873,7 @@ Item {
         root.markGameplayNumberRefresh(side);
         if (!root.gameplayNumberRevisionFlushPending) {
             root.gameplayNumberRevisionFlushPending = true;
-            Qt.callLater(() => root.flushGameplayNumberRefresh());
+            Qt.callLater(root.flushGameplayNumberRefresh);
         }
         root.requestGameplayRuntimeRefresh();
     }
@@ -3858,7 +3892,7 @@ Item {
         root.gameplayNumberRevisionFlushPending = false;
         root.gameplayNumberDirtyMaskPending = 0;
         if (dependencyMask !== 0) {
-            skinRuntime.refreshGameplayNumbers(dependencyMask);
+            root.refreshGameplayNumbers(dependencyMask);
         }
     }
 
@@ -3872,7 +3906,7 @@ Item {
             return;
         }
         root.gameplayTimerRevisionFlushPending = true;
-        Qt.callLater(() => root.flushGameplayTimerRevision());
+        Qt.callLater(root.flushGameplayTimerRevision);
     }
 
     function flushGameplayTimerRevision() : void {
@@ -3894,7 +3928,7 @@ Item {
             return;
         }
         root.gameplayRuntimeRefreshPending = true;
-        Qt.callLater(() => root.flushGameplayRuntimeRefresh());
+        Qt.callLater(root.flushGameplayRuntimeRefresh);
     }
 
     function flushGameplayRuntimeRefresh() : var {
@@ -3913,7 +3947,7 @@ Item {
     }
 
     function refreshGameplayStaticNumbers() : void {
-        skinRuntime.refreshGameplayNumbers(root.gameplayNumberStaticDependency);
+        root.refreshGameplayNumbers(root.gameplayNumberStaticDependency);
         root.queueResolvedTextRefresh();
     }
 
@@ -3986,19 +4020,10 @@ Item {
         root.gameplayJudgeCombo1 = 0;
         root.gameplayJudgeCombo2 = 0;
         root.gameplayNumberDirtyMaskPending = 0;
-        skinRuntime.refreshGameplayNumbers(
+        root.refreshGameplayNumbers(
             root.gameplayNumberJudge1Dependency | root.gameplayNumberJudge2Dependency);
-        root.gameplayJudgeTimingCounts1 = root.emptyJudgeTimingCounts();
-        root.gameplayJudgeTimingCounts2 = root.emptyJudgeTimingCounts();
-        root.gameplayJudgeTimingStats1 = root.emptyJudgeTimingStats();
-        root.gameplayJudgeTimingStats2 = root.emptyJudgeTimingStats();
         root.resetGameplayGraphHits();
-        root.gameplayLastJudgeTiming1 = 0;
-        root.gameplayLastJudgeTiming2 = 0;
-        root.gameplayJudgeLaneValues1 = root.emptyJudgeLaneValues();
-        root.gameplayJudgeLaneValues2 = root.emptyJudgeLaneValues();
-        root.gameplayJudgeNowValue1 = 0;
-        root.gameplayJudgeNowValue2 = 0;
+        gameplayJudgeState.reset();
         root.gameplayLastMissSkinTime1 = -1;
         root.gameplayLastMissSkinTime2 = -1;
         root.gameplayFullComboSkinTime1 = -1;
@@ -4047,11 +4072,10 @@ Item {
         }
     }
 
-    function gameplayLr2LaneForHit(side: var, hit: var) : var {
-        if (!hit || hit.column === undefined) {
+    function gameplayLr2LaneForColumn(side: var, column: var) : var {
+        if (column < 0) {
             return -1;
         }
-        let column = hit.column;
         let laneStart = side === 2 ? 10 : 0;
         let laneEnd = side === 2 ? 17 : 7;
         for (let lane = laneStart; lane <= laneEnd; ++lane) {
@@ -4063,49 +4087,51 @@ Item {
         return -1;
     }
 
-    function gameplayHitDisplaySide(scoreSide: var, hit: var) : var {
+    function gameplayLr2LaneForHit(side: var, hit: var) : var {
+        return hit && hit.column !== undefined
+            ? root.gameplayLr2LaneForColumn(side, hit.column)
+            : -1;
+    }
+
+    function gameplayHitDisplaySide(scoreSide: var, column: var) : var {
         if (scoreSide === 2) {
             return 2;
         }
-        if (hit && hit.column !== undefined && hit.column >= 8) {
+        if (column >= 8) {
             return 2;
         }
-        return root.gameplayLr2LaneForHit(scoreSide, hit) >= 10 ? 2 : 1;
+        return root.gameplayLr2LaneForColumn(scoreSide, column) >= 10 ? 2 : 1;
     }
 
-    function gameplayNoteForHit(side: var, hit: var) : var {
-        if (!hit || hit.noteIndex === undefined || hit.noteIndex < 0) {
-            return null;
+    function gameplayNoteTypeForHit(side: var, column: var, noteIndex: var) : int {
+        if (noteIndex < 0) {
+            return -1;
         }
         let player = root.gameplayLanePlayer(side === 2 ? 2 : 1);
-        let notes = player && player.notes && player.notes.notes
-            && hit.column >= 0 && hit.column < player.notes.notes.length
-                ? player.notes.notes[hit.column]
-                : null;
-        return notes && hit.noteIndex < notes.length ? notes[hit.noteIndex] : null;
+        return player && player.state && player.state.noteTypeAt
+            ? player.state.noteTypeAt(column, noteIndex)
+            : -1;
     }
 
-    function updateGameplayHitEffectTimers(side: var, hit: var) : var {
-        if (!hit) {
-            return;
-        }
-        let hitNote = root.gameplayNoteForHit(side, hit);
-        let judgement = root.gameplayJudgementFromHit(hit);
-        let startsLongNote = hit.action === hitEvent.Press
-            && hitNote
-            && hitNote.type === note.Type.LongNoteBegin;
-        let endsLongNote = hit.action === hitEvent.Release
-            && hitNote
-            && hitNote.type === note.Type.LongNoteEnd;
-        let judgedTap = hit.action === hitEvent.Press
-            && !!hitNote
-            && hit.noteRemoved
+    function updateGameplayHitEffectTimers(
+        action: var,
+        noteRemoved: var,
+        noteType: var,
+        judgement: var,
+        lane: var
+    ) : var {
+        let startsLongNote = action === hitEvent.Press
+            && noteType === note.Type.LongNoteBegin;
+        let endsLongNote = action === hitEvent.Release
+            && noteType === note.Type.LongNoteEnd;
+        let judgedTap = action === hitEvent.Press
+            && noteType >= 0
+            && noteRemoved
             && judgement >= Judgement.Bad
             && judgement <= Judgement.Perfect;
         if (!startsLongNote && !endsLongNote && !judgedTap) {
             return;
         }
-        let lane = root.gameplayLr2LaneForHit(side, hit);
         if (lane < 0) {
             return;
         }
@@ -4113,15 +4139,15 @@ Item {
         let hitTimer = 50 + lane;
         let longNoteTimer = 70 + lane;
 
-        if (hit.action === hitEvent.Press) {
-            if (hitNote && hitNote.type === note.Type.LongNoteBegin) {
+        if (action === hitEvent.Press) {
+            if (noteType === note.Type.LongNoteBegin) {
                 root.gameplayLongNoteTimerStarts[longNoteTimer] = root.renderSkinTime;
                 root.setGameplayTimerValue(longNoteTimer, root.renderSkinTime);
             } else {
                 root.gameplayHitTimerStarts[hitTimer] = root.renderSkinTime;
                 root.setGameplayTimerValue(hitTimer, root.renderSkinTime);
             }
-        } else if (hitNote && hitNote.type === note.Type.LongNoteEnd) {
+        } else if (noteType === note.Type.LongNoteEnd) {
             delete root.gameplayLongNoteTimerStarts[longNoteTimer];
             root.clearGameplayTimerValue(longNoteTimer);
             root.gameplayHitTimerStarts[hitTimer] = root.renderSkinTime;
@@ -4130,8 +4156,8 @@ Item {
     }
 
     function gameplayJudgementFromHit(hit: var) : var {
-        return hit && hit.points && hit.points.judgement !== undefined
-            ? hit.points.judgement
+        return hit && hit.judgement !== undefined
+            ? hit.judgement
             : -1;
     }
 
@@ -4164,20 +4190,19 @@ Item {
             || (side === 1 && root.skinUsesRuntimeOption(1240));
     }
 
-    function gameplayPreviousGaugeProperty(scoreSide: var) : var {
-        return scoreSide === 2 ? "gameplayPreviousGauge2" : "gameplayPreviousGauge1";
-    }
-
-    function gameplayPreviousGaugeNameProperty(scoreSide: var) : var {
-        return scoreSide === 2 ? "gameplayPreviousGaugeName2" : "gameplayPreviousGaugeName1";
-    }
-
     function resetGameplayGaugeTimerBaseline(scoreSide: var) : void {
         let score = root.gameplayScore(scoreSide);
         let currentGauge = root.lr2TimerGaugeValue(root.gameplayGaugeValue(score));
-        let currentGaugeName = root.gameplayActiveGaugeName(score);
-        root[root.gameplayPreviousGaugeProperty(scoreSide)] = currentGauge;
-        root[root.gameplayPreviousGaugeNameProperty(scoreSide)] = currentGaugeName;
+        let currentGaugeName = scoreSide === 2
+            ? root.activeGaugeName2
+            : root.activeGaugeName1;
+        if (scoreSide === 2) {
+            root.gameplayPreviousGauge2 = currentGauge;
+            root.gameplayPreviousGaugeName2 = currentGaugeName;
+        } else {
+            root.gameplayPreviousGauge1 = currentGauge;
+            root.gameplayPreviousGaugeName1 = currentGaugeName;
+        }
         root.clearGameplayGaugeUpTimer(scoreSide);
         if (currentGauge === 100 && root.gaugeNameIsSurvival(currentGaugeName)) {
             root.setGameplayGaugeMaxTimer(scoreSide);
@@ -4226,22 +4251,42 @@ Item {
         }
     }
 
-    function updateGameplayHitTimers(displaySide: var, hit: var, scoreSide: var) : var {
+    function updateGameplayHitTimers(
+        displaySide: var,
+        scoreSide: var,
+        column: var,
+        noteIndex: var,
+        action: var,
+        noteRemoved: var,
+        judgement: var,
+        deviationNanos: var
+    ) : var {
         scoreSide = scoreSide || displaySide;
+        const scoreSide2 = scoreSide === 2;
         let score = root.gameplayScore(scoreSide);
         if (!score) {
             return false;
         }
-        root.updateGameplayHitEffectTimers(displaySide, hit);
-        let judgement = root.gameplayJudgementFromHit(hit);
-        root.recordGameplayJudgeTiming(scoreSide, hit);
+        let lane = root.gameplayLr2LaneForColumn(displaySide, column);
+        let noteType = root.gameplayNoteTypeForHit(displaySide, column, noteIndex);
+        root.updateGameplayHitEffectTimers(
+            action,
+            noteRemoved,
+            noteType,
+            judgement,
+            lane);
+        root.recordGameplayJudgeTiming(scoreSide, judgement, deviationNanos, lane);
 
         let currentGauge = root.lr2TimerGaugeValue(root.gameplayGaugeValue(score));
-        let currentGaugeName = root.gameplayActiveGaugeName(score);
-        let previousGaugeProperty = root.gameplayPreviousGaugeProperty(scoreSide);
-        let previousGaugeNameProperty = root.gameplayPreviousGaugeNameProperty(scoreSide);
-        let previousGauge = root[previousGaugeProperty];
-        let previousGaugeName = root[previousGaugeNameProperty];
+        let currentGaugeName = scoreSide2
+            ? root.activeGaugeName2
+            : root.activeGaugeName1;
+        let previousGauge = scoreSide2
+            ? root.gameplayPreviousGauge2
+            : root.gameplayPreviousGauge1;
+        let previousGaugeName = scoreSide2
+            ? root.gameplayPreviousGaugeName2
+            : root.gameplayPreviousGaugeName1;
         let runtimeOptionsChanged = previousGaugeName !== currentGaugeName
             && root.gameplayGaugeRuntimeOptionsUsed(scoreSide);
         if (!runtimeOptionsChanged
@@ -4253,8 +4298,13 @@ Item {
         if (previousGaugeName !== currentGaugeName) {
             root.clearGameplayGaugeUpTimer(scoreSide);
             root.clearGameplayGaugeMaxTimer(scoreSide);
-            root[previousGaugeProperty] = currentGauge;
-            root[previousGaugeNameProperty] = currentGaugeName;
+            if (scoreSide2) {
+                root.gameplayPreviousGauge2 = currentGauge;
+                root.gameplayPreviousGaugeName2 = currentGaugeName;
+            } else {
+                root.gameplayPreviousGauge1 = currentGauge;
+                root.gameplayPreviousGaugeName1 = currentGaugeName;
+            }
             if (currentGauge === 100 && root.gaugeNameIsSurvival(currentGaugeName)) {
                 root.setGameplayGaugeMaxTimer(scoreSide);
             }
@@ -4271,8 +4321,13 @@ Item {
                 }
             }
         }
-        root[previousGaugeProperty] = currentGauge;
-        root[previousGaugeNameProperty] = currentGaugeName;
+        if (scoreSide2) {
+            root.gameplayPreviousGauge2 = currentGauge;
+            root.gameplayPreviousGaugeName2 = currentGaugeName;
+        } else {
+            root.gameplayPreviousGauge1 = currentGauge;
+            root.gameplayPreviousGaugeName1 = currentGaugeName;
+        }
 
         if (judgement >= 0 && judgement <= Judgement.Perfect) {
             let displayCombo = root.gameplayJudgeComboForHit(scoreSide, judgement);
@@ -4310,9 +4365,10 @@ Item {
 
         let totalNotes = root.gameplayTotalNotes(score);
         let currentChartCombo = score ? (score.combo || 0) : 0;
-        let previousComboName = scoreSide === 2 ? "gameplayPreviousCombo2" : "gameplayPreviousCombo1";
-        let previousChartCombo = root[previousComboName] || 0;
-        if (hit && hit.noteRemoved
+        let previousChartCombo = scoreSide2
+            ? root.gameplayPreviousCombo2
+            : root.gameplayPreviousCombo1;
+        if (noteRemoved
                 && totalNotes > 0
                 && currentChartCombo >= totalNotes
                 && previousChartCombo < totalNotes) {
@@ -4324,7 +4380,11 @@ Item {
                 root.setGameplayTimerValue(48, root.gameplayFullComboSkinTime1);
             }
         }
-        root[previousComboName] = currentChartCombo;
+        if (scoreSide2) {
+            root.gameplayPreviousCombo2 = currentChartCombo;
+        } else {
+            root.gameplayPreviousCombo1 = currentChartCombo;
+        }
         return runtimeOptionsChanged;
     }
 
@@ -5389,15 +5449,24 @@ Item {
         ignoreUnknownSignals: true
         function onHit(hit: var) : void {
             root.notifyGameplayReplayHit(1, hit);
-            if (root.gameplayHitCountsAsPlayed(hit)) {
+            let judgement = root.gameplayJudgementFromHit(hit);
+            if (root.gameplayHitCountsAsPlayed(judgement)) {
                 root.gameplayNothingWasHit = false;
             }
-            let runtimeOptionsChanged = root.updateGameplayHitTimers(root.gameplayHitDisplaySide(1, hit), hit, 1);
+            let column = hit ? hit.column : -1;
+            let runtimeOptionsChanged = root.updateGameplayHitTimers(
+                root.gameplayHitDisplaySide(1, column),
+                1,
+                column,
+                hit ? hit.noteIndex : -1,
+                hit ? hit.action : hitEvent.None,
+                hit ? hit.noteRemoved : false,
+                judgement,
+                hit ? hit.deviation : 0);
             if (runtimeOptionsChanged) {
                 root.refreshGameplayRuntimeActiveOptions();
             }
             root.requestGameplayNumberRefresh(1);
-            root.flushGameplayNumberRefresh();
         }
         function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(1);
@@ -5419,15 +5488,24 @@ Item {
         ignoreUnknownSignals: true
         function onHit(hit: var) : void {
             root.notifyGameplayReplayHit(2, hit);
-            if (root.gameplayHitCountsAsPlayed(hit)) {
+            let judgement = root.gameplayJudgementFromHit(hit);
+            if (root.gameplayHitCountsAsPlayed(judgement)) {
                 root.gameplayNothingWasHit = false;
             }
-            let runtimeOptionsChanged = root.updateGameplayHitTimers(root.gameplayHitDisplaySide(2, hit), hit, 2);
+            let column = hit ? hit.column : -1;
+            let runtimeOptionsChanged = root.updateGameplayHitTimers(
+                root.gameplayHitDisplaySide(2, column),
+                2,
+                column,
+                hit ? hit.noteIndex : -1,
+                hit ? hit.action : hitEvent.None,
+                hit ? hit.noteRemoved : false,
+                judgement,
+                hit ? hit.deviation : 0);
             if (runtimeOptionsChanged) {
                 root.refreshGameplayRuntimeActiveOptions();
             }
             root.requestGameplayNumberRefresh(2);
-            root.flushGameplayNumberRefresh();
         }
         function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(2);
@@ -5607,11 +5685,15 @@ Item {
         chart: root.chart || null
     }
 
+    Lr2GameplayJudgeState {
+        id: gameplayJudgeState
+    }
+
     Connections {
         target: root.gameplayScreenActive ? root.gameplayPlayer1 : null
 
         function onBpmChanged() {
-            skinRuntime.refreshGameplayNumbers(root.gameplayNumberClockDependency);
+            root.refreshGameplayNumbers(root.gameplayNumberClockDependency);
         }
     }
 

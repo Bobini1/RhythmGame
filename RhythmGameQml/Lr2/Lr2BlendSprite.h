@@ -6,6 +6,9 @@
 #include <QRectF>
 #include <QtQml/qqmlregistration.h>
 
+class Lr2AnimationFrameState;
+class Lr2TimelineFrameState;
+
 class Lr2BlendSprite : public QQuickItem
 {
     Q_OBJECT
@@ -24,6 +27,10 @@ class Lr2BlendSprite : public QQuickItem
       int blendMode READ blendMode WRITE setBlendMode NOTIFY blendModeChanged)
     Q_PROPERTY(
       bool supportedBlendMode READ supportedBlendMode NOTIFY blendModeChanged)
+    Q_PROPERTY(QObject* animationFrameState READ animationFrameState WRITE
+                 setAnimationFrameState NOTIFY animationFrameStateChanged)
+    Q_PROPERTY(QObject* timelineFrameState READ timelineFrameState WRITE
+                 setTimelineFrameState NOTIFY timelineFrameStateChanged)
 
   public:
     explicit Lr2BlendSprite(QQuickItem* parent = nullptr);
@@ -52,6 +59,12 @@ class Lr2BlendSprite : public QQuickItem
     [[nodiscard]] bool supportedBlendMode() const;
     [[nodiscard]] static bool supportsBlendMode(int blendMode);
 
+    [[nodiscard]] QObject* animationFrameState() const;
+    void setAnimationFrameState(QObject* state);
+
+    [[nodiscard]] QObject* timelineFrameState() const;
+    void setTimelineFrameState(QObject* state);
+
   signals:
     void sourceChanged();
     void sourceRectChanged();
@@ -60,12 +73,21 @@ class Lr2BlendSprite : public QQuickItem
     void colorKeyEnabledChanged();
     void smoothChanged();
     void blendModeChanged();
+    void animationFrameStateChanged();
+    void timelineFrameStateChanged();
 
   protected:
     QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*) override;
 
   private:
+    void updateSourceRectFromAnimationState();
+    void updateTintFromTimelineState();
+
     QPointer<QQuickItem> m_source;
+    QPointer<Lr2AnimationFrameState> m_animationFrameState;
+    QPointer<Lr2TimelineFrameState> m_timelineFrameState;
+    QMetaObject::Connection m_animationFrameConnection;
+    QMetaObject::Connection m_timelineFrameConnection;
     QRectF m_sourceRect;
     QColor m_tint = Qt::white;
     QColor m_transColor = Qt::black;

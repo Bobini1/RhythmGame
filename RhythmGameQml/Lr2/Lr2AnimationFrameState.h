@@ -7,6 +7,7 @@
 #include <QPointer>
 #include <QRectF>
 #include <QVariant>
+#include <QVector2D>
 #include <QVector4D>
 #include <QtQml/qqmlregistration.h>
 
@@ -27,9 +28,19 @@ class Lr2AnimationFrameState : public QObject {
     Q_PROPERTY(int frameGroupSize READ frameGroupSize WRITE setFrameGroupSize NOTIFY frameGroupSizeChanged)
     Q_PROPERTY(int textureWidth READ textureWidth WRITE setTextureWidth NOTIFY textureWidthChanged)
     Q_PROPERTY(int textureHeight READ textureHeight WRITE setTextureHeight NOTIFY textureHeightChanged)
+    Q_PROPERTY(QVector2D textureSize READ textureSize NOTIFY textureSizeChanged)
+    Q_PROPERTY(qreal sourceHeightRatio READ sourceHeightRatio WRITE
+                 setSourceHeightRatio NOTIFY sourceHeightRatioChanged)
     Q_PROPERTY(int frameIndex READ frameIndex NOTIFY frameIndexChanged)
     Q_PROPERTY(QVector4D sourceRect READ sourceRect NOTIFY sourceRectChanged)
     Q_PROPERTY(QRectF sourceClipRect READ sourceClipRect NOTIFY sourceClipRectChanged)
+    Q_PROPERTY(QVector4D effectiveSourceRect READ effectiveSourceRect NOTIFY
+                 effectiveSourceRectChanged)
+    Q_PROPERTY(QRectF effectiveSourceClipRect READ effectiveSourceClipRect NOTIFY
+                 effectiveSourceClipRectChanged)
+    Q_PROPERTY(bool sourceRegionExceedsTextureBounds READ
+                 sourceRegionExceedsTextureBounds NOTIFY
+                   sourceRegionExceedsTextureBoundsChanged)
 
 public:
     enum ClockMode {
@@ -80,10 +91,17 @@ public:
 
     int textureHeight() const;
     void setTextureHeight(int textureHeight);
+    QVector2D textureSize() const;
+
+    qreal sourceHeightRatio() const;
+    void setSourceHeightRatio(qreal ratio);
 
     int frameIndex() const;
     QVector4D sourceRect() const;
     QRectF sourceClipRect() const;
+    QVector4D effectiveSourceRect() const;
+    QRectF effectiveSourceClipRect() const;
+    bool sourceRegionExceedsTextureBounds() const;
 
 signals:
     void skinClockChanged();
@@ -98,14 +116,21 @@ signals:
     void frameGroupSizeChanged();
     void textureWidthChanged();
     void textureHeightChanged();
+    void textureSizeChanged();
+    void sourceHeightRatioChanged();
     void frameIndexChanged();
     void sourceRectChanged();
     void sourceClipRectChanged();
+    void effectiveSourceRectChanged();
+    void effectiveSourceClipRectChanged();
+    void sourceRegionExceedsTextureBoundsChanged();
 
 private:
     using Source = lr2skin::runtime::Source;
 
     void rebuildSource();
+    void updateSourceRegionExceedsTextureBounds();
+    void updateEffectiveSourceRects();
     void reconnectClock();
     void updateSkinTimeFromClock();
     void updateFrameIndex();
@@ -129,7 +154,11 @@ private:
     int m_frameGroupSize = 1;
     int m_textureWidth = 0;
     int m_textureHeight = 0;
+    qreal m_sourceHeightRatio = 1.0;
     int m_frameIndex = 0;
     QVector4D m_sourceRect = QVector4D(0.0f, 0.0f, 1.0f, 1.0f);
     QRectF m_sourceClipRect = QRectF(0.0, 0.0, 0.0, 0.0);
+    QVector4D m_effectiveSourceRect = QVector4D(0.0f, 0.0f, 1.0f, 1.0f);
+    QRectF m_effectiveSourceClipRect = QRectF(0.0, 0.0, 0.0, 0.0);
+    bool m_sourceRegionExceedsTextureBounds = false;
 };

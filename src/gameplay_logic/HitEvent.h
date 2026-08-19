@@ -40,6 +40,10 @@ class HitEvent
      * @note This simply forwards the value from BmsPoints::deviation.
      */
     Q_PROPERTY(DeltaTime hitOffset READ getHitOffset CONSTANT)
+    /** @brief Judgement awarded for this event, or -1 when none was awarded. */
+    Q_PROPERTY(int judgement READ getJudgement CONSTANT)
+    /** @brief Signed timing deviation in nanoseconds, or 0 when unavailable. */
+    Q_PROPERTY(DeltaTime deviation READ getDeviation CONSTANT)
     /**
      * @brief The points awarded for this hit.
      * @details Will be null for hits that hit nothing.
@@ -108,6 +112,8 @@ class HitEvent
     auto getOffsetFromStart() const -> DeltaTime;
     // if the tap did not hit a note, this returns null
     auto getHitOffset() const -> DeltaTime;
+    auto getJudgement() const -> int;
+    auto getDeviation() const -> DeltaTime;
     auto getPoints() const -> QVariant;
     auto getPointsOptional() const -> std::optional<BmsPoints>;
     auto getColumn() const -> int;

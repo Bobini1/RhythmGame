@@ -1,6 +1,8 @@
 #include "Lr2SkinRuntimeTypes.h"
+#include "Lr2AnimationFrameState.h"
 #include "Lr2BarPositionedItem.h"
 #include "Lr2BlendSprite.h"
+#include "Lr2GameplayJudgeState.h"
 #include "Lr2SkinElementActiveOptionsState.h"
 #include "Lr2SkinElementNumberState.h"
 #include "Lr2SkinTimerState.h"
@@ -14,6 +16,71 @@
 
 using namespace lr2skin::runtime;
 using Catch::Matchers::WithinAbs;
+
+TEST_CASE("LR2 animation frame state validates the complete source region",
+          "[lr2][animation]")
+{
+    Lr2AnimationFrameState state;
+    state.setTextureWidth(100);
+    state.setTextureHeight(80);
+    CHECK_THAT(state.textureSize().x(), WithinAbs(100.0, 0.0001));
+    CHECK_THAT(state.textureSize().y(), WithinAbs(80.0, 0.0001));
+
+    QVariantMap source{
+        { QStringLiteral("x"), 10 },
+        { QStringLiteral("y"), 20 },
+        { QStringLiteral("w"), 80 },
+        { QStringLiteral("h"), 60 },
+        { QStringLiteral("div_x"), 4 },
+        { QStringLiteral("div_y"), 3 },
+    };
+    state.setSourceData(source);
+    CHECK_FALSE(state.sourceRegionExceedsTextureBounds());
+    CHECK_THAT(state.effectiveSourceClipRect().height(), WithinAbs(20.0, 0.0001));
+
+    state.setSourceHeightRatio(0.25);
+    CHECK_THAT(state.effectiveSourceClipRect().height(), WithinAbs(5.0, 0.0001));
+    CHECK_THAT(state.effectiveSourceRect().w(), WithinAbs(0.0625, 0.0001));
+
+    source.insert(QStringLiteral("w"), 91);
+    state.setSourceData(source);
+    CHECK(state.sourceRegionExceedsTextureBounds());
+
+    state.setTextureWidth(101);
+    CHECK_FALSE(state.sourceRegionExceedsTextureBounds());
+}
+
+TEST_CASE("LR2 gameplay judge state records primitive hit data",
+          "[lr2][gameplay]")
+{
+    Lr2GameplayJudgeState state;
+
+    state.record(1, 5, -1'400'000, 0);
+    state.record(1, 4, 2'600'000, 10);
+    state.record(2, 3, -3'600'000, 11);
+
+    CHECK(state.timingNumber(410, 1) == 1);
+    CHECK(state.timingNumber(413, 1) == 1);
+    CHECK(state.timingNumber(414, 2) == 1);
+    CHECK(state.timingNumber(423, 1) == 1);
+    CHECK(state.timingNumber(424, 1) == 1);
+    CHECK(state.lastJudgeTiming1() == -3);
+    CHECK(state.lastJudgeTiming2() == 4);
+    CHECK(state.judgeNowValue1() == 2);
+    CHECK(state.judgeNowValue2() == 3);
+    CHECK(state.judgeValueForId(500) == 1);
+    CHECK(state.judgeValueForId(1510) == 3);
+    CHECK(state.judgeValueForId(1611) == 4);
+    CHECK_THAT(state.timingMean(1), WithinAbs(-1.0, 0.0001));
+    CHECK_THAT(state.timingStdDev(1), WithinAbs(2.0, 0.0001));
+
+    state.reset();
+
+    CHECK(state.timingNumber(410, 1) == 0);
+    CHECK(state.lastJudgeTiming1() == 0);
+    CHECK(state.judgeNowValue2() == 0);
+    CHECK(state.judgeValueForId(1611) == 0);
+}
 
 TEST_CASE("LR2 custom scene-graph blending covers destination-dependent modes",
           "[lr2][skin][blend]")

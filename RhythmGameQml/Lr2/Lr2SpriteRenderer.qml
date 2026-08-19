@@ -55,9 +55,9 @@ Item {
     property bool preferAtlasImagePath: false
     property bool asynchronousLoading: false
     property bool sourceHasFrameAnimation: Lr2SkinUtils.sourceCyclesContinuously(srcData)
-    property real loadedTextureWidth: 0
-    property real loadedTextureHeight: 0
-    property bool sourceClipExceedsLoadedTexture: false
+    readonly property bool sourceClipExceedsLoadedTexture:
+        root.hasCroppedTextureSource
+        && root.animationFrameState.sourceRegionExceedsTextureBounds
     property bool shouldSampleInAtlasShader: false
     property bool useFastImagePath: false
 
@@ -112,27 +112,6 @@ Item {
     }
     readonly property int blendMode: drawState.blendMode
     readonly property bool hasColorTint: drawState.hasColorTint
-    readonly property bool hasLoadedTextureBounds: root.loadedTextureWidth > 0 && root.loadedTextureHeight > 0
-    function sourceClipCurrentlyExceedsLoadedTexture() : bool {
-        if (!root.hasCroppedTextureSource || !root.hasLoadedTextureBounds) {
-            return false;
-        }
-
-        const rect = root.animationFrameState.sourceClipRect;
-        const epsilon = 0.01;
-        return rect.x < -epsilon
-            || rect.y < -epsilon
-            || rect.x + rect.width > root.loadedTextureWidth + epsilon
-            || rect.y + rect.height > root.loadedTextureHeight + epsilon;
-    }
-
-    function refreshSourceClipExceedsLoadedTexture() : void {
-        const next = sourceClipCurrentlyExceedsLoadedTexture();
-        if (root.sourceClipExceedsLoadedTexture !== next) {
-            root.sourceClipExceedsLoadedTexture = next;
-        }
-    }
-
     function refreshShouldSampleInAtlasShader() : void {
         const next = root.hasFrameAnimation || root.sourceClipExceedsLoadedTexture;
         if (root.shouldSampleInAtlasShader !== next) {
@@ -240,20 +219,6 @@ Item {
     readonly property real hiddenVisibleRatio: root.spriteStateH > 0
         ? Math.max(0, Math.min(1, root.hiddenVisibleStateH / root.spriteStateH))
         : 0
-    readonly property rect effectiveSourceClipRect: {
-        let rect = root.animationFrameState.sourceClipRect;
-        if (!root.isHiddenCover || root.hiddenVisibleRatio >= 0.999999) {
-            return rect;
-        }
-        return Qt.rect(rect.x, rect.y, rect.width, rect.height * root.hiddenVisibleRatio);
-    }
-    readonly property vector4d effectiveSourceRect: {
-        let rect = root.animationFrameState.sourceRect;
-        if (!root.isHiddenCover || root.hiddenVisibleRatio >= 0.999999) {
-            return rect;
-        }
-        return Qt.vector4d(rect.x, rect.y, rect.z, rect.w * root.hiddenVisibleRatio);
-    }
     readonly property bool sourceIsChartAsset: Lr2SkinUtils.isChartAssetSource(root.srcData)
     readonly property bool hasWholeTextureSource: !!root.srcData && !root.isSolidFill
         && (root.srcData.x < 0 || root.srcData.y < 0 || root.srcData.w < 0 || root.srcData.h < 0)
@@ -295,9 +260,6 @@ Item {
     onShouldPlayVideoChanged: syncVideoPlayback()
     onResolvedSourceChanged: {
         videoReloadPending = false;
-        loadedTextureWidth = 0;
-        loadedTextureHeight = 0;
-        sourceClipExceedsLoadedTexture = false;
         refreshShouldSampleInAtlasShader();
         refreshUseFastImagePath();
         syncVideoPlayback();
@@ -309,12 +271,10 @@ Item {
     onSourceClipExceedsLoadedTextureChanged: refreshShouldSampleInAtlasShader()
     onShouldSampleInAtlasShaderChanged: refreshUseFastImagePath()
     onSrcDataChanged: {
-        refreshSourceClipExceedsLoadedTexture();
         refreshShouldSampleInAtlasShader();
         refreshUseFastImagePath();
     }
     onHasCroppedTextureSourceChanged: {
-        refreshSourceClipExceedsLoadedTexture();
         refreshUseFastImagePath();
     }
     onHasDrawableTextureChanged: refreshUseFastImagePath()
@@ -322,17 +282,6 @@ Item {
     onBlendModeChanged: refreshUseFastImagePath()
     onColorKeyEnabledChanged: refreshUseFastImagePath()
     onHasColorTintChanged: refreshUseFastImagePath()
-    function updateLoadedTextureSize(width: real, height: real) : void {
-        if (width <= 0 || height <= 0) {
-            return;
-        }
-        if (loadedTextureWidth === width && loadedTextureHeight === height) {
-            return;
-        }
-        loadedTextureWidth = width;
-        loadedTextureHeight = height;
-        refreshSourceClipExceedsLoadedTexture();
-    }
     Component.onCompleted: {
         refreshShouldSampleInAtlasShader();
         refreshUseFastImagePath();
@@ -350,6 +299,7 @@ Item {
         chartAssetSource)
 
     property Lr2AnimationFrameState animationFrameState: Lr2AnimationFrameState {
+        id: animationFrameStateObject
         enabled: (root.hasFrameAnimation || root.frameOverride >= 0)
             && (root.hasDrawableTexture || root.hasDrawableVideo)
             && root.hasRenderableState
@@ -363,14 +313,7 @@ Item {
         frameOverride: root.frameOverride
         textureWidth: Math.max(0, atlasImage.implicitWidth)
         textureHeight: Math.max(0, atlasImage.implicitHeight)
-    }
-
-    Connections {
-        target: root.animationFrameState
-
-        function onSourceClipRectChanged() : void {
-            root.refreshSourceClipExceedsLoadedTexture();
-        }
+        sourceHeightRatio: root.hiddenVisibleRatio
     }
 
     Item {
@@ -460,7 +403,7 @@ Item {
             anchors.fill: parent
             source: root.hasDrawableTexture && root.useFastImagePath ? root.resolvedSource : ""
             sourceClipRect: root.useFastImagePath
-                ? root.effectiveSourceClipRect
+                ? root.animationFrameState.effectiveSourceClipRect
                 : Qt.rect(0, 0, 0, 0)
             fillMode: Image.Stretch
             cache: true
@@ -480,13 +423,6 @@ Item {
             smooth: drawState.hasState && drawState.filter !== 0
             mipmap: false
             visible: false
-            onStatusChanged: {
-                if (status === Image.Ready) {
-                    // Source bounds must come from this uncropped image. The
-                    // fast path's implicit size is only the decoded clip.
-                    root.updateLoadedTextureSize(implicitWidth, implicitHeight);
-                }
-            }
         }
 
         Image {
@@ -503,12 +439,6 @@ Item {
         readonly property bool effectSourceReady: root.isSolidFill
             ? solidFillImage.status === Image.Ready
             : atlasImage.status === Image.Ready
-        readonly property rect effectSourceClipRect: root.isSolidFill
-            ? Qt.rect(0, 0, 1, 1)
-            : root.effectiveSourceClipRect
-        readonly property vector4d effectSourceRect: root.isSolidFill
-            ? Qt.vector4d(0, 0, 1, 1)
-            : root.effectiveSourceRect
         readonly property vector2d effectSourceSize: root.isSolidFill
             ? Qt.vector2d(1, 1)
             : Qt.vector2d(
@@ -526,14 +456,14 @@ Item {
             blending: true
             supportsAtlasTextures: true
             property var source: sprite.effectSource
-            property color tint: root.tintColor
+            property alias tint: drawState.tintColor
             property color transColor: root.transColor
             property real blendMode: root.blendMode
             property real colorKeyEnabled: sprite.effectColorKeyEnabled ? 1.0 : 0.0
             property real tolerance: 0.001
             property real nearestMode: drawState.hasState && drawState.filter === 0 ? 1.0 : 0.0
             property vector2d sourceSize: sprite.effectSourceSize
-            property vector4d sourceRect: sprite.effectSourceRect
+            property alias sourceRect: animationFrameStateObject.effectiveSourceRect
             fragmentShader: "qrc:/Lr2/Lr2SpriteAtlas.frag.qsb"
         }
 
@@ -542,11 +472,12 @@ Item {
             anchors.fill: parent
             visible: (root.hasDrawableTexture || root.isSolidFill)
                 && !root.useFastImagePath
-                && supportedBlendMode
+            && supportedBlendMode
                 && sprite.effectSourceReady
             source: sprite.effectSource
-            sourceRect: sprite.effectSourceClipRect
-            tint: root.tintColor
+            sourceRect: root.isSolidFill ? Qt.rect(0, 0, 1, 1) : Qt.rect(0, 0, 0, 0)
+            animationFrameState: root.isSolidFill ? null : root.animationFrameState
+            timelineFrameState: drawState
             transColor: root.transColor
             colorKeyEnabled: sprite.effectColorKeyEnabled
             smooth: drawState.hasState && drawState.filter !== 0

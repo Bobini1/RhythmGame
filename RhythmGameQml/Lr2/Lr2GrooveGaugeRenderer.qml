@@ -37,6 +37,10 @@ Item {
     }
     readonly property var currentState: staticTimelineState
         || (timelineState.hasState ? timelineState.state : null)
+    readonly property real segmentBaseX: currentState ? currentState.x || 0 : 0
+    readonly property real segmentBaseY: currentState ? currentState.y || 0 : 0
+    readonly property real segmentStepX: srcData ? srcData.op1 || 0 : 0
+    readonly property real segmentStepY: srcData ? srcData.op2 || 0 : 0
     readonly property int side: srcData && srcData.side > 0 ? srcData.side : 1
     readonly property var player: screenRoot
         ? (screenRoot.gameplayPlayer(side)
@@ -92,33 +96,14 @@ Item {
         }
     }
 
-    function segmentState(segment: var) : var {
-        if (!currentState || !srcData) {
-            return null;
-        }
-        return {
-            x: (currentState.x || 0) + segment * (srcData.op1 || 0),
-            y: (currentState.y || 0) + segment * (srcData.op2 || 0),
-            w: currentState.w || 0,
-            h: currentState.h || 0,
-            a: currentState.a === undefined ? 255 : currentState.a,
-            r: currentState.r === undefined ? 255 : currentState.r,
-            g: currentState.g === undefined ? 255 : currentState.g,
-            b: currentState.b === undefined ? 255 : currentState.b,
-            blend: currentState.blend === undefined ? 1 : currentState.blend,
-            filter: currentState.filter || 0,
-            angle: currentState.angle || 0,
-            center: currentState.center || 0,
-            op4: currentState.op4 || 0
-        };
-    }
-
     Repeater {
         model: root.srcData ? 50 : 0
 
         Lr2FastSprite {
             srcData: root.srcData
-            stateData: root.segmentState(index)
+            stateData: root.currentState
+            stateXOverride: root.segmentBaseX + index * root.segmentStepX
+            stateYOverride: root.segmentBaseY + index * root.segmentStepY
             asynchronousLoading: !!root.screenRoot
                 && root.screenRoot.customizeMode === true
             skinTime: root.spriteSkinTime

@@ -439,24 +439,12 @@ Item {
         }
     }
 
-    function notePosition(display: var) : var {
-        return display && display.note && display.note.time ? display.note.time.position || 0 : 0;
-    }
-
     function linePosition(display: var) : var {
         return display && display.time ? display.time.position || 0 : 0;
     }
 
     function lineLocalY(display: var, multiplier: var) : var {
         return -linePosition(display) * multiplier;
-    }
-
-    function nextNotePosition(display: var, notes: var) : var {
-        if (!display || !notes) {
-            return Infinity;
-        }
-        let next = notes[(display.index || 0) + 1];
-        return next && next.time ? next.time.position || Infinity : Infinity;
     }
 
     function spriteState(dst: var, y: var, height: var) : var {
@@ -601,13 +589,6 @@ Item {
                 && engineColumn < player.state.columnStates.length
                     ? player.state.columnStates[engineColumn]
                     : null
-            property var notes: player
-                && player.notes
-                && player.notes.notes
-                && engineColumn >= 0
-                && engineColumn < player.notes.notes.length
-                    ? player.notes.notes[engineColumn]
-                    : []
             property var normalSource: root.sourceAt(skinModel ? skinModel.noteSources : [], lr2Index)
                 || root.sourceAt(skinModel ? skinModel.autoNoteSources : [], lr2Index)
             property var mineSource: root.sourceAt(skinModel ? skinModel.mineSources : [], lr2Index)
@@ -638,11 +619,8 @@ Item {
                 root.syncPlayerViewport(lane.player);
             }
 
-            function sourceForDisplay(display: var) : var {
-                if (!display || !display.note) {
-                    return null;
-                }
-                switch (display.note.type) {
+            function sourceForType(noteType: int) : var {
+                switch (noteType) {
                 case note.Type.Normal:
                     return lane.normalSource;
                 case note.Type.Landmine:
@@ -694,40 +672,26 @@ Item {
                         delegate: Item {
                             id: noteItem
 
-                            required property var display
+                            required property int noteType
+                            required property real notePosition
+                            required property real longNoteEndPosition
+                            required property bool visibleNote
+                            required property bool heldLongNote
+                            required property bool staticLongNoteCandidate
                             required property int index
 
-                            readonly property var hitData: display ? display.hitData : null
-                            readonly property bool visibleNote: display
-                                && display.note
-                                && (display.note.type === note.Type.LongNoteBegin
-                                    || display.note.type === note.Type.LongNoteEnd
-                                    || !hitData)
-                            readonly property bool heldLongNote: display
-                                && display.note
-                                && display.note.type === note.Type.LongNoteBegin
-                                && hitData
-                                && !display.otherEndHitData
-                            readonly property bool staticLongNoteCandidate: display
-                                && display.note
-                                && display.note.type === note.Type.LongNoteBegin
-                                && (heldLongNote || display.belowBottom)
                             readonly property real staticPlayerPosition: staticLongNoteCandidate
                                 ? root.visualPosition(lane.player, lane.side)
                                 : 0
                             readonly property bool staticLongNote: staticLongNoteCandidate
-                                && root.nextNotePosition(display, lane.notes) > staticPlayerPosition
+                                && longNoteEndPosition > staticPlayerPosition
                             readonly property real localY: (staticLongNote
                                 ? -staticPlayerPosition
-                                : -root.notePosition(display)) * lane.multiplier
-                            readonly property var noteSource: lane.sourceForDisplay(display)
+                                : -notePosition) * lane.multiplier
+                            readonly property var noteSource: lane.sourceForType(noteType)
                             readonly property int noteSourceTimerFire: root.sourceTimerFireFor(noteSource)
-                            readonly property var noteState: root.spriteState(
-                                lane.dstState,
-                                localY,
-                                lane.dstState ? lane.dstState.h : 0)
 
-                            visible: visibleNote && !!noteSource && !!noteState
+                            visible: visibleNote && !!noteSource && !!lane.dstState
                             width: parent.width
                             height: parent.height
                             z: -index
@@ -736,11 +700,11 @@ Item {
                                 id: lnBodyLoader
 
                                 active: noteItem.visible
-                                    && display.note.type === note.Type.LongNoteBegin
+                                    && noteItem.noteType === note.Type.LongNoteBegin
                                     && !!(noteItem.heldLongNote
                                         ? (lane.lnBodyActiveSource || lane.lnBodyInactiveSource)
                                         : (lane.lnBodyInactiveSource || lane.lnBodyActiveSource))
-                                    && root.nextNotePosition(display, lane.notes) < Infinity
+                                    && noteItem.longNoteEndPosition < Infinity
                                 asynchronous: !!root.screenRoot
                                     && root.screenRoot.customizeMode === true
 
@@ -765,13 +729,16 @@ Item {
                                         sourceTimerFire: bodyTimerFire
                                         scaleOverride: root.skinScale
                                         tileVertically: true
-                                        stateData: {
-                                            let nextY = -root.nextNotePosition(display, lane.notes) * lane.multiplier;
-                                            let noteHeight = lane.dstState ? Math.abs(lane.dstState.h || 0) : 0;
-                                            let top = Math.min(noteItem.localY, nextY) + noteHeight;
-                                            let height = Math.max(1, Math.abs(noteItem.localY - nextY) - noteHeight);
-                                            return root.spriteState(lane.dstState, top, height);
-                                        }
+                                        readonly property real nextY:
+                                            -noteItem.longNoteEndPosition * lane.multiplier
+                                        readonly property real noteHeight: lane.dstState
+                                            ? Math.abs(lane.dstState.h || 0)
+                                            : 0
+                                        stateData: lane.dstState
+                                        stateYOverride: Math.min(noteItem.localY, nextY) + noteHeight
+                                        stateHeightOverride: Math.max(
+                                            1,
+                                            Math.abs(noteItem.localY - nextY) - noteHeight)
                                     }
                                 }
                             }
@@ -780,7 +747,8 @@ Item {
                                 srcData: noteItem.noteSource
                                 asynchronousLoading: !!root.screenRoot
                                     && root.screenRoot.customizeMode === true
-                                stateData: noteItem.noteState
+                                stateData: lane.dstState
+                                stateYOverride: noteItem.localY
                                 skinTime: root.sourceSkinTimeFor(
                                     noteItem.noteSource,
                                     noteItem.noteSourceTimerFire)

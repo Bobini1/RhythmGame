@@ -191,54 +191,33 @@ Item {
         return root.srcData.zeropadding;
     }
     readonly property int displayKeta: root.srcData ? root.srcData.keta || 0 : 0
-    readonly property string absoluteRoundedText: Math.abs(Math.round(root.value)).toString()
-    readonly property string displaySignText: root.hasSignedFrames
-        ? (root.isNegativeValue ? "-" : "+")
-        : ""
-    readonly property int displayPaddingCount: Math.max(0, root.displayKeta - root.absoluteRoundedText.length)
-    readonly property string displaySpacePadding: {
-        let result = "";
-        for (let i = 0; i < root.displayPaddingCount; ++i) {
-            result += " ";
-        }
-        return result;
-    }
-    readonly property string fixedSlotPadding: {
-        let result = "";
-        let ch = root.zeroPaddingMode === 1 ? "0" : " ";
-        for (let i = 0; i < root.displayPaddingCount; ++i) {
-            result += ch;
-        }
-        return result;
-    }
-    readonly property string paddedDisplayValue: {
-        if (root.displayKeta <= 0) {
-            return root.absoluteRoundedText;
-        }
-        if (root.srcData && root.srcData.align === 0) {
-            let rightAligned = root.fixedSlotPadding + root.absoluteRoundedText;
-            return rightAligned.slice(rightAligned.length - root.displayKeta);
-        }
-        let leftAligned = root.absoluteRoundedText + root.displaySpacePadding;
-        return leftAligned.slice(0, root.displayKeta);
-    }
-
-    readonly property string displayText: root.displaySignText + root.paddedDisplayValue
+    readonly property double absoluteRoundedValue: isFinite(root.value)
+        ? Math.abs(Math.round(root.value))
+        : 0
+    readonly property int decimalDigitCount: root.absoluteRoundedValue < 10
+        ? 1
+        : Math.floor(Math.log(root.absoluteRoundedValue) / Math.LN10 + 1e-10) + 1
+    readonly property int signSlotCount: root.hasSignedFrames ? 1 : 0
+    readonly property int digitSlotCount: root.displayKeta > 0
+        ? root.displayKeta
+        : root.decimalDigitCount
+    readonly property int displayLength: root.signSlotCount + root.digitSlotCount
+    readonly property int displayPaddingCount: Math.max(0, root.displayKeta - root.decimalDigitCount)
     readonly property real digitW: root.hasCurrentState
         ? root.stateW * root.scaleOverride
         : 0
     readonly property real digitH: root.hasCurrentState ? root.stateH * root.scaleOverride : 0
-    readonly property real textW: displayText.length * digitW
+    readonly property real textW: root.displayLength * digitW
     readonly property color tintColor: drawState.tintColor
     readonly property int centeredMissingDigits: srcData && srcData.align === 2 && srcData.keta > 0
-        ? Math.max(0, srcData.keta - root.absoluteRoundedText.length)
+        ? Math.max(0, srcData.keta - root.decimalDigitCount)
         : 0
     readonly property real alignOffset: centeredMissingDigits * digitW * 0.5
     readonly property bool isNowCombo: srcData
         && (srcData.nowCombo
             || (srcData.num === 104 || srcData.num === 124))
         && (srcData.timer === 46 || srcData.timer === 47)
-    readonly property real nowComboOffset: isNowCombo ? -root.absoluteRoundedText.length * digitW * 0.5 : 0
+    readonly property real nowComboOffset: isNowCombo ? -root.decimalDigitCount * digitW * 0.5 : 0
 
     Item {
         id: numberBox
@@ -266,7 +245,7 @@ Item {
         }
 
         Repeater {
-            model: root.displayText.length
+            model: root.displayLength
 
             Item {
                 id: digitRoot
@@ -274,27 +253,56 @@ Item {
                 width: root.digitW
                 height: root.digitH
 
-                readonly property string ch: root.displayText.charAt(index)
-                readonly property int frameIndex: {
-                    if (ch.length <= 0) {
+                readonly property bool signSlot: root.hasSignedFrames && index === 0
+                readonly property int digitSlot: index - root.signSlotCount
+                readonly property bool rightAligned: !!root.srcData && root.srcData.align === 0
+                readonly property int sourceDigitIndex: {
+                    if (digitRoot.signSlot) {
                         return -1;
                     }
-                    let code = ch.charCodeAt(0);
-                    if (code >= 48 && code <= 57) {
-                        return code - 48;
+                    if (root.displayKeta <= 0) {
+                        return digitRoot.digitSlot;
                     }
-                    let groupSize = root.frameGroupSize;
-                    if (groupSize === 24) {
-                        if (ch === "+") return 11;
-                        if (ch === "-") return 23;
-                        if (ch === " ") return root.isNegativeValue ? 22 : 10;
+                    if (digitRoot.rightAligned) {
+                        if (root.decimalDigitCount >= root.displayKeta) {
+                            return digitRoot.digitSlot
+                                + root.decimalDigitCount
+                                - root.displayKeta;
+                        }
+                        return digitRoot.digitSlot < root.displayPaddingCount
+                            ? -1
+                            : digitRoot.digitSlot - root.displayPaddingCount;
                     }
-                    return ch === " " && groupSize === 11 ? 10 : -1;
+                    return digitRoot.digitSlot < root.decimalDigitCount
+                        ? digitRoot.digitSlot
+                        : -1;
+                }
+                readonly property bool zeroPadding: !digitRoot.signSlot
+                    && digitRoot.sourceDigitIndex < 0
+                    && digitRoot.rightAligned
+                    && root.zeroPaddingMode === 1
+                readonly property int numericDigit: digitRoot.sourceDigitIndex < 0
+                    ? -1
+                    : Math.floor(root.absoluteRoundedValue
+                        / Math.pow(10, root.decimalDigitCount - 1 - digitRoot.sourceDigitIndex)) % 10
+                readonly property int frameIndex: {
+                    if (digitRoot.signSlot) {
+                        return root.isNegativeValue ? 23 : 11;
+                    }
+                    if (digitRoot.numericDigit >= 0) {
+                        return digitRoot.numericDigit;
+                    }
+                    if (digitRoot.zeroPadding) {
+                        return 0;
+                    }
+                    if (root.frameGroupSize === 24) {
+                        return root.isNegativeValue ? 22 : 10;
+                    }
+                    return root.frameGroupSize === 11 ? 10 : -1;
                 }
                 readonly property int signedFrameOffset: root.frameGroupSize === 24
                     && root.isNegativeValue
-                    && digitRoot.ch >= "0"
-                    && digitRoot.ch <= "9"
+                    && digitRoot.numericDigit >= 0
                     ? 12
                     : 0
 

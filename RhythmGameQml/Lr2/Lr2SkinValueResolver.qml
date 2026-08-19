@@ -913,20 +913,16 @@ QtObject {
         case 295:
             return resolver.gameplayLr2RandomLayoutNumber(1);
         case 296: {
-            let stats = root.gameplayJudgeTimingStats(1);
-            return resolver.integerPart(root.timingStatsMean(stats));
+            return resolver.integerPart(root.gameplayJudgeTimingMean(1));
         }
         case 297: {
-            let stats = root.gameplayJudgeTimingStats(1);
-            return resolver.decimalPart(root.timingStatsMean(stats));
+            return resolver.decimalPart(root.gameplayJudgeTimingMean(1));
         }
         case 298: {
-            let stats = root.gameplayJudgeTimingStats(1);
-            return resolver.integerPart(root.timingStatsStdDev(stats));
+            return resolver.integerPart(root.gameplayJudgeTimingStdDev(1));
         }
         case 299: {
-            let stats = root.gameplayJudgeTimingStats(1);
-            return resolver.decimalPart(root.timingStatsStdDev(stats));
+            return resolver.decimalPart(root.gameplayJudgeTimingStdDev(1));
         }
         case 301:
             return chartData ? Math.floor(chartData.total || 0) : 0;

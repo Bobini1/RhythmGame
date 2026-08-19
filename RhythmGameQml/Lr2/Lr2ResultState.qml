@@ -173,8 +173,8 @@ QtObject {
         if (!hit) {
             return 0;
         }
-        if (hit.points && hit.points.deviation !== undefined) {
-            return Number(hit.points.deviation || 0);
+        if (hit.deviation !== undefined) {
+            return Number(hit.deviation || 0);
         }
         if (hit.hitOffset !== undefined) {
             return Number(hit.hitOffset || 0);
@@ -184,10 +184,6 @@ QtObject {
 
     function hitDeviationMillis(hit: var) : var {
         return Math.round(-root.hitDeviationNanos(hit) / 1000000);
-    }
-
-    function judgementUpdatesJudgeTimingValue(judgement: var) : var {
-        return judgement >= Judgement.Bad && judgement <= Judgement.Perfect;
     }
 
     function cloneJudgeTimingCounts(counts: var) : var {
@@ -200,142 +196,21 @@ QtObject {
         };
     }
 
-    function emptyJudgeLaneValues() : var {
-        return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    }
-
-    function nowJudgeValue(judgement: var) : var {
-        switch (judgement) {
-        case Judgement.Perfect:
-            return 1;
-        case Judgement.Great:
-            return 2;
-        case Judgement.Good:
-            return 3;
-        case Judgement.Bad:
-            return 4;
-        case Judgement.Poor:
-            return 5;
-        case Judgement.EmptyPoor:
-            return 6;
-        default:
-            return 0;
-        }
-    }
-
-    function laneJudgeValue(judgement: var, timing: var) : var {
-        switch (judgement) {
-        case Judgement.Perfect:
-            return 1;
-        case Judgement.Great:
-            return timing > 0 ? 2 : 3;
-        case Judgement.Good:
-            return timing > 0 ? 4 : 5;
-        case Judgement.Bad:
-            return timing > 0 ? 6 : 7;
-        default:
-            return 0;
-        }
-    }
-
-    function setGameplayJudgeLaneValue(scoreSide: var, hit: var, value: var) : var {
-        let lane = root.host.gameplayLr2LaneForHit(scoreSide, hit);
-        if (lane < 0) {
-            return;
-        }
-
-        let valuesName = scoreSide === 2 ? "gameplayJudgeLaneValues2" : "gameplayJudgeLaneValues1";
-        let values = root.host[valuesName];
-        if (!values || !values.length) {
-            values = root.emptyJudgeLaneValues();
-            root.host[valuesName] = values;
-        }
-        if (lane >= values.length) {
-            values.length = lane + 1;
-            for (let i = 0; i < values.length; ++i) {
-                values[i] = values[i] || 0;
-            }
-        }
-        values[lane] = value;
-    }
-
     function gameplayJudgeValueForId(num: var) : var {
-        if (num === 520 || num === 522) {
-            return root.host.gameplayJudgeNowValue1;
-        }
-        if (num === 521) {
-            return root.host.gameplayJudgeNowValue2;
-        }
-
-        let side = 1;
-        let offset = -1;
-        if (num >= 500 && num <= 519) {
-            side = Math.floor((num - 500) / 10) + 1;
-            offset = (num - 500) % 10;
-        } else if (num >= 1510 && num <= 1599) {
-            side = 1;
-            offset = (num - 1510) + 10;
-        } else if (num >= 1610 && num <= 1699) {
-            side = 2;
-            offset = (num - 1610) + 10;
-        } else {
-            return 0;
-        }
-
-        let values = side === 2
-            ? root.host.gameplayJudgeLaneValues2
-            : root.host.gameplayJudgeLaneValues1;
-        return values && offset >= 0 && offset < values.length ? (values[offset] || 0) : 0;
+        return root.host.gameplayJudgeValueForId(num);
     }
 
-    function recordGameplayJudgeTiming(scoreSide: var, hit: var) : var {
-        let judgement = root.host.gameplayJudgementFromHit(hit);
-        let bucket = root.judgementTimingBucket(judgement);
-        if (bucket < 0) {
-            return;
-        }
-
-        let countsName = scoreSide === 2 ? "gameplayJudgeTimingCounts2" : "gameplayJudgeTimingCounts1";
-        let counts = root.host[countsName];
-        if (!counts || !counts.early || !counts.late) {
-            counts = root.emptyJudgeTimingCounts();
-            root.host[countsName] = counts;
-        }
-        let side = root.hitDeviationNanos(hit) < 0 ? counts.early : counts.late;
-        side[bucket] = (side[bucket] || 0) + 1;
-
-        let timing = root.hitDeviationMillis(hit);
-        if (root.judgementUpdatesJudgeTimingValue(judgement)) {
-            let timingName = scoreSide === 2 ? "gameplayLastJudgeTiming2" : "gameplayLastJudgeTiming1";
-            root.host[timingName] = timing;
-
-            let statsName = scoreSide === 2 ? "gameplayJudgeTimingStats2" : "gameplayJudgeTimingStats1";
-            let stats = root.host[statsName];
-            if (!stats) {
-                stats = root.emptyJudgeTimingStats();
-                root.host[statsName] = stats;
-            }
-            stats.count = (stats.count || 0) + 1;
-            stats.sum = (stats.sum || 0) + timing;
-            stats.sumSq = (stats.sumSq || 0) + timing * timing;
-        }
-
-        if (scoreSide === 2) {
-            root.host.gameplayJudgeNowValue2 = root.nowJudgeValue(judgement);
-        } else {
-            root.host.gameplayJudgeNowValue1 = root.nowJudgeValue(judgement);
-        }
-
-        let laneValue = root.laneJudgeValue(judgement, timing);
-        if (laneValue > 0) {
-            root.setGameplayJudgeLaneValue(scoreSide, hit, laneValue);
-        }
+    function recordGameplayJudgeTiming(
+        scoreSide: var,
+        judgement: var,
+        deviationNanos: var,
+        lane: var
+    ) : var {
+        root.host.recordGameplayJudgeTiming(scoreSide, judgement, deviationNanos, lane);
     }
 
     function gameplayJudgeTimingNumber(num: var, side: var) : var {
-        return root.judgeTimingNumberFromCounts(
-            num,
-            side === 2 ? root.host.gameplayJudgeTimingCounts2 : root.host.gameplayJudgeTimingCounts1);
+        return root.host.gameplayJudgeTimingNumber(num, side);
     }
 
     function resultJudgeTimingNumber(num: var, side: var) : var {
@@ -382,11 +257,6 @@ QtObject {
         default:
             return 0;
         }
-    }
-
-    function gameplayJudgeTimingStats(side: var) : var {
-        let stats = side === 2 ? root.host.gameplayJudgeTimingStats2 : root.host.gameplayJudgeTimingStats1;
-        return stats || root.emptyJudgeTimingStats();
     }
 
     function timingStatsMean(stats: var) : var {

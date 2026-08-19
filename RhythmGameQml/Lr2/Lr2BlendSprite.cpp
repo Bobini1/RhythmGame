@@ -1,5 +1,8 @@
 #include "Lr2BlendSprite.h"
 
+#include "Lr2AnimationFrameState.h"
+#include "Lr2TimelineFrameState.h"
+
 #include <QSGDynamicTexture>
 #include <QSGGeometry>
 #include <QSGGeometryNode>
@@ -444,6 +447,82 @@ Lr2BlendSprite::supportsBlendMode(int blendMode)
 {
     return blendMode == 2 || blendMode == 3 || blendMode == 4 ||
            blendMode == 5 || blendMode == 9;
+}
+
+QObject*
+Lr2BlendSprite::animationFrameState() const
+{
+    return m_animationFrameState;
+}
+
+void
+Lr2BlendSprite::setAnimationFrameState(QObject* state)
+{
+    auto* typedState = qobject_cast<Lr2AnimationFrameState*>(state);
+    if (m_animationFrameState == typedState) {
+        return;
+    }
+    if (m_animationFrameConnection) {
+        QObject::disconnect(m_animationFrameConnection);
+    }
+    m_animationFrameState = typedState;
+    if (m_animationFrameState) {
+        m_animationFrameConnection = QObject::connect(
+          m_animationFrameState,
+          &Lr2AnimationFrameState::effectiveSourceClipRectChanged,
+          this,
+          &Lr2BlendSprite::updateSourceRectFromAnimationState);
+        updateSourceRectFromAnimationState();
+    } else {
+        m_animationFrameConnection = {};
+    }
+    emit animationFrameStateChanged();
+}
+
+QObject*
+Lr2BlendSprite::timelineFrameState() const
+{
+    return m_timelineFrameState;
+}
+
+void
+Lr2BlendSprite::setTimelineFrameState(QObject* state)
+{
+    auto* typedState = qobject_cast<Lr2TimelineFrameState*>(state);
+    if (m_timelineFrameState == typedState) {
+        return;
+    }
+    if (m_timelineFrameConnection) {
+        QObject::disconnect(m_timelineFrameConnection);
+    }
+    m_timelineFrameState = typedState;
+    if (m_timelineFrameState) {
+        m_timelineFrameConnection = QObject::connect(
+          m_timelineFrameState,
+          &Lr2TimelineFrameState::colorChanged,
+          this,
+          &Lr2BlendSprite::updateTintFromTimelineState);
+        updateTintFromTimelineState();
+    } else {
+        m_timelineFrameConnection = {};
+    }
+    emit timelineFrameStateChanged();
+}
+
+void
+Lr2BlendSprite::updateSourceRectFromAnimationState()
+{
+    if (m_animationFrameState) {
+        setSourceRect(m_animationFrameState->effectiveSourceClipRect());
+    }
+}
+
+void
+Lr2BlendSprite::updateTintFromTimelineState()
+{
+    if (m_timelineFrameState) {
+        setTint(m_timelineFrameState->tintColor());
+    }
 }
 
 QSGNode*
