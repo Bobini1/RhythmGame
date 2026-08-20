@@ -16,7 +16,7 @@ var searchData=
   ['filenamestartswithdot_13',['fileNameStartsWithDot',['../namespaceresource__managers.html#abf95ffad316ec37ef85fed4d5e01de03',1,'resource_managers']]],
   ['filequery_14',['FileQuery',['../classqml__components_1_1FileQuery.html#a006416acc7adbd6ab031cf259bb9e8c5',1,'qml_components::FileQuery']]],
   ['fillwithdefaults_15',['fillWithDefaults',['../namespaceresource__managers.html#afd50ac873ffb6f3786d8bc1853f5d53c',1,'resource_managers']]],
-  ['filter_16',['filter',['../classLr2TimelineFrameState.html#a66bbe2358cdb2663b008b4650a59a639',1,'Lr2TimelineFrameState::filter()'],['../classgameplay__logic_1_1Filter.html#a0893e2cda001462f86d4c1aab652e418',1,'gameplay_logic::Filter::Filter()'],['../classLr2BarInterpolatedState.html#a760698a3069b59d48e6470d69519404a',1,'Lr2BarInterpolatedState::filter()']]],
+  ['filter_16',['filter',['../classLr2BarInterpolatedState.html#a760698a3069b59d48e6470d69519404a',1,'Lr2BarInterpolatedState::filter()'],['../classLr2TimelineFrameState.html#a66bbe2358cdb2663b008b4650a59a639',1,'Lr2TimelineFrameState::filter()'],['../classgameplay__logic_1_1Filter.html#a0893e2cda001462f86d4c1aab652e418',1,'gameplay_logic::Filter::Filter()']]],
   ['filterandsort_17',['filterAndSort',['../classresource__managers_1_1ChartFolderModel.html#a984304d1cc78ac033c914aea1cd54c6d',1,'resource_managers::ChartFolderModel']]],
   ['filterchanged_18',['filterChanged',['../classLr2TimelineFrameState.html#a421f8119c3297a65ea9dc91ca940ce61',1,'Lr2TimelineFrameState']]],
   ['finalized_19',['finalized',['../classarena_1_1ArenaResultModel.html#aca4da09e5dcaeb9dce35dc5c169ed0bd',1,'arena::ArenaResultModel']]],
@@ -48,11 +48,12 @@ var searchData=
   ['fpssampleintervalmschanged_45',['fpsSampleIntervalMsChanged',['../classLr2SkinFrameDriver.html#aa97303946fc189652c50831e87ee8a39',1,'Lr2SkinFrameDriver']]],
   ['frameanimation_46',['frameAnimation',['../classLr2SkinFrameDriver.html#ab55cab2b1d939546a56353093b56cb3f',1,'Lr2SkinFrameDriver']]],
   ['frameanimationchanged_47',['frameAnimationChanged',['../classLr2SkinFrameDriver.html#a14cf2b0bd2088c0352908de76b8032ec',1,'Lr2SkinFrameDriver']]],
-  ['framestate_48',['frameState',['../classLr2GameplayPositionTransform.html#a5ed7974c0266ab59caa07d5cdc909647',1,'Lr2GameplayPositionTransform']]],
-  ['framestatechanged_49',['frameStateChanged',['../classLr2GameplayPositionTransform.html#a1df262586e22fff464167dc4128cd836',1,'Lr2GameplayPositionTransform']]],
-  ['frombmson_50',['fromBmson',['../structcharts_1_1BmsNotesData.html#a782281926489efb3b2aa3d95d010f235',1,'charts::BmsNotesData']]],
-  ['fromjson_51',['fromjson',['../structresource__managers_1_1Trophy.html#af7c88010dbfed7063a40fe3e8d5732d3',1,'resource_managers::Trophy::fromJson()'],['../classgameplay__logic_1_1BmsResult.html#a1cfd51342ad80b48ef19aba62010f00c',1,'gameplay_logic::BmsResult::fromJson()']]],
-  ['fromjsonarray_52',['fromjsonarray',['../classgameplay__logic_1_1BmsReplayData.html#aa0aef9d3c043a9710ec51029527606b4',1,'gameplay_logic::BmsReplayData::fromJsonArray()'],['../classgameplay__logic_1_1BmsGaugeHistory.html#a374202d4463740c07984dfbc9a12da46',1,'gameplay_logic::BmsGaugeHistory::fromJsonArray()']]],
-  ['fromparsedchart_53',['fromParsedChart',['../structcharts_1_1BmsNotesData.html#a9764cc84868c62ada5f3cce63a03ec48',1,'charts::BmsNotesData']]],
-  ['fromscores_54',['fromScores',['../classgameplay__logic_1_1BmsScoreCourse.html#a02d4432cc9b86c2fecec24d9f544d40b',1,'gameplay_logic::BmsScoreCourse']]]
+  ['frameratelimiter_48',['frameratelimiter',['../classsupport_1_1FrameRateLimiter.html#a76a37602f324c8fc49c50c361310ab78',1,'support::FrameRateLimiter::FrameRateLimiter()=default'],['../classsupport_1_1FrameRateLimiter.html#a9740b3e14c125e3cd74316674a608abb',1,'support::FrameRateLimiter::FrameRateLimiter(const FrameRateLimiter &amp;)=delete']]],
+  ['framestate_49',['frameState',['../classLr2GameplayPositionTransform.html#a5ed7974c0266ab59caa07d5cdc909647',1,'Lr2GameplayPositionTransform']]],
+  ['framestatechanged_50',['frameStateChanged',['../classLr2GameplayPositionTransform.html#a1df262586e22fff464167dc4128cd836',1,'Lr2GameplayPositionTransform']]],
+  ['frombmson_51',['fromBmson',['../structcharts_1_1BmsNotesData.html#a782281926489efb3b2aa3d95d010f235',1,'charts::BmsNotesData']]],
+  ['fromjson_52',['fromjson',['../structresource__managers_1_1Trophy.html#af7c88010dbfed7063a40fe3e8d5732d3',1,'resource_managers::Trophy::fromJson()'],['../classgameplay__logic_1_1BmsResult.html#a1cfd51342ad80b48ef19aba62010f00c',1,'gameplay_logic::BmsResult::fromJson()']]],
+  ['fromjsonarray_53',['fromjsonarray',['../classgameplay__logic_1_1BmsReplayData.html#aa0aef9d3c043a9710ec51029527606b4',1,'gameplay_logic::BmsReplayData::fromJsonArray()'],['../classgameplay__logic_1_1BmsGaugeHistory.html#a374202d4463740c07984dfbc9a12da46',1,'gameplay_logic::BmsGaugeHistory::fromJsonArray()']]],
+  ['fromparsedchart_54',['fromParsedChart',['../structcharts_1_1BmsNotesData.html#a9764cc84868c62ada5f3cce63a03ec48',1,'charts::BmsNotesData']]],
+  ['fromscores_55',['fromScores',['../classgameplay__logic_1_1BmsScoreCourse.html#a02d4432cc9b86c2fecec24d9f544d40b',1,'gameplay_logic::BmsScoreCourse']]]
 ];

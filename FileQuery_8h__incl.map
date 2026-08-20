@@ -1,11 +1,13 @@
 <map id="src/qml_components/FileQuery.h" name="src/qml_components/FileQuery.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="91,5,249,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="141,5,298,45"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,93,60,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,48,66,89,64,84,136,43"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,48,74,90,72,85,174,43"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="85,93,159,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,47,139,83,134,80,156,44"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,48,149,87,145,82,194,43"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="184,93,255,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="184,44,207,80,203,83,180,47"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="222,46,222,79,217,79,217,46"/>
 <area shape="rect" id="Node000005" title=" " alt="" coords="279,93,373,119"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="209,43,292,85,290,89,206,48"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="247,43,300,83,297,87,244,48"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="397,93,447,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="269,43,384,87,382,92,267,48"/>
 </map>

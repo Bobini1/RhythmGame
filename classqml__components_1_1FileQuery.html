@@ -75,6 +75,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="classqml__components_1_1FileQuery-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">qml_components::FileQuery Class Reference</div></div>
 </div><!--header-->
@@ -106,6 +107,8 @@ Collaboration diagram for qml_components::FileQuery:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a006416acc7adbd6ab031cf259bb9e8c5" id="r_a006416acc7adbd6ab031cf259bb9e8c5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a006416acc7adbd6ab031cf259bb9e8c5">FileQuery</a> (<a class="el" href="classresource__managers_1_1SongAssetStore.html">resource_managers::SongAssetStore</a> *assetStore=nullptr, QObject *parent=nullptr)</td></tr>
 <tr class="separator:a006416acc7adbd6ab031cf259bb9e8c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a504a72d26f33551f8a339a7174142de0" id="r_a504a72d26f33551f8a339a7174142de0"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a504a72d26f33551f8a339a7174142de0">openFolder</a> (const QString &amp;<a class="el" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>) const</td></tr>
+<tr class="separator:a504a72d26f33551f8a339a7174142de0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2cf956ce8e2746d96f87a608941d62e7" id="r_a2cf956ce8e2746d96f87a608941d62e7"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a2cf956ce8e2746d96f87a608941d62e7">localFileUrl</a> (const QString &amp;<a class="el" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>) const</td></tr>
 <tr class="separator:a2cf956ce8e2746d96f87a608941d62e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79de2ad03ac6948b7645001e2834f91f" id="r_a79de2ad03ac6948b7645001e2834f91f"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a79de2ad03ac6948b7645001e2834f91f">readTextFile</a> (const QString &amp;<a class="el" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>) const</td></tr>
@@ -121,6 +124,11 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a88c9b121c5cb7d9daff5a572b3371e1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a051818fa7a801370d83e04e86abe26d9" id="r_a051818fa7a801370d83e04e86abe26d9"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a051818fa7a801370d83e04e86abe26d9">getDefaultSystemFontFamily</a> (bool fixedPitchOnly, bool tabularDigitsOnly) const</td></tr>
 <tr class="separator:a051818fa7a801370d83e04e86abe26d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:a59722af3f809f8c567c4055f8ea184b2" id="r_a59722af3f809f8c567c4055f8ea184b2"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a59722af3f809f8c567c4055f8ea184b2">openUrl</a> (const QUrl &amp;url) const</td></tr>
+<tr class="separator:a59722af3f809f8c567c4055f8ea184b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a006416acc7adbd6ab031cf259bb9e8c5" name="a006416acc7adbd6ab031cf259bb9e8c5"></a>
@@ -319,6 +327,50 @@ Public Member Functions</h2></td></tr>
           <td> const</td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a504a72d26f33551f8a339a7174142de0" name="a504a72d26f33551f8a339a7174142de0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a504a72d26f33551f8a339a7174142de0">&#9670;&#160;</a></span>openFolder()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto qml_components::FileQuery::openFolder </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a59722af3f809f8c567c4055f8ea184b2" name="a59722af3f809f8c567c4055f8ea184b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59722af3f809f8c567c4055f8ea184b2">&#9670;&#160;</a></span>openUrl()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto qml_components::FileQuery::openUrl </td>
+          <td>(</td>
+          <td class="paramtype">const QUrl &amp;&#160;</td>
+          <td class="paramname"><em>url</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>

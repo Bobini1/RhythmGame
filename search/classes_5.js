@@ -10,6 +10,7 @@ var searchData=
   ['finalstandingentry_7',['FinalStandingEntry',['../structarena_1_1FinalStandingEntry.html',1,'arena']]],
   ['floatingpoint_8',['FloatingPoint',['../structcharts_1_1FloatingPoint.html',1,'charts']]],
   ['fontresolver_9',['FontResolver',['../classFontResolver.html',1,'']]],
-  ['frozenparticipant_10',['FrozenParticipant',['../structarena_1_1FrozenParticipant.html',1,'arena']]],
-  ['frozenround_11',['FrozenRound',['../structarena_1_1FrozenRound.html',1,'arena']]]
+  ['frameratelimiter_10',['FrameRateLimiter',['../classsupport_1_1FrameRateLimiter.html',1,'support']]],
+  ['frozenparticipant_11',['FrozenParticipant',['../structarena_1_1FrozenParticipant.html',1,'arena']]],
+  ['frozenround_12',['FrozenRound',['../structarena_1_1FrozenRound.html',1,'arena']]]
 ];
