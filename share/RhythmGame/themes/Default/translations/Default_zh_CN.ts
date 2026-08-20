@@ -2044,12 +2044,12 @@
 <context>
     <name>Lr2SkinScreenWrapper</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2912"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2902"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation>截图已保存至 %1 并复制到剪贴板。</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2914"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2904"/>
         <source>Failed to save screenshot.</source>
         <translation>截图保存失败。</translation>
     </message>
