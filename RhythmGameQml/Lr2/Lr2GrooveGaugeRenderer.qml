@@ -62,27 +62,29 @@ Item {
         ? 4
         : 0
 
-    function segmentFrame(segmentIndex: var, filledSegments: var, trembleRoll: var, survivalGauge: var) : var {
+    function segmentFrame(segmentIndex: var, filledSegments: var, survivalGauge: var) : var {
         let segmentNumber = segmentIndex + 1;
-        let trembleBoundary = filledSegments - trembleRoll;
-        if (!survivalGauge) {
-            if (segmentNumber < 40) {
-                return ((segmentNumber < trembleBoundary || filledSegments <= segmentNumber || segmentNumber === 1)
-                        && segmentNumber <= filledSegments)
-                    ? 1
-                    : 3;
+        let trembles = segmentNumber !== 1
+            && segmentNumber < filledSegments
+            && segmentNumber >= filledSegments - 2;
+        if (!trembles) {
+            if (survivalGauge || segmentNumber >= 40) {
+                return segmentNumber <= filledSegments ? 0 : 2;
             }
-            if ((trembleBoundary <= segmentNumber && segmentNumber < filledSegments && segmentNumber !== 1)
-                    || filledSegments < segmentNumber) {
-                return 2;
-            }
-            return 0;
+            return segmentNumber <= filledSegments ? 1 : 3;
         }
 
-        if (segmentNumber < trembleBoundary || filledSegments <= segmentNumber || segmentNumber === 1) {
-            return filledSegments < segmentNumber ? 2 : 0;
+        // Only the two segments immediately below the fill boundary can
+        // tremble. Keep every other delegate independent of trembleRoll so a
+        // 16 ms timer tick does not dirty all 50 sprite materials.
+        let trembleBoundary = filledSegments - root.trembleRoll;
+        if (!survivalGauge) {
+            if (segmentNumber < 40) {
+                return segmentNumber < trembleBoundary ? 1 : 3;
+            }
+            return segmentNumber < trembleBoundary ? 0 : 2;
         }
-        return 2;
+        return segmentNumber < trembleBoundary ? 0 : 2;
     }
 
     Timer {
@@ -112,7 +114,7 @@ Item {
             preloadTexture: true
             useAtlasShader: true
             frameOverride: root.segmentFrame(
-                index, root.hpSegments, root.trembleRoll, root.survivalGauge)
+                index, root.hpSegments, root.survivalGauge)
                 + root.exGaugeFrameOffset
         }
     }

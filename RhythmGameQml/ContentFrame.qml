@@ -167,8 +167,7 @@ ApplicationWindow {
             let localPath = Rg.songAssets
                 ? Rg.songAssets.containingFolder(path)
                 : path;
-            let url = localFileUrl(localPath);
-            return url.length > 0 && Qt.openUrlExternally(url);
+            return Rg.fileQuery.openFolder(localPath);
         }
 
         function rootSongFolderForPath(path: var): var {
@@ -733,6 +732,13 @@ ApplicationWindow {
                     properties: "opacity"
                 }
             }
+        }
+        Binding {
+            target: Rg.programSettings
+            property: "continuousRendering"
+            value: !!sceneStack.currentItem
+                && !!sceneStack.currentItem.chart
+                && sceneStack.currentItem.chart.status === ChartRunner.Running
         }
         ArenaOverlayHost {
             id: arenaOverlayHost

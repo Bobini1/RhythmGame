@@ -553,6 +553,7 @@ Item {
         Item {
             id: bombWrapper
 
+            readonly property int columnIndex: index
             property bool ln: false
 
             function restart() {
@@ -612,10 +613,13 @@ Item {
             }
             // Preload all frames
             Repeater {
-                model: 16
+                model: bombWrapper.columnIndex === 0 ? 16 : 0
                 delegate: Image {
                     source: root.iniImagesUrl + "bomb/" + playArea.vars.bomb + "/f" + index
-                    opacity: 0
+                    width: 1
+                    height: 1
+                    z: -1000000
+                    opacity: 0.001
                 }
             }
         }

@@ -295,6 +295,34 @@ TEST_CASE("LR2 skin model reloads when conditional options change",
     CHECK(loadCount == 2);
 }
 
+TEST_CASE("LR2 skin model identifies event-driven gameplay textures",
+          "[lr2][skin]")
+{
+    QTemporaryDir tempDir;
+    const auto path = tempSkinPath(tempDir);
+
+    writeSkinFile(
+      path,
+      QStringLiteral(
+        "#IMAGE,static.png\n"
+        "#SRC_IMAGE,0,0,0,0,10,10,1,1,0,0,0,0,0\n"
+        "#DST_IMAGE,0,0,0,0,10,10,0,255,255,255,255,1,0,0,0,-1,0\n"
+        "#IMAGE,bomb.png\n"
+        "#SRC_IMAGE,1,1,0,0,10,10,1,1,0,0,0,0,0\n"
+        "#DST_IMAGE,0,0,0,0,10,10,0,255,255,255,255,1,0,0,0,-1,50\n"
+        "#IMAGE,keybeam.png\n"
+        "#SRC_IMAGE,2,2,0,0,10,10,1,1,0,100,0,0,0\n"
+        "#DST_IMAGE,0,0,0,0,10,10,0,255,255,255,255,1,0,0,0,-1,0\n"));
+
+    Lr2SkinModel model;
+    model.setCsvPath(support::pathToQString(path));
+
+    const auto sources = model.gameplayPreloadSources();
+    REQUIRE(sources.size() == 2);
+    CHECK(sources.at(0).toString().endsWith(QStringLiteral("/bomb.png")));
+    CHECK(sources.at(1).toString().endsWith(QStringLiteral("/keybeam.png")));
+}
+
 TEST_CASE("LR2 NOWJUDGE and NOWCOMBO select their judgement directly",
           "[lr2][skin]")
 {

@@ -993,7 +993,18 @@ QtObject {
         if (side === 1) {
             if (root.runtimeOptionRangeUsed(usedOptions, 220, 227)) {
                 let totalRank = host.gameplayRankOption(score, 220, false);
-                root.setRuntimeOptionRange(options, 220, 227, totalRank);
+                root.removeRuntimeOptionRange(options, 220, 227);
+                if (totalRank === 220) {
+                    root.addRuntimeOption(options, 220);
+                }
+                if (totalRank >= 220 && totalRank <= 226) {
+                    // LR2's total-rank options are cumulative thresholds.
+                    for (let option = Math.max(221, totalRank); option <= 226; ++option) {
+                        root.addRuntimeOption(options, option);
+                    }
+                } else if (totalRank === 227) {
+                    root.addRuntimeOption(options, 227);
+                }
             }
             if (root.runtimeOptionRangeUsed(usedOptions, 300, 308)) {
                 root.addOption(options, host.gameplayExactRankOption(score, 300));

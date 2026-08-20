@@ -3568,21 +3568,14 @@ Item {
 
     function gameplayRankDelta(score: var) : var {
         let totalNotes = root.gameplayTotalNotes(score);
-        let currentNotes = root.gameplayCurrentNotes(score);
         let exScore = root.gameplayExScore(score);
-        if (totalNotes <= 0 || currentNotes <= 0) {
+        let perfectScore = totalNotes * 2;
+        if (totalNotes <= 0 || exScore === perfectScore) {
             return 0;
         }
-        let rate = exScore / (totalNotes * 2);
-        let currentPerfectScore = currentNotes * 2;
-        for (let rank = 0; rank < 27; ++rank) {
-            if (rank % 3 !== 0 || rate >= rank / 27) {
-                continue;
-            }
-            return Math.ceil(rank * currentPerfectScore / 27
-                             - rate * currentPerfectScore);
-        }
-        return currentPerfectScore - exScore;
+        let rank = Math.floor(exScore * 9 / perfectScore);
+        rank = Math.max(1, Math.min(8, rank));
+        return exScore - Math.floor(perfectScore * (rank + 1) / 9);
     }
 
     function gameplayTimeSeconds(side: var, remaining: var) : var {

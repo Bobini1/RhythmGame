@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QUrl>
 namespace resource_managers {
 class SongAssetStore;
 }
@@ -22,6 +23,7 @@ class FileQuery : public QObject
   public:
     explicit FileQuery(resource_managers::SongAssetStore* assetStore = nullptr,
                        QObject* parent = nullptr);
+    Q_INVOKABLE bool openFolder(const QString& path) const;
     Q_INVOKABLE QString localFileUrl(const QString& path) const;
     Q_INVOKABLE QString readTextFile(const QString& path) const;
     /**
@@ -44,6 +46,9 @@ class FileQuery : public QObject
     Q_INVOKABLE QString
     getDefaultSystemFontFamily(bool fixedPitchOnly,
                                bool tabularDigitsOnly) const;
+
+  protected:
+    virtual bool openUrl(const QUrl& url) const;
 };
 } // namespace qml_components
 

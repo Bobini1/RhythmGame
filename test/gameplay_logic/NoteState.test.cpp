@@ -3,6 +3,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <initializer_list>
+#include <memory>
 #include <utility>
 
 namespace {
@@ -35,6 +36,23 @@ makeBarLines(std::initializer_list<double> positions)
           { gameplay_logic::Time{ 0, position, position }, index++ });
     }
     return new gameplay_logic::BarLinesState(std::move(barLines));
+}
+
+auto
+makeLongNoteColumn() -> gameplay_logic::ColumnState*
+{
+    auto notes = QList<gameplay_logic::NoteState>{
+        { gameplay_logic::Note{
+            gameplay_logic::Time{ 0, 1.0, 1.0 },
+            gameplay_logic::Snap{ 0.0, 1.0 },
+            gameplay_logic::Note::Type::LongNoteBegin },
+          0 },
+        { gameplay_logic::Note{ gameplay_logic::Time{ 0, 3.0, 3.0 },
+                                gameplay_logic::Snap{ 0.0, 1.0 },
+                                gameplay_logic::Note::Type::LongNoteEnd },
+          1 },
+    };
+    return new gameplay_logic::ColumnState(std::move(notes));
 }
 }
 
@@ -88,4 +106,39 @@ TEST_CASE("changing viewport spans immediately refilters the current position")
     CHECK(state.getBarLineFilter()->getBottomPosition() == 1.0);
     CHECK(state.getBarLineFilter()->getTopPosition() == 3.0);
     CHECK(state.getBarLineFilter()->rowCount({}) == 3);
+}
+
+TEST_CASE("belowBottom follows the viewport through the proxy model")
+{
+    auto column = std::unique_ptr<gameplay_logic::ColumnState>(
+      makeLongNoteColumn());
+    auto filter = gameplay_logic::Filter(column.get());
+
+    filter.setVisibleRange(2.0, 3.0);
+
+    REQUIRE(filter.rowCount({}) == 2);
+    const auto retainedBegin = filter.index(0);
+    CHECK(filter
+            .data(retainedBegin,
+                  gameplay_logic::ColumnState::NotePositionRole)
+            .toDouble() == 1.0);
+    CHECK(filter
+            .data(retainedBegin,
+                  gameplay_logic::ColumnState::BelowBottomRole)
+            .toBool());
+    CHECK(column
+            ->data(column->index(0),
+                   gameplay_logic::ColumnState::BelowBottomRole)
+            .toBool());
+
+    filter.setVisibleRange(0.5, 3.0);
+
+    CHECK_FALSE(filter
+                  .data(filter.index(0),
+                        gameplay_logic::ColumnState::BelowBottomRole)
+                  .toBool());
+    CHECK_FALSE(column
+                  ->data(column->index(0),
+                         gameplay_logic::ColumnState::BelowBottomRole)
+                  .toBool());
 }

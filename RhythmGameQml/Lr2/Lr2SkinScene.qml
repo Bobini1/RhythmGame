@@ -2,6 +2,7 @@ pragma ValueTypeBehavior: Addressable
 pragma ComponentBehavior: Bound
 import QtQuick
 import RhythmGameQml
+import "Lr2SkinUtils.js" as Lr2SkinUtils
 
 Item {
     id: sceneRoot
@@ -70,6 +71,31 @@ Item {
                 sliderState: sceneRoot.sliderState
                 selectHoverState: sceneRoot.selectHoverState
                 active: sceneRoot.selectScreenActive
+            }
+
+            // Event-driven sprites may not otherwise reach the scene graph
+            // until the first hit. Keep one obscured node per source resident
+            // so large textures are uploaded while play is being prepared.
+            Repeater {
+                model: sceneRoot.rootReady && sceneRoot.root.gameplayScreenActive
+                    ? sceneRoot.skinModel.gameplayPreloadSources
+                    : []
+
+                delegate: Image {
+                    required property string modelData
+
+                    x: 0
+                    y: 0
+                    z: -1000000
+                    width: 1
+                    height: 1
+                    opacity: 0.001
+                    source: Lr2SkinUtils.fileUrlForPath(modelData)
+                    cache: true
+                    asynchronous: false
+                    smooth: false
+                    mipmap: false
+                }
             }
 
             Repeater {

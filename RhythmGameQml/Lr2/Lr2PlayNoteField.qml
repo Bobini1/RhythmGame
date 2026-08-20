@@ -608,9 +608,16 @@ Item {
                 player,
                 root.sideSpeedHeight(side, dstState))
             readonly property real laneBottomPosition: root.laneBottom(side, dstState)
-            property bool clipActive: root.hidSudClipActive(side)
+            readonly property bool lr2ClipEnabled: !!root.screenRoot
+                && !root.screenRoot.lr2SkinUsesBeatorajaSemantics
+            property bool clipActive: lr2ClipEnabled
+                || root.hidSudClipActive(side)
             property real clipTopSkin: root.hidSudClipTop(side, dstState)
-            property real clipBottomSkin: root.hidSudClipBottom(side, dstState)
+            property real clipBottomSkin: Math.min(
+                root.hidSudClipBottom(side, dstState),
+                lr2ClipEnabled
+                    ? laneBottomPosition + Math.max(0, dstState ? dstState.h || 0 : 0)
+                    : Infinity)
 
             width: parent.width
             height: parent.height

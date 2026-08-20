@@ -64,6 +64,7 @@ class Lr2SkinModel : public QAbstractListModel {
     Q_PROPERTY(QVariantList noteDsts READ noteDsts NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList lineSources READ lineSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList lineDsts READ lineDsts NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList gameplayPreloadSources READ gameplayPreloadSources NOTIFY skinMetadataChanged)
 
 public:
     enum Roles {
@@ -137,6 +138,7 @@ public:
     QVariantList noteDsts() const;
     QVariantList lineSources() const;
     QVariantList lineDsts() const;
+    QVariantList gameplayPreloadSources() const;
 
 signals:
     void csvPathChanged();
@@ -211,6 +213,7 @@ private:
     QVariantList m_noteDsts;
     QVariantList m_lineSources;
     QVariantList m_lineDsts;
+    QVariantList m_gameplayPreloadSources;
     bool m_hasLoadedSkin = false;
     quint64 m_requestedLoadGeneration = 0;
     quint64 m_runningLoadGeneration = 0;

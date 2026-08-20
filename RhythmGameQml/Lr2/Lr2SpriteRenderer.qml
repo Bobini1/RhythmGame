@@ -20,7 +20,8 @@ Item {
     property var activeOptionsState: null
     property var activeOptions: []
     property var timers: ({ 0: 0 })
-    property alias timerFire: drawState.timerFire
+    property int timerFire: -2147483648
+    property bool prewarmBeforeTimer: false
     property Lr2GameplayFrameState gameplayFrameState: null
     property bool useGameplayRhythmTimer: false
     property int sourceTimerFire: -2147483648
@@ -60,6 +61,10 @@ Item {
         && root.animationFrameState.sourceRegionExceedsTextureBounds
     property bool shouldSampleInAtlasShader: false
     property bool useFastImagePath: false
+    readonly property bool prewarmingBeforeTimer: root.prewarmBeforeTimer
+        && root.timerFire < 0
+    readonly property int prewarmSkinTime: root.dsts && root.dsts.length > 0
+        && root.dsts[0] ? Math.max(0, root.dsts[0].time || 0) : 0
 
     readonly property bool hasFrameAnimation: sourceHasFrameAnimation
     readonly property int sourceTimeOffset: {
@@ -74,12 +79,13 @@ Item {
     Lr2TimelineFrame {
         id: drawState
         dsts: root.dsts
-        skinTime: root.skinTime
+        skinTime: root.prewarmingBeforeTimer ? root.prewarmSkinTime : root.skinTime
         skinClock: root.skinClock
         skinClockMode: root.skinClockMode
         activeOptionsState: root.activeOptionsState
         activeOptions: root.activeOptions
         timers: root.timers
+        timerFire: root.prewarmingBeforeTimer ? 0 : root.timerFire
         gameplayFrameState: root.gameplayFrameState
         useGameplayRhythmTimer: root.useGameplayRhythmTimer
         stateOverride: root.stateOverride
@@ -318,7 +324,11 @@ Item {
 
     Item {
         id: sprite
-        x: root.spriteStateX * root.scaleOverride
+        // Build event-triggered scene-graph nodes offscreen before the first
+        // hit, while the gameplay screen is still being prepared.
+        x: root.prewarmingBeforeTimer
+            ? -Math.max(1, root.spriteStateW * root.scaleOverride) - 1
+            : root.spriteStateX * root.scaleOverride
         y: root.spriteStateY * root.scaleOverride
         width: root.spriteStateW * root.scaleOverride
         height: root.hiddenVisibleStateH * root.scaleOverride

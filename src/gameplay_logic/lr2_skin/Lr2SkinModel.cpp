@@ -126,6 +126,98 @@ chartAssetSourceUsageForElements(const QList<Lr2Element>& elements)
 }
 
 bool
+isFirstUseGameplayTimer(const int timer)
+{
+    return (timer >= 42 && timer <= 137) || timer == 446 || timer == 447;
+}
+
+bool
+hasFirstUseGameplayDestination(const QVariantList& destinations)
+{
+    return std::ranges::any_of(destinations, [](const QVariant& destination) {
+        return destination.canConvert<Lr2Dst>() &&
+               isFirstUseGameplayTimer(destination.value<Lr2Dst>().timer);
+    });
+}
+
+void
+appendUniquePreloadSource(QVariantList& result,
+                          QSet<QString>& seen,
+                          const QString& source)
+{
+    if (source.isEmpty() || seen.contains(source)) {
+        return;
+    }
+    seen.insert(source);
+    result.append(source);
+}
+
+void
+appendPreloadImageSources(QVariantList& result,
+                          QSet<QString>& seen,
+                          const QVariant& source,
+                          const int depth = 0)
+{
+    if (!source.isValid() || depth > 4) {
+        return;
+    }
+    if (source.canConvert<Lr2SrcImage>()) {
+        const auto image = source.value<Lr2SrcImage>();
+        if (image.specialType == Lr2SrcImage::None) {
+            appendUniquePreloadSource(result, seen, image.source);
+        }
+        for (const auto& child : image.imageSetSources) {
+            appendPreloadImageSources(result, seen, child, depth + 1);
+        }
+        return;
+    }
+    if (source.canConvert<QVariantList>()) {
+        for (const auto& child : source.toList()) {
+            appendPreloadImageSources(result, seen, child, depth + 1);
+        }
+        return;
+    }
+    if (source.canConvert<QVariantMap>()) {
+        const auto sourceMap = source.toMap();
+        appendUniquePreloadSource(
+          result, seen, sourceMap.value(QStringLiteral("source")).toString());
+        appendPreloadImageSources(
+          result,
+          seen,
+          sourceMap.value(QStringLiteral("imageSetSources")),
+          depth + 1);
+    }
+}
+
+QVariantList
+gameplayPreloadSourcesForElements(const QList<Lr2Element>& elements)
+{
+    QVariantList result;
+    QSet<QString> seen;
+    for (const auto& element : elements) {
+        const bool destinationTriggersOnGameplayEvent =
+          hasFirstUseGameplayDestination(element.dsts);
+        if (element.type == 0 && element.src.canConvert<Lr2SrcImage>()) {
+            const auto source = element.src.value<Lr2SrcImage>();
+            if (source.specialType == Lr2SrcImage::None &&
+                (isFirstUseGameplayTimer(source.timer) ||
+                 destinationTriggersOnGameplayEvent)) {
+                appendPreloadImageSources(result, seen, element.src);
+            }
+            continue;
+        }
+        if (element.type == 1 && element.src.canConvert<Lr2SrcNumber>()) {
+            const auto source = element.src.value<Lr2SrcNumber>();
+            if (isFirstUseGameplayTimer(source.timer) ||
+                destinationTriggersOnGameplayEvent) {
+                appendUniquePreloadSource(result, seen, source.source);
+            }
+        }
+    }
+    return result;
+}
+
+bool
 hasSelectChartRendererElement(const QList<Lr2Element>& elements)
 {
     return std::any_of(
@@ -820,6 +912,12 @@ Lr2SkinModel::lineDsts() const
     return m_lineDsts;
 }
 
+QVariantList
+Lr2SkinModel::gameplayPreloadSources() const
+{
+    return m_gameplayPreloadSources;
+}
+
 void
 Lr2SkinModel::setCsvPath(const QString& path)
 {
@@ -897,7 +995,8 @@ Lr2SkinModel::loadSkin()
           !m_autoMineSources.isEmpty() || !m_autoLnStartSources.isEmpty() ||
           !m_autoLnEndSources.isEmpty() || !m_autoLnBodySources.isEmpty() ||
           !m_autoLnBodyActiveSources.isEmpty() || !m_noteDsts.isEmpty() ||
-          !m_lineSources.isEmpty() || !m_lineDsts.isEmpty();
+          !m_lineSources.isEmpty() || !m_lineDsts.isEmpty() ||
+          !m_gameplayPreloadSources.isEmpty();
         m_effectiveActiveOptions.clear();
         m_usedOptions.clear();
         m_usedElementOptions.clear();
@@ -950,6 +1049,7 @@ Lr2SkinModel::loadSkin()
         m_noteDsts.clear();
         m_lineSources.clear();
         m_lineDsts.clear();
+        m_gameplayPreloadSources.clear();
         endResetModel();
         if (metadataChanged) {
             emit skinMetadataChanged();
@@ -1029,6 +1129,8 @@ Lr2SkinModel::applySkinData(Lr2SkinData skinData)
       hasNowJudgeMaxGaugeVariant(skinData.elements, 1);
     const bool hasNowJudgeMaxGaugeVariant2 =
       hasNowJudgeMaxGaugeVariant(skinData.elements, 2);
+    const auto gameplayPreloadSources =
+      gameplayPreloadSourcesForElements(skinData.elements);
     const bool metadataChanged =
       m_startInput != skinData.startInput ||
       m_sceneTime != skinData.sceneTime || m_loadStart != skinData.loadStart ||
@@ -1076,7 +1178,9 @@ Lr2SkinModel::applySkinData(Lr2SkinData skinData)
       m_autoLnBodySources != skinData.autoLnBodySources ||
       m_autoLnBodyActiveSources != skinData.autoLnBodyActiveSources ||
       m_noteDsts != skinData.noteDsts ||
-      m_lineSources != skinData.lineSources || m_lineDsts != skinData.lineDsts;
+      m_lineSources != skinData.lineSources ||
+      m_lineDsts != skinData.lineDsts ||
+      m_gameplayPreloadSources != gameplayPreloadSources;
     m_startInput = skinData.startInput;
     m_sceneTime = skinData.sceneTime;
     m_loadStart = skinData.loadStart;
@@ -1129,6 +1233,7 @@ Lr2SkinModel::applySkinData(Lr2SkinData skinData)
     m_noteDsts = skinData.noteDsts;
     m_lineSources = skinData.lineSources;
     m_lineDsts = skinData.lineDsts;
+    m_gameplayPreloadSources = gameplayPreloadSources;
     applyElements(std::move(elements));
     if (metadataChanged) {
         emit skinMetadataChanged();

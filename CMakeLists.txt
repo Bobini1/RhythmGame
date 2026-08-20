@@ -149,6 +149,7 @@ qt_add_library(RhythmGame_lib OBJECT
         src/charts/ParsedBmsChart.h
         src/support/EnableSharedFromBase.cpp
         src/support/EnableSharedFromBase.h
+        src/support/FrameRateLimiter.h
         src/support/Capitalize.cpp
         src/support/Capitalize.h
         src/resource_managers/FindDataFolder.cpp
@@ -357,6 +358,7 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/lr2_skin/Lr2SkinModel.h
         src/gameplay_logic/lr2_skin/Lr2SkinModel.cpp
 )
+target_sources(RhythmGame_lib PRIVATE src/support/FrameRateLimiter.cpp)
 target_compile_definitions(RhythmGame_lib PUBLIC QT_QML_DEBUG)
 
 

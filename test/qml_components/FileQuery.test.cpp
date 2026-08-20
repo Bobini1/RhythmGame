@@ -6,6 +6,8 @@
 #include <QTemporaryDir>
 #include <QUrl>
 
+#include <optional>
+
 namespace {
 
 auto
@@ -21,6 +23,19 @@ textWith(QChar ch) -> QString
 {
     return QString(ch);
 }
+
+class FolderLaunchProbe : public qml_components::FileQuery
+{
+  public:
+    mutable std::optional<QUrl> openedUrl;
+
+  protected:
+    bool openUrl(const QUrl& url) const override
+    {
+        openedUrl = url;
+        return true;
+    }
+};
 
 } // namespace
 
@@ -87,4 +102,18 @@ TEST_CASE("FileQuery preserves hashes in local file URLs", "[FileQuery][paths]")
     CHECK(url.isLocalFile());
     CHECK(url.fragment().isEmpty());
     CHECK(url.toLocalFile() == path);
+}
+
+TEST_CASE("FileQuery opens folders through a typed local URL",
+          "[FileQuery][paths]")
+{
+    const auto path = QStringLiteral("C:/Songs/song#mix");
+    auto query = FolderLaunchProbe{};
+
+    REQUIRE(query.openFolder(path));
+    REQUIRE(query.openedUrl.has_value());
+    CHECK(query.openedUrl->isLocalFile());
+    CHECK_FALSE(query.openedUrl->hasFragment());
+    CHECK_FALSE(query.openedUrl->hasQuery());
+    CHECK(query.openedUrl->toLocalFile() == path);
 }

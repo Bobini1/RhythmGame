@@ -7,6 +7,7 @@
 #include "resource_managers/SongAssetStore.h"
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
+#include <QDesktopServices>
 #include <QFile>
 #include <QFont>
 #include <QFontDatabase>
@@ -300,6 +301,18 @@ auto
 FileQuery::localFileUrl(const QString& path) const -> QString
 {
     return path.isEmpty() ? QString{} : QUrl::fromLocalFile(path).toString();
+}
+
+auto
+FileQuery::openFolder(const QString& path) const -> bool
+{
+    return !path.isEmpty() && openUrl(QUrl::fromLocalFile(path));
+}
+
+auto
+FileQuery::openUrl(const QUrl& url) const -> bool
+{
+    return QDesktopServices::openUrl(url);
 }
 
 auto

@@ -5,7 +5,6 @@
 #include "ProgramSettings.h"
 
 #include <algorithm>
-#include <thread>
 #include <utility>
 #include <QGuiApplication>
 #include <QClipboard>
@@ -45,6 +44,11 @@ ProgramSettings::getPresentationFps() const -> int
 {
     return presentationFps.load(std::memory_order_relaxed);
 }
+auto
+ProgramSettings::getContinuousRendering() const -> bool
+{
+    return continuousRendering.load(std::memory_order_relaxed);
+}
 void
 ProgramSettings::setMaxFps(int value)
 {
@@ -57,10 +61,23 @@ ProgramSettings::setMaxFps(int value)
     emit maxFpsChanged();
 }
 void
+ProgramSettings::setContinuousRendering(const bool value)
+{
+    if (continuousRendering.exchange(value, std::memory_order_release) == value) {
+        return;
+    }
+    if (value && frameRateWindow) {
+        frameRateWindow->update();
+    }
+    emit continuousRenderingChanged();
+}
+void
 ProgramSettings::attachFrameRateLimiter(QQuickWindow* window)
 {
+    frameRateWindow = window;
     QObject::disconnect(frameLimiterConnection);
     QObject::disconnect(presentationCounterConnection);
+    QObject::disconnect(continuousFrameRequestConnection);
     frameLimiterConnection = QObject::connect(window,
                                               &QQuickWindow::beforeRendering,
                                               this,
@@ -72,32 +89,25 @@ ProgramSettings::attachFrameRateLimiter(QQuickWindow* window)
                        this,
                        &ProgramSettings::countPresentedFrame,
                        Qt::DirectConnection);
+    // frameSwapped is emitted on the render thread. Only request Qt Quick's
+    // next frame here; gameplay and QML state remain on the GUI thread and are
+    // synchronized by Qt before rendering.
+    continuousFrameRequestConnection =
+      QObject::connect(window,
+                       &QQuickWindow::frameSwapped,
+                       window,
+                       [this, window] {
+                           if (continuousRendering.load(
+                                 std::memory_order_acquire)) {
+                               window->update();
+                           }
+                       },
+                       Qt::DirectConnection);
 }
 void
 ProgramSettings::limitFrameRate()
 {
-    const auto frameRateLimit = maxFps.load(std::memory_order_relaxed);
-    if (frameRateLimit == 0) {
-        previousFrameRateLimit = 0;
-        previousFrameStart = {};
-        return;
-    }
-
-    const auto now = std::chrono::steady_clock::now();
-    if (frameRateLimit != previousFrameRateLimit ||
-        previousFrameStart == std::chrono::steady_clock::time_point{}) {
-        previousFrameRateLimit = frameRateLimit;
-        previousFrameStart = now;
-        return;
-    }
-
-    const auto frameInterval =
-      std::chrono::nanoseconds(std::chrono::seconds(1)) / frameRateLimit;
-    const auto nextFrameStart = previousFrameStart + frameInterval;
-    if (now < nextFrameStart) {
-        std::this_thread::sleep_until(nextFrameStart);
-    }
-    previousFrameStart = std::chrono::steady_clock::now();
+    frameRateLimiter.wait(maxFps.load(std::memory_order_relaxed));
 }
 void
 ProgramSettings::countPresentedFrame()
@@ -131,6 +141,7 @@ ProgramSettings::countPresentedFrame()
     QMetaObject::invokeMethod(
       this, [this] { emit presentationFpsChanged(); }, Qt::QueuedConnection);
 }
+
 auto
 ProgramSettings::copyImageToClipboard(const QString& path) -> void
 {

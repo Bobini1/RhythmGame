@@ -75,6 +75,12 @@ Loader {
     readonly property bool usesLiveGameplaySrcTimer: !!elemLoader.screenRoot
         && elemLoader.screenRoot.gameplayScreenActive
         && elemLoader.srcTimer === 140
+    readonly property bool prewarmFirstGameplayUse: !!elemLoader.screenRoot
+        && elemLoader.screenRoot.gameplayScreenActive
+        && (((elemLoader.dstTimer >= 42 && elemLoader.dstTimer <= 137)
+             || elemLoader.dstTimer === 446 || elemLoader.dstTimer === 447)
+            || ((elemLoader.srcTimer >= 42 && elemLoader.srcTimer <= 137)
+                || elemLoader.srcTimer === 446 || elemLoader.srcTimer === 447))
     readonly property int spriteStateOverrideKind: elementState.spriteStateOverrideKind
     readonly property bool usesSpriteStateOverride: elementState.usesSpriteStateOverride
     readonly property bool usesSpriteForceHidden: elementState.usesSpriteForceHidden
@@ -385,6 +391,7 @@ Loader {
                 dsts: elemLoader.elementData.dsts
                 srcData: elemLoader.resolvedImageSetSource(elemLoader.elementData.src)
                 sourceHasFrameAnimation: imageComponentRoot.sourceAnimates
+                prewarmBeforeTimer: elemLoader.prewarmFirstGameplayUse
                 skinTime: imageComponentRoot.useDirectSkinClock ? 0 : imageComponentRoot.spriteSkinClock
                 sourceSkinTime: imageComponentRoot.useDirectSkinClock ? 0 : imageComponentRoot.spriteSourceSkinClock
                 skinClock: imageComponentRoot.useDirectSkinClock ? elemLoader.screenRoot.skinClockRef : null
