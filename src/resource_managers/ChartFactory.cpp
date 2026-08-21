@@ -14,8 +14,6 @@
 #include "support/PathToQString.h"
 #include "support/PathToUtfString.h"
 #include <QByteArrayView>
-#include <QDir>
-#include <QHash>
 #include <QImageReader>
 #include <QVideoFrame>
 #include <QGuiApplication>
@@ -690,30 +688,9 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getChartDirectory());
     const auto archived = assetStore->isArchived(path);
-    auto encodedWavs = charts::EncodedSounds{};
-    if (archived) {
-        auto uniqueSounds = QHash<QString, charts::EncodedSound>{};
-        for (const auto& [id, relativePath] : wavs) {
-            auto key = support::pathToQString(relativePath);
-            key.replace('\\', '/');
-            key = QDir::cleanPath(key).toCaseFolded();
-            if (const auto found = uniqueSounds.constFind(key);
-                found != uniqueSounds.cend()) {
-                encodedWavs.emplace(id, *found);
-                continue;
-            }
-            try {
-                auto encoded = std::make_shared<const QByteArray>(
-                  assetStore->read(path / relativePath));
-                uniqueSounds.insert(key, encoded);
-                encodedWavs.emplace(id, std::move(encoded));
-            } catch (const std::exception& error) {
-                spdlog::warn("Failed to read archived sound {}: {}",
-                             support::pathToUtfString(path / relativePath),
-                             error.what());
-            }
-        }
-    }
+    auto encodedWavs = archived
+                         ? charts::loadArchivedSoundData(assetStore, path, wavs)
+                         : charts::EncodedSounds{};
     auto components1 = getComponentsForPlayer(player1,
                                               notesData,
                                               *chartData,

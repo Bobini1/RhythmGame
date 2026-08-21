@@ -32,6 +32,7 @@ add_executable(RhythmGame_test
         charts/BmsChartReader.test.cpp
         db/SqliteCppDb.test.cpp
         sounds/OpenAlSound.test.cpp
+        sounds/ChartAudioPlayer.test.cpp
         image_handlers/ImageHandlerClip.test.cpp
         findTestAssetsFolder.h
         charts/BmsChart.test.cpp

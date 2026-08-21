@@ -9,13 +9,70 @@
 #include "sounds/NormalSoundBuffer.h"
 #include "sounds/SlicedSoundBuffer.h"
 #include "sounds/SoundBuffer.h"
+#include "resource_managers/SongAssetStore.h"
+#include "support/PathToQString.h"
 #include "support/PathToUtfString.h"
+
+#include <QDir>
+#include <QHash>
 
 #include <optional>
 #include <unordered_set>
 #include <QtConcurrent>
 
 namespace charts {
+
+namespace {
+
+auto
+isCancelled(const std::atomic_bool* cancellation) -> bool
+{
+    return cancellation && cancellation->load();
+}
+
+} // namespace
+
+auto
+loadArchivedSoundData(
+  resource_managers::SongAssetStore* assetStore,
+  const std::filesystem::path& chartDirectory,
+  const std::unordered_map<uint64_t, std::filesystem::path>& paths,
+  const std::atomic_bool* cancellation) -> EncodedSounds
+{
+    auto encodedSounds = EncodedSounds{};
+    auto uniqueSounds = QHash<QString, EncodedSound>{};
+    for (const auto& [id, relativePath] : paths) {
+        if (isCancelled(cancellation)) {
+            return {};
+        }
+        auto key = support::pathToQString(relativePath);
+        key.replace('\\', '/');
+        key = QDir::cleanPath(key).toCaseFolded();
+        if (const auto found = uniqueSounds.constFind(key);
+            found != uniqueSounds.cend()) {
+            encodedSounds.emplace(id, *found);
+            continue;
+        }
+        try {
+            auto encoded = std::make_shared<const QByteArray>(
+              assetStore->read(chartDirectory / relativePath, cancellation));
+            if (isCancelled(cancellation)) {
+                return {};
+            }
+            uniqueSounds.insert(key, encoded);
+            encodedSounds.emplace(id, std::move(encoded));
+        } catch (const std::exception& error) {
+            if (isCancelled(cancellation)) {
+                return {};
+            }
+            spdlog::warn(
+              "Failed to read archived sound {}: {}",
+              support::pathToUtfString(chartDirectory / relativePath),
+              error.what());
+        }
+    }
+    return encodedSounds;
+}
 
 #if _WIN32
 auto
@@ -100,7 +157,8 @@ createLowerCaseFilesMap(std::filesystem::path dirToSearch)
 
 auto
 loadEncodedBuffers(sounds::AudioEngine* engine,
-                   const EncodedSounds& encodedSounds)
+                   const EncodedSounds& encodedSounds,
+                   const std::atomic_bool* cancellation)
   -> std::unordered_map<EncodedSound,
                         std::shared_ptr<const sounds::SoundBuffer>>
 {
@@ -108,6 +166,9 @@ loadEncodedBuffers(sounds::AudioEngine* engine,
     uniqueSounds.reserve(encodedSounds.size());
     for (const auto& [id, encoded] : encodedSounds) {
         Q_UNUSED(id);
+        if (isCancelled(cancellation)) {
+            return {};
+        }
         if (encoded) {
             uniqueSounds.insert(encoded);
         }
@@ -116,22 +177,28 @@ loadEncodedBuffers(sounds::AudioEngine* engine,
       std::unordered_map<EncodedSound,
                          std::shared_ptr<const sounds::SoundBuffer>>>(
       uniqueSounds,
-      [engine](const EncodedSound& encoded)
+      [engine, cancellation](const EncodedSound& encoded)
         -> std::optional<
           std::pair<EncodedSound, std::shared_ptr<const sounds::SoundBuffer>>> {
+          if (isCancelled(cancellation)) {
+              return std::nullopt;
+          }
           try {
-              return std::pair{
-                  encoded,
-                  std::make_shared<const sounds::NormalSoundBuffer>(
-                    engine, QByteArrayView{ *encoded })
-              };
+              auto decoded =
+                std::pair{ encoded,
+                           std::make_shared<const sounds::NormalSoundBuffer>(
+                             engine, QByteArrayView{ *encoded }) };
+              if (isCancelled(cancellation)) {
+                  return std::nullopt;
+              }
+              return decoded;
           } catch (const std::exception& error) {
               spdlog::warn("Failed to load archived sound: {}", error.what());
               return std::nullopt;
           }
       },
-      [](auto& buffers, const auto& decoded) {
-          if (decoded) {
+      [cancellation](auto& buffers, const auto& decoded) {
+          if (decoded && !isCancelled(cancellation)) {
               buffers.emplace(decoded->first, decoded->second);
           }
       });
@@ -144,14 +211,21 @@ createBmsonSounds(
                            std::shared_ptr<const sounds::SoundBuffer>>&
     channelBuffers,
   const std::vector<BmsNotesData::BmsonSliceInfo>& slices,
-  const std::unordered_map<uint64_t, std::vector<uint64_t>>& fusions)
+  const std::unordered_map<uint64_t, std::vector<uint64_t>>& fusions,
+  const std::atomic_bool* cancellation)
   -> std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
 {
+    if (isCancelled(cancellation)) {
+        return {};
+    }
     const auto sampleRate = static_cast<double>(engine->getSampleRate());
     auto result =
       std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>{};
 
     for (const auto& slice : slices) {
+        if (isCancelled(cancellation)) {
+            return {};
+        }
         const auto bufIt = channelBuffers.find(slice.channelIndex);
         if (bufIt == channelBuffers.end()) {
             continue;
@@ -176,6 +250,9 @@ createBmsonSounds(
     }
 
     for (const auto& [fusedId, sliceIds] : fusions) {
+        if (isCancelled(cancellation)) {
+            return {};
+        }
         auto children = std::vector<std::shared_ptr<sounds::Sound>>{};
         for (const auto sliceId : sliceIds) {
             if (const auto found = result.find(sliceId);
@@ -195,10 +272,14 @@ createBmsonSounds(
 auto
 loadBmsSounds(sounds::AudioEngine* engine,
               const std::unordered_map<uint64_t, std::filesystem::path>& wavs,
-              const std::filesystem::path& path)
+              const std::filesystem::path& path,
+              const std::atomic_bool* cancellation)
   -> std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
 {
     auto start = std::chrono::high_resolution_clock::now();
+    if (isCancelled(cancellation)) {
+        return {};
+    }
     auto wavsActualPaths =
       std::unordered_map<uint64_t, std::filesystem::path>{};
     wavsActualPaths.reserve(wavs.size());
@@ -207,6 +288,9 @@ loadBmsSounds(sounds::AudioEngine* engine,
     auto lowerCaseFilesMap = createLowerCaseFilesMap(path);
 #endif
     for (const auto& [key, value] : wavs) {
+        if (isCancelled(cancellation)) {
+            return {};
+        }
         {
 #ifdef _WIN32
             auto filePath = path / value;
@@ -239,14 +323,22 @@ loadBmsSounds(sounds::AudioEngine* engine,
       std::unordered_map<std::filesystem::path,
                          std::shared_ptr<const sounds::SoundBuffer>>>(
       uniqueSoundPaths,
-      [engine](const auto& path)
+      [engine, cancellation](const auto& path)
         -> std::optional<
           std::pair<std::filesystem::path,
                     std::shared_ptr<const sounds::SoundBuffer>>> {
+          if (isCancelled(cancellation)) {
+              return std::nullopt;
+          }
           try {
-              return { { path,
-                         std::make_shared<const sounds::NormalSoundBuffer>(
-                           engine, path) } };
+              auto decoded =
+                std::pair{ path,
+                           std::make_shared<const sounds::NormalSoundBuffer>(
+                             engine, path) };
+              if (isCancelled(cancellation)) {
+                  return std::nullopt;
+              }
+              return decoded;
           } catch (const std::exception& e) {
               spdlog::warn("Failed to load sound {}: {}",
                            support::pathToUtfString(path),
@@ -254,8 +346,8 @@ loadBmsSounds(sounds::AudioEngine* engine,
               return std::nullopt;
           }
       },
-      [](auto& container, const auto& pair) -> void {
-          if (pair) {
+      [cancellation](auto& container, const auto& pair) -> void {
+          if (pair && !isCancelled(cancellation)) {
               container.emplace(pair->first, pair->second);
           }
       },
@@ -265,6 +357,9 @@ loadBmsSounds(sounds::AudioEngine* engine,
       std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>();
     sounds.reserve(wavsActualPaths.size());
     for (const auto& [key, actualPath] : wavsActualPaths) {
+        if (isCancelled(cancellation)) {
+            return {};
+        }
         auto buffer = buffers.find(actualPath);
         if (buffer != buffers.end()) {
             sounds.emplace(
@@ -282,15 +377,20 @@ loadBmsSounds(sounds::AudioEngine* engine,
 }
 
 auto
-loadBmsSounds(sounds::AudioEngine* engine, const EncodedSounds& wavs)
+loadBmsSounds(sounds::AudioEngine* engine,
+              const EncodedSounds& wavs,
+              const std::atomic_bool* cancellation)
   -> std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
 {
     const auto start = std::chrono::high_resolution_clock::now();
-    const auto buffers = loadEncodedBuffers(engine, wavs);
+    const auto buffers = loadEncodedBuffers(engine, wavs, cancellation);
     auto result =
       std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>{};
     result.reserve(wavs.size());
     for (const auto& [id, encoded] : wavs) {
+        if (isCancelled(cancellation)) {
+            return {};
+        }
         if (const auto found = buffers.find(encoded); found != buffers.end()) {
             result.emplace(
               id, std::make_shared<sounds::NormalSound>(engine, found->second));
@@ -311,10 +411,14 @@ loadBmsonSounds(
   const std::unordered_map<uint64_t, std::filesystem::path>& channelPaths,
   const std::vector<BmsNotesData::BmsonSliceInfo>& slices,
   const std::unordered_map<uint64_t, std::vector<uint64_t>>& fusions,
-  const std::filesystem::path& basePath)
+  const std::filesystem::path& basePath,
+  const std::atomic_bool* cancellation)
   -> std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
 {
     auto start = std::chrono::high_resolution_clock::now();
+    if (isCancelled(cancellation)) {
+        return {};
+    }
 
     // 1. Resolve actual file paths for each channel
     auto channelActualPaths =
@@ -324,6 +428,9 @@ loadBmsonSounds(
     auto lowerCaseFilesMap = createLowerCaseFilesMap(basePath);
 #endif
     for (const auto& [idx, relPath] : channelPaths) {
+        if (isCancelled(cancellation)) {
+            return {};
+        }
 #ifdef _WIN32
         auto actualPath = getActualPathWindows(basePath / relPath);
 #else
@@ -347,16 +454,22 @@ loadBmsonSounds(
       std::unordered_map<std::filesystem::path,
                          std::shared_ptr<const sounds::SoundBuffer>>>(
       uniquePaths,
-      [engine](const auto& path)
+      [engine, cancellation](const auto& path)
         -> std::optional<
           std::pair<std::filesystem::path,
                     std::shared_ptr<const sounds::SoundBuffer>>> {
+          if (isCancelled(cancellation)) {
+              return std::nullopt;
+          }
           try {
-              return std::pair{
-                  path,
-                  std::make_shared<const sounds::NormalSoundBuffer>(engine,
-                                                                    path)
-              };
+              auto decoded =
+                std::pair{ path,
+                           std::make_shared<const sounds::NormalSoundBuffer>(
+                             engine, path) };
+              if (isCancelled(cancellation)) {
+                  return std::nullopt;
+              }
+              return decoded;
           } catch (const std::exception& e) {
               spdlog::warn("Failed to load bmson sound {}: {}",
                            support::pathToUtfString(path),
@@ -364,8 +477,8 @@ loadBmsonSounds(
               return std::nullopt;
           }
       },
-      [](auto& container, const auto& pair) {
-          if (pair) {
+      [cancellation](auto& container, const auto& pair) {
+          if (pair && !isCancelled(cancellation)) {
               container.emplace(pair->first, pair->second);
           }
       });
@@ -375,12 +488,16 @@ loadBmsonSounds(
       std::unordered_map<uint64_t,
                          std::shared_ptr<const sounds::SoundBuffer>>{};
     for (const auto& [idx, actualPath] : channelActualPaths) {
+        if (isCancelled(cancellation)) {
+            return {};
+        }
         if (auto it = fullBuffers.find(actualPath); it != fullBuffers.end()) {
             channelBuffers[idx] = it->second;
         }
     }
 
-    auto result = createBmsonSounds(engine, channelBuffers, slices, fusions);
+    auto result =
+      createBmsonSounds(engine, channelBuffers, slices, fusions, cancellation);
 
     auto end = std::chrono::high_resolution_clock::now();
     spdlog::info(
@@ -396,21 +513,26 @@ loadBmsonSounds(
   sounds::AudioEngine* engine,
   const EncodedSounds& channels,
   const std::vector<BmsNotesData::BmsonSliceInfo>& slices,
-  const std::unordered_map<uint64_t, std::vector<uint64_t>>& fusions)
+  const std::unordered_map<uint64_t, std::vector<uint64_t>>& fusions,
+  const std::atomic_bool* cancellation)
   -> std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
 {
     const auto start = std::chrono::high_resolution_clock::now();
-    const auto buffers = loadEncodedBuffers(engine, channels);
+    const auto buffers = loadEncodedBuffers(engine, channels, cancellation);
     auto channelBuffers =
       std::unordered_map<uint64_t,
                          std::shared_ptr<const sounds::SoundBuffer>>{};
     channelBuffers.reserve(channels.size());
     for (const auto& [id, encoded] : channels) {
+        if (isCancelled(cancellation)) {
+            return {};
+        }
         if (const auto found = buffers.find(encoded); found != buffers.end()) {
             channelBuffers.emplace(id, found->second);
         }
     }
-    auto result = createBmsonSounds(engine, channelBuffers, slices, fusions);
+    auto result =
+      createBmsonSounds(engine, channelBuffers, slices, fusions, cancellation);
     const auto end = std::chrono::high_resolution_clock::now();
     spdlog::info(
       "Loading {} archived bmson sound slices took: {} ms",

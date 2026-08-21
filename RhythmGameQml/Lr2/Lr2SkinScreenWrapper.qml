@@ -6601,6 +6601,7 @@ Item {
         host: root
         skinModel: skinModel
         previewSource: selectContext.selectedPreviewAudioSource
+        chartSource: selectContext.selectedPreviewChartSource
         active: root.selectAudioActive
     }
 

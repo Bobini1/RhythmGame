@@ -258,6 +258,8 @@ FocusScope {
             } else {
                 previewDelayTimer.stop();
                 playMusic.stop();
+                chartMusic.stop();
+                chartMusic.source = "";
                 bgm.stop();
                 playMusic.waitingForStop = false;
             }
@@ -462,34 +464,51 @@ FocusScope {
             AudioPlayer {
                 id: playMusic
 
-                readonly property string requestedSource: songList.current instanceof ChartData
+                readonly property string requestedPreviewSource: songList.current instanceof ChartData
                     ? (songList.previewFiles[songList.current.chartDirectory] || "")
                     : ""
+                readonly property string requestedChartSource: songList.current instanceof ChartData
+                    ? (songList.current.path || "")
+                    : ""
+                readonly property bool requestedChartAudio: requestedPreviewSource === ""
+                    && requestedChartSource !== ""
+                readonly property string requestedSource: requestedChartAudio
+                    ? requestedChartSource
+                    : requestedPreviewSource
                 property string queuedSource: ""
+                property bool queuedChartAudio: false
                 property bool waitingForStop: false
                 fadeInMillis: 1000
                 looping: true
-                source: queuedSource
-                Component.onCompleted: {
-                    playing = true;
-                }
+                source: queuedChartAudio ? "" : queuedSource
 
                 onRequestedSourceChanged: {
                     previewDelayTimer.stop();
                     playMusic.stop();
+                    chartMusic.stop();
+                    chartMusic.source = "";
                     queuedSource = "";
+                    queuedChartAudio = false;
                     waitingForStop = requestedSource !== "";
                     if (waitingForStop && root.enabled) {
                         previewDelayTimer.restart();
                     }
                 }
             }
+            ChartAudioPlayer {
+                id: chartMusic
+
+                fadeInMillis: 1000
+                looping: true
+            }
             AudioPlayer {
                 id: bgm
                 looping: true
                 source: Rg.profileList.mainProfile.vars.generalVars.bgmPath + "select";
                 fadeInMillis: 1000
-                property bool canPlay: (!playMusic.playing || !playMusic.loaded) && root.enabled
+                property bool canPlay: (!playMusic.playing || !playMusic.loaded)
+                    && (!chartMusic.playing || !chartMusic.loaded)
+                    && root.enabled
                 onCanPlayChanged: {
                     if (!canPlay) {
                         bgm.stop();
@@ -602,14 +621,24 @@ FocusScope {
 
                 onTriggered: {
                     let requested = playMusic.requestedSource;
+                    let requestedChartAudio = playMusic.requestedChartAudio;
                     playMusic.waitingForStop = false;
+                    playMusic.queuedSource = "";
+                    playMusic.queuedChartAudio = requestedChartAudio;
                     playMusic.queuedSource = requested;
                     if (requested !== "") {
                         Qt.callLater(() => {
                             if (root.enabled
                                     && playMusic.queuedSource === requested
-                                    && playMusic.requestedSource === requested) {
-                                playMusic.play();
+                                    && playMusic.requestedSource === requested
+                                    && playMusic.queuedChartAudio === requestedChartAudio
+                                    && playMusic.requestedChartAudio === requestedChartAudio) {
+                                if (requestedChartAudio) {
+                                    chartMusic.source = requested;
+                                    chartMusic.play();
+                                } else {
+                                    playMusic.play();
+                                }
                             }
                         });
                     }

@@ -17,6 +17,8 @@
 #include <QByteArray>
 #include <QFile>
 
+#include <atomic>
+
 #include <support/PathToQString.h>
 #include <support/UtfStringToPath.h>
 
@@ -72,6 +74,23 @@ TEST_CASE("Sounds are loaded from encoded archive entries in memory",
     REQUIRE(first);
     REQUIRE(second);
     CHECK(first->getBuffer() == second->getBuffer());
+}
+
+TEST_CASE("Cancelled sound loads do not start decoding", "[loadBmsSounds]")
+{
+    qputenv("RHYTHMGAME_AUDIO_BACKEND", QByteArrayLiteral("Null"));
+    const auto folder = findTestAssetsFolder() / "supportedSoundFormats";
+    const auto wavs = std::unordered_map<uint64_t, std::filesystem::path>{
+        { 1, "8BIT_audiocheck.net_sin_1000Hz_-3dBFS_0.2s_8.0k.wav" },
+    };
+    const auto encoded = charts::EncodedSounds{
+        { 1, std::make_shared<const QByteArray>("not audio") },
+    };
+    auto cancellation = std::atomic_bool{ true };
+    auto engine = sounds::AudioEngine{};
+
+    CHECK(charts::loadBmsSounds(&engine, wavs, folder, &cancellation).empty());
+    CHECK(charts::loadBmsSounds(&engine, encoded, &cancellation).empty());
 }
 
 TEST_CASE("Even when the extension says wav, allow loading other extensions",

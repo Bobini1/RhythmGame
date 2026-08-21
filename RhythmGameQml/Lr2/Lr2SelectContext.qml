@@ -168,6 +168,10 @@ Item {
         let chartData = selectedStateChartData;
         return chartData ? (previewFiles[chartData.chartDirectory] || "") : "";
     }
+    readonly property string selectedPreviewChartSource: {
+        let chartData = selectedStateChartData;
+        return chartData ? (chartData.path || "") : "";
+    }
     property string visualStageFileSource: ""
     property string visualBackBmpSource: ""
     property string visualBannerSource: ""

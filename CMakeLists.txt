@@ -323,6 +323,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/sounds/MiniaudioBackend.h
         src/sounds/AudioPlayer.cpp
         src/sounds/AudioPlayer.h
+        src/sounds/ChartAudioPlayer.cpp
+        src/sounds/ChartAudioPlayer.h
         src/resource_managers/AvatarImageProvider.cpp
         src/resource_managers/AvatarImageProvider.h
         src/qml_components/ScoreReplayer.cpp

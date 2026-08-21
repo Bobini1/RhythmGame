@@ -8,6 +8,7 @@ Item {
     required property var host
     required property var skinModel
     required property string previewSource
+    required property string chartSource
 
     property bool active: false
     property bool ready: false
@@ -15,11 +16,20 @@ Item {
     property string playingPreviewSource: ""
     property int previewRequestToken: 0
     property string queuedPreviewSource: ""
+    property bool queuedChartAudio: false
     property alias scratchSoundPlayer: scratchSound
 
-    readonly property string requestedPreviewSource: root.ready && root.active
+    readonly property string requestedFileSource: root.ready && root.active
         ? (root.previewSource || "")
         : ""
+    readonly property string requestedChartSource: root.ready && root.active
+        ? (root.chartSource || "")
+        : ""
+    readonly property bool requestedChartAudio: requestedFileSource === ""
+        && requestedChartSource !== ""
+    readonly property string requestedPreviewSource: requestedChartAudio
+        ? requestedChartSource
+        : requestedFileSource
 
     onActiveChanged: {
         if (root.ready && !root.active) {
@@ -48,7 +58,9 @@ Item {
         }
 
         let nextPreviewSource = root.requestedPreviewSource;
-        if (nextPreviewSource === root.queuedPreviewSource) {
+        let nextChartAudio = root.requestedChartAudio;
+        if (nextPreviewSource === root.queuedPreviewSource
+                && nextChartAudio === root.queuedChartAudio) {
             if (nextPreviewSource !== ""
                     && root.playingPreviewSource !== nextPreviewSource
                     && !previewDelayTimer.running) {
@@ -59,9 +71,11 @@ Item {
 
         previewDelayTimer.stop();
         root.previewRequestToken += 1;
-        root.queuedPreviewSource = nextPreviewSource;
         root.playingPreviewSource = "";
+        root.queuedPreviewSource = nextPreviewSource;
+        root.queuedChartAudio = nextChartAudio;
         playMusic.stop();
+        chartMusic.stop();
         if (nextPreviewSource !== "") {
             previewDelayTimer.restart();
         }
@@ -72,8 +86,10 @@ Item {
         selectBgmDelayTimer.stop();
         root.playingPreviewSource = "";
         root.queuedPreviewSource = "";
+        root.queuedChartAudio = false;
         root.previewRequestToken += 1;
         playMusic.stop();
+        chartMusic.stop();
         selectBgm.stop();
         scratchSound.stop();
     }
@@ -98,7 +114,19 @@ Item {
         id: playMusic
         looping: true
         fadeInMillis: 1000
-        source: root.active ? root.playingPreviewSource : ""
+        source: root.active && !root.queuedChartAudio
+            ? root.playingPreviewSource
+            : ""
+        onSourceChanged: stop()
+    }
+
+    ChartAudioPlayer {
+        id: chartMusic
+        looping: true
+        fadeInMillis: 1000
+        source: root.active && root.queuedChartAudio
+            ? root.playingPreviewSource
+            : ""
         onSourceChanged: stop()
     }
 
@@ -109,6 +137,7 @@ Item {
         source: root.host.mainGeneralVarsRef ? root.host.mainGeneralVarsRef.bgmPath + "select" : ""
         property bool canPlay: root.active
             && (!playMusic.playing || !playMusic.loaded)
+            && (!chartMusic.playing || !chartMusic.loaded)
         onCanPlayChanged: {
             if (!canPlay) {
                 stop();
@@ -146,7 +175,11 @@ Item {
                     if (root.active
                         && root.playingPreviewSource === source
                         && root.previewRequestToken === request) {
-                        playMusic.play();
+                        if (root.queuedChartAudio) {
+                            chartMusic.play();
+                        } else {
+                            playMusic.play();
+                        }
                     }
                 });
             }

@@ -9,6 +9,7 @@
 #include <QGuiApplication>
 #include <QObject>
 #include <QPixmapCache>
+#include <QThreadPool>
 #include <QtQuick>
 #include <QQuickStyle>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -50,6 +51,7 @@
 #include "gameplay_logic/BmsPoints.h"
 #include "sounds/AudioEngine.h"
 #include "sounds/AudioPlayer.h"
+#include "sounds/ChartAudioPlayer.h"
 #include "sounds/SoundBuffer.h"
 #include "support/QtSink.h"
 #include "resource_managers/AvatarImageProvider.h"
@@ -383,6 +385,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          &input::InputTranslator::handleMidiDeviceRemoved);
 
         auto audioEngine = sounds::AudioEngine{};
+        auto chartAudioThreadPool = QThreadPool{};
+        chartAudioThreadPool.setMaxThreadCount(1);
         auto chartFactory = resource_managers::ChartFactory{ &audioEngine,
                                                              &inputTranslator,
                                                              &songAssets };
@@ -663,6 +667,11 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         sounds::AudioPlayer::assetStore = &songAssets;
         qmlRegisterType<sounds::AudioPlayer>(
           "RhythmGameQml", 1, 0, "AudioPlayer");
+        sounds::ChartAudioPlayer::engine = &audioEngine;
+        sounds::ChartAudioPlayer::assetStore = &songAssets;
+        sounds::ChartAudioPlayer::threadPool = &chartAudioThreadPool;
+        qmlRegisterType<sounds::ChartAudioPlayer>(
+          "RhythmGameQml", 1, 0, "ChartAudioPlayer");
         qmlRegisterType<qml_components::ScoreReplayer>(
           "RhythmGameQml", 1, 0, "ScoreReplayer");
         qmlRegisterType<qml_components::Lr2NativeCursor>(
