@@ -89,9 +89,12 @@ ProgramSettings::attachFrameRateLimiter(QQuickWindow* window)
                        this,
                        &ProgramSettings::countPresentedFrame,
                        Qt::DirectConnection);
-    // frameSwapped is emitted on the render thread. Only request Qt Quick's
-    // next frame here; gameplay and QML state remain on the GUI thread and are
-    // synchronized by Qt before rendering.
+    // In the threaded render loop frameSwapped is emitted on the render thread.
+    // Queue the next request to the window's GUI thread so QML state is
+    // synchronized before another frame is rendered. Calling update() directly
+    // from the render thread only requests a repaint of the last synchronized
+    // scene and can keep presenting stale gameplay state while the GUI thread
+    // is delayed.
     continuousFrameRequestConnection =
       QObject::connect(window,
                        &QQuickWindow::frameSwapped,
@@ -102,7 +105,7 @@ ProgramSettings::attachFrameRateLimiter(QQuickWindow* window)
                                window->update();
                            }
                        },
-                       Qt::DirectConnection);
+                       Qt::QueuedConnection);
 }
 void
 ProgramSettings::limitFrameRate()
