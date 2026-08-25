@@ -359,9 +359,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/lr2_skin/Lr2SkinParser.cpp
         src/gameplay_logic/lr2_skin/Lr2SkinModel.h
         src/gameplay_logic/lr2_skin/Lr2SkinModel.cpp
+        src/support/FrameRateLimiter.cpp
 )
-target_sources(RhythmGame_lib PRIVATE src/support/FrameRateLimiter.cpp)
-target_compile_definitions(RhythmGame_lib PUBLIC QT_QML_DEBUG)
 
 
 if (WIN32)
