@@ -41,6 +41,10 @@ createChartAudioEvents(const charts::BmsNotesData& notes)
   -> std::vector<ChartAudioEvent>;
 
 [[nodiscard]] auto
+skipChartAudioLeadingSilence(std::span<ChartAudioEvent> events)
+  -> std::chrono::nanoseconds;
+
+[[nodiscard]] auto
 chartAudioLoopLength(std::span<const ChartAudioEvent> events,
                      std::chrono::nanoseconds chartLength)
   -> std::chrono::nanoseconds;

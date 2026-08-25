@@ -163,8 +163,8 @@ loadChartAudio(const QString& source,
 
     auto events = createChartAudioEvents(components.notesData);
     auto scheduledIds = scheduledSoundIds(events);
-    const auto loopLength = chartAudioLoopLength(
-      events, std::chrono::nanoseconds{ components.chartData->getLength() });
+    const auto chartLength =
+      std::chrono::nanoseconds{ components.chartData->getLength() };
     retainScheduledSoundResources(components, scheduledIds);
     components.bmps.clear();
     throwIfCancelled(cancellation);
@@ -193,6 +193,9 @@ loadChartAudio(const QString& source,
     std::erase_if(loadedSounds, [&scheduledIds](const auto& entry) {
         return !scheduledIds.contains(entry.first);
     });
+    const auto skipped = skipChartAudioLeadingSilence(events);
+    const auto loopLength =
+      chartAudioLoopLength(events, std::max(0ns, chartLength - skipped));
     return { std::move(events), std::move(loadedSounds), loopLength };
 }
 
@@ -222,6 +225,21 @@ createChartAudioEvents(const charts::BmsNotesData& notes)
     }
     std::ranges::stable_sort(events, {}, &ChartAudioEvent::timestamp);
     return events;
+}
+
+auto
+skipChartAudioLeadingSilence(const std::span<ChartAudioEvent> events)
+  -> std::chrono::nanoseconds
+{
+    if (events.empty()) {
+        return 0ns;
+    }
+
+    const auto leadingSilence = std::max(0ns, events.front().timestamp);
+    for (auto& event : events) {
+        event.timestamp -= leadingSilence;
+    }
+    return leadingSilence;
 }
 
 auto

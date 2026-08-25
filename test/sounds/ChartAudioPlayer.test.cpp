@@ -47,3 +47,22 @@ TEST_CASE("chart audio loop keeps the chart tail before restarting",
     CHECK(sounds::chartAudioLoopLength(events, 20s) == 25s);
     CHECK(sounds::chartAudioLoopLength({}, 0ns) == 5s);
 }
+
+TEST_CASE("chart audio preview skips only the leading scheduled silence",
+          "[sounds][ChartAudioPlayer]")
+{
+    auto events = std::vector<sounds::ChartAudioEvent>{
+        { 5s, 1 },
+        { 8s, 2 },
+    };
+
+    const auto skipped = sounds::skipChartAudioLeadingSilence(events);
+
+    CHECK(skipped == 5s);
+    CHECK(events[0] == sounds::ChartAudioEvent{ 0ns, 1 });
+    CHECK(events[1] == sounds::ChartAudioEvent{ 3s, 2 });
+    CHECK(sounds::chartAudioLoopLength(events, 12s - skipped) == 12s);
+
+    auto emptyEvents = std::vector<sounds::ChartAudioEvent>{};
+    CHECK(sounds::skipChartAudioLeadingSilence(emptyEvents) == 0ns);
+}
