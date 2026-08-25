@@ -107,7 +107,10 @@ TEST_CASE("FileQuery preserves hashes in local file URLs", "[FileQuery][paths]")
 TEST_CASE("FileQuery opens folders through a typed local URL",
           "[FileQuery][paths]")
 {
-    const auto path = QStringLiteral("C:/Songs/song#mix");
+    QTemporaryDir tempDir;
+    REQUIRE(tempDir.isValid());
+
+    const auto path = tempDir.filePath(QStringLiteral("song#mix"));
     auto query = FolderLaunchProbe{};
 
     REQUIRE(query.openFolder(path));
