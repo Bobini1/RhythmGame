@@ -1,5 +1,4 @@
 #include "gameplay_logic/ChartData.h"
-#include "qml_components/FileQuery.h"
 #include "qml_components/RootSongFoldersConfig.h"
 #include "qml_components/SongFolderFactory.h"
 #include "resource_managers/DefineDb.h"
@@ -392,39 +391,6 @@ TEST_CASE("AudioPlayer loads an archived preview without a disk copy")
     }
     sounds::AudioPlayer::assetStore = nullptr;
     sounds::AudioPlayer::engine = nullptr;
-}
-
-TEST_CASE("FileQuery returns an archived readme without materializing it")
-{
-    auto temporaryDirectory = QTemporaryDir{};
-    REQUIRE(temporaryDirectory.isValid());
-    const auto root = support::qStringToPath(temporaryDirectory.path());
-    const auto archive = root / "collection.zip";
-    writeZip(archive,
-             { { "song/readme.txt", QByteArray("\x87\x40", 2) },
-               { "marker.mp4", QByteArray{ "marker" } } });
-
-    auto store = resource_managers::SongAssetStore{};
-    const auto marker = store.materialize(archive / "marker.mp4");
-    const auto scratchDirectory = marker.parent_path();
-    const auto fileCount = [&scratchDirectory] {
-        auto count = size_t{};
-        for (const auto& entry :
-             std::filesystem::directory_iterator(scratchDirectory)) {
-            if (entry.is_regular_file()) {
-                ++count;
-            }
-        }
-        return count;
-    };
-    const auto initialFileCount = fileCount();
-
-    auto query = qml_components::FileQuery{ &store };
-    const auto text = query.readTextFile(
-      support::pathToQString(archive / "song" / "readme.txt"));
-
-    CHECK(text == QString{ QChar{ 0x2460 } });
-    CHECK(fileCount() == initialFileCount);
 }
 
 TEST_CASE("SongAssetStore rejects compressed nested ZIP entries")

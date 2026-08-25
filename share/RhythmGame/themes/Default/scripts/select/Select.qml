@@ -31,8 +31,8 @@ FocusScope {
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
         readonly property string commonImagesUrl: Qt.resolvedUrl("../common/") + "images/"
-        readonly property bool selectShortcutEnabled: root.enabled && !searchEdit.activeFocus && !options.visible && !readmeDialog.opened
-        readonly property bool selectOverlayShortcutEnabled: root.enabled && !searchEdit.activeFocus && !readmeDialog.opened
+        readonly property bool selectShortcutEnabled: root.enabled && !searchEdit.activeFocus && !options.visible
+        readonly property bool selectOverlayShortcutEnabled: root.enabled && !searchEdit.activeFocus
         readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
             || Rg.arenaSession.state === ArenaSession.Reconnecting
         readonly property real contentScale: Math.min(width / 1920,
@@ -195,13 +195,9 @@ FocusScope {
             }
             let paths = Rg.songDirectoryFilePathFetcher.getReadmeFilePaths([target.chartDirectory]);
             let path = paths[target.chartDirectory] || "";
-            if (path.length === 0) {
-                return false;
-            }
-            readmeDialog.sourceName = String(path).replace(/\\/g, "/").split("/").pop();
-            readmeDialog.readmeText = Rg.fileQuery.readTextFile(path);
-            readmeDialog.open();
-            return true;
+            let localPath = path.length > 0 ? Rg.songAssets.localFile(path) : "";
+            return localPath.length > 0
+                && Qt.openUrlExternally(globalRoot.localFileUrl(localPath));
         }
 
         function showAllChartsForCurrentSong() {
@@ -276,7 +272,7 @@ FocusScope {
             width: 1920
             clip: true
 
-            enabled: !options.visible && !readmeDialog.opened
+            enabled: !options.visible
 
             TapHandler {
                 acceptedButtons: Qt.LeftButton
@@ -455,7 +451,7 @@ FocusScope {
             }
             Shortcut {
                 sequence: "Esc"
-                enabled: root.enabled && !readmeDialog.opened
+                enabled: root.enabled
 
                 onActivated: {
                     if (root.arenaSeated) {
@@ -799,45 +795,6 @@ FocusScope {
                 onClicked: {
                     root.focusSongList();
                 }
-            }
-        }
-        Dialog {
-            id: readmeDialog
-
-            property string readmeText: ""
-            property string sourceName: ""
-
-            anchors.centerIn: Overlay.overlay
-            closePolicy: Popup.CloseOnEscape
-            height: Math.min(720, Overlay.overlay ? Overlay.overlay.height - 80 : 720)
-            modal: true
-            standardButtons: Dialog.Close
-            title: sourceName
-            width: Math.min(1000, Overlay.overlay ? Overlay.overlay.width - 80 : 1000)
-
-            contentItem: ScrollView {
-                clip: true
-
-                TextArea {
-                    font: songInfoFont.uiFont({
-                        weight: songInfoFont.fontWeight,
-                        variableAxes: songInfoFont.variableAxes,
-                        italic: songInfoFont.italic,
-                        pixelSize: 18
-                    })
-                    padding: 12
-                    readOnly: true
-                    selectByMouse: true
-                    text: readmeDialog.readmeText
-                    textFormat: TextEdit.PlainText
-                    wrapMode: TextEdit.NoWrap
-                }
-            }
-
-            onClosed: {
-                readmeText = "";
-                sourceName = "";
-                root.focusSongList();
             }
         }
         Options {
