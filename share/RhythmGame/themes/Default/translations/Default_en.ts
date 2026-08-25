@@ -83,7 +83,7 @@
 <context>
     <name>Select</name>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="684"/>
+        <location filename="../scripts/select/Select.qml" line="713"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>Found %n chart</numerusform>

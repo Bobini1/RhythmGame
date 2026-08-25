@@ -2691,17 +2691,17 @@
 <context>
     <name>Select</name>
     <message>
-        <location filename="../scripts/select/Select.qml" line="321"/>
+        <location filename="../scripts/select/Select.qml" line="323"/>
         <source>Press Start twice to toggle ready.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/Select.qml" line="638"/>
+        <location filename="../scripts/select/Select.qml" line="667"/>
         <source>Score Details</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="684"/>
+        <location filename="../scripts/select/Select.qml" line="713"/>
         <source>%n chart(s) found</source>
         <translation type="unfinished">
             <numerusform></numerusform>

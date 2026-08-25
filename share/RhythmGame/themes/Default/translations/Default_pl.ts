@@ -2705,17 +2705,17 @@
 <context>
     <name>Select</name>
     <message>
-        <location filename="../scripts/select/Select.qml" line="321"/>
+        <location filename="../scripts/select/Select.qml" line="323"/>
         <source>Press Start twice to toggle ready.</source>
         <translation>Naciśnij dwukrotnie start, żeby przełączyć stan gotowości</translation>
     </message>
     <message>
-        <location filename="../scripts/select/Select.qml" line="638"/>
+        <location filename="../scripts/select/Select.qml" line="667"/>
         <source>Score Details</source>
         <translation>Szczegóły wyniku</translation>
     </message>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="684"/>
+        <location filename="../scripts/select/Select.qml" line="713"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>Znaleziono %n chart</numerusform>
@@ -2797,38 +2797,38 @@
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="40"/>
         <source>Add ZIP song archive</source>
-        <translation type="unfinished"></translation>
+        <translation>Dodaj archiwum ZIP</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="43"/>
         <source>ZIP archives (*.zip)</source>
-        <translation type="unfinished"></translation>
+        <translation>Archiwa ZIP (*.zip)</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="58"/>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="70"/>
         <source>Song sources</source>
-        <translation type="unfinished"></translation>
+        <translation>Źródła piosenek</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="59"/>
         <source>Manage root song folders, ZIP archives, and background scanning.</source>
-        <translation type="unfinished"></translation>
+        <translation>Zarządzaj źródłami piosenek, archiwami ZIP i skanowaniem w tle.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="71"/>
         <source>Folders and ZIP archives scanned for BMS charts.</source>
-        <translation type="unfinished"></translation>
+        <translation>Skanowane foldery i archiwa ZIP.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="124"/>
         <source>Add a folder or ZIP archive that contains your BMS charts.</source>
-        <translation type="unfinished"></translation>
+        <translation>Dodaj folder lub archiwum ZIP zawierające charty BMS.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="123"/>
         <source>No song sources</source>
-        <translation type="unfinished"></translation>
+        <translation>Brak źródeł piosenek</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="144"/>
@@ -2848,12 +2848,12 @@
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="172"/>
         <source>Sources waiting for or currently undergoing scan.</source>
-        <translation type="unfinished"></translation>
+        <translation>Aktualnie skanowane lub oczekujące źródła piosenek.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="191"/>
         <source>Scan one source or all sources to see progress here.</source>
-        <translation type="unfinished"></translation>
+        <translation>Przeskanuj jedno lub wszystkie źródła, żeby zobaczyć tu postęp.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="147"/>
@@ -2880,7 +2880,7 @@
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="91"/>
         <source>Add ZIP archive</source>
-        <translation type="unfinished"></translation>
+        <translation>Dodaj archiwum ZIP</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="101"/>
