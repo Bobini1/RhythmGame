@@ -59,8 +59,8 @@ checkClipOptions(const QByteArray& fixture)
     const QRect clipRect(2, 0, 2, 2);
     const QImage clipped =
       readFixture<Handler>(fixture, QImageIOHandler::ClipRect, clipRect);
-    const QImage scaledClipped = readFixture<Handler>(
-      fixture, QImageIOHandler::ScaledClipRect, clipRect);
+    const QImage scaledClipped =
+      readFixture<Handler>(fixture, QImageIOHandler::ScaledClipRect, clipRect);
 
     REQUIRE(clipped.size() == clipRect.size());
     CHECK(clipped == full.copy(clipRect));

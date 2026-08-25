@@ -210,8 +210,7 @@ TEST_CASE("LR2 skin scanner matches custom file default stems case "
     const auto themesRoot = makeThemesRoot(tempDir);
     const auto skinRoot = themesRoot / "CaseInsensitiveDefaultSkin";
 
-    writeLr2SkinBytes(skinRoot / "lane" / "dark.png",
-                      QByteArray("dark", 4));
+    writeLr2SkinBytes(skinRoot / "lane" / "dark.png", QByteArray("dark", 4));
     writeLr2SkinBytes(skinRoot / "lane" / "default.png",
                       QByteArray("default", 7));
     writeLr2SkinBytes(
@@ -233,9 +232,8 @@ TEST_CASE("LR2 skin scanner matches custom file default stems case "
     const auto items = settings[QStringLiteral("items")].toArray();
     REQUIRE(items.size() == 1);
 
-    CHECK(items[0]
-            .toObject()[QStringLiteral("default")]
-            .toString() == QStringLiteral("default.png"));
+    CHECK(items[0].toObject()[QStringLiteral("default")].toString() ==
+          QStringLiteral("default.png"));
 }
 
 TEST_CASE("LR2 skin scanner keeps custom option and file ids distinct",

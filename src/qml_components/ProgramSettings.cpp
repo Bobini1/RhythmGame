@@ -63,7 +63,8 @@ ProgramSettings::setMaxFps(int value)
 void
 ProgramSettings::setContinuousRendering(const bool value)
 {
-    if (continuousRendering.exchange(value, std::memory_order_release) == value) {
+    if (continuousRendering.exchange(value, std::memory_order_release) ==
+        value) {
         return;
     }
     if (value && frameRateWindow) {
@@ -95,17 +96,16 @@ ProgramSettings::attachFrameRateLimiter(QQuickWindow* window)
     // from the render thread only requests a repaint of the last synchronized
     // scene and can keep presenting stale gameplay state while the GUI thread
     // is delayed.
-    continuousFrameRequestConnection =
-      QObject::connect(window,
-                       &QQuickWindow::frameSwapped,
-                       window,
-                       [this, window] {
-                           if (continuousRendering.load(
-                                 std::memory_order_acquire)) {
-                               window->update();
-                           }
-                       },
-                       Qt::QueuedConnection);
+    continuousFrameRequestConnection = QObject::connect(
+      window,
+      &QQuickWindow::frameSwapped,
+      window,
+      [this, window] {
+          if (continuousRendering.load(std::memory_order_acquire)) {
+              window->update();
+          }
+      },
+      Qt::QueuedConnection);
 }
 void
 ProgramSettings::limitFrameRate()

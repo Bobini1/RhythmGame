@@ -91,14 +91,14 @@ ColumnState::data(const QModelIndex& index, int role) const -> QVariant
         case LongNoteEndPositionRole:
             return note.longNoteEndPosition;
         case VisibleNoteRole:
-            return note.note.type == Note::Type::LongNoteBegin
-              || note.note.type == Note::Type::LongNoteEnd || !note.hit;
+            return note.note.type == Note::Type::LongNoteBegin ||
+                   note.note.type == Note::Type::LongNoteEnd || !note.hit;
         case HeldLongNoteRole:
-            return note.note.type == Note::Type::LongNoteBegin && note.hit
-              && !note.otherEndHit;
+            return note.note.type == Note::Type::LongNoteBegin && note.hit &&
+                   !note.otherEndHit;
         case StaticLongNoteCandidateRole:
-            return note.note.type == Note::Type::LongNoteBegin
-              && ((note.hit && !note.otherEndHit) || note.belowBottom);
+            return note.note.type == Note::Type::LongNoteBegin &&
+                   ((note.hit && !note.otherEndHit) || note.belowBottom);
         default:
             return {};
     }
@@ -619,7 +619,8 @@ GameplayState::noteTypeAt(int column, int noteIndex) const
     if (noteIndex >= notes.size()) {
         return -1;
     }
-    const auto mappedIndex = columnState->mapTimeIndexToPositionIndex(noteIndex);
+    const auto mappedIndex =
+      columnState->mapTimeIndexToPositionIndex(noteIndex);
     return mappedIndex >= 0 && mappedIndex < notes.size()
              ? static_cast<int>(notes.at(mappedIndex).note.type)
              : -1;

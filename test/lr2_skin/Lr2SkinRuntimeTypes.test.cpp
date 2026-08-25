@@ -27,19 +27,18 @@ TEST_CASE("LR2 animation frame state validates the complete source region",
     CHECK_THAT(state.textureSize().y(), WithinAbs(80.0, 0.0001));
 
     QVariantMap source{
-        { QStringLiteral("x"), 10 },
-        { QStringLiteral("y"), 20 },
-        { QStringLiteral("w"), 80 },
-        { QStringLiteral("h"), 60 },
-        { QStringLiteral("div_x"), 4 },
-        { QStringLiteral("div_y"), 3 },
+        { QStringLiteral("x"), 10 },    { QStringLiteral("y"), 20 },
+        { QStringLiteral("w"), 80 },    { QStringLiteral("h"), 60 },
+        { QStringLiteral("div_x"), 4 }, { QStringLiteral("div_y"), 3 },
     };
     state.setSourceData(source);
     CHECK_FALSE(state.sourceRegionExceedsTextureBounds());
-    CHECK_THAT(state.effectiveSourceClipRect().height(), WithinAbs(20.0, 0.0001));
+    CHECK_THAT(state.effectiveSourceClipRect().height(),
+               WithinAbs(20.0, 0.0001));
 
     state.setSourceHeightRatio(0.25);
-    CHECK_THAT(state.effectiveSourceClipRect().height(), WithinAbs(5.0, 0.0001));
+    CHECK_THAT(state.effectiveSourceClipRect().height(),
+               WithinAbs(5.0, 0.0001));
     CHECK_THAT(state.effectiveSourceRect().w(), WithinAbs(0.0625, 0.0001));
 
     source.insert(QStringLiteral("w"), 91);

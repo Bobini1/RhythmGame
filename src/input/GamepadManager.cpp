@@ -12,10 +12,7 @@ GamepadManager::GamepadManager(QObject* parent)
     if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK)) {
         throw std::runtime_error(SDL_GetError());
     }
-    connect(&pollTimer,
-            &QTimer::timeout,
-            this,
-            &GamepadManager::pollEvents);
+    connect(&pollTimer, &QTimer::timeout, this, &GamepadManager::pollEvents);
     pollTimer.setTimerType(Qt::PreciseTimer);
     pollTimer.start(1);
 }

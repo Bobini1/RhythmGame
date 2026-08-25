@@ -876,16 +876,13 @@ InputTranslator::handleAxis(Gamepad gamepad,
         scratch.timer->setSingleShot(true);
         scratch.timer->setInterval(analogConfig->getTimeout());
         QObject::disconnect(scratch.timerConnection);
-        scratch.timerConnection =
-          connect(scratch.timer.get(),
-                  &QTimer::timeout,
-                  this,
-                  [this,
-                   scratchKey,
-                   time,
-                   timeout = analogConfig->getTimeout()] {
-                      autoReleaseScratch(scratchKey, time + timeout);
-                  });
+        scratch.timerConnection = connect(
+          scratch.timer.get(),
+          &QTimer::timeout,
+          this,
+          [this, scratchKey, time, timeout = analogConfig->getTimeout()] {
+              autoReleaseScratch(scratchKey, time + timeout);
+          });
         scratch.timer->start();
     };
 
