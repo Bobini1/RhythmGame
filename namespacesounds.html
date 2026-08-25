@@ -70,7 +70,8 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a>  </div>
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">sounds Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -83,6 +84,10 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1AudioEngine.html">AudioEngine</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1AudioPlayer.html">AudioPlayer</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsounds_1_1ChartAudioEvent.html">ChartAudioEvent</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1ChartAudioPlayer.html">ChartAudioPlayer</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1MultiSound.html">MultiSound</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A sound that plays multiple underlying sounds simultaneously.  <a href="classsounds_1_1MultiSound.html#details">More...</a><br /></td></tr>
@@ -101,11 +106,65 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsounds_1_1SoundBuffer.html">SoundBuffer</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A buffer that can be used to create sounds. Wraps an buffer.  <a href="classsounds_1_1SoundBuffer.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ab64766bf373efa1541448d43e1e8ca88" id="r_ab64766bf373efa1541448d43e1e8ca88"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesounds.html#ab64766bf373efa1541448d43e1e8ca88">createChartAudioEvents</a> (const <a class="el" href="structcharts_1_1BmsNotesData.html">charts::BmsNotesData</a> &amp;notes) -&gt; std::vector&lt; <a class="el" href="structsounds_1_1ChartAudioEvent.html">ChartAudioEvent</a> &gt;</td></tr>
+<tr class="separator:ab64766bf373efa1541448d43e1e8ca88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a094db9950e2efcf938484e69b6aea606" id="r_a094db9950e2efcf938484e69b6aea606"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesounds.html#a094db9950e2efcf938484e69b6aea606">chartAudioLoopLength</a> (const std::span&lt; const <a class="el" href="structsounds_1_1ChartAudioEvent.html">ChartAudioEvent</a> &gt; <a class="el" href="ChartAudioPlayer_8cpp.html#a68d5682c587ddbcde98e5a1a6f056e98">events</a>, const std::chrono::nanoseconds chartLength) -&gt; std::chrono::nanoseconds</td></tr>
+<tr class="separator:a094db9950e2efcf938484e69b6aea606"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The namespace for all sound related classes. </p>
 <p>This namespace contains all classes related to sound playback, loading, decoding, etc. </p>
-</div></div><!-- contents -->
+</div><h2 class="groupheader">Function Documentation</h2>
+<a id="a094db9950e2efcf938484e69b6aea606" name="a094db9950e2efcf938484e69b6aea606"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a094db9950e2efcf938484e69b6aea606">&#9670;&#160;</a></span>chartAudioLoopLength()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto sounds::chartAudioLoopLength </td>
+          <td>(</td>
+          <td class="paramtype">const std::span&lt; const <a class="el" href="structsounds_1_1ChartAudioEvent.html">ChartAudioEvent</a> &gt;&#160;</td>
+          <td class="paramname"><em>events</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::chrono::nanoseconds&#160;</td>
+          <td class="paramname"><em>chartLength</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt;  std::chrono::nanoseconds</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab64766bf373efa1541448d43e1e8ca88" name="ab64766bf373efa1541448d43e1e8ca88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab64766bf373efa1541448d43e1e8ca88">&#9670;&#160;</a></span>createChartAudioEvents()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto sounds::createChartAudioEvents </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structcharts_1_1BmsNotesData.html">charts::BmsNotesData</a> &amp;&#160;</td>
+          <td class="paramname"><em>notes</em></td><td>)</td>
+          <td> -&gt;  std::vector&lt; <a class="el" href="structsounds_1_1ChartAudioEvent.html">ChartAudioEvent</a> &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8

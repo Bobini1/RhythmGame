@@ -72,7 +72,7 @@ var searchData=
   ['notestate_69',['NoteState',['../classgameplay__logic_1_1NoteState.html',1,'gameplay_logic']]],
   ['notestate_2ecpp_70',['NoteState.cpp',['../NoteState_8cpp.html',1,'']]],
   ['notestate_2eh_71',['NoteState.h',['../NoteState_8h.html',1,'']]],
-  ['notetype_72',['notetype',['../namespacesupport.html#a8cd622f36d4e09933dec5baca3b6efa7',1,'support::NoteType'],['../structcharts_1_1BmsNotesData_1_1Note.html#abf2b4ac6efed86409380fd36cab40a10',1,'charts::BmsNotesData::Note::noteType'],['../structcharts_1_1BmsNotesData.html#a5a4d3df918dce2039d2c1fbc22c77997',1,'charts::BmsNotesData::NoteType'],['../classgameplay__logic_1_1rules_1_1HitRules.html#a443db728853f654e21e75e9dd322a716',1,'gameplay_logic::rules::HitRules::NoteType']]],
+  ['notetype_72',['notetype',['../namespacesupport.html#a8cd622f36d4e09933dec5baca3b6efa7',1,'support::NoteType'],['../structcharts_1_1BmsNotesData.html#a5a4d3df918dce2039d2c1fbc22c77997',1,'charts::BmsNotesData::NoteType'],['../classgameplay__logic_1_1rules_1_1HitRules.html#a443db728853f654e21e75e9dd322a716',1,'gameplay_logic::rules::HitRules::NoteType'],['../structcharts_1_1BmsNotesData_1_1Note.html#abf2b4ac6efed86409380fd36cab40a10',1,'charts::BmsNotesData::Note::noteType']]],
   ['notetypeat_73',['noteTypeAt',['../classgameplay__logic_1_1GameplayState.html#a7883ec5c327459664bfe1bd2c0fe1a52',1,'gameplay_logic::GameplayState']]],
   ['notetyperole_74',['NoteTypeRole',['../classgameplay__logic_1_1ColumnState.html#a3412f4a915ceff6aa5db4d864c4b0f4aa0f96b560a7eed51161335a0540d3bde1',1,'gameplay_logic::ColumnState']]],
   ['notify_75',['notify',['../classinput_1_1CustomNotifyApp.html#aa6279691de622c9d7249080680ae729f',1,'input::CustomNotifyApp']]],

@@ -1,19 +1,21 @@
 <map id="src/resource_managers/loadBmsSounds.h" name="src/resource_managers/loadBmsSounds.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="845,5,1018,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="898,5,1071,45"/>
 <area shape="rect" id="Node000002" href="$BmsNotesData_8h.html" title=" " alt="" coords="257,93,433,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="844,41,444,94,443,89,844,36"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="898,40,447,95,446,90,897,35"/>
 <area shape="rect" id="Node000008" title=" " alt="" coords="540,240,664,265"/>
-<area shape="poly" id="edge21_Node000001_Node000008" title=" " alt="" coords="845,35,804,42,761,54,720,71,683,95,655,147,616,229,611,226,650,145,679,92,717,67,759,49,803,37,844,29"/>
+<area shape="poly" id="edge22_Node000001_Node000008" title=" " alt="" coords="898,40,773,62,719,78,683,95,655,147,616,229,611,226,650,145,679,91,717,73,772,57,897,35"/>
 <area shape="rect" id="Node000014" href="$AudioEngine_8h.html" title=" " alt="" coords="693,93,858,119"/>
-<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="895,48,812,89,809,85,893,43"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="935,48,820,91,818,86,934,43"/>
 <area shape="rect" id="Node000019" title=" " alt="" coords="883,93,980,119"/>
-<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="934,46,934,79,929,79,929,46"/>
-<area shape="rect" id="Node000020" title=" " alt="" coords="1005,93,1095,119"/>
-<area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="962,43,1023,84,1020,88,959,48"/>
-<area shape="rect" id="Node000021" title=" " alt="" coords="1119,93,1197,119"/>
-<area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="986,43,1113,86,1111,91,985,48"/>
-<area shape="rect" id="Node000022" href="$Sound_8h.html" title=" " alt="" coords="1221,93,1345,119"/>
-<area shape="poly" id="edge22_Node000001_Node000022" title=" " alt="" coords="1016,43,1219,88,1218,93,1015,48"/>
+<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="974,47,949,83,945,80,970,44"/>
+<area shape="rect" id="Node000020" title=" " alt="" coords="1005,93,1071,119"/>
+<area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="1000,44,1024,80,1020,83,995,47"/>
+<area shape="rect" id="Node000021" title=" " alt="" coords="1095,93,1186,119"/>
+<area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="1023,43,1107,85,1104,89,1021,48"/>
+<area shape="rect" id="Node000022" title=" " alt="" coords="1210,93,1287,119"/>
+<area shape="poly" id="edge21_Node000001_Node000022" title=" " alt="" coords="1049,43,1198,87,1196,92,1047,48"/>
+<area shape="rect" id="Node000023" href="$Sound_8h.html" title=" " alt="" coords="1312,93,1436,119"/>
+<area shape="poly" id="edge23_Node000001_Node000023" title=" " alt="" coords="1072,41,1304,88,1303,93,1071,47"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="5,167,68,192"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="293,121,82,169,81,164,291,116"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="93,167,159,192"/>
@@ -35,17 +37,17 @@
 <area shape="poly" id="edge9_Node000006_Node000010" title=" " alt="" coords="352,191,365,226,360,228,347,193"/>
 <area shape="rect" id="Node000011" title=" " alt="" coords="433,240,489,265"/>
 <area shape="poly" id="edge10_Node000006_Node000011" title=" " alt="" coords="365,190,431,230,429,235,362,194"/>
-<area shape="rect" id="Node000015" href="$MiniaudioBackend_8h.html" title=" " alt="" coords="955,167,1108,192"/>
-<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="817,116,978,160,976,166,816,121"/>
+<area shape="rect" id="Node000015" href="$MiniaudioBackend_8h.html" title=" " alt="" coords="1000,167,1153,192"/>
+<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="824,116,1015,161,1014,166,823,121"/>
 <area shape="rect" id="Node000018" title=" " alt="" coords="733,167,818,192"/>
 <area shape="poly" id="edge17_Node000014_Node000018" title=" " alt="" coords="778,119,778,153,773,153,773,119"/>
-<area shape="rect" id="Node000016" title=" " alt="" coords="919,240,1019,265"/>
-<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="1023,194,990,231,986,228,1019,191"/>
-<area shape="rect" id="Node000017" title=" " alt="" coords="1043,240,1142,265"/>
-<area shape="poly" id="edge16_Node000015_Node000017" title=" " alt="" coords="1043,191,1076,228,1072,231,1039,194"/>
-<area shape="poly" id="edge25_Node000022_Node000015" title=" " alt="" coords="1244,121,1086,165,1085,160,1242,116"/>
-<area shape="rect" id="Node000023" title=" " alt="" coords="1190,167,1265,192"/>
-<area shape="poly" id="edge23_Node000022_Node000023" title=" " alt="" coords="1276,121,1247,157,1243,154,1272,117"/>
-<area shape="rect" id="Node000024" title=" " alt="" coords="1289,167,1413,192"/>
-<area shape="poly" id="edge24_Node000022_Node000024" title=" " alt="" coords="1296,117,1333,155,1329,158,1293,121"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="964,240,1064,265"/>
+<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="1068,194,1035,231,1031,228,1064,191"/>
+<area shape="rect" id="Node000017" title=" " alt="" coords="1089,240,1187,265"/>
+<area shape="poly" id="edge16_Node000015_Node000017" title=" " alt="" coords="1089,191,1121,228,1117,231,1085,194"/>
+<area shape="poly" id="edge26_Node000023_Node000015" title=" " alt="" coords="1327,121,1139,166,1137,161,1326,116"/>
+<area shape="rect" id="Node000024" title=" " alt="" coords="1275,167,1350,192"/>
+<area shape="poly" id="edge24_Node000023_Node000024" title=" " alt="" coords="1366,121,1334,158,1330,154,1362,117"/>
+<area shape="rect" id="Node000025" title=" " alt="" coords="1375,167,1499,192"/>
+<area shape="poly" id="edge25_Node000023_Node000025" title=" " alt="" coords="1386,117,1419,154,1415,158,1382,121"/>
 </map>

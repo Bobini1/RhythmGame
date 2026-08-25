@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['fadeinmillischanged_0',['fadeInMillisChanged',['../classsounds_1_1AudioPlayer.html#a6955fb1ea2841cab25d3bcd8521e0acd',1,'sounds::AudioPlayer']]],
+  ['fadeinmillischanged_0',['fadeinmillischanged',['../classsounds_1_1ChartAudioPlayer.html#a031748b508a9fca11638e00478486a11',1,'sounds::ChartAudioPlayer::fadeInMillisChanged()'],['../classsounds_1_1AudioPlayer.html#a6955fb1ea2841cab25d3bcd8521e0acd',1,'sounds::AudioPlayer::fadeInMillisChanged()']]],
   ['fadeout_1',['fadeOut',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a09f9d39665d1cfa4fc5574699675cf71',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]],
   ['fail_2',['fail',['../classsupport_1_1PendingReplySource.html#ab1ab2b6717281ebda3bdfef8890c0cd1',1,'support::PendingReplySource::fail()'],['../classLr2SelectScoreCounts.html#a601023a83f2169d05e2e295b193a9294',1,'Lr2SelectScoreCounts::fail()']]],
   ['failed_3',['failed',['../classqml__components_1_1TachiResolveHandle.html#ac3ba6155297ec8259baa7d8ae97be8c1',1,'qml_components::TachiResolveHandle::failed()'],['../classresource__managers_1_1ArenaTicketOperation.html#a202f7db98566c31ce48208d81cbf5ff5',1,'resource_managers::ArenaTicketOperation::failed()']]],
@@ -16,7 +16,7 @@ var searchData=
   ['filenamestartswithdot_13',['fileNameStartsWithDot',['../namespaceresource__managers.html#abf95ffad316ec37ef85fed4d5e01de03',1,'resource_managers']]],
   ['filequery_14',['FileQuery',['../classqml__components_1_1FileQuery.html#a006416acc7adbd6ab031cf259bb9e8c5',1,'qml_components::FileQuery']]],
   ['fillwithdefaults_15',['fillWithDefaults',['../namespaceresource__managers.html#afd50ac873ffb6f3786d8bc1853f5d53c',1,'resource_managers']]],
-  ['filter_16',['filter',['../classLr2BarInterpolatedState.html#a760698a3069b59d48e6470d69519404a',1,'Lr2BarInterpolatedState::filter()'],['../classLr2TimelineFrameState.html#a66bbe2358cdb2663b008b4650a59a639',1,'Lr2TimelineFrameState::filter()'],['../classgameplay__logic_1_1Filter.html#a0893e2cda001462f86d4c1aab652e418',1,'gameplay_logic::Filter::Filter()']]],
+  ['filter_16',['filter',['../classLr2TimelineFrameState.html#a66bbe2358cdb2663b008b4650a59a639',1,'Lr2TimelineFrameState::filter()'],['../classgameplay__logic_1_1Filter.html#a0893e2cda001462f86d4c1aab652e418',1,'gameplay_logic::Filter::Filter()'],['../classLr2BarInterpolatedState.html#a760698a3069b59d48e6470d69519404a',1,'Lr2BarInterpolatedState::filter()']]],
   ['filterandsort_17',['filterAndSort',['../classresource__managers_1_1ChartFolderModel.html#a984304d1cc78ac033c914aea1cd54c6d',1,'resource_managers::ChartFolderModel']]],
   ['filterchanged_18',['filterChanged',['../classLr2TimelineFrameState.html#a421f8119c3297a65ea9dc91ca940ce61',1,'Lr2TimelineFrameState']]],
   ['finalized_19',['finalized',['../classarena_1_1ArenaResultModel.html#aca4da09e5dcaeb9dce35dc5c169ed0bd',1,'arena::ArenaResultModel']]],

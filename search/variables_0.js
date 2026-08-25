@@ -18,7 +18,7 @@ var searchData=
   ['arenasha256bytes_15',['ArenaSha256Bytes',['../namespacearena.html#a62a875e7fdc02ab6bd411d1085f2c7de',1,'arena']]],
   ['arenatransferidbytes_16',['ArenaTransferIdBytes',['../namespacearena.html#a2a524ca011dc2e1ce2dff10416e5dfe3',1,'arena']]],
   ['artist_17',['artist',['../structgameplay__logic_1_1ChartData_1_1DTO.html#a5dd8575ccc31d758449e59043d2549f5',1,'gameplay_logic::ChartData::DTO::artist'],['../structcharts_1_1ParsedBmsChart_1_1Tags.html#ac8cf4086604613853b5f278efb758684',1,'charts::ParsedBmsChart::Tags::artist'],['../structarena_1_1SelectionSnapshot.html#abb02a8690e498d5b03186881653f2e52',1,'arena::SelectionSnapshot::artist']]],
-  ['assetstore_18',['assetStore',['../classsounds_1_1AudioPlayer.html#ab063942f1ae070f42b6bd1524403c7b8',1,'sounds::AudioPlayer']]],
+  ['assetstore_18',['assetstore',['../classsounds_1_1ChartAudioPlayer.html#a6e679242981122767c26fee8cc42af31',1,'sounds::ChartAudioPlayer::assetStore'],['../classsounds_1_1AudioPlayer.html#ab063942f1ae070f42b6bd1524403c7b8',1,'sounds::AudioPlayer::assetStore']]],
   ['assignablelane_19',['assignableLane',['../structsupport_1_1BeatorajaState.html#a021aa94255cb1bc0a795a316e3f52ed7',1,'support::BeatorajaState']]],
   ['assist_20',['assist',['../structLr2SelectScoreCountsData.html#a5e4b13ef24d1ed9aab9a790318a686f1',1,'Lr2SelectScoreCountsData']]],
   ['attributes_21',['Attributes',['../namespacedxa.html#a17635c436fa2834cf8231a9856039340',1,'dxa']]],

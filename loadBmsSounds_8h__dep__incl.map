@@ -1,11 +1,13 @@
 <map id="src/resource_managers/loadBmsSounds.h" name="src/resource_managers/loadBmsSounds.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="233,5,407,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="332,5,505,45"/>
 <area shape="rect" id="Node000002" href="$ChartFactory_8cpp.html" title=" " alt="" coords="109,181,283,221"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="269,55,244,73,224,95,212,116,205,139,199,181,194,181,200,138,207,114,219,92,240,69,265,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="319,43,267,62,244,77,223,95,210,115,203,138,198,182,193,181,197,137,206,113,219,92,241,73,265,58,317,38"/>
 <area shape="rect" id="Node000003" href="$ChartFactory_8h.html" title=" " alt="" coords="233,93,407,133"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="323,59,323,93,317,93,317,59"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="388,56,344,95,340,91,385,52"/>
 <area shape="rect" id="Node000011" href="$loadBmsSounds_8cpp.html" title=" " alt="" coords="431,93,604,133"/>
-<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="377,48,475,91,473,96,375,53"/>
+<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="452,52,497,91,494,95,449,56"/>
+<area shape="rect" id="Node000012" href="$ChartAudioPlayer_8cpp.html" title=" " alt="" coords="628,101,863,126"/>
+<area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="504,46,703,98,701,103,503,51"/>
 <area shape="poly" id="edge12_Node000003_Node000002" title=" " alt="" coords="283,143,225,183,222,179,280,139"/>
 <area shape="rect" id="Node000004" href="$ChartLoader_8h.html" title=" " alt="" coords="307,181,464,221"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="345,143,373,179,369,183,341,146"/>

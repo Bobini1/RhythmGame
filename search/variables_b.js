@@ -31,8 +31,9 @@ var searchData=
   ['lobbywinsafter_28',['lobbyWinsAfter',['../structarena_1_1FinalStandingEntry.html#a042c370c55f39913fcf7559f5c90354b',1,'arena::FinalStandingEntry']]],
   ['longnoteendposition_29',['longNoteEndPosition',['../classgameplay__logic_1_1NoteState.html#a1b252c560105d3a8654905bc394b35d9',1,'gameplay_logic::NoteState']]],
   ['loop_30',['loop',['../structlr2skin_1_1runtime_1_1Dst.html#a49dd290c6ebfcfd4168719dc9cd05716',1,'lr2skin::runtime::Dst']]],
-  ['loopscontinuously_31',['loopsContinuously',['../structlr2skin_1_1runtime_1_1DstAnalysis.html#a1f88bf9eafae6bfe905562cc430fa5a8',1,'lr2skin::runtime::DstAnalysis']]],
-  ['lr2battle_32',['lr2Battle',['../BeatorajaReplayImporter_8cpp.html#a9d9809082ddca3b537e35245090ee683',1,'BeatorajaReplayImporter.cpp']]],
-  ['lr2randfix_33',['lr2RandFix',['../BeatorajaReplayImporter_8cpp.html#a65ea9fd9814782a2485ed4d5f83a6761',1,'BeatorajaReplayImporter.cpp']]],
-  ['lr2randscratch_34',['lr2RandScratch',['../BeatorajaReplayImporter_8cpp.html#a19b2ed4be845c44b871b10010d88b846',1,'BeatorajaReplayImporter.cpp']]]
+  ['looplength_31',['loopLength',['../ChartAudioPlayer_8cpp.html#af7517dfb9930ee993cfadf07c99f9a56',1,'ChartAudioPlayer.cpp']]],
+  ['loopscontinuously_32',['loopsContinuously',['../structlr2skin_1_1runtime_1_1DstAnalysis.html#a1f88bf9eafae6bfe905562cc430fa5a8',1,'lr2skin::runtime::DstAnalysis']]],
+  ['lr2battle_33',['lr2Battle',['../BeatorajaReplayImporter_8cpp.html#a9d9809082ddca3b537e35245090ee683',1,'BeatorajaReplayImporter.cpp']]],
+  ['lr2randfix_34',['lr2RandFix',['../BeatorajaReplayImporter_8cpp.html#a65ea9fd9814782a2485ed4d5f83a6761',1,'BeatorajaReplayImporter.cpp']]],
+  ['lr2randscratch_35',['lr2RandScratch',['../BeatorajaReplayImporter_8cpp.html#a19b2ed4be845c44b871b10010d88b846',1,'BeatorajaReplayImporter.cpp']]]
 ];

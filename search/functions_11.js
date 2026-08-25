@@ -114,7 +114,7 @@ var searchData=
   ['resetselectsortmode_111',['resetSelectSortMode',['../classresource__managers_1_1GeneralVars.html#a333a8ae28703f004814178ee1d687b08',1,'resource_managers::GeneralVars']]],
   ['resetselfmemberids_112',['resetSelfMemberIds',['../classarena_1_1ArenaChatModel.html#a72eec748007a48103b7d3891cb43dac0',1,'arena::ArenaChatModel']]],
   ['resetsoundset_113',['resetSoundset',['../classresource__managers_1_1GeneralVars.html#a3c4057ba29abdd581d1fc7d703670218',1,'resource_managers::GeneralVars']]],
-  ['resetsource_114',['resetSource',['../classsounds_1_1AudioPlayer.html#a97358e4b58896a7138eff171957f6717',1,'sounds::AudioPlayer']]],
+  ['resetsource_114',['resetsource',['../classsounds_1_1ChartAudioPlayer.html#a3382d0c8321442e32297eb2a603563da',1,'sounds::ChartAudioPlayer::resetSource()'],['../classsounds_1_1AudioPlayer.html#a97358e4b58896a7138eff171957f6717',1,'sounds::AudioPlayer::resetSource()']]],
   ['resettablelisturl_115',['resetTableListUrl',['../classresource__managers_1_1GeneralVars.html#afbd43d540ab972d9435f195e2e2a5267',1,'resource_managers::GeneralVars']]],
   ['resettargetscorefraction_116',['resetTargetScoreFraction',['../classresource__managers_1_1GeneralVars.html#aba7b9153b3aa9344cee792699c52b434',1,'resource_managers::GeneralVars']]],
   ['resetwebsitebaseurl_117',['resetWebsiteBaseUrl',['../classresource__managers_1_1GeneralVars.html#a694a72feeabc1f5db5ab0c6e3591c49a',1,'resource_managers::GeneralVars']]],
