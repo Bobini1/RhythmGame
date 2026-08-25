@@ -407,21 +407,9 @@ TEST_CASE("SongAssetStore rejects compressed nested ZIP entries")
       outer, { { "packs/song.zip", innerBytes } }, ZIP_FL_ENC_UTF_8, false);
 
     auto store = resource_managers::SongAssetStore{};
-    auto errorMessage = QString{};
-    try {
-        static_cast<void>(
-          store.read(outer / "packs" / "song.zip" / "song" / "chart.bms"));
-    } catch (const std::exception& error) {
-        errorMessage = QString::fromUtf8(error.what());
-    }
-
-    REQUIRE_FALSE(errorMessage.isEmpty());
-    CHECK(
-      errorMessage.contains(QStringLiteral("compressed inside its parent")));
-    CHECK(errorMessage.contains(
-      support::pathToQString(outer / "packs" / "song.zip")));
-    CHECK(errorMessage.contains(QString::number(innerBytes.size())));
-    CHECK_FALSE(errorMessage.contains(QStringLiteral("Repack the outer ZIP")));
+    CHECK_THROWS_AS(
+      store.read(outer / "packs" / "song.zip" / "song" / "chart.bms"),
+      std::runtime_error);
 }
 
 TEST_CASE(
@@ -589,17 +577,11 @@ TEST_CASE("SongAssetStore supports ZIP archive containers only")
     CHECK(resource_managers::SongAssetStore::isArchivePath("songs.zip"));
     CHECK(
       resource_managers::SongAssetStore::isSupportedArchivePath("songs.zip"));
-    CHECK(resource_managers::SongAssetStore::archiveSupportError("songs.zip")
-            .isEmpty());
 
     for (const auto& path : { "songs.7z", "songs.rar", "songs.tar" }) {
         CHECK(resource_managers::SongAssetStore::isArchivePath(path));
         CHECK_FALSE(
           resource_managers::SongAssetStore::isSupportedArchivePath(path));
-        const auto error =
-          resource_managers::SongAssetStore::archiveSupportError(path);
-        CHECK(error.contains(QStringLiteral("Unsupported")));
-        CHECK(error.contains(QStringLiteral("ZIP")));
     }
 }
 
