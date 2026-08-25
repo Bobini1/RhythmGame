@@ -111,6 +111,8 @@ Classes</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:ab64766bf373efa1541448d43e1e8ca88" id="r_ab64766bf373efa1541448d43e1e8ca88"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesounds.html#ab64766bf373efa1541448d43e1e8ca88">createChartAudioEvents</a> (const <a class="el" href="structcharts_1_1BmsNotesData.html">charts::BmsNotesData</a> &amp;notes) -&gt; std::vector&lt; <a class="el" href="structsounds_1_1ChartAudioEvent.html">ChartAudioEvent</a> &gt;</td></tr>
 <tr class="separator:ab64766bf373efa1541448d43e1e8ca88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93266057a089a1f51686ea1a1951a20f" id="r_a93266057a089a1f51686ea1a1951a20f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesounds.html#a93266057a089a1f51686ea1a1951a20f">skipChartAudioLeadingSilence</a> (const std::span&lt; <a class="el" href="structsounds_1_1ChartAudioEvent.html">ChartAudioEvent</a> &gt; <a class="el" href="ChartAudioPlayer_8cpp.html#a68d5682c587ddbcde98e5a1a6f056e98">events</a>) -&gt; std::chrono::nanoseconds</td></tr>
+<tr class="separator:a93266057a089a1f51686ea1a1951a20f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a094db9950e2efcf938484e69b6aea606" id="r_a094db9950e2efcf938484e69b6aea606"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesounds.html#a094db9950e2efcf938484e69b6aea606">chartAudioLoopLength</a> (const std::span&lt; const <a class="el" href="structsounds_1_1ChartAudioEvent.html">ChartAudioEvent</a> &gt; <a class="el" href="ChartAudioPlayer_8cpp.html#a68d5682c587ddbcde98e5a1a6f056e98">events</a>, const std::chrono::nanoseconds chartLength) -&gt; std::chrono::nanoseconds</td></tr>
 <tr class="separator:a094db9950e2efcf938484e69b6aea606"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -158,6 +160,24 @@ Functions</h2></td></tr>
           <td class="paramtype">const <a class="el" href="structcharts_1_1BmsNotesData.html">charts::BmsNotesData</a> &amp;&#160;</td>
           <td class="paramname"><em>notes</em></td><td>)</td>
           <td> -&gt;  std::vector&lt; <a class="el" href="structsounds_1_1ChartAudioEvent.html">ChartAudioEvent</a> &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a93266057a089a1f51686ea1a1951a20f" name="a93266057a089a1f51686ea1a1951a20f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a93266057a089a1f51686ea1a1951a20f">&#9670;&#160;</a></span>skipChartAudioLeadingSilence()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto sounds::skipChartAudioLeadingSilence </td>
+          <td>(</td>
+          <td class="paramtype">const std::span&lt; <a class="el" href="structsounds_1_1ChartAudioEvent.html">ChartAudioEvent</a> &gt;&#160;</td>
+          <td class="paramname"><em>events</em></td><td>)</td>
+          <td> -&gt;  std::chrono::nanoseconds</td>
         </tr>
       </table>
 </div><div class="memdoc">
