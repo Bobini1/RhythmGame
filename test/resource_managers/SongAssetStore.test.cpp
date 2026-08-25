@@ -202,9 +202,18 @@ ensureGuiApplication()
     if (QCoreApplication::instance()) {
         return;
     }
-    static auto argc = 1;
     static auto executable = QByteArray{ "SongAssetStore.test" };
+#ifdef DISABLE_WINDOW_TESTS
+    static auto argc = 3;
+    static auto platformOption = QByteArray{ "-platform" };
+    static auto platformName = QByteArray{ "offscreen" };
+    static char* argv[] = {
+        executable.data(), platformOption.data(), platformName.data(), nullptr
+    };
+#else
+    static auto argc = 1;
     static char* argv[] = { executable.data(), nullptr };
+#endif
     static const auto application =
       std::make_unique<QGuiApplication>(argc, argv);
 }
