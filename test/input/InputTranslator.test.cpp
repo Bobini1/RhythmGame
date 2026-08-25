@@ -1,4 +1,5 @@
 #include "db/SqliteCppDb.h"
+#include "input/CustomNotifyApp.h"
 #include "input/InputTranslator.h"
 
 #include <QCoreApplication>
@@ -85,6 +86,28 @@ recordButtonEvents(input::InputTranslator& translator,
                          releases.emplace_back(button, time);
                      });
 }
+}
+
+TEST_CASE("background keyboard input is not translated to BMS actions",
+          "[input][focus]")
+{
+    using input::CustomNotifyApp;
+
+    CHECK(CustomNotifyApp::shouldTranslateKeyboardEvent(
+      true, Qt::ApplicationActive, true, false));
+    CHECK_FALSE(CustomNotifyApp::shouldTranslateKeyboardEvent(
+      true, Qt::ApplicationInactive, true, false));
+    CHECK_FALSE(CustomNotifyApp::shouldTranslateKeyboardEvent(
+      true, Qt::ApplicationHidden, true, false));
+    CHECK_FALSE(CustomNotifyApp::shouldTranslateKeyboardEvent(
+      true, Qt::ApplicationSuspended, true, false));
+    CHECK_FALSE(CustomNotifyApp::shouldTranslateKeyboardEvent(
+      true, Qt::ApplicationActive, false, false));
+    CHECK_FALSE(CustomNotifyApp::shouldTranslateKeyboardEvent(
+      true, Qt::ApplicationActive, true, true));
+
+    CHECK(CustomNotifyApp::shouldTranslateKeyboardEvent(
+      false, Qt::ApplicationInactive, false, false));
 }
 
 TEST_CASE("beatoraja analog scratch ticks use wrapped 0.009 axis quanta")

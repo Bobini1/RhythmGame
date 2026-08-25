@@ -27,6 +27,9 @@ CustomNotifyApp* CustomNotifyApp::s_instance = nullptr;
 //    early avoids unnecessary work and keeps configuring mode clean).
 //  • We read QGuiApplication::focusObject() to avoid stealing input from any
 //    focused text-entry widget (search bar, rename field, …).
+//  • Key-down events become game input only while the application is active.
+//    Key-up events still pass through after focus loss so held keys are
+//    released.
 //  • CallNextHookEx is ALWAYS called so Qt and the rest of the system receive
 //    every event normally.
 // ---------------------------------------------------------------------------
@@ -64,10 +67,6 @@ CustomNotifyApp::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
                 s_instance->m_pressedScanCodes.erase(scanCode);
             }
 
-            if (focusWindow() == nullptr) {
-                return CallNextHookEx(nullptr, nCode, wParam, lParam);
-            }
-
             // Do not process game input while a text-entry widget has focus
             // (search bar, rename field, etc.).
             bool textInputActive = false;
@@ -77,7 +76,10 @@ CustomNotifyApp::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
                 textInputActive = query.value(Qt::ImEnabled).toBool();
             }
 
-            if (!textInputActive) {
+            if (shouldTranslateKeyboardEvent(isDown,
+                                             applicationState(),
+                                             focusWindow() != nullptr,
+                                             textInputActive)) {
                 const auto now =
                   std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::steady_clock::now().time_since_epoch());
@@ -118,6 +120,18 @@ CustomNotifyApp::~CustomNotifyApp()
 #ifdef _WIN32
     removeHook();
 #endif
+}
+
+auto
+CustomNotifyApp::shouldTranslateKeyboardEvent(bool isKeyDown,
+                                              Qt::ApplicationState state,
+                                              bool hasFocusWindow,
+                                              bool textInputActive) -> bool
+{
+    if (!isKeyDown) {
+        return true;
+    }
+    return state == Qt::ApplicationActive && hasFocusWindow && !textInputActive;
 }
 
 void

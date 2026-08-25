@@ -32,8 +32,8 @@ class CustomNotifyApp final : public QGuiApplication
 
     static CustomNotifyApp* s_instance;
     static LRESULT CALLBACK LowLevelKeyboardProc(int nCode,
-                                                  WPARAM wParam,
-                                                  LPARAM lParam);
+                                                 WPARAM wParam,
+                                                 LPARAM lParam);
     void installHook();
     void removeHook();
 #endif
@@ -41,6 +41,10 @@ class CustomNotifyApp final : public QGuiApplication
   public:
     ~CustomNotifyApp() override;
     void setInputTranslator(InputTranslator* translator);
+    static auto shouldTranslateKeyboardEvent(bool isKeyDown,
+                                             Qt::ApplicationState state,
+                                             bool hasFocusWindow,
+                                             bool textInputActive) -> bool;
     auto notify(QObject* receiver, QEvent* event) -> bool override;
 };
 
