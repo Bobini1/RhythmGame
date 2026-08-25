@@ -96,8 +96,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a50284a6dbe65e24011fe536c2905c543"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34fa4c22f1d82963f553d340b63a51b2" id="r_a34fa4c22f1d82963f553d340b63a51b2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore_1_1Impl.html#a34fa4c22f1d82963f553d340b63a51b2">nestedArchive</a> (const std::shared_ptr&lt; IndexedZipArchive &gt; &amp;parent, const zip_uint64_t <a class="el" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>, const std::filesystem::path &amp;virtualPath, const std::atomic_bool *stop=nullptr) const -&gt; std::shared_ptr&lt; IndexedZipArchive &gt;</td></tr>
 <tr class="separator:a34fa4c22f1d82963f553d340b63a51b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5c3609a0f428b06ca912abefb1e9a0d" id="r_aa5c3609a0f428b06ca912abefb1e9a0d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore_1_1Impl.html#aa5c3609a0f428b06ca912abefb1e9a0d">openTemporaryNestedArchive</a> (const std::shared_ptr&lt; IndexedZipArchive &gt; &amp;parent, const zip_uint64_t <a class="el" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>, const std::atomic_bool *stop) const -&gt; std::shared_ptr&lt; IndexedZipArchive &gt;</td></tr>
-<tr class="separator:aa5c3609a0f428b06ca912abefb1e9a0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad1f2b949ed2a16a0526ad4e37e2e7780" id="r_ad1f2b949ed2a16a0526ad4e37e2e7780"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore_1_1Impl.html#ad1f2b949ed2a16a0526ad4e37e2e7780">materializeEntry</a> (const std::shared_ptr&lt; IndexedZipArchive &gt; &amp;<a class="el" href="Lr2FontCache_8cpp.html#a6b8a95220d01eccb1a09658d15936bc6">archive</a>, const zip_uint64_t <a class="el" href="SongAssetStore_8cpp.html#a24a69b440b6b0c63948e0ea1afc2ec4d">index</a>, const std::filesystem::path &amp;virtualPath, const std::atomic_bool *stop=nullptr) const -&gt; std::filesystem::path</td></tr>
 <tr class="separator:ad1f2b949ed2a16a0526ad4e37e2e7780"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ace8e4c126eed1afc243b0a694941e00e" id="r_ace8e4c126eed1afc243b0a694941e00e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1SongAssetStore_1_1Impl.html#ace8e4c126eed1afc243b0a694941e00e">locateContainer</a> (const std::filesystem::path &amp;virtualDirectory, const std::atomic_bool *stop=nullptr) const -&gt; std::optional&lt; <a class="el" href="structresource__managers_1_1SongAssetStore_1_1Impl_1_1LocatedContainer.html">LocatedContainer</a> &gt;</td></tr>
@@ -288,49 +286,6 @@ Public Member Functions</h2></td></tr>
           <td></td>
           <td class="paramtype">const std::atomic_bool *&#160;</td>
           <td class="paramname"><em>stop</em> = <code>nullptr</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const -&gt; std::shared_ptr&lt;IndexedZipArchive&gt;
-    </td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa5c3609a0f428b06ca912abefb1e9a0d" name="aa5c3609a0f428b06ca912abefb1e9a0d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa5c3609a0f428b06ca912abefb1e9a0d">&#9670;&#160;</a></span>openTemporaryNestedArchive()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto resource_managers::SongAssetStore::Impl::openTemporaryNestedArchive </td>
-          <td>(</td>
-          <td class="paramtype">const std::shared_ptr&lt; IndexedZipArchive &gt; &amp;&#160;</td>
-          <td class="paramname"><em>parent</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const zip_uint64_t&#160;</td>
-          <td class="paramname"><em>index</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::atomic_bool *&#160;</td>
-          <td class="paramname"><em>stop</em>&#160;</td>
         </tr>
         <tr>
           <td></td>

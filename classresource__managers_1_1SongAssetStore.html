@@ -164,7 +164,8 @@ Static Public Member Functions</h2></td></tr>
 <tr class="separator:a0640d3ec6bcc3cee21895eac764e87e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Resolves song-library virtual paths across ordinary directories and nested archives. A path such as C:/songs/collection.zip/song.zip/chart.bms is kept as the public identity; archive boundaries are discovered and handled inside this module. </p>
+<div class="textblock"><p>Resolves song-library virtual paths across ordinary directories and nested archives. A path such as C:/songs/collection.zip/song.zip/chart.bms is kept as the public identity; archive boundaries are discovered and handled inside this module.</p>
+<p>Nested ZIP entries must be stored without compression so they remain directly seekable; non-seekable nested archives are skipped instead of being extracted. </p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a54f4d33ba3b5ab4d9906289d753c466a" name="a54f4d33ba3b5ab4d9906289d753c466a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a54f4d33ba3b5ab4d9906289d753c466a">&#9670;&#160;</a></span>EntryVisitor</h2>
