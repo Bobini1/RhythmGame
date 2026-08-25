@@ -1016,8 +1016,7 @@ class SongAssetStore::Impl
             throw std::runtime_error(
               QStringLiteral(
                 "Nested ZIP is compressed inside its parent and is "
-                "unsupported: %1 (declared size: %2). Repack the outer ZIP "
-                "with nested .zip entries set to Store or no compression.")
+                "unsupported: %1 (declared size: %2).")
                 .arg(support::pathToQString(virtualPath), declaredSize)
                 .toStdString());
         }
@@ -1045,9 +1044,7 @@ class SongAssetStore::Impl
         if (!opened) {
             throw std::runtime_error(
               QStringLiteral(
-                "Nested ZIP is not directly seekable and is unsupported: %1. "
-                "Repack the outer ZIP with nested .zip entries set to Store "
-                "or no compression.")
+                "Nested ZIP is not directly seekable and is unsupported: %1.")
                 .arg(support::pathToQString(virtualPath))
                 .toStdString());
         }

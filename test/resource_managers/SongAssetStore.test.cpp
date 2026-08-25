@@ -421,7 +421,7 @@ TEST_CASE("SongAssetStore rejects compressed nested ZIP entries")
     CHECK(errorMessage.contains(
       support::pathToQString(outer / "packs" / "song.zip")));
     CHECK(errorMessage.contains(QString::number(innerBytes.size())));
-    CHECK(errorMessage.contains(QStringLiteral("Store")));
+    CHECK_FALSE(errorMessage.contains(QStringLiteral("Repack the outer ZIP")));
 }
 
 TEST_CASE(
