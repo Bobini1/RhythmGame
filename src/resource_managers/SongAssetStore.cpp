@@ -415,6 +415,8 @@ struct IndexedZipEntry
     QString path;
     bool directory = false;
     bool encrypted = false;
+    std::optional<zip_uint64_t> uncompressedSize;
+    std::optional<zip_uint16_t> compressionMethod;
 };
 
 struct IndexedZipLookup
@@ -423,48 +425,13 @@ struct IndexedZipLookup
     zip_uint64_t index{};
 };
 
-class TemporaryArchiveFile
-{
-  public:
-    explicit TemporaryArchiveFile(std::filesystem::path path)
-      : path(std::move(path))
-    {
-    }
-
-    ~TemporaryArchiveFile()
-    {
-        auto error = std::error_code{};
-        std::filesystem::remove(path, error);
-        if (error) {
-            spdlog::warn("Could not remove temporary nested ZIP {}: {}",
-                         support::pathToQString(path).toStdString(),
-                         error.message());
-        }
-    }
-
-    TemporaryArchiveFile(const TemporaryArchiveFile&) = delete;
-    TemporaryArchiveFile& operator=(const TemporaryArchiveFile&) = delete;
-    TemporaryArchiveFile(TemporaryArchiveFile&&) = delete;
-    TemporaryArchiveFile& operator=(TemporaryArchiveFile&&) = delete;
-
-    [[nodiscard]] auto getPath() const -> const std::filesystem::path&
-    {
-        return path;
-    }
-
-  private:
-    std::filesystem::path path;
-};
-
 class IndexedZipArchive : public std::enable_shared_from_this<IndexedZipArchive>
 {
   public:
     IndexedZipArchive(ZipArchiveHandle archive,
-                      std::shared_ptr<IndexedZipArchive> parent = {},
-                      std::shared_ptr<TemporaryArchiveFile> temporaryFile = {})
+                      std::shared_ptr<IndexedZipArchive> parent = {})
       : archive(std::move(archive))
       , parent(std::move(parent))
-      , temporaryFile(std::move(temporaryFile))
     {
         buildIndex();
     }
@@ -473,7 +440,6 @@ class IndexedZipArchive : public std::enable_shared_from_this<IndexedZipArchive>
     {
         auto locks = lockParents();
         archive.reset();
-        temporaryFile.reset();
     }
 
     IndexedZipArchive(const IndexedZipArchive&) = delete;
@@ -691,7 +657,19 @@ class IndexedZipArchive : public std::enable_shared_from_this<IndexedZipArchive>
             const auto encrypted =
               (stat.valid & ZIP_STAT_ENCRYPTION_METHOD) != 0 &&
               stat.encryption_method != ZIP_EM_NONE;
-            entries.push_back({ path, directory, encrypted });
+            const auto uncompressedSize =
+              (stat.valid & ZIP_STAT_SIZE) != 0
+                ? std::optional<zip_uint64_t>{ stat.size }
+                : std::nullopt;
+            const auto compressionMethod =
+              (stat.valid & ZIP_STAT_COMP_METHOD) != 0
+                ? std::optional<zip_uint16_t>{ stat.comp_method }
+                : std::nullopt;
+            entries.push_back({ path,
+                                directory,
+                                encrypted,
+                                uncompressedSize,
+                                compressionMethod });
             if (path.isEmpty()) {
                 continue;
             }
@@ -711,7 +689,6 @@ class IndexedZipArchive : public std::enable_shared_from_this<IndexedZipArchive>
 
     ZipArchiveHandle archive;
     std::shared_ptr<IndexedZipArchive> parent;
-    std::shared_ptr<TemporaryArchiveFile> temporaryFile;
     mutable std::mutex mutex;
     std::vector<IndexedZipEntry> entries;
     std::vector<IndexedZipLookup> exactEntries;
@@ -1028,6 +1005,22 @@ class SongAssetStore::Impl
       -> std::shared_ptr<IndexedZipArchive>
     {
         throwIfCancelled(stop);
+        const auto& entry = parent->entry(index);
+        if (!entry.compressionMethod ||
+            *entry.compressionMethod != ZIP_CM_STORE) {
+            const auto declaredSize =
+              entry.uncompressedSize
+                ? QStringLiteral("%1 bytes")
+                    .arg(static_cast<qulonglong>(*entry.uncompressedSize))
+                : QStringLiteral("unknown");
+            throw std::runtime_error(
+              QStringLiteral(
+                "Nested ZIP is compressed inside its parent and is "
+                "unsupported: %1 (declared size: %2). Repack the outer ZIP "
+                "with nested .zip entries set to Store or no compression.")
+                .arg(support::pathToQString(virtualPath), declaredSize)
+                .toStdString());
+        }
         const auto digest = materializationKeyDigest(virtualPath);
         if (!digest) {
             throw std::runtime_error(
@@ -1050,7 +1043,13 @@ class SongAssetStore::Impl
 
         auto opened = parent->openNested(index);
         if (!opened) {
-            opened = openTemporaryNestedArchive(parent, index, stop);
+            throw std::runtime_error(
+              QStringLiteral(
+                "Nested ZIP is not directly seekable and is unsupported: %1. "
+                "Repack the outer ZIP with nested .zip entries set to Store "
+                "or no compression.")
+                .arg(support::pathToQString(virtualPath))
+                .toStdString());
         }
 
         auto lock = std::scoped_lock{ cacheMutex };
@@ -1064,35 +1063,6 @@ class SongAssetStore::Impl
         archives.insert(key, opened);
         retainNestedArchive(key, opened);
         return opened;
-    }
-
-    [[nodiscard]] auto openTemporaryNestedArchive(
-      const std::shared_ptr<IndexedZipArchive>& parent,
-      const zip_uint64_t index,
-      const std::atomic_bool* stop) const -> std::shared_ptr<IndexedZipArchive>
-    {
-        throwIfCancelled(stop);
-        auto temporary =
-          QTemporaryFile{ support::pathToQString(materializationDirectory) +
-                          QStringLiteral("/nested-XXXXXX.zip") };
-        if (!temporary.open()) {
-            throw std::runtime_error(
-              "Could not create temporary nested ZIP archive");
-        }
-        parent->extract(index, temporary, stop);
-        if (!temporary.flush()) {
-            throw std::runtime_error(
-              "Could not flush temporary nested ZIP archive");
-        }
-        temporary.close();
-        const auto temporaryPath = support::qStringToPath(temporary.fileName());
-        temporary.setAutoRemove(false);
-        auto temporaryFile =
-          std::make_shared<TemporaryArchiveFile>(temporaryPath);
-        return std::make_shared<IndexedZipArchive>(
-          openPhysicalZip(temporaryFile->getPath()),
-          nullptr,
-          std::move(temporaryFile));
     }
 
     [[nodiscard]] auto materializeEntry(
@@ -1440,7 +1410,7 @@ SongAssetStore::walkArchive(const std::filesystem::path& archivePath,
                                       current.virtualArchivePath,
                                       stop);
             } catch (const std::exception& error) {
-                spdlog::warn("Skipping unreadable nested archive {}: {}",
+                spdlog::warn("Skipping nested archive {}: {}",
                              current.virtualPrefix.toStdString(),
                              error.what());
                 continue;

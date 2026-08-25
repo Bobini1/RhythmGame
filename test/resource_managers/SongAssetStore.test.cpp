@@ -393,7 +393,7 @@ TEST_CASE("AudioPlayer loads an archived preview without a disk copy")
     sounds::AudioPlayer::engine = nullptr;
 }
 
-TEST_CASE("SongAssetStore falls back for compressed nested ZIP entries")
+TEST_CASE("SongAssetStore rejects compressed nested ZIP entries")
 {
     auto temporaryDirectory = QTemporaryDir{};
     REQUIRE(temporaryDirectory.isValid());
@@ -402,42 +402,45 @@ TEST_CASE("SongAssetStore falls back for compressed nested ZIP entries")
     const auto outer = root / "collection.zip";
     const auto chart = QByteArray{ "#TITLE Compressed nested ZIP\n" };
     writeZip(inner, { { "song/chart.bms", chart } });
-    writeZip(outer,
-             { { "packs/song.zip", readFile(inner) } },
-             ZIP_FL_ENC_UTF_8,
-             false);
+    const auto innerBytes = readFile(inner);
+    writeZip(
+      outer, { { "packs/song.zip", innerBytes } }, ZIP_FL_ENC_UTF_8, false);
 
     auto store = resource_managers::SongAssetStore{};
-    CHECK(store.read(outer / "packs" / "song.zip" / "song" / "chart.bms") ==
-          chart);
+    auto errorMessage = QString{};
+    try {
+        static_cast<void>(
+          store.read(outer / "packs" / "song.zip" / "song" / "chart.bms"));
+    } catch (const std::exception& error) {
+        errorMessage = QString::fromUtf8(error.what());
+    }
+
+    REQUIRE_FALSE(errorMessage.isEmpty());
+    CHECK(
+      errorMessage.contains(QStringLiteral("compressed inside its parent")));
+    CHECK(errorMessage.contains(
+      support::pathToQString(outer / "packs" / "song.zip")));
+    CHECK(errorMessage.contains(QString::number(innerBytes.size())));
+    CHECK(errorMessage.contains(QStringLiteral("Store")));
 }
 
-TEST_CASE("SongAssetStore evicts temporary compressed nested ZIPs")
+TEST_CASE(
+  "SongAssetStore skips compressed nested ZIPs without temporary extraction")
 {
     auto temporaryDirectory = QTemporaryDir{};
     REQUIRE(temporaryDirectory.isValid());
     const auto root = support::qStringToPath(temporaryDirectory.path());
+    const auto inner = root / "song.zip";
     const auto outer = root / "collection.zip";
-    auto nestedPacks = std::vector<std::pair<std::string, QByteArray>>{};
-    constexpr auto packCount = 40;
-    nestedPacks.reserve(packCount + 1);
-    const auto child = root / "child.zip";
-    writeZip(child,
-             { { "nested/chart.bms", QByteArray{ "#TITLE Nested\n" } } });
-    const auto childBytes = readFile(child);
-    for (auto index = 0; index < packCount; ++index) {
-        const auto name = QStringLiteral("pack-%1").arg(index, 3, 10, u'0');
-        const auto inner = root / support::qStringToPath(name + ".zip");
-        writeZip(inner,
-                 { { "song/chart.bms", QByteArray{ "#TITLE Pack\n" } },
-                   { "nested/child.zip", childBytes } });
-        nestedPacks.emplace_back(
-          (QStringLiteral("packs/") + name + QStringLiteral(".zip"))
-            .toStdString(),
-          readFile(inner));
-    }
-    nestedPacks.emplace_back("marker.mp4", QByteArray{ "marker" });
-    writeZip(outer, nestedPacks, ZIP_FL_ENC_UTF_8, false);
+    writeZip(inner,
+             { { "song/nested.bms",
+                 QByteArray{ "#TITLE Compressed nested ZIP\n" } } });
+    writeZip(outer,
+             { { "packs/song.zip", readFile(inner) },
+               { "direct.bms", QByteArray{ "#TITLE Direct\n" } },
+               { "marker.mp4", QByteArray{ "marker" } } },
+             ZIP_FL_ENC_UTF_8,
+             false);
 
     auto store = resource_managers::SongAssetStore{};
     const auto marker = store.materialize(outer / "marker.mp4");
@@ -451,22 +454,19 @@ TEST_CASE("SongAssetStore evicts temporary compressed nested ZIPs")
         }
         return count;
     };
-    auto chartCount = 0;
-    auto maximumTemporaryZipCount = size_t{};
+    auto charts = std::vector<std::filesystem::path>{};
     store.walkArchive(
       outer,
       [](const auto& path) { return path.extension() == ".bms"; },
-      [&chartCount, &maximumTemporaryZipCount, &countTemporaryZips](
-        auto entry) {
+      [&charts](auto entry) {
           if (entry.contents) {
-              ++chartCount;
-              maximumTemporaryZipCount =
-                std::max(maximumTemporaryZipCount, countTemporaryZips());
+              charts.push_back(std::move(entry.virtualPath));
           }
       });
-    REQUIRE(chartCount == packCount * 2);
-    CHECK(maximumTemporaryZipCount <= 32);
-    CHECK(countTemporaryZips() <= 32);
+
+    REQUIRE(charts.size() == 1);
+    CHECK(charts.front() == outer / "direct.bms");
+    CHECK(countTemporaryZips() == 0);
 }
 
 TEST_CASE("SongAssetStore decodes legacy CP932 ZIP entry names")

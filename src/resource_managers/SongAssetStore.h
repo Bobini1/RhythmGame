@@ -18,9 +18,13 @@ namespace resource_managers {
 
 /**
  * Resolves song-library virtual paths across ordinary directories and nested
- * archives. A path such as
- * C:/songs/collection.zip/song.zip/chart.bms is kept as the public identity;
- * archive boundaries are discovered and handled inside this module.
+ * archives. A path such as C:/songs/collection.zip/song.zip/chart.bms is kept
+ * as the public identity; archive boundaries are discovered and handled inside
+ * this module.
+ *
+ * Nested ZIP entries must be stored without compression so they remain
+ * directly seekable; non-seekable nested archives are skipped instead of being
+ * extracted.
  */
 class SongAssetStore : public QObject
 {
