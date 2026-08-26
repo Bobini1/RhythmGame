@@ -2262,12 +2262,17 @@
         <translation>Laser</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="173"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="174"/>
+        <source>Key Beam Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="180"/>
         <source>Bomb</source>
         <translation>Bomba</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="178"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="185"/>
         <source>Glow</source>
         <translation>Poświata</translation>
     </message>

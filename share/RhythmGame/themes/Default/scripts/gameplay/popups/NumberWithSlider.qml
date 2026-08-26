@@ -11,7 +11,7 @@ Item {
     property alias to: slider.to
     property alias from: slider.from
     required property var src
-    property real decimals: to <= 1 ? 1 : 0
+    property real decimals: to <= 1 ? 2 : 0
     property bool enforceRange: true
     readonly property real spinBoxWidth: 116
     height: Math.max(48, row.implicitHeight + 10)
@@ -59,6 +59,7 @@ Item {
 
             Layout.preferredHeight: 34
             Layout.preferredWidth: numberWithSlider.spinBoxWidth
+            editable: true
             font.pixelSize: 14
             value: src[numberWithSlider.prop] * 10 ** numberWithSlider.decimals
 
@@ -70,7 +71,7 @@ Item {
             }
             from: (numberWithSlider.bottom === -Infinity || !numberWithSlider.enforceRange) ? intRange.bottom : numberWithSlider.from * 10 ** numberWithSlider.decimals
             to: (numberWithSlider.to === Infinity || !numberWithSlider.enforceRange) ? intRange.top : numberWithSlider.to * 10 ** numberWithSlider.decimals
-            stepSize: 1
+            stepSize: numberWithSlider.decimals > 0 ? 10 ** (numberWithSlider.decimals - 1) : 1
             onValueModified: {
                 src[numberWithSlider.prop] = value * 10 ** -numberWithSlider.decimals;
             }

@@ -2248,12 +2248,17 @@
         <translation>按键光束</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="173"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="174"/>
+        <source>Key Beam Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="180"/>
         <source>Bomb</source>
         <translation>炸弹</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="178"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="185"/>
         <source>Glow</source>
         <translation>光晕</translation>
     </message>

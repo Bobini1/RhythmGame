@@ -39,7 +39,7 @@ Item {
             id: checkBox
 
             Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-            Layout.preferredWidth: 34
+            Layout.preferredWidth: 238
             checked: booleanOption.src[booleanOption.prop]
 
             onCheckedChanged: {

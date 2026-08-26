@@ -72,6 +72,7 @@ GameplayPopup {
             description: qsTr("Lane cover, lift, hidden, and scratch behavior.")
         }
         Loader {
+            width: ListView.view ? ListView.view.width : 414
             active: !popup.dp
             sourceComponent: Component {
                 BooleanOption {
@@ -82,6 +83,7 @@ GameplayPopup {
             }
         }
         Loader {
+            width: ListView.view ? ListView.view.width : 414
             active: popup.fiveKeys
             sourceComponent: Component {
                 BooleanOption {
@@ -166,6 +168,13 @@ GameplayPopup {
             src: popup.themeVars
             propertyId: "keybeam"
             label: qsTr("Key Beam")
+        }
+        NumberWithSlider {
+            from: 0
+            src: popup.themeVars
+            prop: "keybeamSize"
+            text: qsTr("Key Beam Size")
+            to: 1
         }
         ImageSelection {
             src: popup.themeVars

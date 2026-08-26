@@ -830,6 +830,21 @@
           }
         },
         {
+          "id": "keybeamSize",
+          "name": {
+            "en": "Key Beam Size",
+            "pl": "Rozmiar lasera klawisza"
+          },
+          "type": "range",
+          "min": 0,
+          "max": 1,
+          "default": 1.0,
+          "description": {
+            "en": "The size of each key beam. Smaller values cut away the bottom and use the cropped edge as the new base.",
+            "pl": "Rozmiar każdego lasera klawisza. Mniejsze wartości odcinają dół, a przycięty dolny brzeg staje się nową podstawą lasera."
+          }
+        },
+        {
           "id": "scoregraph",
           "name": {
             "en": "Score Graph Background",

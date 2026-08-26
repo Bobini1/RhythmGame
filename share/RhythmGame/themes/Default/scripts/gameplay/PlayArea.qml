@@ -80,15 +80,20 @@ Item {
 
         anchors.fill: parent
 
-        Image {
-            id: laneCover
-
-            height: parent.height
-            source: root.imagesUrl + "lanecover/" + playArea.vars.lanecover
+        Item {
+            anchors.fill: parent
+            clip: true
             visible: playArea.generalVars.laneCoverOn
-            width: parent.width
-            y: height * (-1 + playArea.generalVars.laneCoverRatio)
             z: 7
+
+            Image {
+                id: laneCover
+
+                height: parent.height
+                source: root.imagesUrl + "lanecover/" + playArea.vars.lanecover
+                width: parent.width
+                y: height * (-1 + playArea.generalVars.laneCoverRatio)
+            }
         }
         Image {
             id: liftCover
@@ -199,6 +204,7 @@ Item {
                     columnIndex: playArea.columns[index]
                     width: playArea.columnSizes[columnIndex]
                     height: parent.height
+                    beamSize: playArea.vars.keybeamSize
                     Binding {
                         when: beam.columnIndex !== 7 && beam.columnIndex !== 15
                         beam.active: modelData.pressed

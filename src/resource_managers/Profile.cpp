@@ -101,7 +101,7 @@ fetchServerGuids(QNetworkAccessManager* networkManager,
                  std::function<void(QString)> onError)
 {
     auto request = factory.createRequest(
-      QStringLiteral("scores?fields=guid&userId=%1").arg(userId));
+      QStringLiteral("scores?fields=guid&user=%1").arg(userId));
     auto* reply = networkManager->get(request);
 
     QObject::connect(

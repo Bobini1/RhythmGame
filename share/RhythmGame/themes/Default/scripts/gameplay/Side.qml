@@ -29,7 +29,21 @@ Item {
     property real bestPoints: 0
     property real targetFinalPoints: 0
 
+    readonly property int laneCoverDoubleClickInterval: 250
+    property double lastStartPressTime: -1
+
     property bool lastDirectionUp: false
+    function handleStartPress(time) {
+        if (side.lastStartPressTime >= 0
+                && time >= side.lastStartPressTime
+                && time - side.lastStartPressTime <= side.laneCoverDoubleClickInterval) {
+            side.lastStartPressTime = -1;
+            let vars = side.profile.vars.generalVars;
+            vars.laneCoverOn = !vars.laneCoverOn;
+        } else {
+            side.lastStartPressTime = time;
+        }
+    }
     function updateCoverChangeTarget() {
         let held = side.start && side.select;
         if (held && !side.startSelectHeld) {
@@ -65,6 +79,12 @@ Item {
         } else if (side.select) {
             side.modifyCoverValue(0.0005 * mult);
         }
+    }
+    Input.onStart1Pressed: time => {
+        if (side.index === 0) side.handleStartPress(time);
+    }
+    Input.onStart2Pressed: time => {
+        if (side.index === 1) side.handleStartPress(time);
     }
     Input.onCol1sUpTicked: (number, type) => {
         if (side.index === 0) side.modifyGnWn(number, -1);

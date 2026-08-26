@@ -9,6 +9,7 @@ Item {
     property url image
     property bool active: false
     property bool hideAfterFinished: false
+    property real beamSize: 1
     onActiveChanged: {
         if (active) {
             hideAnimation.stop();
@@ -31,16 +32,28 @@ Item {
 
     anchors.bottom: parent.bottom
 
-    Image {
+    Item {
         id: laserBeam
 
         property int duration: 83
+        readonly property real clampedSize: Math.max(0, Math.min(1, wrapper.beamSize))
 
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        height: 0
-        source: wrapper.image
+        clip: true
+        height: beamImage.implicitHeight * clampedSize
+        transformOrigin: Item.Bottom
+        visible: clampedSize > 0
         width: 0
+
+        Image {
+            id: beamImage
+
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            source: wrapper.image
+            width: parent.width
+        }
 
         ParallelAnimation {
             id: appearAnimation
@@ -56,15 +69,15 @@ Item {
             }
             PropertyAction {
                 target: laserBeam
-                property: "height"
+                property: "scale"
                 value: 0
             }
             SequentialAnimation {
                 NumberAnimation {
                     duration: laserBeam.duration * 3 / 5
-                    property: "height"
+                    property: "scale"
                     target: laserBeam
-                    to: laserBeam.implicitHeight
+                    to: 1
                 }
                 PauseAnimation {
                     duration: laserBeam.duration * 2 / 5
