@@ -355,16 +355,6 @@ ChartRunner::canQuickRetry() const
         qobject_cast<AutoPlayer*>(player1) != nullptr) {
         return false;
     }
-    const auto* score = player1->getScore();
-    constexpr auto meaningfulJudgements = std::array{
-        Judgement::Bad,     Judgement::Good,      Judgement::Great,
-        Judgement::Perfect, Judgement::LnEndSkip, Judgement::LnBeginHit,
-    };
-    for (const auto judgement : meaningfulJudgements) {
-        if (score->judgementCount(static_cast<int>(judgement)) != 0) {
-            return false;
-        }
-    }
     return true;
 }
 void

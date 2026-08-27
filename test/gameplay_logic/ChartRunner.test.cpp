@@ -198,7 +198,7 @@ TEST_CASE("quick retry remains available through non-playing judgements")
     CHECK(fixture.runner->canQuickRetry());
 }
 
-TEST_CASE("quick retry becomes unavailable after meaningful play")
+TEST_CASE("quick retry remains available after meaningful play")
 {
     const auto judgement = GENERATE(gameplay_logic::Judgement::Bad,
                                     gameplay_logic::Judgement::Good,
@@ -209,9 +209,12 @@ TEST_CASE("quick retry becomes unavailable after meaningful play")
     CAPTURE(judgement);
 
     auto fixture = makeReadyRunner();
+    fixture.runner->start();
+    REQUIRE(fixture.runner->getStatus() ==
+            gameplay_logic::ChartRunner::Running);
     addJudgement(fixture.score, judgement);
 
-    CHECK_FALSE(fixture.runner->canQuickRetry());
+    CHECK(fixture.runner->canQuickRetry());
 }
 
 TEST_CASE("quick retry snapshots the complete chart transformation")
