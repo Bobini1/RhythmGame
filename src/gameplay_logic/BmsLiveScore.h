@@ -273,6 +273,7 @@ class BmsLiveScore final : public QObject
     auto getNoteOrderAlgorithm() const -> resource_managers::NoteOrderAlgorithm;
     auto getNoteOrderAlgorithmP2() const
       -> resource_managers::NoteOrderAlgorithm;
+    auto getDpOptions() const -> resource_managers::DpOptions;
     auto getPermutation() const -> const QList<int>&;
     auto getRandomSeed() const -> uint64_t;
     auto getGuid() const -> QString;

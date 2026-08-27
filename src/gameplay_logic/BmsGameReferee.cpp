@@ -118,11 +118,7 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
                                        bool lastUpdate)
 {
     if (lastUpdate) {
-        hitRules.disableSound();
-        for (const auto& sound : sounds | std::views::values) {
-            sound->stop();
-        }
-        currentBgms = {};
+        stopSounds();
     }
     auto events = std::vector<HitEvent>{};
     for (auto columnIndex = 0; columnIndex < notes.size(); columnIndex++) {
@@ -153,6 +149,15 @@ gameplay_logic::BmsGameReferee::update(std::chrono::nanoseconds offsetFromStart,
         }
     }
     currentBgms = currentBgms.subspan(played);
+}
+void
+gameplay_logic::BmsGameReferee::stopSounds()
+{
+    hitRules.disableSound();
+    for (const auto& sound : sounds | std::views::values) {
+        sound->stop();
+    }
+    currentBgms = {};
 }
 auto
 gameplay_logic::BmsGameReferee::getBpm(std::chrono::nanoseconds offsetFromStart)

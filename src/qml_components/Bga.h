@@ -74,6 +74,7 @@ class BgaContainer : public QObject
 
     auto getLayers() const -> const QList<Bga*>&;
     void update(std::chrono::nanoseconds offsetFromStart);
+    void stop();
 };
 } // namespace qml_components
 

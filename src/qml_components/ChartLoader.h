@@ -49,6 +49,12 @@ class ChartLoader : public QObject
         const std::filesystem::path& hint)>;
 
   private:
+    enum class RetryMode
+    {
+        FreshRandomization,
+        SamePattern,
+    };
+
     resource_managers::ChartDataFactory* chartDataFactory;
     resource_managers::SongAssetStore* assetStore;
     HitValueFactory hitValueFactory;
@@ -89,6 +95,9 @@ class ChartLoader : public QObject
       resource_managers::NoteOrderAlgorithm p2NoteOrderAlgorithm,
       bool p1Pre130,
       bool p2Pre130) const -> std::unique_ptr<gameplay_logic::ChartRunner>;
+
+    auto retryChart(gameplay_logic::ChartRunner* current, RetryMode mode) const
+      -> gameplay_logic::ChartRunner*;
 
   public:
     ChartLoader(ProfileList* profileList,
@@ -141,6 +150,15 @@ class ChartLoader : public QObject
       resource_managers::Profile* player,
       const resource_managers::ChartPlayConfig& playConfig) const
       -> gameplay_logic::ChartRunner*;
+
+    /** Creates a runner with fresh randomization for a local quick retry. */
+    Q_INVOKABLE gameplay_logic::ChartRunner* retryChartWithFreshRandomization(
+      gameplay_logic::ChartRunner* current) const;
+
+    /** Creates a runner preserving the exact pattern for a local quick retry.
+     */
+    Q_INVOKABLE gameplay_logic::ChartRunner* retryChartWithSamePattern(
+      gameplay_logic::ChartRunner* current) const;
 
     /**
      * @brief Loads a course with the given parameters.

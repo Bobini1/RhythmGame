@@ -406,6 +406,39 @@ ChartLoader::loadChartWithConfig(
 }
 
 auto
+ChartLoader::retryChart(gameplay_logic::ChartRunner* current,
+                        RetryMode mode) const -> gameplay_logic::ChartRunner*
+{
+    if (current == nullptr || !current->canQuickRetry()) {
+        return nullptr;
+    }
+    auto* player = current->getPlayer1()->getProfile();
+    if (player == nullptr) {
+        return nullptr;
+    }
+    const auto filename = current->getChartData()->getPath();
+    if (mode == RetryMode::SamePattern) {
+        return loadChartWithConfig(filename, player, current->getPlayConfig());
+    }
+    return loadChart(
+      filename, player, false, false, nullptr, nullptr, false, false, nullptr);
+}
+
+auto
+ChartLoader::retryChartWithFreshRandomization(
+  gameplay_logic::ChartRunner* current) const -> gameplay_logic::ChartRunner*
+{
+    return retryChart(current, RetryMode::FreshRandomization);
+}
+
+auto
+ChartLoader::retryChartWithSamePattern(
+  gameplay_logic::ChartRunner* current) const -> gameplay_logic::ChartRunner*
+{
+    return retryChart(current, RetryMode::SamePattern);
+}
+
+auto
 constrainNoteOrderAlgorithm(resource_managers::NoteOrderAlgorithm algo,
                             bool mirror)
   -> resource_managers::NoteOrderAlgorithm

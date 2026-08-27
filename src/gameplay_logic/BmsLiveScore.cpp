@@ -140,6 +140,11 @@ BmsLiveScore::getNoteOrderAlgorithmP2() const
     return noteOrderAlgorithmP2;
 }
 auto
+BmsLiveScore::getDpOptions() const -> resource_managers::DpOptions
+{
+    return dpOptions;
+}
+auto
 BmsLiveScore::getPermutation() const -> const QList<int>&
 {
     return permutation;

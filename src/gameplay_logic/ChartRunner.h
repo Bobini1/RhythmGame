@@ -10,6 +10,7 @@
 #include "ChartStartGate.h"
 #include "BmsScore.h"
 #include "BmsLiveScore.h"
+#include "resource_managers/ChartPlayConfig.h"
 #include "resource_managers/Profile.h"
 #include "qml_components/Bga.h"
 #include "NoteState.h"
@@ -105,6 +106,7 @@ class ChartRunner final : public QObject
       static_cast<std::size_t>(input::BmsKey::Col2sDown) + 1;
     std::array<bool, physicalKeyCount> pressedInputKeys{};
     bool m_inputSuppressed{};
+    bool aborted{};
 
     void updateElapsed();
     void startNow();
@@ -129,6 +131,10 @@ class ChartRunner final : public QObject
     void passKey(input::BmsKey key, EventType eventType, int64_t time);
 
     Q_INVOKABLE QList<BmsScore*> finish();
+    Q_INVOKABLE bool canQuickRetry() const;
+    Q_INVOKABLE void abort();
+
+    auto getPlayConfig() const -> resource_managers::ChartPlayConfig;
 
     auto getChartData() const -> ChartData*;
     auto getKeymode() const -> ChartData::Keymode;
@@ -229,6 +235,7 @@ class Player : public QObject
     QFutureWatcher<BmsGameReferee> refereeWatcher;
     QFuture<BmsGameReferee> refereeFuture;
     BmsLiveScore* score;
+    bool aborted{};
 
   protected:
     std::optional<BmsGameReferee> referee;
@@ -264,6 +271,7 @@ class Player : public QObject
     auto getBpm() const -> double;
     auto getScroll() const -> double;
     auto finish(const ChartData& chartData) -> BmsScore*;
+    void abort();
 
   signals:
     void positionChanged(double delta);

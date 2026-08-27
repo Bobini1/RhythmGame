@@ -113,7 +113,18 @@ ApplicationWindow {
         property Item activeArenaItem: null
         property Item activeArenaGameplayItem: null
         property var activeArenaGameplayRunner: null
+        property Item activePlayOwner: null
         property bool fpsOverlayVisible: false
+        property int quickRetrySide: 0
+        property bool quickRetryChoosing: false
+        property bool quickRetryChoiceQueued: false
+        readonly property int quickRetryHoldDuration: 1000
+        readonly property int quickRetryInputState: (Input.start1 ? 1 : 0)
+            | (Input.select1 ? 2 : 0)
+            | (Input.start2 ? 4 : 0)
+            | (Input.select2 ? 8 : 0)
+
+        onQuickRetryInputStateChanged: handleQuickRetryInputChanged()
 
         function isFullScreen(): var {
             return contentContainer.visibility === Window.FullScreen;
@@ -357,7 +368,8 @@ ApplicationWindow {
                 props["skinSettingsData"] = decideScreen.settingsData || "";
                 props["screenKey"] = "decide";
             }
-            sceneStack.pushItem(decideComponent, props);
+            activePlayOwner = sceneStack.pushItem(decideComponent, props);
+            return activePlayOwner;
         }
 
         function openCourse(course: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var): var {
@@ -376,10 +388,11 @@ ApplicationWindow {
                 props["skinSettingsData"] = decideScreen.settingsData || "";
                 props["screenKey"] = "decide";
             }
-            sceneStack.pushItem(decideComponent, props);
+            activePlayOwner = sceneStack.pushItem(decideComponent, props);
+            return activePlayOwner;
         }
 
-        function openGameplay(runner: var, arenaManagedRunner: var): var {
+        function gameplayDescriptor(runner: var, arenaManagedRunner: var): var {
             let keys = runner.keymode;
             let battle = runner.player1 && runner.player2;
             let screenKey = "k" + keys + (battle ? "battle" : "");
@@ -395,7 +408,131 @@ ApplicationWindow {
                 props["skinSettingsData"] = screenObj.settingsData || "";
                 props["screenKey"] = screenKey;
             }
-            return sceneStack.pushItem(component, props);
+            return {
+                "component": component,
+                "properties": props
+            };
+        }
+
+        function openGameplay(runner: var, arenaManagedRunner: var): var {
+            const descriptor = gameplayDescriptor(runner, arenaManagedRunner);
+            return sceneStack.pushItem(descriptor.component, descriptor.properties);
+        }
+
+        function currentQuickRetryRunner(): var {
+            const screen = sceneStack.currentItem;
+            if (!activePlayOwner || !screen || screen === activePlayOwner
+                    || screen.arenaManagedRunner === true
+                    || !screen.chart
+                    || activePlayOwner.chart !== screen.chart
+                    || !(screen.chart instanceof ChartRunner)
+                    || !screen.chart.canQuickRetry()) {
+                return null;
+            }
+            return screen.chart;
+        }
+
+        function resetQuickRetryControl(): void {
+            quickRetryHoldTimer.stop();
+            quickRetrySide = 0;
+            quickRetryChoosing = false;
+            quickRetryChoiceQueued = false;
+        }
+
+        function handleQuickRetryInputChanged(): void {
+            if (quickRetryChoosing) {
+                if (!quickRetryChoiceQueued) {
+                    quickRetryChoiceQueued = true;
+                    Qt.callLater(evaluateQuickRetryChoice);
+                }
+                return;
+            }
+            const p1Chord = Input.start1 && Input.select1;
+            const p2Chord = Input.start2 && Input.select2;
+            const side = p1Chord ? 1 : (p2Chord ? 2 : 0);
+            const runner = currentQuickRetryRunner();
+            if (side === 0 || !runner) {
+                quickRetryHoldTimer.stop();
+                quickRetrySide = 0;
+                return;
+            }
+            if (quickRetrySide !== side || !quickRetryHoldTimer.running) {
+                quickRetrySide = side;
+                quickRetryHoldTimer.restart();
+            }
+        }
+
+        function evaluateQuickRetryChoice(): void {
+            quickRetryChoiceQueued = false;
+            if (!quickRetryChoosing) {
+                return;
+            }
+            const runner = sceneStack.currentItem ? sceneStack.currentItem.chart : null;
+            if (!runner || !activePlayOwner || runner !== activePlayOwner.chart) {
+                resetQuickRetryControl();
+                return;
+            }
+            const startHeld = quickRetrySide === 1 ? Input.start1 : Input.start2;
+            const selectHeld = quickRetrySide === 1 ? Input.select1 : Input.select2;
+            if (startHeld && selectHeld) {
+                return;
+            }
+            if (!startHeld && !selectHeld) {
+                resetQuickRetryControl();
+                sceneStack.popCurrentItem(StackView.Immediate);
+                return;
+            }
+            const samePattern = selectHeld;
+            resetQuickRetryControl();
+            replaceGameplayForRetry(runner, samePattern);
+        }
+
+        function replaceGameplayForRetry(runner: var, samePattern: bool): bool {
+            const current = sceneStack.currentItem;
+            if (!activePlayOwner || !current || current.chart !== runner
+                    || activePlayOwner.chart !== runner) {
+                return false;
+            }
+            const replacementRunner = samePattern
+                ? Rg.chartLoader.retryChartWithSamePattern(runner)
+                : Rg.chartLoader.retryChartWithFreshRandomization(runner);
+            if (!replacementRunner) {
+                sceneStack.popCurrentItem(StackView.Immediate);
+                return false;
+            }
+            const descriptor = gameplayDescriptor(replacementRunner, false);
+            activePlayOwner.chart = replacementRunner;
+            const replacementItem = sceneStack.replaceCurrentItem(
+                descriptor.component, descriptor.properties, StackView.Immediate);
+            if (!replacementItem) {
+                activePlayOwner.chart = runner;
+                replacementRunner.destroy();
+                sceneStack.popCurrentItem(StackView.Immediate);
+                return false;
+            }
+            runner.abort();
+            runner.destroy();
+            return true;
+        }
+
+        Timer {
+            id: quickRetryHoldTimer
+
+            interval: globalRoot.quickRetryHoldDuration
+            repeat: false
+
+            onTriggered: {
+                const runner = globalRoot.currentQuickRetryRunner();
+                const chordHeld = globalRoot.quickRetrySide === 1
+                    ? Input.start1 && Input.select1
+                    : Input.start2 && Input.select2;
+                if (!runner || !chordHeld) {
+                    globalRoot.resetQuickRetryControl();
+                    return;
+                }
+                globalRoot.quickRetryChoosing = true;
+                runner.abort();
+            }
         }
 
         function openPreparedArenaGameplay(runner: var): void {
@@ -670,6 +807,7 @@ ApplicationWindow {
             id: sceneStack
 
             onCurrentItemChanged: {
+                globalRoot.resetQuickRetryControl();
                 Qt.callLater(updateEnabledStates);
             }
 
