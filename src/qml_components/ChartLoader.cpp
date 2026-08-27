@@ -17,6 +17,7 @@
 #include <ranges>
 #include <stdexcept>
 
+#include <QPointer>
 #include <spdlog/spdlog.h>
 
 namespace qml_components {
@@ -405,37 +406,90 @@ ChartLoader::loadChartWithConfig(
     }
 }
 
-auto
-ChartLoader::retryChart(gameplay_logic::ChartRunner* current,
-                        RetryMode mode) const -> gameplay_logic::ChartRunner*
+QuickRetrySession::QuickRetrySession(RunnerFactory freshRandomizationFactory,
+                                     RunnerFactory samePatternFactory)
+  : freshRandomizationFactory(std::move(freshRandomizationFactory))
+  , samePatternFactory(std::move(samePatternFactory))
 {
-    if (current == nullptr || !current->canQuickRetry()) {
+}
+
+auto
+QuickRetrySession::consume(RunnerFactory& factory)
+  -> gameplay_logic::ChartRunner*
+{
+    if (consumed || !factory) {
+        return nullptr;
+    }
+    consumed = true;
+    auto selectedFactory = std::move(factory);
+    freshRandomizationFactory = {};
+    samePatternFactory = {};
+    return selectedFactory();
+}
+
+auto
+QuickRetrySession::retryWithFreshRandomization() -> gameplay_logic::ChartRunner*
+{
+    return consume(freshRandomizationFactory);
+}
+
+auto
+QuickRetrySession::retryWithSamePattern() -> gameplay_logic::ChartRunner*
+{
+    return consume(samePatternFactory);
+}
+
+auto
+ChartLoader::prepareQuickRetry(gameplay_logic::ChartRunner* current) const
+  -> QuickRetrySession*
+{
+    if (current == nullptr ||
+        current->getStatus() == gameplay_logic::ChartRunner::Finished ||
+        current->getPlayer2() != nullptr ||
+        qobject_cast<gameplay_logic::RePlayer*>(current->getPlayer1()) !=
+          nullptr ||
+        qobject_cast<gameplay_logic::AutoPlayer*>(current->getPlayer1()) !=
+          nullptr) {
         return nullptr;
     }
     auto* player = current->getPlayer1()->getProfile();
     if (player == nullptr) {
         return nullptr;
     }
+
     const auto filename = current->getChartData()->getPath();
-    if (mode == RetryMode::SamePattern) {
-        return loadChartWithConfig(filename, player, current->getPlayConfig());
-    }
-    return loadChart(
-      filename, player, false, false, nullptr, nullptr, false, false, nullptr);
-}
-
-auto
-ChartLoader::retryChartWithFreshRandomization(
-  gameplay_logic::ChartRunner* current) const -> gameplay_logic::ChartRunner*
-{
-    return retryChart(current, RetryMode::FreshRandomization);
-}
-
-auto
-ChartLoader::retryChartWithSamePattern(
-  gameplay_logic::ChartRunner* current) const -> gameplay_logic::ChartRunner*
-{
-    return retryChart(current, RetryMode::SamePattern);
+    const auto* score = current->getPlayer1()->getScore();
+    const auto playConfig = resource_managers::ChartPlayConfig{
+        .randomSequence = score->getRandomSequence(),
+        .noteOrderP1 = score->getNoteOrderAlgorithm(),
+        .noteOrderP2 = score->getNoteOrderAlgorithmP2(),
+        .dpMode = score->getDpOptions(),
+        .laneSeed = score->getRandomSeed(),
+    };
+    const auto loader = QPointer{ const_cast<ChartLoader*>(this) };
+    const auto profile = QPointer{ player };
+    auto freshRandomizationFactory = [loader, profile, filename] {
+        if (!loader || !profile) {
+            return static_cast<gameplay_logic::ChartRunner*>(nullptr);
+        }
+        return loader->loadChart(filename,
+                                 profile,
+                                 false,
+                                 false,
+                                 nullptr,
+                                 nullptr,
+                                 false,
+                                 false,
+                                 nullptr);
+    };
+    auto samePatternFactory = [loader, profile, filename, playConfig] {
+        if (!loader || !profile) {
+            return static_cast<gameplay_logic::ChartRunner*>(nullptr);
+        }
+        return loader->loadChartWithConfig(filename, profile, playConfig);
+    };
+    return new QuickRetrySession(std::move(freshRandomizationFactory),
+                                 std::move(samePatternFactory));
 }
 
 auto

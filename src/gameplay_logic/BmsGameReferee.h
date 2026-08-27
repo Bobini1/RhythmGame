@@ -83,9 +83,6 @@ class BmsGameReferee
     void update(std::chrono::nanoseconds offsetFromStart,
                 bool lastUpdate = false);
 
-    /** Stops all chart sounds without producing any additional judgements. */
-    void stopSounds();
-
     auto getBpm(std::chrono::nanoseconds offsetFromStart) const
       -> charts::BmsNotesData::BpmChangeValues;
 

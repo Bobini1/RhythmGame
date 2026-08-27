@@ -125,11 +125,3 @@ qml_components::BgaContainer::update(std::chrono::nanoseconds offsetFromStart)
         bga->update(offsetFromStart);
     }
 }
-void
-qml_components::BgaContainer::stop()
-{
-    for (auto* videoFile : videoFiles) {
-        videoFile->stop();
-        videoFile->setVideoOutput(nullptr);
-    }
-}

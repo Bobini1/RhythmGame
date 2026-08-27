@@ -103,7 +103,7 @@ ChartRunner::ChartRunner(
 void
 ChartRunner::start()
 {
-    if (aborted || status == Running || status == Finished) {
+    if (status == Running || status == Finished) {
         return;
     }
     if (!startGate.requestStart(status == Ready)) {
@@ -115,7 +115,7 @@ ChartRunner::start()
 void
 ChartRunner::holdStart()
 {
-    if (!aborted && (status == Loading || status == Ready)) {
+    if (status == Loading || status == Ready) {
         startGate.hold();
     }
 }
@@ -123,7 +123,7 @@ ChartRunner::holdStart()
 void
 ChartRunner::releaseStart()
 {
-    if (!aborted && startGate.release(status == Ready)) {
+    if (startGate.release(status == Ready)) {
         startNow();
     }
 }
@@ -304,7 +304,7 @@ ChartRunner::setStatus(const Status status)
 void
 ChartRunner::setup()
 {
-    if (aborted || ++numberOfSetupCalls != (player2 != nullptr ? 3 : 2) ||
+    if (++numberOfSetupCalls != (player2 != nullptr ? 3 : 2) ||
         status != Loading) {
         return;
     }
@@ -346,50 +346,6 @@ ChartRunner::finish() -> QList<BmsScore*>
     }
     setStatus(Finished);
     return ret;
-}
-bool
-ChartRunner::canQuickRetry() const
-{
-    if (status == Finished || player2 != nullptr ||
-        qobject_cast<RePlayer*>(player1) != nullptr ||
-        qobject_cast<AutoPlayer*>(player1) != nullptr) {
-        return false;
-    }
-    return true;
-}
-void
-ChartRunner::abort()
-{
-    if (aborted) {
-        return;
-    }
-    aborted = true;
-    startGate.reset();
-    propertyUpdateTimer.stop();
-    m_inputSuppressed = true;
-    clearPressedInputKeys();
-    if (bga == nullptr) {
-        bgaFutureWatcher.cancel();
-        bgaFuture.cancel();
-    } else {
-        bga->stop();
-    }
-    player1->abort();
-    if (player2 != nullptr) {
-        player2->abort();
-    }
-}
-auto
-ChartRunner::getPlayConfig() const -> resource_managers::ChartPlayConfig
-{
-    const auto* score = player1->getScore();
-    return {
-        .randomSequence = score->getRandomSequence(),
-        .noteOrderP1 = score->getNoteOrderAlgorithm(),
-        .noteOrderP2 = score->getNoteOrderAlgorithmP2(),
-        .dpMode = score->getDpOptions(),
-        .laneSeed = score->getRandomSeed(),
-    };
 }
 void
 Player::setElapsed(const int64_t newElapsed)
@@ -595,9 +551,6 @@ Player::passKey(input::BmsKey key,
 void
 Player::setup()
 {
-    if (aborted) {
-        return;
-    }
     referee = refereeFuture.takeResult();
     setStatus(ChartRunner::Status::Ready);
 }
@@ -768,20 +721,6 @@ Player::finish(const ChartData& chartData) -> BmsScore*
         spdlog::warn("Profile was deleted before saving score");
     }
     return score.release();
-}
-void
-Player::abort()
-{
-    if (aborted) {
-        return;
-    }
-    aborted = true;
-    if (refereeFuture.isRunning()) {
-        refereeFuture.cancel();
-    }
-    if (referee) {
-        referee->stopSounds();
-    }
 }
 RePlayer::RePlayer(BmsNotes* notes,
                    BmsLiveScore* score,

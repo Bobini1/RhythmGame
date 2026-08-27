@@ -19,10 +19,37 @@
 #include "gameplay_logic/rules/BmsRanks.h"
 #include "resource_managers/Tables.h"
 
+#include <functional>
+
+#include <QtQmlIntegration/qqmlintegration.h>
+
 namespace gameplay_logic {
 class CourseRunner;
 }
 namespace qml_components {
+
+class ChartLoader;
+
+class QuickRetrySession final : public QObject
+{
+    Q_OBJECT
+    QML_ANONYMOUS
+
+    using RunnerFactory = std::function<gameplay_logic::ChartRunner*()>;
+
+    RunnerFactory freshRandomizationFactory;
+    RunnerFactory samePatternFactory;
+    bool consumed{};
+
+    friend class ChartLoader;
+    explicit QuickRetrySession(RunnerFactory freshRandomizationFactory,
+                               RunnerFactory samePatternFactory);
+    auto consume(RunnerFactory& factory) -> gameplay_logic::ChartRunner*;
+
+  public:
+    Q_INVOKABLE gameplay_logic::ChartRunner* retryWithFreshRandomization();
+    Q_INVOKABLE gameplay_logic::ChartRunner* retryWithSamePattern();
+};
 
 /**
  * @brief Loads charts and courses with the given parameters.
@@ -49,12 +76,6 @@ class ChartLoader : public QObject
         const std::filesystem::path& hint)>;
 
   private:
-    enum class RetryMode
-    {
-        FreshRandomization,
-        SamePattern,
-    };
-
     resource_managers::ChartDataFactory* chartDataFactory;
     resource_managers::SongAssetStore* assetStore;
     HitValueFactory hitValueFactory;
@@ -95,9 +116,6 @@ class ChartLoader : public QObject
       resource_managers::NoteOrderAlgorithm p2NoteOrderAlgorithm,
       bool p1Pre130,
       bool p2Pre130) const -> std::unique_ptr<gameplay_logic::ChartRunner>;
-
-    auto retryChart(gameplay_logic::ChartRunner* current, RetryMode mode) const
-      -> gameplay_logic::ChartRunner*;
 
   public:
     ChartLoader(ProfileList* profileList,
@@ -151,13 +169,8 @@ class ChartLoader : public QObject
       const resource_managers::ChartPlayConfig& playConfig) const
       -> gameplay_logic::ChartRunner*;
 
-    /** Creates a runner with fresh randomization for a local quick retry. */
-    Q_INVOKABLE gameplay_logic::ChartRunner* retryChartWithFreshRandomization(
-      gameplay_logic::ChartRunner* current) const;
-
-    /** Creates a runner preserving the exact pattern for a local quick retry.
-     */
-    Q_INVOKABLE gameplay_logic::ChartRunner* retryChartWithSamePattern(
+    /** Captures the choices needed to recreate an eligible local play. */
+    Q_INVOKABLE QuickRetrySession* prepareQuickRetry(
       gameplay_logic::ChartRunner* current) const;
 
     /**
