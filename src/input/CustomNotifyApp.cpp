@@ -27,7 +27,8 @@ CustomNotifyApp* CustomNotifyApp::s_instance = nullptr;
 //    early avoids unnecessary work and keeps configuring mode clean).
 //  • We read QGuiApplication::focusObject() to avoid stealing input from any
 //    focused text-entry widget (search bar, rename field, …).
-//  • Key-down events become game input only while the application is active.
+//  • Key-down events become game input only while Windows reports that this
+//    process owns the foreground window and Qt reports the application active.
 //    Key-up events still pass through after focus loss so held keys are
 //    released.
 //  • CallNextHookEx is ALWAYS called so Qt and the rest of the system receive
@@ -76,10 +77,20 @@ CustomNotifyApp::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
                 textInputActive = query.value(Qt::ImEnabled).toBool();
             }
 
-            if (shouldTranslateKeyboardEvent(isDown,
-                                             applicationState(),
-                                             focusWindow() != nullptr,
-                                             textInputActive)) {
+            const auto state = applicationState();
+            const auto hasFocusWindow = focusWindow() != nullptr;
+            const auto foregroundWindow = GetForegroundWindow();
+            auto foregroundProcessId = DWORD{};
+            if (foregroundWindow != nullptr) {
+                GetWindowThreadProcessId(foregroundWindow,
+                                         &foregroundProcessId);
+            }
+            const auto processId = GetCurrentProcessId();
+            const auto foregroundOwned = foregroundProcessId == processId;
+            const auto shouldTranslate = shouldTranslateKeyboardEvent(
+              isDown, state, hasFocusWindow, textInputActive, foregroundOwned);
+
+            if (shouldTranslate) {
                 const auto now =
                   std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::steady_clock::now().time_since_epoch());
@@ -126,12 +137,14 @@ auto
 CustomNotifyApp::shouldTranslateKeyboardEvent(bool isKeyDown,
                                               Qt::ApplicationState state,
                                               bool hasFocusWindow,
-                                              bool textInputActive) -> bool
+                                              bool textInputActive,
+                                              bool foregroundOwned) -> bool
 {
     if (!isKeyDown) {
         return true;
     }
-    return state == Qt::ApplicationActive && hasFocusWindow && !textInputActive;
+    return foregroundOwned && state == Qt::ApplicationActive &&
+           hasFocusWindow && !textInputActive;
 }
 
 void

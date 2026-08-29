@@ -94,20 +94,24 @@ TEST_CASE("background keyboard input is not translated to BMS actions",
     using input::CustomNotifyApp;
 
     CHECK(CustomNotifyApp::shouldTranslateKeyboardEvent(
-      true, Qt::ApplicationActive, true, false));
+      true, Qt::ApplicationActive, true, false, true));
+    // When the game starts in the background, Qt may still report active even
+    // though another process owns the native foreground window.
     CHECK_FALSE(CustomNotifyApp::shouldTranslateKeyboardEvent(
-      true, Qt::ApplicationInactive, true, false));
+      true, Qt::ApplicationActive, true, false, false));
     CHECK_FALSE(CustomNotifyApp::shouldTranslateKeyboardEvent(
-      true, Qt::ApplicationHidden, true, false));
+      true, Qt::ApplicationInactive, true, false, true));
     CHECK_FALSE(CustomNotifyApp::shouldTranslateKeyboardEvent(
-      true, Qt::ApplicationSuspended, true, false));
+      true, Qt::ApplicationHidden, true, false, true));
     CHECK_FALSE(CustomNotifyApp::shouldTranslateKeyboardEvent(
-      true, Qt::ApplicationActive, false, false));
+      true, Qt::ApplicationSuspended, true, false, true));
     CHECK_FALSE(CustomNotifyApp::shouldTranslateKeyboardEvent(
-      true, Qt::ApplicationActive, true, true));
+      true, Qt::ApplicationActive, false, false, true));
+    CHECK_FALSE(CustomNotifyApp::shouldTranslateKeyboardEvent(
+      true, Qt::ApplicationActive, true, true, true));
 
     CHECK(CustomNotifyApp::shouldTranslateKeyboardEvent(
-      false, Qt::ApplicationInactive, false, false));
+      false, Qt::ApplicationInactive, false, false, false));
 }
 
 TEST_CASE("beatoraja analog scratch ticks use wrapped 0.009 axis quanta")

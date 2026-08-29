@@ -44,7 +44,8 @@ class CustomNotifyApp final : public QGuiApplication
     static auto shouldTranslateKeyboardEvent(bool isKeyDown,
                                              Qt::ApplicationState state,
                                              bool hasFocusWindow,
-                                             bool textInputActive) -> bool;
+                                             bool textInputActive,
+                                             bool foregroundOwned) -> bool;
     auto notify(QObject* receiver, QEvent* event) -> bool override;
 };
 
