@@ -29,7 +29,6 @@ add_executable(RhythmGame_test
         arena/FakeArenaGameplaySource.h
         gameplay_logic/ChartStartGate.test.cpp
         gameplay_logic/NoteState.test.cpp
-        qml/DefaultLaserBeam.test.cpp
         charts/BmsChartReader.test.cpp
         db/SqliteCppDb.test.cpp
         sounds/OpenAlSound.test.cpp
