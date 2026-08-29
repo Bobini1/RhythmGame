@@ -17,6 +17,9 @@ Item {
     readonly property BmsNotes notes: player.notes
     readonly property var columnStates: player.state.columnStates
     readonly property var profileVars: profile.vars.themeVars[root.screen][root.themeName]
+    readonly property real greenNumber: Math.max(1, profile.vars.generalVars.noteScreenTimeMillis) * 3 / 5
+    readonly property real laneCoverNumber: Math.max(0, Math.min(1, profile.vars.generalVars.laneCoverRatio)) * 1000
+    readonly property real liftNumber: Math.max(0, Math.min(1, profile.vars.generalVars.liftRatio)) * 1000
 
     property bool start: Input[`start${index+1}`] || (dpSuffix && (Input.start1 || Input.start2))
     property bool select: Input[`select${index+1}`] || (dpSuffix && (Input.select1 || Input.select2))
@@ -29,7 +32,7 @@ Item {
     property real bestPoints: 0
     property real targetFinalPoints: 0
 
-    readonly property int laneCoverDoubleClickInterval: 250
+    readonly property int laneCoverDoubleClickInterval: 500
     property double lastStartPressTime: -1
 
     property bool lastDirectionUp: false
@@ -39,6 +42,10 @@ Item {
                 && time - side.lastStartPressTime <= side.laneCoverDoubleClickInterval) {
             side.lastStartPressTime = -1;
             let vars = side.profile.vars.generalVars;
+            let visibleRatio = Math.max(0.001, 1 - Math.max(0, Math.min(1, vars.laneCoverRatio)));
+            let currentDuration = vars.noteScreenTimeMillis > 0 ? vars.noteScreenTimeMillis : 1000;
+            vars.noteScreenTimeMillis = Math.max(1, Math.min(10000,
+                vars.laneCoverOn ? currentDuration / visibleRatio : currentDuration * visibleRatio));
             vars.laneCoverOn = !vars.laneCoverOn;
         } else {
             side.lastStartPressTime = time;
@@ -126,6 +133,29 @@ Item {
     transform: Scale {
         xScale: side.mirrored ? -1 : 1; origin.x: side.width / 2
     }
+
+    component CoverNumbers: Row {
+        required property real greenNumber
+        required property real whiteNumber
+
+        Text {
+            width: Math.max(100, implicitWidth)
+            font.pixelSize: 32
+            color: "green"
+            style: Text.Outline
+            styleColor: "black"
+            text: Math.round(parent.greenNumber).toString()
+        }
+        Text {
+            width: Math.max(100, implicitWidth)
+            font.pixelSize: 32
+            color: "white"
+            style: Text.Outline
+            styleColor: "black"
+            text: Math.round(parent.whiteNumber).toString()
+        }
+    }
+
     PlayArea {
         id: playArea
 
@@ -207,33 +237,26 @@ Item {
             }
         }
 
-        Row {
-            id: gnwnText
+        CoverNumbers {
+            id: laneCoverNumbers
+
             anchors.horizontalCenter: parent.horizontalCenter
-            anchors.top: parent.top
             visible: side.start || side.select
-            Text {
-                width: Math.max(100, implicitWidth)
-                font.pixelSize: 32
-                color: "green"
-                style: Text.Outline
-                styleColor: "black"
-                text: ((side.profile.vars.generalVars.noteScreenTimeMillis) * 3 / 5).toFixed(0)
-            }
-            Text {
-                width: Math.max(100, implicitWidth)
-                font.pixelSize: 32
-                color: "white"
-                style: Text.Outline
-                styleColor: "black"
-                visible: side.profile.vars.generalVars.laneCoverOn || side.profile.vars.generalVars.liftOn
-                property real wn: {
-                    let laneCoverMod = profile.vars.generalVars.laneCoverOn * profile.vars.generalVars.laneCoverRatio;
-                    let liftMod = profile.vars.generalVars.liftOn * profile.vars.generalVars.liftRatio;
-                    return Math.max(0, Math.min(1 - laneCoverMod - liftMod, 1));
-                }
-                text: ((1 - wn) * 1000).toFixed(0)
-            }
+            greenNumber: side.greenNumber
+            whiteNumber: side.laneCoverNumber
+            y: Math.max(0, Math.min(parent.height - height,
+                parent.height * playArea.laneCoverHeightRatio - height))
+        }
+
+        CoverNumbers {
+            id: liftNumbers
+
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: parent.height * playArea.activeLiftRatio
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: (side.start || side.select) && side.profile.vars.generalVars.liftOn
+            greenNumber: side.greenNumber
+            whiteNumber: side.liftNumber
         }
     }
     LifeBar {

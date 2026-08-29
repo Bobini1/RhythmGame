@@ -9,6 +9,17 @@ Item {
     id: playArea
 
     required property list<int> columns
+    readonly property real activeLiftRatio: playArea.generalVars.liftOn
+        ? Math.max(0, Math.min(1, playArea.generalVars.liftRatio))
+        : 0
+    readonly property real activeLaneCoverRatio: playArea.generalVars.laneCoverOn
+        ? Math.max(0, Math.min(1, playArea.generalVars.laneCoverRatio))
+        : 0
+    readonly property real laneCoverHeightRatio: (1 - playArea.activeLiftRatio) * playArea.activeLaneCoverRatio
+    readonly property real visibleHeightRatio: (1 - playArea.activeLiftRatio) * (1 - playArea.activeLaneCoverRatio)
+    readonly property real hiddenCoverHeightRatio: playArea.generalVars.hiddenOn
+        ? (1 - playArea.activeLiftRatio) * Math.max(0, Math.min(1, playArea.generalVars.hiddenRatio))
+        : 0
     readonly property list<int> columnsReversedMapping: {
         var mapping = [];
         for (var i = 0; i < columns.length; i++) {
@@ -38,9 +49,7 @@ Item {
             }
         })();
         let baseSpeed = ((1 / profile.vars.generalVars.noteScreenTimeMillis) || 0) * 60000 * vars.playAreaHeight / bpm;
-        let laneCoverMod = profile.vars.generalVars.laneCoverOn * profile.vars.generalVars.laneCoverRatio;
-        let liftMod = profile.vars.generalVars.liftOn * profile.vars.generalVars.liftRatio;
-        return baseSpeed * Math.max(0, Math.min(1 - laneCoverMod - liftMod, 1));
+        return baseSpeed * playArea.visibleHeightRatio;
     }
     required property Player player
     required property ChartData chartData
@@ -92,14 +101,14 @@ Item {
                 height: parent.height
                 source: root.imagesUrl + "lanecover/" + playArea.vars.lanecover
                 width: parent.width
-                y: height * (-1 + playArea.generalVars.laneCoverRatio)
+                y: height * (-1 + playArea.laneCoverHeightRatio)
             }
         }
         Image {
             id: liftCover
 
             fillMode: Image.PreserveAspectCrop
-            height: parent.height * Math.min(1, playArea.generalVars.liftOn * playArea.generalVars.liftRatio + playArea.generalVars.hiddenOn * playArea.generalVars.hiddenRatio)
+            height: parent.height * Math.min(1, playArea.activeLiftRatio + playArea.hiddenCoverHeightRatio)
             source: root.imagesUrl + "liftcover/" + playArea.vars.liftcover
             visible: playArea.generalVars.liftOn || playArea.generalVars.hiddenOn
             width: parent.width
@@ -140,7 +149,7 @@ Item {
             id: judgeLine
 
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height * playArea.generalVars.liftOn * playArea.generalVars.liftRatio
+            anchors.bottomMargin: parent.height * playArea.activeLiftRatio
             color: playArea.vars.judgeLineColor
             height: playArea.vars.judgeLineThickness
             width: parent.width
@@ -157,8 +166,8 @@ Item {
                 left: parent.left
                 right: parent.right
                 top: parent.top
-                bottomMargin: parent.height * (playArea.generalVars.liftOn * playArea.generalVars.liftRatio)
-                topMargin: parent.height * (playArea.generalVars.laneCoverOn * playArea.generalVars.laneCoverRatio)
+                bottomMargin: parent.height * playArea.activeLiftRatio
+                topMargin: parent.height * playArea.laneCoverHeightRatio
                 bottom: parent.bottom
             }
             onHeightChanged: playArea.updateVisiblePositionSpans()
@@ -180,7 +189,7 @@ Item {
             mineImage: playArea.vars.mine
             hideLnEnds: playArea.vars.hideLnEnds
             player: playArea.player
-            liftRatio: playArea.generalVars.liftOn * playArea.generalVars.liftRatio
+            liftRatio: playArea.activeLiftRatio
             onHeightChanged: playArea.updateVisiblePositionSpans()
             z: 4
         }
@@ -568,7 +577,7 @@ Item {
             }
 
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height * playArea.generalVars.liftOn * playArea.generalVars.liftRatio
+            anchors.bottomMargin: parent.height * playArea.activeLiftRatio
             width: playArea.columnSizes[playfield.columns[index]]
             x: {
                 let cpos = 0;
