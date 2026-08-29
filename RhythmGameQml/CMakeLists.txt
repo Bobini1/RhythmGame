@@ -154,6 +154,11 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaRosterView.qml
         TransientInputFocus.qml
         TransientInputFocusDismissLayer.qml
+        StandardShortcuts.qml
+        StandardSelectState.qml
+        StandardSelectNavigation.qml
+        StandardSelectShortcuts.qml
+        StandardSelectController.qml
         Arena/ArenaChatView.qml
         Arena/ArenaChatActivityRail.qml
         Arena/ArenaPanelTabs.qml

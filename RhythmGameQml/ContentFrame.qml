@@ -38,41 +38,9 @@ ApplicationWindow {
             settings.visibility = contentContainer.visibility;
         }
     }
-    Shortcut {
-        autoRepeat: false
-        sequence: "F1"
-        onActivated: globalRoot.toggleFpsOverlay()
-    }
-    Shortcut {
-        autoRepeat: false
-        enabled: !arenaOverlayHost.arenaShortcutEnabled
-            && !globalRoot.currentScreenSupports("toggleCustomizeMode")
-            && globalRoot.currentScreenSupports("reloadCurrentFolderOrTable")
-        sequence: "F2"
-        onActivated: globalRoot.reloadCurrentFolderOrTable()
-    }
-    Shortcut {
-        autoRepeat: false
-        enabled: globalRoot.currentScreenSupports("openSelectedFolder")
-        sequence: "F3"
-        onActivated: globalRoot.openCurrentSelectionFolder()
-    }
-    Shortcut {
-        autoRepeat: false
-        sequence: "F4"
-        onActivated: globalRoot.toggleFullScreen()
-    }
-    Shortcut {
-        autoRepeat: false
-        enabled: globalRoot.currentScreenSupports("openSelectedInternetRanking")
-        sequence: "F11"
-        onActivated: globalRoot.openCurrentInternetRanking()
-    }
-    Shortcut {
-        autoRepeat: false
-        enabled: Rg.arenaSession.state !== ArenaSession.InRoom && Rg.arenaSession.state !== ArenaSession.Reconnecting
-        sequence: "F12"
-        onActivated: globalRoot.openSettings()
+    StandardShortcuts {
+        settingsEnabled: Rg.arenaSession.state !== ArenaSession.InRoom
+            && Rg.arenaSession.state !== ArenaSession.Reconnecting
     }
 
     Item {
@@ -276,23 +244,6 @@ ApplicationWindow {
                 return screen[method].apply(screen, args || []);
             }
             return false;
-        }
-
-        function currentScreenSupports(method: var): var {
-            let screen = currentScreen();
-            return !!screen && typeof screen[method] === "function";
-        }
-
-        function reloadCurrentFolderOrTable(): var {
-            return callCurrentScreen("reloadCurrentFolderOrTable");
-        }
-
-        function openCurrentSelectionFolder(): var {
-            return callCurrentScreen("openSelectedFolder");
-        }
-
-        function openCurrentInternetRanking(): var {
-            return callCurrentScreen("openSelectedInternetRanking");
         }
 
         function openSettings(initialTabIndex: var): void {

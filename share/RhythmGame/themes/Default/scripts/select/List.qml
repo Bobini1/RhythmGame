@@ -1,131 +1,36 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
-import QtQml.Models
 
 PathView {
     id: pathView
 
     property var current: model[currentIndex]
-    property var folderContents: []
-    property var pendingScoreDbReplies: []
-    readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
-    readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
-        || Rg.arenaSession.state === ArenaSession.Reconnecting
-    onOpenedFolder: refresh()
+    property alias folderContents: selectController.folderContents
+    property alias historyStack: selectController.historyStack
+    property alias scores: selectController.scores
+    property alias previewFiles: selectController.previewFiles
+    property alias folderClearStats: selectController.folderClearStats
+    property alias controller: selectController
 
-    function trackScoreDbReply(reply: var) : var {
-        if (!reply || reply.resultAvailable) {
-            return reply;
-        }
-        pendingScoreDbReplies.push(reply);
-        let forget = function() {
-            reply.finished.disconnect(forget);
-            let index = pendingScoreDbReplies.indexOf(reply);
-            if (index >= 0) {
-                pendingScoreDbReplies.splice(index, 1);
-                pendingScoreDbReplies = pendingScoreDbReplies.slice();
-            }
-        };
-        reply.finished.connect(forget);
-        return reply;
-    }
+    signal openedFolder()
 
-    function cancelScoreDbReplies() {
-        let replies = pendingScoreDbReplies;
-        pendingScoreDbReplies = [];
-        for (let reply of replies) {
-            if (reply && !reply.resultAvailable) {
-                reply.cancel();
-            }
-        }
+    StandardSelectController {
+        id: selectController
+
+        enabled: pathView.enabled
+        navigationTarget: pathView
+        minimumEntryCount: pathView.pathItemCount
+        autoplayAction: () => root.openSelectedAutoplay()
+        replayAction: button => root.openSelectedReplay(button)
+        cycleReplayTypeAction: () => root.cycleReplayType()
+        cycleSortModeAction: delta => root.cycleSortMode(delta)
+        openInternetRankingAction: () => root.openSelectedInternetRanking()
+
+        onOpenedFolder: pathView.openedFolder()
     }
 
-    function refresh() {
-        refreshScores();
-        refreshFolderClearStats();
-    }
-    function folderForHistoryItem(item) {
-        return item instanceof ChartData ? item.chartDirectory : item;
-    }
-    Component.onDestruction: {
-        cancelScoreDbReplies();
-    }
-    function refreshScores() {
-        cancelScoreDbReplies();
-        if (historyStack[historyStack.length - 1] === "SEARCH") {
-            let md5s = [];
-            for (let item of folderContents) {
-                if (typeof item === "object" && "md5" in item) {
-                    md5s.push(item.md5);
-                }
-            }
-            trackScoreDbReply(
-                Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s)
-            ).then((result) => {
-                scores = result.scores;
-            });
-        } else {
-            trackScoreDbReply(
-                Rg.profileList.mainProfile.scoreDb.getScores(
-                    folderForHistoryItem(historyStack[historyStack.length - 1]))
-            ).then((result) => {
-                if (result instanceof tableQueryResult) {
-                    let newScores = result.scores.scores;
-                    for (let [key, value] of Object.entries(result.courseScores.scores)) {
-                        newScores[key] = value;
-                    }
-                    scores = newScores;
-                } else {
-                    scores = result.scores;
-                }
-            });
-        }
-        let dirs = [];
-        for (let item of folderContents) {
-            if (item instanceof ChartData) {
-                dirs.push(item.chartDirectory);
-            }
-        }
-        previewFiles = Rg.songDirectoryFilePathFetcher.getPreviewFilePaths(dirs);
-    }
-    property var scores: {
-        return {};
-    }
-    property var previewFiles: {
-        return {};
-    }
-    property var folderClearStats: []
-    function clearStatsFromScoreSummary(summary) {
-        let counts = summary?.counts || {};
-        return {
-            "NOPLAY": counts.NOPLAY || 0,
-            "FAILED": counts.FAILED || 0,
-            "AEASY": counts.AEASY || 0,
-            "LIGHTASSIST": counts.LIGHTASSIST || counts.LIGHT_ASSIST || 0,
-            "EASY": counts.EASY || 0,
-            "NORMAL": counts.NORMAL || 0,
-            "HARD": counts.HARD || 0,
-            "EXHARD": counts.EXHARD || 0,
-            "FC": counts.FC || 0,
-            "PERFECT": counts.PERFECT || 0,
-            "MAX": counts.MAX || 0
-        };
-    }
-    function refreshFolderClearStats() {
-        folderClearStats = [];
-        for (let folder of folderContents) {
-            if (folder instanceof ChartData || folder instanceof entry || folder instanceof course || folder === null) {
-                continue;
-            }
-            trackScoreDbReply(
-                Rg.profileList.mainProfile.scoreDb.getScoreSummary(folder)
-            ).then((result) => {
-                folderClearStats.push([folder, clearStatsFromScoreSummary(result)]);
-                folderClearStats = folderClearStats.slice();
-            });
-        }
-    }
+    model: selectController.entries
 
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
     readonly property bool movingManually: visualMoveActive || pendingWheelSteps !== 0
@@ -150,38 +55,6 @@ PathView {
     property double selectScratchRepeatNextMs: 0
     property int suppressedCurrentItemSoundChanges: 0
     readonly property bool visualMoveActive: listTopbarFixed !== nowBarFixed
-
-    property var historyStack: []
-
-    ChartFolderModel {
-        id: chartFolderModel
-        sortMode: pathView.generalVars.selectSortMode
-        keymodeFilter: pathView.generalVars.selectKeymodeFilter
-        unscoredItemsLast: true
-        scores: pathView.scores
-
-        onSortModeChanged: {
-            Qt.callLater(pathView.sortOrFilterChanged);
-        }
-
-        onKeymodeFilterChanged: {
-            Qt.callLater(pathView.sortOrFilterChanged);
-        }
-
-        onDifficultyFilterChanged: {
-            Qt.callLater(pathView.sortOrFilterChanged);
-        }
-
-        onUnscoredItemsLastChanged: {
-            Qt.callLater(pathView.sortOrFilterChanged);
-        }
-
-        onScoresChanged: {
-            if (chartFolderModel.sortModeUsesScores()) {
-                Qt.callLater(pathView.sortOrFilterChanged);
-            }
-        }
-    }
 
     function wrapBarFixed(value) {
         let span = count * 1000;
@@ -405,246 +278,6 @@ PathView {
         setNavigationImmediate(currentIndex);
     }
 
-    function sameEntry(a, b) {
-        if (a instanceof ChartData && b instanceof ChartData) {
-            return a.path === b.path;
-        }
-        if (typeof a === "string" && typeof b === "string") {
-            return a === b;
-        }
-        if (a instanceof level && b instanceof level) {
-            return a.name === b.name;
-        }
-        if (a instanceof table && b instanceof table) {
-            return String(a.url || "") === String(b.url || "");
-        }
-        if (a instanceof course && b instanceof course) {
-            return a.identifier === b.identifier;
-        }
-        return a === b;
-    }
-
-    function indexOfEntry(items, entry) {
-        for (let i = 0; i < items.length; ++i) {
-            if (sameEntry(items[i], entry)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    AudioPlayer {
-        id: closeFolderSound
-        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-close";
-    }
-    function goBack() {
-        if (historyStack.length === 1) {
-            return;
-        }
-        let last = historyStack.pop();
-        let folder = open(historyStack[historyStack.length - 1]);
-        let idx = indexOfEntry(folder, last);
-        pathView.positionViewAtIndex(idx, PathView.Center);
-        resetNavigation();
-        closeFolderSound.stop();
-        closeFolderSound.play();
-    }
-    AudioPlayer {
-        id: openFolderSound
-        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-open";
-    }
-    function openPlayable(item, autoplay = false, replay = false, replayScore = null) {
-        if (item instanceof ChartData) {
-            if (arenaSeated) {
-                if (!autoplay && !replay && !replayScore) {
-                    Rg.arenaSession.selectChart(item);
-                }
-                return true;
-            }
-            console.info("Opening chart " + item.path);
-            let useReplay = !!replay && !!replayScore;
-            if (Rg.profileList.battleActive) {
-                globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
-            } else {
-                globalRoot.openChart(item.path, Rg.profileList.mainProfile, !!autoplay, useReplay, replayScore || null, null, false, false, null);
-            }
-            return true;
-        }
-        if (item instanceof course) {
-            if (arenaSeated) {
-                return true;
-            }
-            let useReplay = !!replay && !!replayScore;
-            if (Rg.profileList.battleActive) {
-                globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
-            } else {
-                globalRoot.openCourse(item, Rg.profileList.mainProfile, !!autoplay, useReplay, replayScore || null, null, false, false, null);
-            }
-            return true;
-        }
-        return false;
-    }
-    function goForward(item, skipSound = false) {
-        if (openPlayable(item, false, false, null)) {
-            return;
-        }
-        if (item instanceof entry || item === null) {
-            return;
-        }
-        historyStack.push(item);
-        open(item);
-        if (!skipSound) {
-            openFolderSound.stop();
-            openFolderSound.play();
-        }
-        pathView.positionViewAtIndex(0, PathView.Center);
-        resetNavigation();
-    }
-    function open(item) {
-        item = folderForHistoryItem(item);
-        let folder;
-        if (item instanceof table) {
-            let courses = item.courses;
-            folder = [...item.levels, ...courses];
-        } else if (item instanceof level) {
-            folder = item.loadCharts();
-        } else if (typeof item === "string") {
-            folder = [];
-            if (item === "") {
-                let tables = Rg.tables.getList();
-                for (let t of tables) {
-                    if (t.status === table.Loaded) {
-                        folder.push(t);
-                    }
-                }
-            }
-            folder.push(...Rg.songFolderFactory.open(item));
-            if (item !== "" && folder.length === 0) {
-                folder.push(...Rg.songFolderFactory.openChartDirectory(item));
-            }
-        } else {
-            return [];
-        }
-        let newFolderContents = [];
-        for (let item of folder) {
-            newFolderContents.push(item);
-        }
-        folder = chartFolderModel.filterAndSort(folder);
-        addToMinimumCount(folder);
-        pathView.model = folder;
-        pathView.folderContents = newFolderContents;
-        openedFolder();
-        return folder;
-    }
-
-    function selectedSongFolderPath() {
-        if (current instanceof ChartData && current.chartDirectory) {
-            return current.chartDirectory;
-        }
-        if (typeof current === "string") {
-            return current;
-        }
-        for (let i = historyStack.length - 1; i >= 0; --i) {
-            if (typeof historyStack[i] === "string" && historyStack[i] !== "SEARCH") {
-                return historyStack[i];
-            }
-        }
-        return "";
-    }
-
-    function reloadCurrentFolderOrTable() {
-        if (historyStack.length === 0) {
-            return false;
-        }
-        for (let i = historyStack.length - 1; i >= 0; --i) {
-            if (globalRoot.reloadTableForItem(historyStack[i])) {
-                return true;
-            }
-        }
-        if (globalRoot.scanRootSongFolderForPath(selectedSongFolderPath())) {
-            return true;
-        }
-        let old = current;
-        let folder = open(historyStack[historyStack.length - 1]);
-        let idx = indexOfEntry(folder, old);
-        pathView.positionViewAtIndex(idx >= 0 ? idx : 0, PathView.Center);
-        resetNavigation();
-        return true;
-    }
-
-    function openChartDirectory(directory, initialItem) {
-        if (!directory) {
-            return false;
-        }
-        let folder = Rg.songFolderFactory.openChartDirectory(directory);
-        if (!folder.length) {
-            return false;
-        }
-        if (historyStack.length === 0
-                || folderForHistoryItem(historyStack[historyStack.length - 1]) !== directory) {
-            historyStack.push(initialItem || directory);
-        }
-        let newFolderContents = [];
-        for (let item of folder) {
-            newFolderContents.push(item);
-        }
-        folder = chartFolderModel.filterAndSort(folder);
-        addToMinimumCount(folder);
-        pathView.model = folder;
-        pathView.folderContents = newFolderContents;
-        openedFolder();
-        let idx = chartFolderModel.indexOfItem(folder, initialItem);
-        pathView.positionViewAtIndex(idx >= 0 ? idx : 0, PathView.Center);
-        resetNavigation();
-        return true;
-    }
-
-    signal openedFolder()
-
-    function search(query) {
-        let results = Rg.songFolderFactory.search(query);
-        let resultCount = results.length;
-        if (!results.length) {
-            console.info("Search returned no results");
-            return resultCount;
-        }
-        let newFolderContents = [];
-        for (let item of results) {
-            newFolderContents.push(item);
-        }
-        results = chartFolderModel.filterAndSort(results);
-        addToMinimumCount(results);
-        // The special path for searches.
-        if (historyStack[historyStack.length - 1] !== "SEARCH") {
-            historyStack.push("SEARCH");
-        }
-        pathView.model = results;
-        pathView.folderContents = newFolderContents;
-        pathView.positionViewAtIndex(0, PathView.Center);
-        resetNavigation();
-        openedFolder();
-        return resultCount;
-    }
-
-    function isChartItem(item) {
-        return (item instanceof ChartData || item instanceof entry);
-    }
-
-    function sortOrFilterChanged() {
-        if (folderContents.length) {
-            let old = pathView.current;
-            let sortedFiltered = chartFolderModel.filterAndSort(folderContents);
-            addToMinimumCount(sortedFiltered);
-            let currentIdx = chartFolderModel.indexOfItem(sortedFiltered, old);
-            pathView.model = sortedFiltered;
-            if (currentIdx >= 0)
-                pathView.positionViewAtIndex(currentIdx, PathView.Center);
-            else
-                pathView.positionViewAtIndex(0, PathView.Center);
-            resetNavigation();
-        }
-    }
-
     dragMargin: 200
     highlightMoveDuration: lr2SpeedFirst
     highlightRangeMode: PathView.StrictlyEnforceRange
@@ -698,7 +331,8 @@ PathView {
         readonly property bool isCurrentItem: PathView.isCurrentItem
         readonly property bool scrollingText: pathView.scrollingText
 
-        sourceComponent: isChartItem(modelData) || modelData instanceof course ? chartComponent : folderComponent
+        sourceComponent: selectController.isChartItem(modelData)
+            || modelData instanceof course ? chartComponent : folderComponent
     }
     path: Path {
         id: path
@@ -730,147 +364,19 @@ PathView {
         }
     }
 
-    Component.onCompleted: {
-        goForward("", true);
-    }
-    Keys.onLeftPressed: {
-        goBack();
-    }
-    Keys.onReturnPressed: {
-        goForward(current);
-    }
-    Keys.onEnterPressed: {
-        goForward(current);
-    }
-    Keys.onRightPressed: {
-        goForward(current);
-    }
-    // All this code is to make sure that scrolling is consistent and acts as you'd expect for different types of input.
-    // When you hold down both up and down, you want the last pressed key to take precedence
-    // When you release one of them, the other one should take over
-    // Additionally, when both P1 and P2 are holding up or down, the song wheel should not be accelerated to 2x speed.
-    property var lastKey: []
-    function navigate(number, type, up, key) {
-        if (type === InputTranslator.AnalogScratchTick) {
-            queueAnalogScratchTick(up);
-            return;
-        }
-        if (lastKey[lastKey.length - 1] !== key) {
-            return;
-        }
-        if (type === InputTranslator.ButtonTick
-                || type === InputTranslator.ClassicScratchTick) {
-            handleScratchRepeat(up, number);
-            return;
-        }
-        let func = up ? pathView.decrementViewIndex : pathView.incrementViewIndex;
-        func(!!number);
-    }
-    Input.onCol1sDownTicked: (number, type) => navigate(number, type, false, BmsKey.Col1sDown)
-    Input.onCol1sUpTicked: (number, type) => navigate(number, type, true, BmsKey.Col1sUp)
-    Input.onCol2sDownTicked: (number, type) => navigate(number, type, false, BmsKey.Col2sDown)
-    Input.onCol2sUpTicked: (number, type) => navigate(number, type, true, BmsKey.Col2sUp)
-    Input.onCol1sDownPressed: lastKey.push(BmsKey.Col1sDown);
-    Input.onCol1sUpPressed: lastKey.push(BmsKey.Col1sUp);
-    Input.onCol2sDownPressed: lastKey.push(BmsKey.Col2sDown);
-    Input.onCol2sUpPressed: lastKey.push(BmsKey.Col2sUp);
-    Input.onCol1sDownReleased: {
-        lastKey = lastKey.filter(k => k !== BmsKey.Col1sDown);
-        releaseScratchRepeat(false);
-    }
-    Input.onCol1sUpReleased: {
-        lastKey = lastKey.filter(k => k !== BmsKey.Col1sUp);
-        releaseScratchRepeat(true);
-    }
-    Input.onCol2sDownReleased: {
-        lastKey = lastKey.filter(k => k !== BmsKey.Col2sDown);
-        releaseScratchRepeat(false);
-    }
-    Input.onCol2sUpReleased: {
-        lastKey = lastKey.filter(k => k !== BmsKey.Col2sUp);
-        releaseScratchRepeat(true);
-    }
-    Keys.onUpPressed: (event) => {
-        event.accepted = true;
-        if (!event.isAutoRepeat) lastKey.push(Qt.Key_Up);
-        navigate(event.isAutoRepeat, null, true, Qt.Key_Up);
-    }
-    Keys.onDownPressed: (event) => {
-        event.accepted = true;
-        if (!event.isAutoRepeat) lastKey.push(Qt.Key_Down);
-        navigate(event.isAutoRepeat, null, false, Qt.Key_Down);
-    }
-    Keys.onReleased: (event) => {
-        if (event.key === Qt.Key_Up) {
-            if (!event.isAutoRepeat) lastKey = lastKey.filter(k => k !== Qt.Key_Up)
-            event.accepted = true;
-        } else if (event.key === Qt.Key_Down) {
-            if (!event.isAutoRepeat) lastKey = lastKey.filter(k => k !== Qt.Key_Down);
-            event.accepted = true;
-        }
-    }
-    Input.onCol11Pressed: {
-        goForward(current);
-    }
-    Input.onCol17Pressed: {
-        if (!root.openSelectedReplay(Qt.LeftButton)) {
-            goForward(current);
-        }
-    }
-    Input.onCol13Pressed: {
-        goForward(current);
-    }
-    Input.onCol15Pressed: {
-        if (!root.openSelectedAutoplay()) {
-            goForward(current);
-        }
-    }
-    Input.onCol21Pressed: {
-        goForward(current);
-    }
-    Input.onCol27Pressed: {
-        if (!root.openSelectedReplay(Qt.LeftButton)) {
-            goForward(current);
-        }
-    }
-    Input.onCol23Pressed: {
-        goForward(current);
-    }
-    Input.onCol25Pressed: {
-        if (!root.openSelectedAutoplay()) {
-            goForward(current);
-        }
-    }
-    function handleTopLevelSortKey(key) {
-        if (historyStack.length > 1) {
-            return false;
-        }
-        if (key === BmsKey.Col12 || key === BmsKey.Col22) {
-            return root.cycleSortMode(-1);
-        }
-        if (key === BmsKey.Col14 || key === BmsKey.Col24) {
-            return root.cycleSortMode(1);
-        }
-        return false;
-    }
-
-    Input.onButtonPressed: (key) => {
-        if (key === BmsKey.Col16 || key === BmsKey.Col26) {
-            root.cycleReplayType();
-            return;
-        }
-        if (handleTopLevelSortKey(key)) {
-            return;
-        }
-        if (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col22 || key === BmsKey.Col24) {
-            goBack();
-        }
-    }
+    Keys.onLeftPressed: selectController.goBack()
+    Keys.onReturnPressed: selectController.goForward(current)
+    Keys.onEnterPressed: selectController.goForward(current)
+    Keys.onRightPressed: selectController.goForward(current)
+    Keys.onUpPressed: event => selectController.handleUpPressed(event)
+    Keys.onDownPressed: event => selectController.handleDownPressed(event)
+    Keys.onReleased: event => selectController.handleReleased(event)
     AudioPlayer {
         id: scratchSound
         source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "scratch"
     }
     onCurrentItemChanged: {
+        selectController.setFocused(currentIndex, current);
         scrollingTextTimer.restart();
         scrollingText = false;
         if (suppressedCurrentItemSoundChanges > 0) {
@@ -912,16 +418,6 @@ PathView {
 
         onWheel: wheel => {
             pathView.handleWheel(wheel);
-        }
-    }
-    function addToMinimumCount(input) {
-        let length = input.length;
-        if (length >= pathItemCount) {
-            return;
-        }
-        let limit = Math.ceil(pathItemCount / length) * length
-        for (let i = length; i < limit; i++) {
-            input.push(input[i % length] || null);
         }
     }
 }

@@ -244,6 +244,34 @@ Gameplay screens should not use `Input` directly. Instead, use
 This will play nicely with autoplay and replays.
 `Input` is reserved for actual input, not injected key presses.
 
+### Reusable selection components
+
+Themes can import `RhythmGameQml` and opt into the standard selection behavior
+without using the Default theme's presentation:
+
+- `StandardSelectState` owns song folders, table levels, history, search,
+  sorting/filtering, scores, preview paths and chart/course activation.
+  Its `folderContents` are raw; `entries` are the filtered, sorted and
+  optionally repeated presentation model.
+- `StandardSelectNavigation` maps arrow and bound controller input onto a
+  skin-provided list or wheel.
+- `StandardSelectShortcuts` provides F2 reload, F3 open-folder and F11
+  internet-ranking shortcuts. F2 and F3 use a supplied `selectState` by
+  default; every action can be replaced or individually disabled.
+- `StandardSelectController` combines all three while exposing its
+  `selectState`, `navigation` and `shortcuts` objects for customization.
+
+`StandardSelectController.navigationTarget` is the skin's list or wheel. It
+must expose `incrementViewIndex`, `decrementViewIndex`,
+`queueAnalogScratchTick`, `handleScratchRepeat`, `releaseScratchRepeat`,
+`positionViewAtIndex` and `resetNavigation`. Keyboard `Keys` handlers stay on
+the focused visual item and can forward up/down/release events to the controller's
+`handleUpPressed`, `handleDownPressed` and `handleReleased` methods.
+
+Application-wide F1, F4 and F12 behavior lives in `StandardShortcuts`. Its
+default actions work through the application content frame, while its action
+properties allow a host to replace them.
+
 ## Scaling
 
 Your theme is expected to work on all screen sizes and aspect ratios.

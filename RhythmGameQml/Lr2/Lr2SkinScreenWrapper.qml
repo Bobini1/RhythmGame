@@ -532,6 +532,14 @@ Item {
         onActivated: root.toggleCustomizeMode()
     }
 
+    StandardSelectShortcuts {
+        enabled: root.screenUpdatesActive
+            && root.effectiveScreenKey === "select"
+        reloadEnabled: false
+        openSelectedFolderAction: () => root.openSelectedFolder()
+        openInternetRankingAction: () => root.openSelectedInternetRanking()
+    }
+
     Timer {
         id: gameplayFinishMarginTimer
 

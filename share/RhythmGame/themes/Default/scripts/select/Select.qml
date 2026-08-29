@@ -12,18 +12,6 @@ FocusScope {
 
     readonly property bool arenaNativeSelectPresentation: true
 
-    function reloadCurrentFolderOrTable() {
-        return root.reloadCurrentFolderOrTable();
-    }
-
-    function openSelectedFolder() {
-        return root.openSelectedFolder();
-    }
-
-    function openSelectedInternetRanking() {
-        return root.openSelectedInternetRanking();
-    }
-
     Image {
         id: root
 
@@ -151,7 +139,8 @@ FocusScope {
             if (arenaSeated) {
                 return true;
             }
-            return songList.openPlayable(songList.current, true, false, null);
+            return songList.controller.openPlayable(
+                songList.current, true, false, null);
         }
 
         function openSelectedReplay(button) {
@@ -166,21 +155,11 @@ FocusScope {
         }
 
         function reloadCurrentFolderOrTable() {
-            if (globalRoot.reloadTableForItem(songList.current)) {
-                return true;
-            }
-            return songList.reloadCurrentFolderOrTable();
+            return songList.controller.reloadCurrentFolderOrTable();
         }
 
         function openSelectedFolder() {
-            let target = songList.current;
-            if (target instanceof ChartData && target.chartDirectory) {
-                return globalRoot.openLocalFolder(target.chartDirectory);
-            }
-            if (typeof target === "string") {
-                return globalRoot.openLocalFolder(target);
-            }
-            return false;
+            return songList.controller.openSelectedFolder();
         }
 
         function openSelectedInternetRanking() {
@@ -189,22 +168,11 @@ FocusScope {
         }
 
         function openSelectedReadme() {
-            let target = songList.current;
-            if (!(target instanceof ChartData) || !target.chartDirectory) {
-                return false;
-            }
-            let paths = Rg.songDirectoryFilePathFetcher.getReadmeFilePaths([target.chartDirectory]);
-            let path = paths[target.chartDirectory] || "";
-            let localPath = path.length > 0 ? Rg.songAssets.localFile(path) : "";
-            return localPath.length > 0
-                && Qt.openUrlExternally(globalRoot.localFileUrl(localPath));
+            return songList.controller.openSelectedReadme();
         }
 
         function showAllChartsForCurrentSong() {
-            let target = songList.current;
-            return target instanceof ChartData
-                && !!target.chartDirectory
-                && songList.openChartDirectory(target.chartDirectory, target);
+            return songList.controller.showAllChartsForCurrentSong();
         }
 
         function cycleSortMode(delta) {
@@ -254,7 +222,7 @@ FocusScope {
         onEnabledChanged: {
             if (enabled) {
                 previewDelayTimer.restart();
-                songList.refresh();
+                songList.controller.refresh();
             } else {
                 previewDelayTimer.stop();
                 playMusic.stop();
@@ -716,11 +684,11 @@ FocusScope {
                     function submitOrOpenCurrent() {
                         let query = searchEdit.text.trim();
                         if (query.length > 0) {
-                            let count = songList.search(query);
+                            let count = songList.controller.search(query);
                             searchEdit.text = searchResultText(count);
                             showingSearchResultText = true;
                         } else {
-                            songList.goForward(songList.current);
+                            songList.controller.goForward(songList.current);
                         }
                         root.focusSongList();
                     }
