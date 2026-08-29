@@ -6553,6 +6553,9 @@ Item {
         if (root.handleResultGaugeSelectKey(key)) {
             return;
         }
+        if (root.resultScreenActive && globalRoot.retryResultForKey(key)) {
+            return;
+        }
         if (root.closeResultScreen()) {
             return;
         }

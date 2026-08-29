@@ -30,7 +30,7 @@ namespace qml_components {
 
 class ChartLoader;
 
-class QuickRetrySession final : public QObject
+class ChartRetrySession final : public QObject
 {
     Q_OBJECT
     QML_ANONYMOUS
@@ -42,7 +42,7 @@ class QuickRetrySession final : public QObject
     bool consumed{};
 
     friend class ChartLoader;
-    explicit QuickRetrySession(RunnerFactory freshRandomizationFactory,
+    explicit ChartRetrySession(RunnerFactory freshRandomizationFactory,
                                RunnerFactory samePatternFactory);
     auto consume(RunnerFactory& factory) -> gameplay_logic::ChartRunner*;
 
@@ -86,6 +86,9 @@ class ChartLoader : public QObject
     ProfileList* profileList;
     input::InputTranslator* inputTranslator;
     db::SqliteCppDb* db;
+
+    auto prepareRetry(gameplay_logic::ChartRunner* current) const
+      -> ChartRetrySession*;
 
     auto createChart(
       resource_managers::Profile* player1,
@@ -169,8 +172,12 @@ class ChartLoader : public QObject
       const resource_managers::ChartPlayConfig& playConfig) const
       -> gameplay_logic::ChartRunner*;
 
-    /** Captures the choices needed to recreate an eligible local play. */
-    Q_INVOKABLE QuickRetrySession* prepareQuickRetry(
+    /** Captures an unfinished local play without completing or saving it. */
+    Q_INVOKABLE ChartRetrySession* prepareQuickRetry(
+      gameplay_logic::ChartRunner* current) const;
+
+    /** Captures a completed local play after its result has been saved. */
+    Q_INVOKABLE ChartRetrySession* prepareResultRetry(
       gameplay_logic::ChartRunner* current) const;
 
     /**

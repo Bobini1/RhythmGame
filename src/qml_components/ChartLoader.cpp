@@ -406,7 +406,7 @@ ChartLoader::loadChartWithConfig(
     }
 }
 
-QuickRetrySession::QuickRetrySession(RunnerFactory freshRandomizationFactory,
+ChartRetrySession::ChartRetrySession(RunnerFactory freshRandomizationFactory,
                                      RunnerFactory samePatternFactory)
   : freshRandomizationFactory(std::move(freshRandomizationFactory))
   , samePatternFactory(std::move(samePatternFactory))
@@ -414,7 +414,7 @@ QuickRetrySession::QuickRetrySession(RunnerFactory freshRandomizationFactory,
 }
 
 auto
-QuickRetrySession::consume(RunnerFactory& factory)
+ChartRetrySession::consume(RunnerFactory& factory)
   -> gameplay_logic::ChartRunner*
 {
     if (consumed || !factory) {
@@ -428,24 +428,44 @@ QuickRetrySession::consume(RunnerFactory& factory)
 }
 
 auto
-QuickRetrySession::retryWithFreshRandomization() -> gameplay_logic::ChartRunner*
+ChartRetrySession::retryWithFreshRandomization() -> gameplay_logic::ChartRunner*
 {
     return consume(freshRandomizationFactory);
 }
 
 auto
-QuickRetrySession::retryWithSamePattern() -> gameplay_logic::ChartRunner*
+ChartRetrySession::retryWithSamePattern() -> gameplay_logic::ChartRunner*
 {
     return consume(samePatternFactory);
 }
 
 auto
 ChartLoader::prepareQuickRetry(gameplay_logic::ChartRunner* current) const
-  -> QuickRetrySession*
+  -> ChartRetrySession*
 {
     if (current == nullptr ||
-        current->getStatus() == gameplay_logic::ChartRunner::Finished ||
-        current->getPlayer2() != nullptr ||
+        current->getStatus() == gameplay_logic::ChartRunner::Finished) {
+        return nullptr;
+    }
+    return prepareRetry(current);
+}
+
+auto
+ChartLoader::prepareResultRetry(gameplay_logic::ChartRunner* current) const
+  -> ChartRetrySession*
+{
+    if (current == nullptr ||
+        current->getStatus() != gameplay_logic::ChartRunner::Finished) {
+        return nullptr;
+    }
+    return prepareRetry(current);
+}
+
+auto
+ChartLoader::prepareRetry(gameplay_logic::ChartRunner* current) const
+  -> ChartRetrySession*
+{
+    if (current->getPlayer2() != nullptr ||
         qobject_cast<gameplay_logic::RePlayer*>(current->getPlayer1()) !=
           nullptr ||
         qobject_cast<gameplay_logic::AutoPlayer*>(current->getPlayer1()) !=
@@ -488,7 +508,7 @@ ChartLoader::prepareQuickRetry(gameplay_logic::ChartRunner* current) const
         }
         return loader->loadChartWithConfig(filename, profile, playConfig);
     };
-    return new QuickRetrySession(std::move(freshRandomizationFactory),
+    return new ChartRetrySession(std::move(freshRandomizationFactory),
                                  std::move(samePatternFactory));
 }
 
