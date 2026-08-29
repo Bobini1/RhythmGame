@@ -114,8 +114,8 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a8940552d4bd20a1b76a587e8c392ddd9" id="r_a8940552d4bd20a1b76a587e8c392ddd9"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1CustomNotifyApp.html#a8940552d4bd20a1b76a587e8c392ddd9">shouldTranslateKeyboardEvent</a> (bool isKeyDown, Qt::ApplicationState state, bool hasFocusWindow, bool textInputActive) -&gt; bool</td></tr>
-<tr class="separator:a8940552d4bd20a1b76a587e8c392ddd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84a0a0794c1e6bd56c4048c241474e2b" id="r_a84a0a0794c1e6bd56c4048c241474e2b"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classinput_1_1CustomNotifyApp.html#a84a0a0794c1e6bd56c4048c241474e2b">shouldTranslateKeyboardEvent</a> (bool isKeyDown, Qt::ApplicationState state, bool hasFocusWindow, bool textInputActive, bool foregroundOwned) -&gt; bool</td></tr>
+<tr class="separator:a84a0a0794c1e6bd56c4048c241474e2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="adb78d1785c5bfdbb9aa16c8672677d3e" name="adb78d1785c5bfdbb9aa16c8672677d3e"></a>
@@ -198,8 +198,8 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a8940552d4bd20a1b76a587e8c392ddd9" name="a8940552d4bd20a1b76a587e8c392ddd9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8940552d4bd20a1b76a587e8c392ddd9">&#9670;&#160;</a></span>shouldTranslateKeyboardEvent()</h2>
+<a id="a84a0a0794c1e6bd56c4048c241474e2b" name="a84a0a0794c1e6bd56c4048c241474e2b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a84a0a0794c1e6bd56c4048c241474e2b">&#9670;&#160;</a></span>shouldTranslateKeyboardEvent()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -229,7 +229,13 @@ Static Public Member Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>textInputActive</em>&#160;</td>
+          <td class="paramname"><em>textInputActive</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>foregroundOwned</em>&#160;</td>
         </tr>
         <tr>
           <td></td>

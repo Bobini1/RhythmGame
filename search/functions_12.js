@@ -507,7 +507,7 @@ var searchData=
   ['sha256_504',['sha256',['../namespacesupport.html#a114b7c59089eeda7296bcbc25d8b8148',1,'support']]],
   ['sharedfrombase_505',['sharedFromBase',['../classsupport_1_1EnableSharedFromBase.html#a5e8bc9dd7ae4597c6d104558deef662b',1,'support::EnableSharedFromBase']]],
   ['shouldsuppressqtlog_506',['shouldSuppressQtLog',['../main_8cpp.html#a8a2017dbccdd0a146519214bdc384521',1,'main.cpp']]],
-  ['shouldtranslatekeyboardevent_507',['shouldTranslateKeyboardEvent',['../classinput_1_1CustomNotifyApp.html#a8940552d4bd20a1b76a587e8c392ddd9',1,'input::CustomNotifyApp']]],
+  ['shouldtranslatekeyboardevent_507',['shouldTranslateKeyboardEvent',['../classinput_1_1CustomNotifyApp.html#a84a0a0794c1e6bd56c4048c241474e2b',1,'input::CustomNotifyApp']]],
   ['shuffleallnotes_508',['shuffleAllNotes',['../namespacesupport.html#aaaa7b798f39943dc263a1e3c5df03366',1,'support']]],
   ['side_509',['side',['../classLr2GameplayPositionTransform.html#afa1f808d3c4fab7728dd4c1bcc2bd4f0',1,'Lr2GameplayPositionTransform']]],
   ['sidechanged_510',['sideChanged',['../classLr2GameplayPositionTransform.html#a558793bb139ce86aa0939eaa45d66303',1,'Lr2GameplayPositionTransform']]],
