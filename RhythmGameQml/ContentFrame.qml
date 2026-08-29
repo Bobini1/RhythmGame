@@ -116,6 +116,8 @@ ApplicationWindow {
         property Item activePlayOwner: null
         property bool fpsOverlayVisible: false
         property var quickRetrySession: null
+        property var quickRetryRunner: null
+        property Item quickRetryReturnItem: null
         property int quickRetrySide: 0
         property bool quickRetryChoosing: false
         property bool quickRetryChoiceQueued: false
@@ -437,6 +439,8 @@ ApplicationWindow {
         function resetQuickRetryControl(): void {
             const session = quickRetrySession;
             quickRetrySession = null;
+            quickRetryRunner = null;
+            quickRetryReturnItem = null;
             quickRetryHoldTimer.stop();
             quickRetrySide = 0;
             quickRetryChoosing = false;
@@ -476,7 +480,15 @@ ApplicationWindow {
                 return;
             }
             const session = quickRetrySession;
-            if (!session) {
+            const runner = quickRetryRunner;
+            const returnItem = quickRetryReturnItem;
+            if (!session || !runner || !returnItem
+                    || currentOwnedChartRunner() !== runner
+                    || sceneStack.depth < 3
+                    || sceneStack.get(sceneStack.depth - 2,
+                                      StackView.DontLoad) !== activePlayOwner
+                    || sceneStack.get(sceneStack.depth - 3,
+                                      StackView.DontLoad) !== returnItem) {
                 resetQuickRetryControl();
                 return;
             }
@@ -490,10 +502,20 @@ ApplicationWindow {
                 return;
             }
             const samePattern = selectHeld;
+
+            quickRetrySession = null;
+            quickRetryRunner = null;
+            quickRetryReturnItem = null;
+            quickRetryHoldTimer.stop();
+            quickRetrySide = 0;
+            quickRetryChoosing = false;
+            quickRetryChoiceQueued = false;
+            sceneStack.pop(returnItem, StackView.Immediate);
+            activePlayOwner = null;
+
             const replacementRunner = samePattern
                 ? session.retryWithSamePattern()
                 : session.retryWithFreshRandomization();
-            quickRetrySession = null;
             session.destroy();
             if (!replacementRunner) {
                 resetQuickRetryControl();
@@ -524,10 +546,9 @@ ApplicationWindow {
                 return false;
             }
             quickRetrySession = session;
+            quickRetryRunner = runner;
+            quickRetryReturnItem = returnItem;
             quickRetryChoosing = true;
-            sceneStack.pop(returnItem, StackView.Immediate);
-            activePlayOwner = null;
-            Qt.callLater(sceneStack.updateEnabledStates);
             return true;
         }
 
@@ -935,7 +956,9 @@ ApplicationWindow {
             id: sceneStack
 
             onCurrentItemChanged: {
-                if (!globalRoot.quickRetryChoosing) {
+                if (!globalRoot.quickRetryChoosing
+                        || globalRoot.currentOwnedChartRunner()
+                           !== globalRoot.quickRetryRunner) {
                     globalRoot.resetQuickRetryControl();
                 }
                 if (globalRoot.resultRetrySession
