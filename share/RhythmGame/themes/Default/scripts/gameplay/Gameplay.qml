@@ -191,7 +191,6 @@ Rectangle {
     }
     StackView.onActivated: {
         cancelScoreDbReply();
-        gameplayExit.reset();
         if (chart.status === ChartRunner.Finished) {
             if (isCourse && !showedCourseResult) {
                 showedCourseResult = true;
@@ -267,18 +266,10 @@ Rectangle {
             } else if (root.chart.status === ChartRunner.Finished) {
                 bga.clearOutput();
                 root.closeActivePopup();
-                if (gameplayExit.used) {
-                    return;
-                }
                 chart.bga.layers[0].videoSink = bga.baseSink;
                 chart.bga.layers[1].videoSink = bga.layerSink;
                 chart.bga.layers[2].videoSink = bga.layer2Sink;
                 chart.bga.layers[3].videoSink = bga.poorSink;
-                let chartData = root.chartData;
-                let profile1 = chart.player1.profile;
-                let profile2 = chart.player2 ? chart.player2.profile : null;
-                let scores = chart instanceof ChartRunner ? chart.finish() : chart.proceed();
-                globalRoot.openResult(scores, [profile1, profile2], chartData);
             }
         }
 
@@ -773,22 +764,6 @@ Rectangle {
                 scoreReplayer1.notifyHit(tap);
             }
             bestScoreReplayer1.notifyHit(tap);
-            let ignoreJudgements = [Judgement.Poor, Judgement.EmptyPoor, Judgement.MineHit, Judgement.MineAvoided];
-            if (!tap.points || ignoreJudgements.includes(tap.points?.judgement)) {
-                return;
-            }
-            gameplayExit.markHit();
-        }
-    }
-    Connections {
-        target: chart.player2?.score || null
-        ignoreUnknownSignals: true
-        function onHit(tap) {
-            let ignoreJudgements = [Judgement.Poor, Judgement.EmptyPoor, Judgement.MineHit, Judgement.MineAvoided];
-            if (!tap.points || ignoreJudgements.includes(tap.points?.judgement)) {
-                return;
-            }
-            gameplayExit.markHit();
         }
     }
 

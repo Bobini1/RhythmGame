@@ -218,7 +218,6 @@ Item {
     property bool gameplayCourseResultOpening: false
     property bool gameplayShowedCourseResult: false
     property bool gameplayPlayStopped: false
-    property bool gameplayNothingWasHit: true
     property bool gameplayStartArmed: false
     readonly property int gameplayFinishMarginMillis: Math.max(0, skinModel.finishMargin || 0)
     readonly property int gameplayFadeOutMillis: Math.max(0, skinModel.fadeOut || 0)
@@ -351,6 +350,33 @@ Item {
             Qt.callLater(root.playScreenEntrySound);
         } else {
             root.pauseScreenActivity();
+        }
+    }
+
+    StandardGameplayAttemptState {
+        id: gameplayAttemptState
+        chart: root.chart
+    }
+
+    StandardSelectNavigation {
+        id: selectNavigationPolicy
+
+        enabled: root.screenUpdatesActive
+            && root.effectiveScreenKey === "select"
+        onMoveRequested: (steps, repeated, analog) => {
+            if (!root.selectScrollReady()) {
+                return;
+            }
+            if (analog) {
+                selectContext.queueWheelSteps(-steps);
+                return;
+            }
+            let move = steps < 0
+                ? selectContext.decrementViewIndex
+                : selectContext.incrementViewIndex;
+            for (let i = 0; i < Math.abs(steps); ++i) {
+                move(repeated || i > 0);
+            }
         }
     }
 
@@ -2517,9 +2543,6 @@ Item {
         root.gameplayResultOpened = false;
         root.cancelGameplayFinishedTransition();
         root.gameplayPlayStopped = false;
-        if (!root.chartStatusIs(root.chart.status, ChartRunner.Running)) {
-            root.gameplayNothingWasHit = true;
-        }
         root.resetGameplayScoreReplayers();
         root.updateGameplaySavedScores();
         root.updateGameplayStatusTimers();
@@ -2633,16 +2656,6 @@ Item {
         }
     }
 
-    function gameplayHitCountsAsPlayed(judgement: var) : var {
-        if (judgement < 0) {
-            return false;
-        }
-        return judgement !== Judgement.Poor
-            && judgement !== Judgement.EmptyPoor
-            && judgement !== Judgement.MineHit
-            && judgement !== Judgement.MineAvoided;
-    }
-
     function handleGameplayEscape() : var {
         if (root.arenaGameplayOwned && root.arenaSession.chatOpen === true) {
             root.arenaSession.setChatOpen(false);
@@ -2651,7 +2664,7 @@ Item {
         if (!root.chart || root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
             return false;
         }
-        if (root.gameplayNothingWasHit && !root.arenaGameplayOwned) {
+        if (!gameplayAttemptState.attempted && !root.arenaGameplayOwned) {
             globalRoot.returnToPreviousScreen();
             return true;
         }
@@ -5342,7 +5355,6 @@ Item {
             root.gameplayCourseResultOpening = false;
             root.gameplayShowedCourseResult = false;
             root.gameplayPlayStopped = false;
-            root.gameplayNothingWasHit = true;
             root.resetGameplayTimers();
             root.refreshGameplayRuntimeActiveOptions();
             root.updateGameplayStatusTimers();
@@ -5374,7 +5386,6 @@ Item {
         root.gameplayCourseResultOpening = false;
         root.gameplayShowedCourseResult = false;
         root.gameplayPlayStopped = false;
-        root.gameplayNothingWasHit = true;
         root.stopGameplayLifecycle();
         root.resetGameplayTimers();
         root.updateGameplayStatusTimers();
@@ -5424,7 +5435,6 @@ Item {
             root.gameplayCourseResultPending = false;
             root.gameplayCourseResultOpening = false;
             root.gameplayPlayStopped = false;
-            root.gameplayNothingWasHit = true;
             root.resetGameplayTimers();
             root.updateGameplayStatusTimers();
             root.updateGameplaySavedScores();
@@ -5451,9 +5461,6 @@ Item {
         function onHit(hit: var) : void {
             root.notifyGameplayReplayHit(1, hit);
             let judgement = root.gameplayJudgementFromHit(hit);
-            if (root.gameplayHitCountsAsPlayed(judgement)) {
-                root.gameplayNothingWasHit = false;
-            }
             let column = hit ? hit.column : -1;
             let runtimeOptionsChanged = root.updateGameplayHitTimers(
                 root.gameplayHitDisplaySide(1, column),
@@ -5490,9 +5497,6 @@ Item {
         function onHit(hit: var) : void {
             root.notifyGameplayReplayHit(2, hit);
             let judgement = root.gameplayJudgementFromHit(hit);
-            if (root.gameplayHitCountsAsPlayed(judgement)) {
-                root.gameplayNothingWasHit = false;
-            }
             let column = hit ? hit.column : -1;
             let runtimeOptionsChanged = root.updateGameplayHitTimers(
                 root.gameplayHitDisplaySide(2, column),
@@ -6184,25 +6188,7 @@ Item {
     }
 
     function decidePlayKey(key: var) : var {
-        switch (key) {
-        case BmsKey.Col11:
-        case BmsKey.Col12:
-        case BmsKey.Col13:
-        case BmsKey.Col14:
-        case BmsKey.Col15:
-        case BmsKey.Col16:
-        case BmsKey.Col17:
-        case BmsKey.Col21:
-        case BmsKey.Col22:
-        case BmsKey.Col23:
-        case BmsKey.Col24:
-        case BmsKey.Col25:
-        case BmsKey.Col26:
-        case BmsKey.Col27:
-            return true;
-        default:
-            return false;
-        }
+        return StandardInputKeys.isPlayKey(key);
     }
 
     function decideStartSelectHeld() : var {
@@ -6350,56 +6336,11 @@ Item {
     Keys.onReturnPressed: event => root.handleConfirmKey(event)
     Keys.onEnterPressed: event => root.handleConfirmKey(event)
 
-    property var lastNavigateKey: []
-    property int selectWheelScratchDirection: 0
-    property real selectWheelScratchNextMs: 0
-
     function navigate(number: var, type: var, up: var, key: var) : var {
-        if (type === InputTranslator.AnalogScratchTick) {
-            if (root.selectScrollReady()) {
-                selectContext.queueAnalogScratchTick(up);
-            }
+        if (!root.selectScrollReady()) {
             return;
         }
-        if (!root.selectScrollReady() || root.lastNavigateKey[root.lastNavigateKey.length - 1] !== key) {
-            return;
-        }
-        if (type === InputTranslator.ButtonTick
-                || type === InputTranslator.ClassicScratchTick) {
-            root.handleLr2SelectWheelScratchRepeat(up, number);
-            return;
-        }
-        let func = up ? selectContext.decrementViewIndex : selectContext.incrementViewIndex;
-        func(false);
-    }
-
-    function resetLr2SelectWheelScratchRepeat() : void {
-        root.selectWheelScratchDirection = 0;
-        root.selectWheelScratchNextMs = 0;
-    }
-
-    function releaseLr2SelectWheelScratchRepeat(up: var) : void {
-        let sameDirectionStillHeld = up
-            ? (Input.col1sUp || Input.col2sUp)
-            : (Input.col1sDown || Input.col2sDown);
-        if (!sameDirectionStillHeld
-                && root.selectWheelScratchDirection === (up ? 1 : -1)) {
-            root.resetLr2SelectWheelScratchRepeat();
-        }
-    }
-
-    function handleLr2SelectWheelScratchRepeat(up: var, number: var) : void {
-        let direction = up ? 1 : -1;
-        let now = Date.now();
-        let firstTick = number === 0 || root.selectWheelScratchDirection !== direction;
-        if (!firstTick && now < root.selectWheelScratchNextMs) {
-            return;
-        }
-        root.selectWheelScratchDirection = direction;
-        root.selectWheelScratchNextMs = now
-            + (firstTick ? selectContext.lr2SpeedFirst : selectContext.lr2SpeedNext);
-        let func = up ? selectContext.decrementViewIndex : selectContext.incrementViewIndex;
-        func(!firstTick);
+        selectNavigationPolicy.navigate(number, type, up, key);
     }
 
     function resetLr2SelectScratchRepeat() : void {
@@ -6484,50 +6425,46 @@ Item {
     Input.onCol1sDownPressed: {
         root.pressLr2GameplayScratchDirection(1, false);
         if (root.selectScrollReady() && root.selectPanel <= 0) {
-            root.lastNavigateKey.push(BmsKey.Col1sDown);
+            selectNavigationPolicy.pressDirection(BmsKey.Col1sDown);
         }
     }
     Input.onCol1sUpPressed: {
         root.pressLr2GameplayScratchDirection(1, true);
         if (root.selectScrollReady() && root.selectPanel <= 0) {
-            root.lastNavigateKey.push(BmsKey.Col1sUp);
+            selectNavigationPolicy.pressDirection(BmsKey.Col1sUp);
         }
     }
     Input.onCol2sDownPressed: {
         root.pressLr2GameplayScratchDirection(2, false);
         if (root.selectScrollReady() && root.selectPanel <= 0) {
-            root.lastNavigateKey.push(BmsKey.Col2sDown);
+            selectNavigationPolicy.pressDirection(BmsKey.Col2sDown);
         }
     }
     Input.onCol2sUpPressed: {
         root.pressLr2GameplayScratchDirection(2, true);
         if (root.selectScrollReady() && root.selectPanel <= 0) {
-            root.lastNavigateKey.push(BmsKey.Col2sUp);
+            selectNavigationPolicy.pressDirection(BmsKey.Col2sUp);
         }
     }
     Input.onCol1sDownReleased: {
         root.releaseLr2GameplayScratchDirection(1, false);
-        root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sDown);
+        selectNavigationPolicy.releaseDirection(BmsKey.Col1sDown, false);
         root.releaseLr2SelectScratchRepeat(false);
-        root.releaseLr2SelectWheelScratchRepeat(false);
     }
     Input.onCol1sUpReleased: {
         root.releaseLr2GameplayScratchDirection(1, true);
-        root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sUp);
+        selectNavigationPolicy.releaseDirection(BmsKey.Col1sUp, true);
         root.releaseLr2SelectScratchRepeat(true);
-        root.releaseLr2SelectWheelScratchRepeat(true);
     }
     Input.onCol2sDownReleased: {
         root.releaseLr2GameplayScratchDirection(2, false);
-        root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sDown);
+        selectNavigationPolicy.releaseDirection(BmsKey.Col2sDown, false);
         root.releaseLr2SelectScratchRepeat(false);
-        root.releaseLr2SelectWheelScratchRepeat(false);
     }
     Input.onCol2sUpReleased: {
         root.releaseLr2GameplayScratchDirection(2, true);
-        root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sUp);
+        selectNavigationPolicy.releaseDirection(BmsKey.Col2sUp, true);
         root.releaseLr2SelectScratchRepeat(true);
-        root.releaseLr2SelectWheelScratchRepeat(true);
     }
     Input.onCol11Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
     Input.onCol13Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()

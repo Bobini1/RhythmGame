@@ -6,6 +6,8 @@ import RhythmGameQml
 Item {
     id: root
 
+    anchors.fill: parent
+
     property var chart: null
     property var startAction: null
     property var cancelAction: null
@@ -21,12 +23,10 @@ Item {
             return false;
         }
         transitionRequested = true;
-        let result = typeof action === "function"
-            ? action()
-            : defaultAction();
-        if (result === false) {
-            transitionRequested = false;
-            return false;
+        if (typeof action === "function") {
+            action();
+        } else {
+            defaultAction();
         }
         return true;
     }

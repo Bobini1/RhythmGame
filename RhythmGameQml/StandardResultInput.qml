@@ -7,10 +7,11 @@ Item {
     id: root
 
     property var closeAction: null
-    property var retryAction: null
-    property var buttonAction: null
+    property var tryRetryAction: null
+    property var tryHandleButtonAction: null
     property int inputDelayMillis: 500
-    property bool acceptsInput: inputDelayMillis <= 0
+    property bool delayElapsed: false
+    readonly property bool acceptsInput: inputDelayMillis <= 0 || delayElapsed
     property bool confirmEnabled: true
     property bool controllerEnabled: true
 
@@ -19,14 +20,16 @@ Item {
             return false;
         }
         if (typeof closeAction === "function") {
-            return closeAction();
+            closeAction();
+            return true;
         }
-        return globalRoot.returnToPreviousScreen();
+        globalRoot.returnToPreviousScreen();
+        return true;
     }
 
     function retry(key) {
-        if (typeof retryAction === "function") {
-            return retryAction(key);
+        if (typeof tryRetryAction === "function" && tryRetryAction(key)) {
+            return true;
         }
         return globalRoot.retryResultForKey(key);
     }
@@ -35,7 +38,8 @@ Item {
         if (!enabled || !acceptsInput || !controllerEnabled) {
             return false;
         }
-        if (typeof buttonAction === "function" && buttonAction(key)) {
+        if (typeof tryHandleButtonAction === "function"
+                && tryHandleButtonAction(key)) {
             return true;
         }
         if (retry(key)) {
@@ -50,10 +54,19 @@ Item {
 
     Timer {
         interval: Math.max(1, root.inputDelayMillis)
-        running: root.inputDelayMillis > 0
+        running: root.enabled && root.inputDelayMillis > 0
+            && !root.delayElapsed
         repeat: false
-        onTriggered: root.acceptsInput = true
+        onTriggered: root.delayElapsed = true
     }
+
+    onEnabledChanged: {
+        if (!enabled) {
+            delayElapsed = false;
+        }
+    }
+
+    onInputDelayMillisChanged: delayElapsed = false
 
     Shortcut {
         enabled: root.enabled && root.acceptsInput

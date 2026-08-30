@@ -7,29 +7,34 @@ import RhythmGameQml
 Item {
     id: root
 
-    property int minimumEntryCount: 0
-    // Filtered, sorted and optionally repeated for the presentation model.
+    // Filtered and sorted logical entries. Presentation adapters may repeat it.
     property var entries: []
-    // The raw contents used to recompute entries and folder summaries.
-    property var folderContents: []
-    property var historyStack: []
-    property var pendingScoreDbReplies: []
-    property var scores: ({})
-    property var previewFiles: ({})
+    property alias folderContents: sessionImpl.folderContents
+    property alias historyStack: sessionImpl.historyStack
+    property alias pendingScoreDbReplies: sessionImpl.pendingScoreDbReplies
+    property alias scores: sessionImpl.scores
+    property alias previewFiles: sessionImpl.previewFiles
+    property alias session: sessionImpl
+    property alias activation: activationImpl
+    property var tryOpenPlayableAction: null
     property var folderClearStats: []
     property int focusedIndex: 0
     property var focusedItem: null
     readonly property var searchHistoryEntry: ({ "kind": "search" })
 
     readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
-    readonly property bool arenaSeated:
-        Rg.arenaSession.state === ArenaSession.InRoom
-        || Rg.arenaSession.state === ArenaSession.Reconnecting
-
     signal focusRequested(int index)
     signal openedFolder()
+    signal enteredFolder()
+    signal leftFolder()
 
-    onOpenedFolder: refresh()
+    StandardSelectSession {
+        id: sessionImpl
+    }
+
+    StandardSelectActivation {
+        id: activationImpl
+    }
 
     ChartFolderModel {
         id: chartFolderModel
@@ -50,51 +55,25 @@ Item {
         }
     }
 
-    AudioPlayer {
-        id: closeFolderSound
-        source: root.generalVars.soundsetPath + "f-close"
-    }
-
-    AudioPlayer {
-        id: openFolderSound
-        source: root.generalVars.soundsetPath + "f-open"
-    }
-
-    function setFocused(index, item) {
-        focusedIndex = index;
-        focusedItem = item;
+    function setFocused(item) {
+        let logicalIndex = indexOfEntry(entries, item);
+        focusedIndex = logicalIndex;
+        focusedItem = logicalIndex >= 0 ? entries[logicalIndex] : null;
     }
 
     function requestFocus(index) {
         focusedIndex = index;
+        focusedItem = index >= 0 && index < entries.length
+            ? entries[index] : null;
         focusRequested(index);
     }
 
     function trackScoreDbReply(reply) {
-        if (!reply || reply.resultAvailable) {
-            return reply;
-        }
-        pendingScoreDbReplies.push(reply);
-        let forget = function() {
-            reply.finished.disconnect(forget);
-            let index = pendingScoreDbReplies.indexOf(reply);
-            if (index >= 0) {
-                pendingScoreDbReplies.splice(index, 1);
-                pendingScoreDbReplies = pendingScoreDbReplies.slice();
-            }
-        };
-        reply.finished.connect(forget);
-        return reply;
+        return session.trackScoreDbReply(reply);
     }
 
     function cancelScoreDbReplies() {
-        let replies = pendingScoreDbReplies;
-        pendingScoreDbReplies = [];
-        for (let reply of replies) {
-            if (reply && !reply.resultAvailable) {
-                reply.cancel();
-            }
-        }
+        session.cancelScoreDbReplies();
     }
 
     function refresh() {
@@ -103,7 +82,7 @@ Item {
     }
 
     function folderForHistoryItem(item) {
-        return item instanceof ChartData ? item.chartDirectory : item;
+        return session.folderForHistoryItem(item);
     }
 
     function refreshScores() {
@@ -176,20 +155,8 @@ Item {
         }
     }
 
-    function addToMinimumCount(input) {
-        let length = input.length;
-        if (length === 0 || length >= minimumEntryCount) {
-            return input;
-        }
-        let limit = Math.ceil(minimumEntryCount / length) * length;
-        for (let i = length; i < limit; ++i) {
-            input.push(input[i % length] || null);
-        }
-        return input;
-    }
-
     function preparedEntries(input) {
-        return addToMinimumCount(chartFolderModel.filterAndSort(input));
+        return chartFolderModel.filterAndSort(input);
     }
 
     function sameEntry(a, b) {
@@ -222,105 +189,76 @@ Item {
 
     function openPlayable(item, autoplay = false, replay = false,
                           replayScore = null) {
-        if (item instanceof ChartData) {
-            if (arenaSeated) {
-                if (!autoplay && !replay && !replayScore) {
-                    Rg.arenaSession.selectChart(item);
-                }
-                return true;
-            }
-            console.info("Opening chart " + item.path);
-            let useReplay = !!replay && !!replayScore;
-            if (Rg.profileList.battleActive) {
-                globalRoot.openChart(item.path,
-                    Rg.profileList.battleProfiles.player1Profile,
-                    !!autoplay, useReplay, replayScore || null,
-                    Rg.profileList.battleProfiles.player2Profile,
-                    !!autoplay, false, null);
-            } else {
-                globalRoot.openChart(item.path, Rg.profileList.mainProfile,
-                    !!autoplay, useReplay, replayScore || null,
-                    null, false, false, null);
-            }
+        if (typeof tryOpenPlayableAction === "function"
+                && tryOpenPlayableAction(
+                    item, autoplay, replay, replayScore)) {
             return true;
         }
-        if (item instanceof course) {
-            if (arenaSeated) {
-                return true;
-            }
-            let useReplay = !!replay && !!replayScore;
-            if (Rg.profileList.battleActive) {
-                globalRoot.openCourse(item,
-                    Rg.profileList.battleProfiles.player1Profile,
-                    !!autoplay, useReplay, replayScore || null,
-                    Rg.profileList.battleProfiles.player2Profile,
-                    !!autoplay, false, null);
-            } else {
-                globalRoot.openCourse(item, Rg.profileList.mainProfile,
-                    !!autoplay, useReplay, replayScore || null,
-                    null, false, false, null);
-            }
-            return true;
-        }
-        return false;
+        return activation.openPlayable(item, autoplay, replay, replayScore);
     }
 
     function open(item) {
-        item = folderForHistoryItem(item);
-        let folder;
-        if (item instanceof table) {
-            folder = [...item.levels, ...item.courses];
-        } else if (item instanceof level) {
-            folder = item.loadCharts();
-        } else if (typeof item === "string") {
-            folder = [];
-            if (item === "") {
-                for (let tableItem of Rg.tables.getList()) {
-                    if (tableItem.status === table.Loaded) {
-                        folder.push(tableItem);
-                    }
-                }
-            }
-            folder.push(...Rg.songFolderFactory.open(item));
-            if (item !== "" && folder.length === 0) {
-                folder.push(...Rg.songFolderFactory.openChartDirectory(item));
-            }
-        } else {
-            return [];
+        let folder = session.resolveFolderContents(item);
+        if (folder === null) {
+            return null;
         }
-        folderContents = [...folder];
+        session.commitFolderContents(folder);
         entries = preparedEntries(folder);
-        openedFolder();
+        publishFolderContents();
         return entries;
     }
 
-    function goBack() {
-        if (historyStack.length === 1) {
+    function publishFolderContents() {
+        refresh();
+        openedFolder();
+    }
+
+    function initialize() {
+        if (historyStack.length !== 0) {
             return false;
         }
-        let last = historyStack.pop();
-        let folder = open(historyStack[historyStack.length - 1]);
-        let index = indexOfEntry(folder, last);
-        requestFocus(index >= 0 ? index : 0);
-        closeFolderSound.stop();
-        closeFolderSound.play();
+        historyStack = [""];
+        if (open("") === null) {
+            historyStack = [];
+            return false;
+        }
+        requestFocus(0);
         return true;
     }
 
-    function goForward(item, skipSound = false) {
+    function goBack() {
+        if (historyStack.length < 2) {
+            return false;
+        }
+        let oldHistory = historyStack;
+        let last = oldHistory[oldHistory.length - 1];
+        historyStack = oldHistory.slice(0, oldHistory.length - 1);
+        let folder = open(historyStack[historyStack.length - 1]);
+        if (folder === null) {
+            historyStack = oldHistory;
+            return false;
+        }
+        let index = indexOfEntry(folder, last);
+        requestFocus(index >= 0 ? index : 0);
+        leftFolder();
+        return true;
+    }
+
+    function goForward(item) {
         if (openPlayable(item, false, false, null)) {
             return true;
         }
         if (item instanceof entry || item === null) {
             return false;
         }
-        historyStack.push(item);
-        open(item);
-        if (!skipSound) {
-            openFolderSound.stop();
-            openFolderSound.play();
+        let oldHistory = historyStack;
+        historyStack = historyStack.concat([item]);
+        if (open(item) === null) {
+            historyStack = oldHistory;
+            return false;
         }
         requestFocus(0);
+        enteredFolder();
         return true;
     }
 
@@ -356,46 +294,46 @@ Item {
         }
         let old = focusedItem;
         let folder = open(historyStack[historyStack.length - 1]);
+        if (folder === null) {
+            return false;
+        }
         let index = indexOfEntry(folder, old);
         requestFocus(index >= 0 ? index : 0);
         return true;
     }
 
     function openChartDirectory(directory, initialItem) {
-        if (!directory) {
-            return false;
-        }
-        let folder = Rg.songFolderFactory.openChartDirectory(directory);
-        if (!folder.length) {
+        let folder = session.resolveChartDirectory(directory);
+        if (!folder || !folder.length) {
             return false;
         }
         if (historyStack.length === 0
                 || folderForHistoryItem(historyStack[historyStack.length - 1])
                    !== directory) {
-            historyStack.push(initialItem || directory);
+            historyStack = historyStack.concat([initialItem || directory]);
         }
-        folderContents = [...folder];
+        session.commitFolderContents(folder);
         entries = preparedEntries(folder);
-        openedFolder();
+        publishFolderContents();
         let index = chartFolderModel.indexOfItem(entries, initialItem);
         requestFocus(index >= 0 ? index : 0);
         return true;
     }
 
     function search(query) {
-        let results = Rg.songFolderFactory.search(query);
+        let results = session.resolveSearchResults(query);
         let resultCount = results.length;
         if (!results.length) {
             console.info("Search returned no results");
             return resultCount;
         }
-        folderContents = [...results];
+        session.commitFolderContents(results);
         entries = preparedEntries(results);
         if (historyStack[historyStack.length - 1] !== searchHistoryEntry) {
-            historyStack.push(searchHistoryEntry);
+            historyStack = historyStack.concat([searchHistoryEntry]);
         }
         requestFocus(0);
-        openedFolder();
+        publishFolderContents();
         return resultCount;
     }
 
@@ -441,5 +379,5 @@ Item {
             && openChartDirectory(focusedItem.chartDirectory, focusedItem);
     }
 
-    Component.onDestruction: cancelScoreDbReplies()
+    Component.onCompleted: initialize()
 }

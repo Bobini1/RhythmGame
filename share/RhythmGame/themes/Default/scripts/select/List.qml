@@ -19,15 +19,21 @@ PathView {
         id: selectController
 
         enabled: pathView.enabled
-        navigationTarget: pathView
         minimumEntryCount: pathView.pathItemCount
-        autoplayAction: () => root.openSelectedAutoplay()
-        replayAction: button => root.openSelectedReplay(button)
+        tryAutoplayAction: () => root.openSelectedAutoplay()
+        tryReplayAction: button => root.openSelectedReplay(button)
         cycleReplayTypeAction: () => root.cycleReplayType()
-        cycleSortModeAction: delta => root.cycleSortMode(delta)
+        tryCycleSortModeAction: delta => root.cycleSortMode(delta)
         openInternetRankingAction: () => root.openSelectedInternetRanking()
 
         onOpenedFolder: pathView.openedFolder()
+        onFocusRequested: index => {
+            pathView.positionViewAtIndex(index, PathView.Center);
+            pathView.resetNavigation();
+        }
+        onMoveRequested: (steps, repeated, analog) => {
+            pathView.moveSelection(steps, repeated, analog);
+        }
     }
 
     model: selectController.entries
@@ -38,7 +44,6 @@ PathView {
     readonly property int lr2SpeedFirst: 300
     readonly property int lr2SpeedNext: 50
     readonly property int lr2WheelBaseDuration: 120
-    readonly property int lr2AnalogTicksPerScroll: 3
     readonly property int lr2ScrollUp: 1
     readonly property int lr2ScrollDown: 2
     property int listTopbarFixed: 0
@@ -50,9 +55,6 @@ PathView {
     property double barMoveStartMs: 0
     property double barMoveEndMs: 0
     property real wheelRemainder: 0
-    property int analogScrollBuffer: 0
-    property int selectScratchRepeatDirection: 0
-    property double selectScratchRepeatNextMs: 0
     property int suppressedCurrentItemSoundChanges: 0
     readonly property bool visualMoveActive: listTopbarFixed !== nowBarFixed
 
@@ -114,9 +116,6 @@ PathView {
         oldBarFixed = fixed;
         nowBarFixed = fixed;
         pendingWheelSteps = 0;
-        analogScrollBuffer = 0;
-        selectScratchRepeatDirection = 0;
-        selectScratchRepeatNextMs = 0;
         scrollDirection = 0;
         barMoveStartMs = 0;
         barMoveEndMs = 0;
@@ -202,13 +201,12 @@ PathView {
         pendingWheelStepTimer.restart();
     }
 
-    function queueAnalogScratchTick(up) {
-        analogScrollBuffer += up ? 1 : -1;
-        let steps = Math.trunc(analogScrollBuffer / lr2AnalogTicksPerScroll);
-        analogScrollBuffer = analogScrollBuffer % lr2AnalogTicksPerScroll;
-        if (steps !== 0) {
-            queueWheelSteps(steps);
+    function moveSelection(steps, repeated, analog) {
+        if (analog) {
+            queueWheelSteps(-steps);
+            return;
         }
+        scrollByKey(steps, repeated);
     }
 
     function handleWheel(wheel) {
@@ -236,34 +234,6 @@ PathView {
     function scrollByKey(entries, repeated) {
         if (count === 0 || entries === 0) return;
         scrollBy(entries, repeated ? lr2SpeedNext : lr2SpeedFirst);
-    }
-
-    function resetScratchRepeat() {
-        selectScratchRepeatDirection = 0;
-        selectScratchRepeatNextMs = 0;
-    }
-
-    function releaseScratchRepeat(up) {
-        let sameDirectionStillHeld = up
-            ? (Input.col1sUp || Input.col2sUp)
-            : (Input.col1sDown || Input.col2sDown);
-        if (!sameDirectionStillHeld
-                && selectScratchRepeatDirection === (up ? 1 : -1)) {
-            resetScratchRepeat();
-        }
-    }
-
-    function handleScratchRepeat(up, number) {
-        let direction = up ? 1 : -1;
-        let now = Date.now();
-        let firstTick = number === 0 || selectScratchRepeatDirection !== direction;
-        if (!firstTick && now < selectScratchRepeatNextMs) {
-            return;
-        }
-        selectScratchRepeatDirection = direction;
-        selectScratchRepeatNextMs = now + (firstTick ? lr2SpeedFirst : lr2SpeedNext);
-        let func = up ? pathView.decrementViewIndex : pathView.incrementViewIndex;
-        func(!firstTick);
     }
 
     function decrementViewIndex(repeated) {
@@ -324,10 +294,13 @@ PathView {
             }
         }
 
-        readonly property var scoreWithBestPoints: "scoreWithBestPoints" in item ? item.scoreWithBestPoints : null
-        readonly property var scoreWithBestClear: "scoreWithBestClear" in item ? item.scoreWithBestClear : null
-        readonly property var scores: "scores" in item ? item.scores : []
-        readonly property var bestStats: "bestStats" in item ? item.bestStats : null
+        readonly property var scoreWithBestPoints: item
+            && "scoreWithBestPoints" in item ? item.scoreWithBestPoints : null
+        readonly property var scoreWithBestClear: item
+            && "scoreWithBestClear" in item ? item.scoreWithBestClear : null
+        readonly property var scores: item && "scores" in item ? item.scores : []
+        readonly property var bestStats: item
+            && "bestStats" in item ? item.bestStats : null
         readonly property bool isCurrentItem: PathView.isCurrentItem
         readonly property bool scrollingText: pathView.scrollingText
 
@@ -376,7 +349,7 @@ PathView {
         source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "scratch"
     }
     onCurrentItemChanged: {
-        selectController.setFocused(currentIndex, current);
+        selectController.setFocused(current);
         scrollingTextTimer.restart();
         scrollingText = false;
         if (suppressedCurrentItemSoundChanges > 0) {

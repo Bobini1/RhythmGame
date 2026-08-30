@@ -94,7 +94,7 @@ Item {
 
     StandardResultInput {
         enabled: root.enabled
-        buttonAction: key => root.cycleGaugeForKey(key)
+        tryHandleButtonAction: key => root.cycleGaugeForKey(key)
         confirmEnabled: !(root.arenaResultMatches
                           && Rg.arenaSession.chatOpen)
     }

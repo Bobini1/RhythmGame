@@ -12,16 +12,12 @@ Item {
     property var closePresentationAction: null
     property var openResultAction: null
     property bool arenaOwned: false
-    property bool nothingWasHit: true
-    property bool used: false
+    property bool resultOpened: false
+    property alias attempted: attemptState.attempted
 
-    function reset() {
-        nothingWasHit = true;
-        used = false;
-    }
-
-    function markHit() {
-        nothingWasHit = false;
+    StandardGameplayAttemptState {
+        id: attemptState
+        chart: root.chart
     }
 
     function closePresentation() {
@@ -32,32 +28,19 @@ Item {
 
     function openResult(scores, profiles) {
         if (typeof openResultAction === "function") {
-            return openResultAction(scores, profiles, chartData);
+            openResultAction(scores, profiles, chartData);
+            return true;
         }
-        return globalRoot.openResult(scores, profiles, chartData);
+        globalRoot.openResult(scores, profiles, chartData);
+        return true;
     }
 
-    function exit() {
-        if (!enabled) {
+    function complete() {
+        if (!chart || resultOpened) {
             return false;
         }
-        if (typeof exitAction === "function") {
-            return exitAction();
-        }
-        if (arenaOwned && Rg.arenaSession.chatOpen === true) {
-            Rg.arenaSession.setChatOpen(false);
-            return true;
-        }
+        resultOpened = true;
         closePresentation();
-        if (nothingWasHit && !arenaOwned) {
-            globalRoot.returnToPreviousScreen();
-            return true;
-        }
-        if (!chart) {
-            return false;
-        }
-        playstopSound.play();
-        used = true;
         let profiles = [chart.player1.profile,
                         chart.player2 ? chart.player2.profile : null];
         let scores = chart instanceof ChartRunner
@@ -65,6 +48,30 @@ Item {
             : chart.proceed();
         openResult(scores, profiles);
         return true;
+    }
+
+    function exit() {
+        if (!enabled) {
+            return false;
+        }
+        if (typeof exitAction === "function") {
+            exitAction();
+            return true;
+        }
+        if (arenaOwned && Rg.arenaSession.chatOpen === true) {
+            Rg.arenaSession.setChatOpen(false);
+            return true;
+        }
+        if (!attempted && !arenaOwned) {
+            closePresentation();
+            globalRoot.returnToPreviousScreen();
+            return true;
+        }
+        if (!chart) {
+            return false;
+        }
+        playstopSound.play();
+        return complete();
     }
 
     AudioPlayer {
@@ -78,5 +85,20 @@ Item {
         enabled: root.enabled
         sequence: "Esc"
         onActivated: root.exit()
+    }
+
+    onChartChanged: resultOpened = false
+
+    Connections {
+        target: root.chart
+        ignoreUnknownSignals: true
+        function onStatusChanged() {
+            if (root.chart?.status === ChartRunner.Ready) {
+                root.resultOpened = false;
+            } else if (root.enabled
+                       && root.chart?.status === ChartRunner.Finished) {
+                root.complete();
+            }
+        }
     }
 }

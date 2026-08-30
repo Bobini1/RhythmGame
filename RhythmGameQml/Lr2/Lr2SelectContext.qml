@@ -7,9 +7,9 @@ import "Lr2SkinUtils.js" as Lr2SkinUtils
 Item {
     id: root
 
-    property var folderContents: []
-    property var historyStack: []
-    property var scores: ({})
+    property alias folderContents: standardSession.folderContents
+    property alias historyStack: standardSession.historyStack
+    property alias scores: standardSession.scores
     property var folderLampByKey: ({})
     property var folderScoreCountsByKey: ({})
     property var pendingFolderLampByKey: ({})
@@ -31,7 +31,7 @@ Item {
         poorCount: 0,
         maxCombo: 0
     })
-    property var previewFiles: ({})
+    property alias previewFiles: standardSession.previewFiles
     property var readmeFiles: ({})
     property var songDirectoryFilesCheckedByDir: ({})
     property alias currentIndex: nativeNavigation.currentIndex
@@ -43,7 +43,6 @@ Item {
     property alias oldBarFixed: nativeNavigation.oldBarFixed
     property alias nowBarFixed: nativeNavigation.nowBarFixed
     property int pendingWheelSteps: 0
-    property int analogScrollBuffer: 0
     property alias selectedOffset: nativeNavigation.selectedOffset
     property alias barMoveStartMs: nativeNavigation.barMoveStartMs
     property alias barMoveEndMs: nativeNavigation.barMoveEndMs
@@ -57,7 +56,7 @@ Item {
     property int listGeneration: 0
     property int scoreGeneration: 0
     property int folderLampRequestToken: 0
-    property var pendingScoreDbReplies: []
+    property alias pendingScoreDbReplies: standardSession.pendingScoreDbReplies
     property var pendingFolderLampScoreDbReplies: []
     property alias suppressNextSelectionSound: nativeNavigation.suppressNextSelectionSound
     property bool scrollFixedPointDragging: false
@@ -195,31 +194,22 @@ Item {
     onRankingPlayerCountChanged: advanceNumberValueRankingStatsRevision()
     onRankingTotalPlayCountChanged: advanceNumberValueRankingStatsRevision()
 
+    StandardSelectSession {
+        id: standardSession
+
+        tableCoursesAction: tableItem => root.classCoursesForTable(tableItem)
+    }
+
+    StandardSelectActivation {
+        id: standardActivation
+    }
+
     function trackScoreDbReply(reply: var) : var {
-        if (!reply || reply.resultAvailable) {
-            return reply;
-        }
-        pendingScoreDbReplies.push(reply);
-        let forget = function() {
-            reply.finished.disconnect(forget);
-            let index = pendingScoreDbReplies.indexOf(reply);
-            if (index >= 0) {
-                pendingScoreDbReplies.splice(index, 1);
-                pendingScoreDbReplies = pendingScoreDbReplies.slice();
-            }
-        };
-        reply.finished.connect(forget);
-        return reply;
+        return standardSession.trackScoreDbReply(reply);
     }
 
     function cancelScoreDbReplies() {
-        let replies = pendingScoreDbReplies;
-        pendingScoreDbReplies = [];
-        for (let reply of replies) {
-            if (reply && !reply.resultAvailable) {
-                reply.cancel();
-            }
-        }
+        standardSession.cancelScoreDbReplies();
     }
 
     function trackFolderLampScoreDbReply(reply: var) : var {
@@ -320,7 +310,6 @@ Item {
     readonly property int lr2SpeedFirst: 300
     readonly property int lr2SpeedNext: 50
     readonly property int lr2WheelBaseDuration: 120
-    readonly property int lr2AnalogTicksPerScroll: 3
     readonly property int lr2ClickDuration: 200
     readonly property int lr2ScrollUp: 1
     readonly property int lr2ScrollDown: 2
@@ -429,7 +418,6 @@ Item {
         }
         if (!updatesActive) {
             pendingWheelSteps = 0;
-            analogScrollBuffer = 0;
             pendingWheelStepTimer.stop();
         } else {
             publishPendingFolderLamps();
@@ -606,18 +594,6 @@ Item {
         pendingWheelStepTimer.restart();
     }
 
-    function queueAnalogScratchTick(up: var) : var {
-        if (!updatesActive) {
-            return;
-        }
-        analogScrollBuffer += up ? 1 : -1;
-        let steps = Math.trunc(analogScrollBuffer / lr2AnalogTicksPerScroll);
-        analogScrollBuffer = analogScrollBuffer % lr2AnalogTicksPerScroll;
-        if (steps !== 0) {
-            queueWheelSteps(steps);
-        }
-    }
-
     Timer {
         id: pendingWheelStepTimer
         interval: 0
@@ -651,7 +627,7 @@ Item {
     }
 
     function folderForHistoryItem(item: var) : var {
-        return isChart(item) ? item.chartDirectory : item;
+        return standardSession.folderForHistoryItem(item);
     }
 
     function isEntry(item: var) : var {
@@ -1432,32 +1408,11 @@ Item {
     }
 
     function open(item: var, initialItem: var) : var {
-        item = folderForHistoryItem(item);
-        let folder;
-        if (isTable(item)) {
-            folder = [...item.levels, ...classCoursesForTable(item)];
-        } else if (isLevel(item)) {
-            folder = item.loadCharts();
-        } else if (typeof item === "string") {
-            folder = [];
-            if (item === "") {
-                let tables = Rg.tables.getList();
-                for (let t of tables) {
-                    if (isLoadedTable(t)) {
-                        folder.push(t);
-                    }
-                }
-            }
-            let songFolders = Rg.songFolderFactory.open(item);
-            folder.push(...songFolders);
-            if (item !== "" && folder.length === 0) {
-                folder.push(...Rg.songFolderFactory.openChartDirectory(item));
-            }
-        } else {
-            return [];
+        let folder = standardSession.resolveFolderContents(item);
+        if (folder === null) {
+            return null;
         }
-
-        folderContents = [...folder];
+        standardSession.commitFolderContents(folder);
         rebuildFolderIndexes(folderContents);
         applySortedFolderContents(initialItem, false);
         refreshScores();
@@ -1469,13 +1424,13 @@ Item {
     }
 
     function search(query: var) : var {
-        let results = Rg.songFolderFactory.search(query || "");
+        let results = standardSession.resolveSearchResults(query);
         let resultCount = results.length;
         if (!results.length) {
             console.info("Search returned no results");
             return resultCount;
         }
-        folderContents = [...results];
+        standardSession.commitFolderContents(results);
         rebuildFolderIndexes(folderContents);
         applySortedFolderContents(undefined, false);
         if (historyStack[historyStack.length - 1] !== "SEARCH") {
@@ -1703,9 +1658,12 @@ Item {
         if (historyStack.length <= 1) {
             return;
         }
-        let last = historyStack[historyStack.length - 1];
-        historyStack = historyStack.slice(0, historyStack.length - 1);
-        open(historyStack[historyStack.length - 1], last);
+        let oldHistory = historyStack;
+        let last = oldHistory[oldHistory.length - 1];
+        historyStack = oldHistory.slice(0, oldHistory.length - 1);
+        if (open(historyStack[historyStack.length - 1], last) === null) {
+            historyStack = oldHistory;
+        }
     }
 
     function goForward(item: var, autoplay: var, replay: var, replayScore: var) : var {
@@ -1717,38 +1675,18 @@ Item {
             hideRanking();
             item = baseItem;
         }
-        if (isChart(item)) {
-            if (root.arenaSeated) {
-                if (!autoplay && !replay && !replayScore) {
-                    Rg.arenaSession.selectChart(item);
-                }
-                return;
-            }
-            let useReplay = !!replay && !!replayScore;
-            if (Rg.profileList.battleActive) {
-                globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
-            } else {
-                globalRoot.openChart(item.path, Rg.profileList.mainProfile, !!autoplay, useReplay, replayScore || null, null, false, false, null);
-            }
-            return;
-        }
-        if (isCourse(item)) {
-            if (root.arenaSeated) {
-                return;
-            }
-            let useReplay = !!replay && !!replayScore;
-            if (Rg.profileList.battleActive) {
-                globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
-            } else {
-                globalRoot.openCourse(item, Rg.profileList.mainProfile, !!autoplay, useReplay, replayScore || null, null, false, false, null);
-            }
+        if (standardActivation.openPlayable(
+                item, !!autoplay, !!replay, replayScore || null)) {
             return;
         }
         if (isEntry(item) || item === null || item === undefined) {
             return;
         }
+        let oldHistory = historyStack;
         historyStack = historyStack.concat([item]);
-        open(item);
+        if (open(item) === null) {
+            historyStack = oldHistory;
+        }
     }
 
     function openReplayResult(item: var, replayScore: var) : var {

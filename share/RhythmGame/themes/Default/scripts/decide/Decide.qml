@@ -292,7 +292,6 @@ Image {
     }
 
     StandardDecideFlow {
-        anchors.fill: parent
         chart: root.chart
     }
 }

@@ -14,9 +14,11 @@ Item {
 
     function run(overrideAction, defaultAction) {
         if (typeof overrideAction === "function") {
-            return overrideAction();
+            overrideAction();
+            return true;
         }
-        return defaultAction();
+        defaultAction();
+        return true;
     }
 
     function openSelect() {

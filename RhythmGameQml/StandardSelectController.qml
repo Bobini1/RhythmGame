@@ -1,26 +1,29 @@
 import QtQuick
 
-// Convenience composition for skins that want the standard state,
-// navigation and shortcuts together. Each lower-level object remains exposed.
+// Convenience composition for skins that want the standard select session,
+// model, feedback, input and shortcuts together. Lower-level parts remain
+// exposed and can also be instantiated independently.
 Item {
     id: root
 
-    property var navigationTarget: parent
     property int minimumEntryCount: 0
-    property var autoplayAction: null
-    property var replayAction: null
+    property var tryAutoplayAction: null
+    property var tryReplayAction: null
     property var cycleReplayTypeAction: null
-    property var cycleSortModeAction: null
+    property var tryCycleSortModeAction: null
+    property var tryOpenPlayableAction: null
     property var reloadAction: null
     property var openSelectedFolderAction: null
     property var openInternetRankingAction: null
     property bool reloadShortcutEnabled: true
     property bool openSelectedFolderShortcutEnabled: true
     property bool openInternetRankingShortcutEnabled: true
-    property bool navigationEnabled: enabled
+    property bool inputEnabled: enabled
     property bool shortcutsEnabled: enabled
+    property bool feedbackEnabled: enabled
 
-    property alias entries: state.entries
+    property alias entries: modelAdapter.entries
+    property alias logicalEntries: state.entries
     property alias folderContents: state.folderContents
     property alias historyStack: state.historyStack
     property alias scores: state.scores
@@ -28,37 +31,53 @@ Item {
     property alias folderClearStats: state.folderClearStats
     property alias focusedItem: state.focusedItem
     property alias selectState: state
-    property alias navigation: navigation
+    property alias session: state.session
+    property alias activation: state.activation
+    property alias input: input
+    property alias navigation: input.navigation
     property alias shortcuts: shortcuts
+    property alias feedback: feedback
 
     signal openedFolder()
     signal openInternetRankingRequested()
+    signal focusRequested(int index)
+    signal moveRequested(int steps, bool repeated, bool analog)
 
     StandardSelectState {
         id: state
 
-        minimumEntryCount: root.minimumEntryCount
-
-        onFocusRequested: index => {
-            if (!root.navigationTarget) {
-                return;
-            }
-            root.navigationTarget.positionViewAtIndex(index, PathView.Center);
-            root.navigationTarget.resetNavigation();
-        }
+        tryOpenPlayableAction: root.tryOpenPlayableAction
+        onFocusRequested: index => root.focusRequested(index)
         onOpenedFolder: root.openedFolder()
+        onEnteredFolder: feedback.enterFolder()
+        onLeftFolder: feedback.leaveFolder()
     }
 
-    StandardSelectNavigation {
-        id: navigation
+    StandardSelectModelAdapter {
+        id: modelAdapter
 
-        enabled: root.navigationEnabled
-        target: root.navigationTarget
+        source: state.entries
+        minimumCount: root.minimumEntryCount
+    }
+
+    StandardSelectFeedback {
+        id: feedback
+
+        enabled: root.feedbackEnabled
+    }
+
+    StandardSelectInput {
+        id: input
+
+        enabled: root.inputEnabled
         selectState: state
-        autoplayAction: root.autoplayAction
-        replayAction: root.replayAction
+        tryAutoplayAction: root.tryAutoplayAction
+        tryReplayAction: root.tryReplayAction
         cycleReplayTypeAction: root.cycleReplayTypeAction
-        cycleSortModeAction: root.cycleSortModeAction
+        tryCycleSortModeAction: root.tryCycleSortModeAction
+        onMoveRequested: (steps, repeated, analog) => {
+            root.moveRequested(steps, repeated, analog);
+        }
     }
 
     StandardSelectShortcuts {
@@ -78,8 +97,8 @@ Item {
             root.openInternetRankingRequested()
     }
 
-    function setFocused(index, item) {
-        state.setFocused(index, item);
+    function setFocused(item) {
+        state.setFocused(item);
     }
 
     function refresh() {
@@ -90,8 +109,8 @@ Item {
         return state.goBack();
     }
 
-    function goForward(item, skipSound = false) {
-        return state.goForward(item, skipSound);
+    function goForward(item) {
+        return state.goForward(item);
     }
 
     function openPlayable(item, autoplay = false, replay = false,
@@ -132,16 +151,15 @@ Item {
     }
 
     function handleUpPressed(event) {
-        navigation.handleUpPressed(event);
+        input.handleUpPressed(event);
     }
 
     function handleDownPressed(event) {
-        navigation.handleDownPressed(event);
+        input.handleDownPressed(event);
     }
 
     function handleReleased(event) {
-        navigation.handleReleased(event);
+        input.handleReleased(event);
     }
 
-    Component.onCompleted: state.goForward("", true)
 }

@@ -19,7 +19,8 @@ Item {
 
     function reload() {
         if (typeof reloadAction === "function") {
-            return reloadAction();
+            reloadAction();
+            return true;
         }
         if (selectState) {
             return selectState.reloadCurrentFolderOrTable();
@@ -30,7 +31,8 @@ Item {
 
     function openSelectedFolder() {
         if (typeof openSelectedFolderAction === "function") {
-            return openSelectedFolderAction();
+            openSelectedFolderAction();
+            return true;
         }
         if (selectState) {
             return selectState.openSelectedFolder();
@@ -41,7 +43,8 @@ Item {
 
     function openInternetRanking() {
         if (typeof openInternetRankingAction === "function") {
-            return openInternetRankingAction();
+            openInternetRankingAction();
+            return true;
         }
         openInternetRankingRequested();
         return true;

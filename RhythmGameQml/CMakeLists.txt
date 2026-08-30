@@ -156,7 +156,12 @@ set(RHYTHM_GAME_QML_FILES
         TransientInputFocusDismissLayer.qml
         StandardShortcuts.qml
         StandardSelectState.qml
+        StandardSelectSession.qml
+        StandardSelectActivation.qml
+        StandardSelectModelAdapter.qml
+        StandardSelectFeedback.qml
         StandardSelectNavigation.qml
+        StandardSelectInput.qml
         StandardSelectShortcuts.qml
         StandardSelectController.qml
         StandardInputKeys.qml
@@ -164,6 +169,7 @@ set(RHYTHM_GAME_QML_FILES
         StandardDecideFlow.qml
         StandardResultInput.qml
         StandardGameplayExit.qml
+        StandardGameplayAttemptState.qml
         Arena/ArenaChatView.qml
         Arena/ArenaChatActivityRail.qml
         Arena/ArenaPanelTabs.qml
