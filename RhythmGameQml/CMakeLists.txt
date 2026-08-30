@@ -159,6 +159,11 @@ set(RHYTHM_GAME_QML_FILES
         StandardSelectNavigation.qml
         StandardSelectShortcuts.qml
         StandardSelectController.qml
+        StandardInputKeys.qml
+        StandardMainActions.qml
+        StandardDecideFlow.qml
+        StandardResultInput.qml
+        StandardGameplayExit.qml
         Arena/ArenaChatView.qml
         Arena/ArenaChatActivityRail.qml
         Arena/ArenaPanelTabs.qml
@@ -176,7 +181,7 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaOverlayResizeHandle.qml
 )
 
-set_source_files_properties(TransientInputFocus.qml PROPERTIES
+set_source_files_properties(TransientInputFocus.qml StandardInputKeys.qml PROPERTIES
         QT_QML_SINGLETON_TYPE TRUE
 )
 

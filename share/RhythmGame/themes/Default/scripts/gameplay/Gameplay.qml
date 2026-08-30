@@ -191,15 +191,14 @@ Rectangle {
     }
     StackView.onActivated: {
         cancelScoreDbReply();
-        escapeShortcut.nothingWasHit = true;
-        escapeShortcut.used = false;
+        gameplayExit.reset();
         if (chart.status === ChartRunner.Finished) {
             if (isCourse && !showedCourseResult) {
                 showedCourseResult = true;
                 let profiles = [chart.player1.profile, chart.player2 ? chart.player2.profile : null];
                 Qt.callLater(() => globalRoot.openCourseResult(chart.finish(), profiles, chart.chartDatas, chart.course));
             } else {
-                Qt.callLater(() => sceneStack.pop());
+                Qt.callLater(globalRoot.returnToPreviousScreen);
             }
         } else {
             scoreReplayer1.resetPoints();
@@ -268,7 +267,7 @@ Rectangle {
             } else if (root.chart.status === ChartRunner.Finished) {
                 bga.clearOutput();
                 root.closeActivePopup();
-                if (escapeShortcut.used) {
+                if (gameplayExit.used) {
                     return;
                 }
                 chart.bga.layers[0].videoSink = bga.baseSink;
@@ -778,7 +777,7 @@ Rectangle {
             if (!tap.points || ignoreJudgements.includes(tap.points?.judgement)) {
                 return;
             }
-            escapeShortcut.nothingWasHit = false;
+            gameplayExit.markHit();
         }
     }
     Connections {
@@ -789,7 +788,7 @@ Rectangle {
             if (!tap.points || ignoreJudgements.includes(tap.points?.judgement)) {
                 return;
             }
-            escapeShortcut.nothingWasHit = false;
+            gameplayExit.markHit();
         }
     }
 
@@ -885,36 +884,14 @@ Rectangle {
             }
         }
     }
-    AudioPlayer {
-        id: playstopSound
-        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playstop"
-    }
-    Shortcut {
-        id: escapeShortcut
-        enabled: root.enabled
-        sequence: "Esc"
-        property bool nothingWasHit: true
-        property bool used: false
+    StandardGameplayExit {
+        id: gameplayExit
 
-        onActivated: {
-            if (root.arenaGameplayOwned && root.arenaSession.chatOpen === true) {
-                root.arenaSession.setChatOpen(false);
-                return;
-            }
-            if (nothingWasHit && !root.arenaGameplayOwned) {
-                root.closeActivePopup();
-                sceneStack.pop();
-            } else {
-                playstopSound.play();
-                used = true;
-                root.closeActivePopup();
-                let chartData = root.chartData;
-                let profile1 = chart.player1.profile;
-                let profile2 = chart.player2 ? chart.player2.profile : null;
-                let scores = chart instanceof ChartRunner ? chart.finish() : chart.proceed();
-                globalRoot.openResult(scores, [profile1, profile2], chartData);
-            }
-        }
+        enabled: root.enabled
+        arenaOwned: root.arenaGameplayOwned
+        chart: root.chart
+        chartData: root.chartData
+        closePresentationAction: () => root.closeActivePopup()
     }
     Shortcut {
         sequence: "F2"

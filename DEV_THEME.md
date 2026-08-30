@@ -272,6 +272,30 @@ Application-wide F1, F4 and F12 behavior lives in `StandardShortcuts`. Its
 default actions work through the application content frame, while its action
 properties allow a host to replace them.
 
+### Reusable behavior for other screens
+
+Other screens expose smaller components around their own natural seams rather
+than copying the selection component structure:
+
+- `StandardMainActions` provides the standard song-select, Arena, settings and
+  quit destinations, including START opening song selection.
+- `StandardDecideFlow` owns decide timeout, accept/cancel input, transition
+  guarding and chart-runner destruction. The skin owns the decide visuals.
+- `StandardResultInput` owns delayed result dismissal and retry input. A skin
+  can supply `buttonAction` for presentation-specific actions such as cycling a
+  displayed gauge before the standard retry/dismissal handling runs.
+- `StandardGameplayExit` implements Escape behavior for abandoning an untouched
+  chart or finishing an attempted play. Popup cleanup and result presentation
+  remain overridable.
+
+`StandardInputKeys.isPlayKey(key)` is available when a custom component needs
+the same lane-key classification used by the standard decide and result input.
+
+All action properties are optional. Without an override these components call
+the semantic operations exposed by the application content frame. Skins should
+use `globalRoot.returnToPreviousScreen()` instead of accessing `sceneStack`
+directly.
+
 ## Scaling
 
 Your theme is expected to work on all screen sizes and aspect ratios.

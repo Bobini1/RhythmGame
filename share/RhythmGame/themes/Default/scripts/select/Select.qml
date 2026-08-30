@@ -426,7 +426,7 @@ FocusScope {
                         Rg.arenaSession.leaveRoom();
                         return;
                     }
-                    sceneStack.pop();
+                    globalRoot.returnToPreviousScreen();
                 }
             }
             AudioPlayer {

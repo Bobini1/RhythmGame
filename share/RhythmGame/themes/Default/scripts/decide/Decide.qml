@@ -7,7 +7,6 @@ Image {
     id: root
     focus: true
     required property var chart
-    property bool transitionRequested: false
     readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.decide || {})[QmlUtils.themeName] || ({})
 
     ThemeFont {
@@ -78,60 +77,6 @@ Image {
             default:
                 return "#808080";
         }
-    }
-
-    onEnabledChanged: {
-        if (enabled) Qt.callLater(() => sceneStack.pop());
-    }
-
-    // stops all sounds when leaving the screen
-    Component.onDestruction: {
-        chart.destroy();
-    }
-
-    function decidePlayKey(key) {
-        switch (key) {
-        case BmsKey.Col11:
-        case BmsKey.Col12:
-        case BmsKey.Col13:
-        case BmsKey.Col14:
-        case BmsKey.Col15:
-        case BmsKey.Col16:
-        case BmsKey.Col17:
-        case BmsKey.Col21:
-        case BmsKey.Col22:
-        case BmsKey.Col23:
-        case BmsKey.Col24:
-        case BmsKey.Col25:
-        case BmsKey.Col26:
-        case BmsKey.Col27:
-            return true;
-        default:
-            return false;
-        }
-    }
-
-    function decideStartSelectKeyCombo(key) {
-        return (key === BmsKey.Start1 && Input.select1)
-            || (key === BmsKey.Select1 && Input.start1)
-            || (key === BmsKey.Start2 && Input.select2)
-            || (key === BmsKey.Select2 && Input.start2);
-    }
-
-    function startGameplay() {
-        if (transitionRequested || !enabled) {
-            return;
-        }
-        transitionRequested = true;
-        globalRoot.openGameplay(root.chart);
-    }
-
-    function cancelDecide() {
-        if (transitionRequested || !enabled) {
-            return;
-        }
-        transitionRequested = true;
-        sceneStack.pop();
     }
 
     Column {
@@ -346,52 +291,8 @@ Image {
         playing: true
     }
 
-    Timer {
-        interval: 5000;
-        running: root.enabled && !root.transitionRequested
-        onTriggered: root.startGameplay()
-    }
-
-    Shortcut {
-        sequence: "Esc"
-        enabled: root.enabled
-
-        onActivated: root.cancelDecide()
-    }
-
-    Shortcut {
-        sequence: "Return"
-        enabled: root.enabled
-
-        onActivated: root.startGameplay()
-    }
-
-    Shortcut {
-        sequence: "Enter"
-        enabled: root.enabled
-
-        onActivated: root.startGameplay()
-    }
-
-    Input.onButtonPressed: (key) => {
-        if (root.decideStartSelectKeyCombo(key)) {
-            root.cancelDecide();
-        } else if (root.decidePlayKey(key)) {
-            root.startGameplay();
-        }
-    }
-
-    MouseArea {
+    StandardDecideFlow {
         anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-
-        onPressed: (mouse) => {
-            mouse.accepted = true;
-            if (mouse.button === Qt.LeftButton) {
-                root.startGameplay();
-            } else if (mouse.button === Qt.RightButton) {
-                root.cancelDecide();
-            }
-        }
+        chart: root.chart
     }
 }

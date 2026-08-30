@@ -33,9 +33,6 @@ Item {
     readonly property bool isBattle: score1 && score2
     readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.result || {})[QmlUtils.themeName] || ({})
     readonly property var chartKeymode: chartData ? chartData.keymode : chartDatas[0].keymode
-    readonly property int startInputMillis: 500
-    property bool acceptsInput: startInputMillis <= 0
-
     function presentArenaResult(roundId: string): bool {
         root.arenaRoundId = roundId;
         return root.arenaRoundId.length > 0;
@@ -95,26 +92,11 @@ Item {
         return false;
     }
 
-    Timer {
-        interval: Math.max(1, root.startInputMillis)
-        running: root.startInputMillis > 0
-        repeat: false
-        onTriggered: root.acceptsInput = true
-    }
-
-    Input.onButtonPressed: key => {
-        if (!root.acceptsInput) {
-            return;
-        }
-        if (cycleGaugeForKey(key)) {
-            return;
-        }
-        if (globalRoot.retryResultForKey(key)) {
-            return;
-        }
-        if ([BmsKey.Col11, BmsKey.Col12, BmsKey.Col13, BmsKey.Col14, BmsKey.Col15, BmsKey.Col16, BmsKey.Col17, BmsKey.Col21, BmsKey.Col22, BmsKey.Col23, BmsKey.Col24, BmsKey.Col25, BmsKey.Col26, BmsKey.Col27].includes(key)) {
-            sceneStack.pop();
-        }
+    StandardResultInput {
+        enabled: root.enabled
+        buttonAction: key => root.cycleGaugeForKey(key)
+        confirmEnabled: !(root.arenaResultMatches
+                          && Rg.arenaSession.chatOpen)
     }
 
     Image {
@@ -142,23 +124,6 @@ Item {
             playing: true
         }
 
-        Shortcut {
-            enabled: root.enabled && root.acceptsInput
-            sequence: "Esc"
-
-            onActivated: {
-                sceneStack.pop();
-            }
-        }
-        Shortcut {
-            enabled: root.enabled && root.acceptsInput
-                && !(root.arenaResultMatches && Rg.arenaSession.chatOpen)
-            sequence: "Return"
-
-            onActivated: {
-                sceneStack.pop();
-            }
-        }
         Shortcut {
             enabled: root.enabled
             sequence: "F6"
@@ -196,16 +161,6 @@ Item {
                         screenshotMessage.show(qsTr("Failed to save screenshot."));
                     }
                 });
-            }
-        }
-        Input.onStart1Pressed: () => {
-            if (root.acceptsInput) {
-                sceneStack.pop();
-            }
-        }
-        Input.onStart2Pressed: () => {
-            if (root.acceptsInput) {
-                sceneStack.pop();
             }
         }
         Item {

@@ -246,6 +246,14 @@ ApplicationWindow {
             return false;
         }
 
+        function returnToPreviousScreen(): var {
+            return sceneStack.pop();
+        }
+
+        function quitApplication(): void {
+            Qt.quit();
+        }
+
         function openSettings(initialTabIndex: var): void {
             let item = activeSettingsItem === sceneStack.currentItem ? activeSettingsItem : null;
             if (!item) {

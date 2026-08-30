@@ -173,9 +173,7 @@ Page {
                     : SettingsColors.alpha(settings.palette.mid, 0.55)
                 border.width: backButton.visualFocus ? 2 : (backButton.hovered || backButton.down ? 1 : 0)
             }
-            onClicked: {
-                sceneStack.pop();
-            }
+            onClicked: globalRoot.returnToPreviousScreen()
         }
 
         Flickable {
@@ -333,8 +331,6 @@ Page {
         enabled: settings.enabled
         sequence: "Esc"
 
-        onActivated: {
-            sceneStack.pop();
-        }
+        onActivated: globalRoot.returnToPreviousScreen()
     }
 }

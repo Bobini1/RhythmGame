@@ -54,6 +54,12 @@ Image {
         fadeInMillis: 1000
     }
 
+    StandardMainActions {
+        id: mainActions
+
+        enabled: screen.enabled
+    }
+
     Dialog {
         id: dlg
         modal: true
@@ -173,13 +179,6 @@ Image {
 
                 spacing: 5
 
-                Input.onStart1Pressed: {
-                    globalRoot.openSelect();
-                }
-                Input.onStart2Pressed: {
-                    globalRoot.openSelect();
-                }
-
                 Button {
                     width: parent.width
                     height: 84
@@ -191,9 +190,7 @@ Image {
                     })
 
                     text: qsTr("Song Selection")
-                    onClicked: {
-                        globalRoot.openSelect();
-                    }
+                    onClicked: mainActions.openSelect()
                 }
 
                 Button {
@@ -206,9 +203,7 @@ Image {
                         italic: mainMenuFont.italic,
                         pixelSize: 30
                     })
-                    onClicked: {
-                        globalRoot.openArenaBrowser();
-                    }
+                    onClicked: mainActions.openArena()
                 }
 
                 Button {
@@ -221,9 +216,7 @@ Image {
                         italic: mainMenuFont.italic,
                         pixelSize: 30
                     })
-                    onClicked: {
-                        globalRoot.openSettings();
-                    }
+                    onClicked: mainActions.openSettings()
                 }
 
                 Button {
@@ -251,9 +244,7 @@ Image {
                         italic: mainMenuFont.italic,
                         pixelSize: 30
                     })
-                    onClicked: {
-                        Qt.quit();
-                    }
+                    onClicked: mainActions.quit()
                 }
             }
         }

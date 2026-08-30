@@ -320,7 +320,7 @@ Item {
 
     onEnabledChanged: {
         if (root.effectiveScreenKey === "decide" && enabled) {
-            Qt.callLater(() => sceneStack.pop());
+            Qt.callLater(globalRoot.returnToPreviousScreen);
         }
         if (enabled) {
             let selectWasOpen = root.selectListAlreadyOpen();
@@ -520,7 +520,7 @@ Item {
                 root.closeResultScreen();
                 return;
             }
-            sceneStack.pop();
+            globalRoot.returnToPreviousScreen();
         }
     }
 
@@ -2507,7 +2507,7 @@ Item {
             } else {
                 Qt.callLater(() => {
                     if (root.enabled && root.gameplayScreenActive && root.chart && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
-                        sceneStack.pop();
+                        globalRoot.returnToPreviousScreen();
                     }
                 });
             }
@@ -2652,7 +2652,7 @@ Item {
             return false;
         }
         if (root.gameplayNothingWasHit && !root.arenaGameplayOwned) {
-            sceneStack.pop();
+            globalRoot.returnToPreviousScreen();
             return true;
         }
 
@@ -6240,7 +6240,7 @@ Item {
             return false;
         }
         root.decideTransitionRequested = true;
-        sceneStack.pop();
+        globalRoot.returnToPreviousScreen();
         return true;
     }
 
@@ -6266,7 +6266,7 @@ Item {
             root.resultTimer151SkinTime = root.renderSkinTime;
             return true;
         }
-        sceneStack.pop();
+        globalRoot.returnToPreviousScreen();
         return true;
     }
 
