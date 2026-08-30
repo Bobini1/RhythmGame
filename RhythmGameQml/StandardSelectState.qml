@@ -2,30 +2,51 @@ pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
 
-// Reusable song/table browsing state. It owns folders, history, scores,
-// filtering and activation while leaving presentation to the skin.
+/*!
+    \qmltype StandardSelectState
+    \inqmlmodule RhythmGameQml
+    \brief Owns reusable song and table browsing state.
+
+    The component owns folders, history, scores, filtering, sorting, and
+    activation while leaving the list and focus presentation to the skin.
+*/
 Item {
     id: root
 
-    // Filtered and sorted logical entries. Presentation adapters may repeat it.
+    /*! Filtered and sorted logical entries before presentation adaptation. */
     property var entries: []
+    /*! Raw contents of the current folder, table, level, or search. */
     property alias folderContents: sessionImpl.folderContents
+    /*! Navigation history for the current selection session. */
     property alias historyStack: sessionImpl.historyStack
+    /*! Score-database replies owned by this state. */
     property alias pendingScoreDbReplies: sessionImpl.pendingScoreDbReplies
+    /*! Score data loaded for the current folder contents. */
     property alias scores: sessionImpl.scores
+    /*! Preview-file data loaded for the current folder contents. */
     property alias previewFiles: sessionImpl.previewFiles
+    /*! Lower-level selection-session component. */
     property alias session: sessionImpl
+    /*! Lower-level chart and course activation component. */
     property alias activation: activationImpl
+    /*! Optional opening pre-handler. True consumes; false or undefined continues. */
     property var tryOpenPlayableAction: null
+    /*! Clear statistics for folders in \l entries. */
     property var folderClearStats: []
+    /*! Index of \l focusedItem in \l entries. */
     property int focusedIndex: 0
+    /*! Logical item currently focused by the skin. */
     property var focusedItem: null
     readonly property var searchHistoryEntry: ({ "kind": "search" })
 
     readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
+    /*! Requests that the skin focus \a index in \l entries. */
     signal focusRequested(int index)
+    /*! Emitted after a folder or table has been opened. */
     signal openedFolder()
+    /*! Emitted after entering a selection-history item. */
     signal enteredFolder()
+    /*! Emitted after leaving a selection-history item. */
     signal leftFolder()
 
     StandardSelectSession {
@@ -55,6 +76,7 @@ Item {
         }
     }
 
+    /*! Updates the logical focused \a item after the skin moves focus. */
     function setFocused(item) {
         let logicalIndex = indexOfEntry(entries, item);
         focusedIndex = logicalIndex;
@@ -76,6 +98,7 @@ Item {
         session.cancelScoreDbReplies();
     }
 
+    /*! Rebuilds \l entries and their associated data. */
     function refresh() {
         refreshScores();
         refreshFolderClearStats();
@@ -187,6 +210,10 @@ Item {
         return -1;
     }
 
+    /*!
+        Opens \a item using \a autoplay, \a replay, and \a replayScore to
+        select the requested play mode.
+    */
     function openPlayable(item, autoplay = false, replay = false,
                           replayScore = null) {
         if (typeof tryOpenPlayableAction === "function"
@@ -213,6 +240,7 @@ Item {
         openedFolder();
     }
 
+    /*! Initializes history from the configured song folders and tables. */
     function initialize() {
         if (historyStack.length !== 0) {
             return false;
@@ -226,6 +254,7 @@ Item {
         return true;
     }
 
+    /*! Leaves the current history entry. Returns whether navigation occurred. */
     function goBack() {
         if (historyStack.length < 2) {
             return false;
@@ -244,6 +273,7 @@ Item {
         return true;
     }
 
+    /*! Opens \a item as a folder or playable item. */
     function goForward(item) {
         if (openPlayable(item, false, false, null)) {
             return true;
@@ -277,6 +307,7 @@ Item {
         return "";
     }
 
+    /*! Reloads the current local folder or online table. */
     function reloadCurrentFolderOrTable() {
         if (globalRoot.reloadTableForItem(focusedItem)) {
             return true;
@@ -302,6 +333,7 @@ Item {
         return true;
     }
 
+    /*! Opens \a directory and initially focuses \a initialItem. */
     function openChartDirectory(directory, initialItem) {
         let folder = session.resolveChartDirectory(directory);
         if (!folder || !folder.length) {
@@ -320,6 +352,7 @@ Item {
         return true;
     }
 
+    /*! Replaces the current entries with results for \a query. */
     function search(query) {
         let results = session.resolveSearchResults(query);
         let resultCount = results.length;
@@ -337,6 +370,7 @@ Item {
         return resultCount;
     }
 
+    /*! Rebuilds entries after a sort or filter setting changes. */
     function sortOrFilterChanged() {
         if (!folderContents.length) {
             return;
@@ -347,10 +381,12 @@ Item {
         requestFocus(index >= 0 ? index : 0);
     }
 
+    /*! Returns whether \a item is a playable chart. */
     function isChartItem(item) {
         return item instanceof ChartData || item instanceof entry;
     }
 
+    /*! Opens the focused chart's directory in the system file browser. */
     function openSelectedFolder() {
         if (focusedItem instanceof ChartData && focusedItem.chartDirectory) {
             return globalRoot.openLocalFolder(focusedItem.chartDirectory);
@@ -361,6 +397,7 @@ Item {
         return false;
     }
 
+    /*! Opens the README associated with the focused item, if one exists. */
     function openSelectedReadme() {
         if (!(focusedItem instanceof ChartData) || !focusedItem.chartDirectory) {
             return false;
@@ -373,6 +410,7 @@ Item {
             && Qt.openUrlExternally(globalRoot.localFileUrl(localPath));
     }
 
+    /*! Shows every chart that belongs to the currently focused song. */
     function showAllChartsForCurrentSong() {
         return focusedItem instanceof ChartData
             && !!focusedItem.chartDirectory

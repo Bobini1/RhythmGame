@@ -1,0 +1,6 @@
+/**
+ * @page qml_api QML API Reference
+ *
+ * The reusable skin components are documented from their QML source with
+ * QDoc. Open the <a href="qml/qml-api.html">QML API reference</a>.
+ */

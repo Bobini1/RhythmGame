@@ -1,17 +1,29 @@
 import QtQuick
 import RhythmGameQml
 
-// Optional default audio feedback for selection history navigation.
+/*!
+    \qmltype StandardSelectFeedback
+    \inqmlmodule RhythmGameQml
+    \brief Provides optional audio feedback for selection history navigation.
+
+    The default sounds come from the active profile's sound set. Assign the
+    action properties to replace either sound.
+*/
 Item {
     id: root
 
+    /*! Sound played after entering a selection-history item. */
     property url enterSoundSource:
         Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-open"
+    /*! Sound played after leaving a selection-history item. */
     property url leaveSoundSource:
         Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-close"
+    /*! Optional replacement for entering-folder feedback. */
     property var enterAction: null
+    /*! Optional replacement for leaving-folder feedback. */
     property var leaveAction: null
 
+    /*! Plays or invokes the entering-folder feedback. */
     function enterFolder() {
         if (!enabled) {
             return;
@@ -24,6 +36,7 @@ Item {
         enterSound.play();
     }
 
+    /*! Plays or invokes the leaving-folder feedback. */
     function leaveFolder() {
         if (!enabled) {
             return;

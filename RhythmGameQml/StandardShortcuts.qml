@@ -1,13 +1,23 @@
 import QtQuick
 
-// Common application shortcuts. Each action works through globalRoot by
-// default and can be replaced by assigning the corresponding action property.
+/*!
+    \qmltype StandardShortcuts
+    \inqmlmodule RhythmGameQml
+    \brief Provides common application-wide shortcuts.
+
+    Each shortcut works through \c globalRoot by default and can be replaced by
+    assigning the corresponding action property.
+*/
 Item {
     id: root
 
+    /*! Optional replacement for toggling the FPS overlay with F1. */
     property var toggleFpsOverlayAction: null
+    /*! Optional replacement for toggling fullscreen with F4. */
     property var toggleFullscreenAction: null
+    /*! Optional replacement for opening settings with F12. */
     property var openSettingsAction: null
+    /*! Whether the F12 settings shortcut is active. */
     property bool settingsEnabled: true
 
     function run(overrideAction, defaultAction) {

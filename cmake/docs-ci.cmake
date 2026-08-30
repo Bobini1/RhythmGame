@@ -55,17 +55,6 @@ endfunction()
 
 include("${bin}/docs-ci.project.cmake")
 
-# ---- Generate docs ----
+# ---- Generate docs through the same entry point as the local docs target ----
 
-if(NOT DEFINED DOXYGEN_OUTPUT_DIRECTORY)
-  set(DOXYGEN_OUTPUT_DIRECTORY "${bin}/docs")
-endif()
-set(out "${DOXYGEN_OUTPUT_DIRECTORY}")
-
-configure_file("${src}/docs/Doxyfile.in" "${bin}/docs/Doxyfile" @ONLY)
-
-# execute doxygen without creating a target
-execute_process(COMMAND doxygen "${bin}/docs/Doxyfile" WORKING_DIRECTORY "${bin}" RESULT_VARIABLE result)
-if(NOT result EQUAL "0")
-  message(FATAL_ERROR "doxygen failed with result ${result}")
-endif()
+include("${src}/cmake/generate-docs.cmake")

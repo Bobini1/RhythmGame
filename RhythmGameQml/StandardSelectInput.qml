@@ -1,19 +1,34 @@
 import QtQuick
 import RhythmGameQml
 
-// Standard keyboard and BMS-controller actions for a selection screen. The
-// directional policy is exposed separately so skins can use it without the
-// standard activation, replay, sorting or back-button mappings.
+/*!
+    \qmltype StandardSelectInput
+    \inqmlmodule RhythmGameQml
+    \brief Maps standard keyboard and BMS-controller selection actions.
+
+    Directional policy is exposed through \l navigation so skins can use it
+    without the standard activation, replay, sorting, or back-button mappings.
+*/
 Item {
     id: root
 
+    /*! Selection state that receives activation and history actions. */
     property var selectState: null
+    /*! Optional autoplay pre-handler. True consumes; false or undefined continues. */
     property var tryAutoplayAction: null
+    /*! Optional replay pre-handler. True consumes; false or undefined continues. */
     property var tryReplayAction: null
+    /*! Optional replacement for cycling the selected replay type. */
     property var cycleReplayTypeAction: null
+    /*! Optional sort pre-handler. True consumes; false or undefined continues. */
     property var tryCycleSortModeAction: null
+    /*! Directional policy and timing component. */
     property alias navigation: navigation
 
+    /*!
+        Requests relative focus movement by \a steps. \a repeated identifies
+        held input and \a analog identifies analog-scratch input.
+    */
     signal moveRequested(int steps, bool repeated, bool analog)
 
     StandardSelectNavigation {
@@ -25,18 +40,25 @@ Item {
         }
     }
 
+    /*!
+        Forwards \a tickNumber and \a tickType for directional \a key to
+        \l navigation. \a up selects the movement direction.
+    */
     function navigate(tickNumber, tickType, up, key) {
         navigation.navigate(tickNumber, tickType, up, key);
     }
 
+    /*! Records a controller direction press for \a key. */
     function pressDirection(key) {
         navigation.pressDirection(key);
     }
 
+    /*! Records a release for directional \a key; \a up identifies its direction. */
     function releaseDirection(key, up) {
         navigation.releaseDirection(key, up);
     }
 
+    /*! Activates the focused item. */
     function activate() {
         if (!root.enabled || !selectState) {
             return false;
@@ -45,6 +67,7 @@ Item {
         return true;
     }
 
+    /*! Activates replay for the focused chart. */
     function activateReplay() {
         if (typeof tryReplayAction !== "function"
                 || !tryReplayAction(Qt.LeftButton)) {
@@ -52,12 +75,14 @@ Item {
         }
     }
 
+    /*! Activates autoplay for the focused chart. */
     function activateAutoplay() {
         if (typeof tryAutoplayAction !== "function" || !tryAutoplayAction()) {
             activate();
         }
     }
 
+    /*! Handles an Up key \a event. */
     function handleUpPressed(event) {
         event.accepted = true;
         if (!event.isAutoRepeat) {
@@ -66,6 +91,7 @@ Item {
         navigate(event.isAutoRepeat, null, true, Qt.Key_Up);
     }
 
+    /*! Handles a Down key \a event. */
     function handleDownPressed(event) {
         event.accepted = true;
         if (!event.isAutoRepeat) {
@@ -74,6 +100,7 @@ Item {
         navigate(event.isAutoRepeat, null, false, Qt.Key_Down);
     }
 
+    /*! Handles a keyboard direction-release \a event. */
     function handleReleased(event) {
         if (event.key === Qt.Key_Up) {
             if (!event.isAutoRepeat) {
@@ -88,6 +115,7 @@ Item {
         }
     }
 
+    /*! Handles top-level sort-mode input for \a key. */
     function handleTopLevelSortKey(key) {
         if (!selectState || selectState.historyStack.length > 1
                 || typeof tryCycleSortModeAction !== "function") {

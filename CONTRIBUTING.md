@@ -11,6 +11,20 @@ What you need depends on what you want to edit.
 
 For theme development, see [`DEV_THEME.md`](DEV_THEME.md).
 
+## Building documentation
+
+The `docs` target generates one HTML site containing the C++ and Markdown
+documentation plus the QDoc-generated QML API reference. QDoc is an opt-in
+vcpkg dependency because its `qttools[qdoc]` feature also builds LLVM:
+
+```console
+cmake -S . -B build/dev-docs -DRhythmGame_DEVELOPER_MODE=ON -DBUILD_DOCS=ON -DBUILD_TESTING=OFF -DVCPKG_MANIFEST_FEATURES=docs -DCMAKE_TOOLCHAIN_FILE=C:/path/to/vcpkg/scripts/buildsystems/vcpkg.cmake
+cmake --build build/dev-docs --target docs --config Release
+```
+
+Replace `C:/path/to/vcpkg` with the local vcpkg checkout. The result is written
+to `build/dev-docs/docs/html/index.html`.
+
 For C++ development, see [`DEV_ENGINE.md`](DEV_ENGINE.md).
 
 For translations and localization, see [`DEV_LANG.md`](DEV_LANG.md).

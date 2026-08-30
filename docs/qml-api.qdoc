@@ -1,0 +1,45 @@
+/*!
+    \qmlmodule RhythmGameQml
+    \title RhythmGame QML Types
+    \brief Reusable behavior and data components available to every skin.
+
+    The module provides optional building blocks rather than a required skin
+    framework. A skin can use a complete controller such as
+    \l StandardSelectController, select only lower-level components, or replace
+    individual actions while retaining the standard behavior for everything
+    else.
+*/
+
+/*!
+    \page qml-api.html
+    \title QML API Reference
+
+    These components contain reusable behavior and state. Skins remain
+    responsible for presentation and may instantiate only the pieces they need.
+
+    \section1 Selection
+
+    \list
+        \li \l StandardSelectController composes the complete standard selection behavior.
+        \li \l StandardSelectState owns browsing, filtering, sorting, scores, and activation.
+        \li \l StandardSelectSession owns folder contents, history, and score-query lifetime.
+        \li \l StandardSelectActivation opens charts and courses.
+        \li \l StandardSelectModelAdapter adapts logical entries for circular presentation.
+        \li \l StandardSelectFeedback provides optional navigation sounds.
+        \li \l StandardSelectInput maps keyboard and controller input.
+        \li \l StandardSelectNavigation implements directional and scratch navigation.
+        \li \l StandardSelectShortcuts implements selection-specific F-key shortcuts.
+    \endlist
+
+    \section1 Other screens and application behavior
+
+    \list
+        \li \l StandardMainActions provides main-menu destinations.
+        \li \l StandardDecideFlow handles decide-screen lifetime and input.
+        \li \l StandardResultInput handles result dismissal and retry input.
+        \li \l StandardGameplayExit handles gameplay escape behavior.
+        \li \l StandardGameplayAttemptState tracks whether a play was attempted.
+        \li \l StandardShortcuts implements application-wide F-key shortcuts.
+        \li \l StandardInputKeys classifies standard gameplay input keys.
+    \endlist
+*/

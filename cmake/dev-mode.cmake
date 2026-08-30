@@ -12,7 +12,7 @@ add_custom_target(
 )
 add_dependencies(run-exe RhythmGame_exe)
 
-option(BUILD_DOCS "Build documentation using Doxygen" OFF)
+option(BUILD_DOCS "Add the unified Doxygen and QDoc documentation target" OFF)
 if (BUILD_DOCS)
     include(cmake/docs.cmake)
 endif ()

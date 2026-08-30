@@ -1,15 +1,28 @@
 import QtQuick
 import RhythmGameQml
 
-// Standard chart/course activation, independent of selection presentation.
+/*!
+    \qmltype StandardSelectActivation
+    \inqmlmodule RhythmGameQml
+    \brief Opens selected charts and courses independently of presentation.
+
+    Assign \c tryOpenPlayableAction to intercept activation. Returning true
+    from that action suppresses the built-in behavior.
+*/
 QtObject {
     id: root
 
+    /*! Optional opening pre-handler. True consumes; false or undefined continues. */
     property var tryOpenPlayableAction: null
+    /*! Whether the local player is currently seated in an Arena room. */
     readonly property bool arenaSeated:
         Rg.arenaSession.state === ArenaSession.InRoom
         || Rg.arenaSession.state === ArenaSession.Reconnecting
 
+    /*!
+        Opens \a item using \a autoplay, \a replay, and \a replayScore to
+        select the requested play mode.
+    */
     function openPlayable(item, autoplay = false, replay = false,
                           replayScore = null) {
         if (typeof tryOpenPlayableAction === "function"

@@ -135,6 +135,18 @@
     "zstd"
   ],
   "features": {
+    "docs": {
+      "description": "Dependencies for generating documentation",
+      "dependencies": [
+        {
+          "name": "qttools",
+          "default-features": false,
+          "features": [
+            "qdoc"
+          ]
+        }
+      ]
+    },
     "test": {
       "description": "Dependencies for testing",
       "dependencies": [

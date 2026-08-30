@@ -653,9 +653,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install Doxygen and graphviz
+      - name: Install documentation tools
         run: sudo apt-get update -q
-          && sudo apt-get install doxygen graphviz -q -y
+          && sudo apt-get install doxygen graphviz qt6-documentation-tools -q -y
 
       - name: Build docs
         run: cmake "-DPROJECT_SOURCE_DIR=$PWD" "-DPROJECT_BINARY_DIR=$PWD/build"

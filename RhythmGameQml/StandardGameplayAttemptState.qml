@@ -1,18 +1,28 @@
 import QtQuick
 import RhythmGameQml
 
-// Tracks whether a gameplay runner has received a scoring hit. This lower-level
-// state is reusable even when a skin implements its own exit/result transition.
+/*!
+    \qmltype StandardGameplayAttemptState
+    \inqmlmodule RhythmGameQml
+    \brief Tracks whether a gameplay runner has received a scoring hit.
+
+    This lower-level state remains useful when a skin implements its own
+    gameplay exit or result transition.
+*/
 Item {
     id: root
 
+    /*! Gameplay runner whose score signals are observed. */
     property var chart: null
+    /*! Whether either player has produced a scoring hit. */
     property bool attempted: false
 
+    /*! Clears the attempted state. */
     function reset() {
         attempted = false;
     }
 
+    /*! Returns whether \a tap counts as attempting the chart. */
     function hitCountsAsPlayed(tap) {
         let judgement = tap?.points?.judgement;
         return judgement !== undefined
@@ -22,6 +32,7 @@ Item {
             && judgement !== Judgement.MineAvoided;
     }
 
+    /*! Updates \l attempted from \a tap. */
     function observeHit(tap) {
         if (hitCountsAsPlayed(tap)) {
             attempted = true;

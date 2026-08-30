@@ -1,0 +1,19 @@
+project = RhythmGameQml
+description = Reusable RhythmGame QML components
+version = @PROJECT_VERSION@
+
+outputformats = HTML
+outputdir = "@QDOC_OUTPUT_DIRECTORY@"
+sourceencoding = UTF-8
+outputencoding = UTF-8
+naturallanguage = en
+moduleheader =
+
+sources.fileextensions = "*.qml *.qdoc"
+sources = "@PROJECT_SOURCE_DIR@/docs/qml-api.qdoc"
+sourcedirs = "@PROJECT_SOURCE_DIR@/RhythmGameQml"
+
+HTML.nosubdirs = true
+HTML.outputsubdir = qml
+HTML.stylesheets = qdoc.css
+HTML.headerstyles = "<link rel=\"stylesheet\" type=\"text/css\" href=\"style/qdoc.css\" />\n"

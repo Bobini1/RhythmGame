@@ -1,18 +1,33 @@
 import QtQuick
 import RhythmGameQml
 
-// Standard Escape handling for gameplay. It distinguishes abandoning before a
-// hit from finishing an attempted play, while leaving popup cleanup overridable.
+/*!
+    \qmltype StandardGameplayExit
+    \inqmlmodule RhythmGameQml
+    \brief Provides standard Escape handling for gameplay.
+
+    The component distinguishes abandoning before a hit from finishing an
+    attempted play, while leaving presentation cleanup and result opening
+    overridable.
+*/
 Item {
     id: root
 
+    /*! Gameplay runner being exited. */
     property var chart: null
+    /*! Chart data passed to the result screen. */
     property var chartData: null
+    /*! Optional replacement for the entire exit decision. */
     property var exitAction: null
+    /*! Optional action that closes skin-owned overlays before exiting. */
     property var closePresentationAction: null
+    /*! Optional replacement for opening the result screen. */
     property var openResultAction: null
+    /*! Whether Arena owns the gameplay completion transition. */
     property bool arenaOwned: false
+    /*! Whether this component has already opened a result. */
     property bool resultOpened: false
+    /*! Whether gameplay has produced a scoring hit. */
     property alias attempted: attemptState.attempted
 
     StandardGameplayAttemptState {
@@ -20,12 +35,14 @@ Item {
         chart: root.chart
     }
 
+    /*! Closes skin-owned gameplay presentation, if configured. */
     function closePresentation() {
         if (typeof closePresentationAction === "function") {
             closePresentationAction();
         }
     }
 
+    /*! Opens the result for \a scores and \a profiles. */
     function openResult(scores, profiles) {
         if (typeof openResultAction === "function") {
             openResultAction(scores, profiles, chartData);
@@ -35,6 +52,7 @@ Item {
         return true;
     }
 
+    /*! Completes attempted gameplay and opens or delegates its result. */
     function complete() {
         if (!chart || resultOpened) {
             return false;
@@ -50,6 +68,7 @@ Item {
         return true;
     }
 
+    /*! Applies the standard abandon-or-complete decision. */
     function exit() {
         if (!enabled) {
             return false;

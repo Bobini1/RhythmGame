@@ -1,21 +1,37 @@
 import QtQuick
 import RhythmGameQml
 
-// Standard decide-screen lifetime and input. The surrounding skin owns every
-// visual; this component owns accepting, cancelling and runner destruction.
+/*!
+    \qmltype StandardDecideFlow
+    \inqmlmodule RhythmGameQml
+    \brief Provides standard decide-screen lifetime and input behavior.
+
+    The surrounding skin owns every visual. This component owns accepting,
+    cancelling, timeouts, and runner destruction, with override actions for
+    skins that need different transitions.
+*/
 Item {
     id: root
 
     anchors.fill: parent
 
+    /*! Chart runner being accepted or cancelled. */
     property var chart: null
+    /*! Optional replacement for accepting the chart. */
     property var startAction: null
+    /*! Optional replacement for cancelling the chart. */
     property var cancelAction: null
+    /*! Automatic acceptance timeout in milliseconds; zero disables it. */
     property int timeoutMillis: 5000
+    /*! Whether keyboard input is active. */
     property bool keyboardEnabled: true
+    /*! Whether BMS-controller input is active. */
     property bool controllerEnabled: true
+    /*! Whether pointer input is active. */
     property bool pointerEnabled: true
+    /*! Whether destruction of this component destroys \l chart. */
     property bool destroyChartOnDestruction: true
+    /*! Whether a start or cancel transition has already been requested. */
     property bool transitionRequested: false
 
     function run(action, defaultAction) {
@@ -31,6 +47,7 @@ Item {
         return true;
     }
 
+    /*! Accepts the chart and begins gameplay. */
     function start() {
         if (!chart) {
             return false;
@@ -38,6 +55,7 @@ Item {
         return run(startAction, () => globalRoot.openGameplay(chart));
     }
 
+    /*! Cancels the chart and returns to the previous screen. */
     function cancel() {
         return run(cancelAction,
                    () => globalRoot.returnToPreviousScreen());

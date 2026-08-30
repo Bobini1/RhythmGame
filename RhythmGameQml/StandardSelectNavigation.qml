@@ -1,19 +1,33 @@
 import QtQuick
 import RhythmGameQml
 
-// Reusable directional navigation. It owns analog accumulation and classic
-// scratch repeat timing, then emits logical movement for a skin to present.
+/*!
+    \qmltype StandardSelectNavigation
+    \inqmlmodule RhythmGameQml
+    \brief Converts directional input into logical selection movement.
+
+    The component owns analog accumulation and classic-scratch repeat timing,
+    then emits \l moveRequested for a skin to present. It does not own the
+    focused row or any visual list.
+*/
 Item {
     id: root
 
+    /*! Number of analog scratch ticks required for one logical step. */
     property int analogTicksPerStep: 3
+    /*! Delay before classic-scratch repeat begins, in milliseconds. */
     property int initialRepeatDelayMillis: 300
+    /*! Delay between repeated classic-scratch steps, in milliseconds. */
     property int repeatDelayMillis: 50
     property var lastKeys: []
     property int analogBuffer: 0
     property int repeatDirection: 0
     property double nextRepeatMillis: 0
 
+    /*!
+        Requests relative focus movement by \a steps. \a repeated identifies
+        held input and \a analog identifies analog-scratch input.
+    */
     signal moveRequested(int steps, bool repeated, bool analog)
 
     function requestMove(steps, repeated, analog = false) {
@@ -22,6 +36,7 @@ Item {
         }
     }
 
+    /*! Records that directional \a key was pressed. */
     function pressDirection(key) {
         if (enabled) {
             lastKeys = lastKeys.concat([key]);
@@ -34,6 +49,7 @@ Item {
             : Input.col1sDown || Input.col2sDown;
     }
 
+    /*! Records that directional \a key was released; \a up identifies its direction. */
     function releaseDirection(key, up) {
         lastKeys = lastKeys.filter(pressedKey => pressedKey !== key);
         if (!directionStillHeld(up) && repeatDirection === (up ? -1 : 1)) {
@@ -42,6 +58,10 @@ Item {
         }
     }
 
+    /*!
+        Converts \a tickNumber and \a tickType for directional \a key into a
+        movement request. \a up selects the movement direction.
+    */
     function navigate(tickNumber, tickType, up, key) {
         if (!enabled) {
             return;
@@ -74,6 +94,7 @@ Item {
         requestMove(direction, !!tickNumber);
     }
 
+    /*! Clears held keys, analog accumulation, and repeat timing. */
     function reset() {
         lastKeys = [];
         analogBuffer = 0;
