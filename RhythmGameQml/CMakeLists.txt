@@ -154,6 +154,7 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaRosterView.qml
         TransientInputFocus.qml
         TransientInputFocusDismissLayer.qml
+        PendingReplyGroup.qml
         StandardShortcuts.qml
         StandardSelectState.qml
         StandardSelectSession.qml

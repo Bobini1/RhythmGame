@@ -19,16 +19,21 @@ Item {
     property int initialRepeatDelayMillis: 300
     /*! Delay between repeated classic-scratch steps, in milliseconds. */
     property int repeatDelayMillis: 50
-    property var lastKeys: []
-    property int analogBuffer: 0
-    property int repeatDirection: 0
-    property double nextRepeatMillis: 0
 
     /*!
         Requests relative focus movement by \a steps. \a repeated identifies
         held input and \a analog identifies analog-scratch input.
     */
     signal moveRequested(int steps, bool repeated, bool analog)
+
+    QtObject {
+        id: navigationState
+
+        property int analogBuffer: 0
+        property var lastKeys: []
+        property double nextRepeatMillis: 0
+        property int repeatDirection: 0
+    }
 
     function requestMove(steps, repeated, analog = false) {
         if (enabled && steps !== 0) {
@@ -39,7 +44,7 @@ Item {
     /*! Records that directional \a key was pressed. */
     function pressDirection(key) {
         if (enabled) {
-            lastKeys = lastKeys.concat([key]);
+            navigationState.lastKeys = navigationState.lastKeys.concat([key]);
         }
     }
 
@@ -51,10 +56,12 @@ Item {
 
     /*! Records that directional \a key was released; \a up identifies its direction. */
     function releaseDirection(key, up) {
-        lastKeys = lastKeys.filter(pressedKey => pressedKey !== key);
-        if (!directionStillHeld(up) && repeatDirection === (up ? -1 : 1)) {
-            repeatDirection = 0;
-            nextRepeatMillis = 0;
+        navigationState.lastKeys = navigationState.lastKeys.filter(
+            pressedKey => pressedKey !== key);
+        if (!directionStillHeld(up)
+                && navigationState.repeatDirection === (up ? -1 : 1)) {
+            navigationState.repeatDirection = 0;
+            navigationState.nextRepeatMillis = 0;
         }
     }
 
@@ -68,25 +75,27 @@ Item {
         }
         let direction = up ? -1 : 1;
         if (tickType === InputTranslator.AnalogScratchTick) {
-            analogBuffer += direction;
-            let steps = Math.trunc(analogBuffer / Math.max(1, analogTicksPerStep));
-            analogBuffer %= Math.max(1, analogTicksPerStep);
+            navigationState.analogBuffer += direction;
+            let ticksPerStep = Math.max(1, analogTicksPerStep);
+            let steps = Math.trunc(navigationState.analogBuffer / ticksPerStep);
+            navigationState.analogBuffer %= ticksPerStep;
             requestMove(steps, false, true);
             return;
         }
-        if (lastKeys[lastKeys.length - 1] !== key) {
+        if (navigationState.lastKeys[navigationState.lastKeys.length - 1]
+                !== key) {
             return;
         }
         if (tickType === InputTranslator.ButtonTick
                 || tickType === InputTranslator.ClassicScratchTick) {
             let now = Date.now();
             let firstTick = tickNumber === 0
-                || repeatDirection !== direction;
-            if (!firstTick && now < nextRepeatMillis) {
+                || navigationState.repeatDirection !== direction;
+            if (!firstTick && now < navigationState.nextRepeatMillis) {
                 return;
             }
-            repeatDirection = direction;
-            nextRepeatMillis = now + (firstTick
+            navigationState.repeatDirection = direction;
+            navigationState.nextRepeatMillis = now + (firstTick
                 ? initialRepeatDelayMillis : repeatDelayMillis);
             requestMove(direction, !firstTick);
             return;
@@ -96,10 +105,10 @@ Item {
 
     /*! Clears held keys, analog accumulation, and repeat timing. */
     function reset() {
-        lastKeys = [];
-        analogBuffer = 0;
-        repeatDirection = 0;
-        nextRepeatMillis = 0;
+        navigationState.lastKeys = [];
+        navigationState.analogBuffer = 0;
+        navigationState.repeatDirection = 0;
+        navigationState.nextRepeatMillis = 0;
     }
 
     onEnabledChanged: {

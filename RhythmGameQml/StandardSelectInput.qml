@@ -6,14 +6,21 @@ import RhythmGameQml
     \inqmlmodule RhythmGameQml
     \brief Maps standard keyboard and BMS-controller selection actions.
 
-    Directional policy is exposed through \l navigation so skins can use it
-    without the standard activation, replay, sorting, or back-button mappings.
+    Directional timing is configurable here. Skins that only want movement
+    policy can instantiate \l StandardSelectNavigation directly.
 */
 Item {
     id: root
 
-    /*! Selection state that receives activation and history actions. */
-    property var selectState: null
+    /*! Standard selection state that receives activation and history actions. */
+    property StandardSelectState selectState: null
+    /*! Optional replacement for activating the focused item. */
+    property var activateAction: null
+    /*! Optional replacement for leaving the current selection entry. */
+    property var goBackAction: null
+    /*! Whether sort-key handling is currently at the top selection level. */
+    property bool atTopLevel: selectState
+        ? selectState.historyStack.length <= 1 : false
     /*! Optional autoplay pre-handler. True consumes; false or undefined continues. */
     property var tryAutoplayAction: null
     /*! Optional replay pre-handler. True consumes; false or undefined continues. */
@@ -22,8 +29,12 @@ Item {
     property var cycleReplayTypeAction: null
     /*! Optional sort pre-handler. True consumes; false or undefined continues. */
     property var tryCycleSortModeAction: null
-    /*! Directional policy and timing component. */
-    property alias navigation: navigation
+    /*! Number of analog scratch ticks required for one logical step. */
+    property alias analogTicksPerStep: navigation.analogTicksPerStep
+    /*! Delay before classic-scratch repeat begins, in milliseconds. */
+    property alias initialRepeatDelayMillis: navigation.initialRepeatDelayMillis
+    /*! Delay between repeated classic-scratch steps, in milliseconds. */
+    property alias repeatDelayMillis: navigation.repeatDelayMillis
 
     /*!
         Requests relative focus movement by \a steps. \a repeated identifies
@@ -58,19 +69,43 @@ Item {
         navigation.releaseDirection(key, up);
     }
 
+    /*! Clears held directions, analog accumulation, and repeat timing. */
+    function resetNavigation() {
+        navigation.reset();
+    }
+
     /*! Activates the focused item. */
     function activate() {
-        if (!root.enabled || !selectState) {
+        if (!root.enabled) {
+            return false;
+        }
+        if (typeof activateAction === "function") {
+            activateAction();
+            return true;
+        }
+        if (!selectState) {
             return false;
         }
         selectState.goForward(selectState.focusedItem);
         return true;
     }
 
+    /*! Leaves the current selection entry. */
+    function goBack() {
+        if (!root.enabled) {
+            return false;
+        }
+        if (typeof goBackAction === "function") {
+            goBackAction();
+            return true;
+        }
+        return selectState ? selectState.goBack() : false;
+    }
+
     /*! Activates replay for the focused chart. */
     function activateReplay() {
         if (typeof tryReplayAction !== "function"
-                || !tryReplayAction(Qt.LeftButton)) {
+                || !tryReplayAction()) {
             activate();
         }
     }
@@ -117,8 +152,7 @@ Item {
 
     /*! Handles top-level sort-mode input for \a key. */
     function handleTopLevelSortKey(key) {
-        if (!selectState || selectState.historyStack.length > 1
-                || typeof tryCycleSortModeAction !== "function") {
+        if (!atTopLevel || typeof tryCycleSortModeAction !== "function") {
             return false;
         }
         if (key === BmsKey.Col12 || key === BmsKey.Col22) {
@@ -165,9 +199,7 @@ Item {
         }
         if (key === BmsKey.Col12 || key === BmsKey.Col14
                 || key === BmsKey.Col22 || key === BmsKey.Col24) {
-            if (selectState) {
-                selectState.goBack();
-            }
+            goBack();
         }
     }
 }

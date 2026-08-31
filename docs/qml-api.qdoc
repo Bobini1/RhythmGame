@@ -29,6 +29,7 @@
         \li \l StandardSelectInput maps keyboard and controller input.
         \li \l StandardSelectNavigation implements directional and scratch navigation.
         \li \l StandardSelectShortcuts implements selection-specific F-key shortcuts.
+        \li \l PendingReplyGroup owns cancellable asynchronous work with a shared lifetime.
     \endlist
 
     \section1 Other screens and application behavior

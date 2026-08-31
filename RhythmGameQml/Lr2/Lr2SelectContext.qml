@@ -56,8 +56,6 @@ Item {
     property int listGeneration: 0
     property int scoreGeneration: 0
     property int folderLampRequestToken: 0
-    property alias pendingScoreDbReplies: standardSession.pendingScoreDbReplies
-    property var pendingFolderLampScoreDbReplies: []
     property alias suppressNextSelectionSound: nativeNavigation.suppressNextSelectionSound
     property bool scrollFixedPointDragging: false
     property string searchText: ""
@@ -204,6 +202,10 @@ Item {
         id: standardActivation
     }
 
+    PendingReplyGroup {
+        id: folderLampScoreDbReplies
+    }
+
     function trackScoreDbReply(reply: var) : var {
         return standardSession.trackScoreDbReply(reply);
     }
@@ -213,31 +215,11 @@ Item {
     }
 
     function trackFolderLampScoreDbReply(reply: var) : var {
-        if (!reply || reply.resultAvailable) {
-            return reply;
-        }
-        pendingFolderLampScoreDbReplies.push(reply);
-        let forget = function() {
-            reply.finished.disconnect(forget);
-            let index = pendingFolderLampScoreDbReplies.indexOf(reply);
-            if (index >= 0) {
-                pendingFolderLampScoreDbReplies.splice(index, 1);
-                pendingFolderLampScoreDbReplies =
-                    pendingFolderLampScoreDbReplies.slice();
-            }
-        };
-        reply.finished.connect(forget);
-        return reply;
+        return folderLampScoreDbReplies.track(reply);
     }
 
     function cancelFolderLampScoreDbReplies() {
-        let replies = pendingFolderLampScoreDbReplies;
-        pendingFolderLampScoreDbReplies = [];
-        for (let reply of replies) {
-            if (reply && !reply.resultAvailable) {
-                reply.cancel();
-            }
-        }
+        folderLampScoreDbReplies.cancelAll();
     }
 
     function advanceNumberValueRevision(value: int) : int {
@@ -1035,11 +1017,6 @@ Item {
 
     function publishSelectItemScoreSummaries() : void {
         selectItemModel.setScoreSummariesFromScores(scores);
-    }
-
-    Component.onDestruction: {
-        cancelFolderLampScoreDbReplies();
-        cancelScoreDbReplies();
     }
 
     function addToMinimumCount(input: var) : var {

@@ -8,7 +8,9 @@
 #include <QMetaObject>
 #include <QObject>
 #include <QPoint>
+#include <QQmlComponent>
 #include <QQmlEngine>
+#include <QUrl>
 
 #include <memory>
 #include <optional>
@@ -436,6 +438,64 @@ TEST_CASE("PendingReply is returned to JavaScript as a cancellable object",
     CHECK(result.toBool());
     REQUIRE(factory.source.has_value());
     CHECK(factory.source->stopToken().stop_requested());
+}
+
+TEST_CASE("PendingReplyGroup owns replies through one QML lifetime",
+          "[PendingReply][qml][group]")
+{
+    ensureCoreApplication();
+    auto engine = QQmlEngine{};
+    const auto sourcePath =
+      QString::fromUtf8(RHYTHMGAME_SOURCE_DIR) +
+      QStringLiteral("/RhythmGameQml/PendingReplyGroup.qml");
+    auto component = QQmlComponent{ &engine, QUrl::fromLocalFile(sourcePath) };
+    INFO(component.errorString().toStdString());
+    REQUIRE(component.isReady());
+    auto group = std::unique_ptr<QObject>{ component.create() };
+    REQUIRE(group);
+    engine.globalObject().setProperty("group", engine.newQObject(group.get()));
+
+    SECTION("finished replies are forgotten")
+    {
+        ReplyFactory factory;
+        auto* reply = factory.start();
+        QQmlEngine::setObjectOwnership(reply, QQmlEngine::CppOwnership);
+        engine.globalObject().setProperty("reply", engine.newQObject(reply));
+
+        CHECK(
+          engine.evaluate("group.track(reply); group.count === 1;").toBool());
+        REQUIRE(factory.source->succeed(5));
+        CHECK(engine.evaluate("group.count === 0;").toBool());
+        delete reply;
+    }
+
+    SECTION("cancelling the group cancels every reply")
+    {
+        ReplyFactory firstFactory;
+        ReplyFactory secondFactory;
+        auto* first = firstFactory.start();
+        auto* second = secondFactory.start();
+        QQmlEngine::setObjectOwnership(first, QQmlEngine::CppOwnership);
+        QQmlEngine::setObjectOwnership(second, QQmlEngine::CppOwnership);
+        engine.globalObject().setProperty("first", engine.newQObject(first));
+        engine.globalObject().setProperty("second", engine.newQObject(second));
+
+        CHECK(engine
+                .evaluate(
+                  "group.track(first); group.track(second); group.count === 2;")
+                .toBool());
+        CHECK(
+          engine
+            .evaluate("group.cancelAll(); group.count === 0"
+                      " && first.resultAvailable && second.resultAvailable;")
+            .toBool());
+        REQUIRE(firstFactory.source.has_value());
+        REQUIRE(secondFactory.source.has_value());
+        CHECK(firstFactory.source->stopToken().stop_requested());
+        CHECK(secondFactory.source->stopToken().stop_requested());
+        delete first;
+        delete second;
+    }
 }
 
 #include "PendingReply.test.moc"

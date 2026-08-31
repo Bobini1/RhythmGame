@@ -9,21 +9,23 @@ import RhythmGameQml
     The component provides raw folder loading, history storage, preview data,
     and pending score-query cancellation shared by standard and legacy skins.
 */
-QtObject {
+Item {
     id: root
 
     /*! Raw contents of the current folder, table, level, or search. */
     property var folderContents: []
     /*! Navigation history for this selection session. */
     property var historyStack: []
-    /*! Score-database replies owned by this session. */
-    property var pendingScoreDbReplies: []
     /*! Score data loaded for the current contents. */
     property var scores: ({})
     /*! Preview-file data loaded for the current contents. */
     property var previewFiles: ({})
     /*! Optional replacement for obtaining a table's courses. */
     property var tableCoursesAction: null
+
+    PendingReplyGroup {
+        id: scoreDbReplies
+    }
 
     /*! Resolves a history \a item to the folder it represents. */
     function folderForHistoryItem(item) {
@@ -83,33 +85,11 @@ QtObject {
 
     /*! Retains \a reply until it finishes or the session cancels it. */
     function trackScoreDbReply(reply) {
-        if (!reply || reply.resultAvailable) {
-            return reply;
-        }
-        pendingScoreDbReplies.push(reply);
-        pendingScoreDbReplies = pendingScoreDbReplies.slice();
-        let forget = function() {
-            reply.finished.disconnect(forget);
-            let index = pendingScoreDbReplies.indexOf(reply);
-            if (index >= 0) {
-                pendingScoreDbReplies.splice(index, 1);
-                pendingScoreDbReplies = pendingScoreDbReplies.slice();
-            }
-        };
-        reply.finished.connect(forget);
-        return reply;
+        return scoreDbReplies.track(reply);
     }
 
     /*! Cancels and releases all pending score-database replies. */
     function cancelScoreDbReplies() {
-        let replies = pendingScoreDbReplies;
-        pendingScoreDbReplies = [];
-        for (let reply of replies) {
-            if (reply && !reply.resultAvailable) {
-                reply.cancel();
-            }
-        }
+        scoreDbReplies.cancelAll();
     }
-
-    Component.onDestruction: cancelScoreDbReplies()
 }

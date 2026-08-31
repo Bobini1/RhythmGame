@@ -23,12 +23,25 @@ Item {
     property var closePresentationAction: null
     /*! Optional replacement for opening the result screen. */
     property var openResultAction: null
+    /*! Optional replacement for attempted-exit audio feedback. */
+    property var exitFeedbackAction: null
+    /*! Default attempted-exit audio source. */
+    property url exitFeedbackSource:
+        Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playstop"
+    /*! Whether attempted-exit feedback is active. */
+    property bool exitFeedbackEnabled: true
     /*! Whether Arena owns the gameplay completion transition. */
     property bool arenaOwned: false
     /*! Whether this component has already opened a result. */
     property bool resultOpened: false
     /*! Whether gameplay has produced a scoring hit. */
     property alias attempted: attemptState.attempted
+
+    QtObject {
+        id: exitState
+
+        property bool completionPending: false
+    }
 
     StandardGameplayAttemptState {
         id: attemptState
@@ -57,6 +70,7 @@ Item {
         if (!chart || resultOpened) {
             return false;
         }
+        exitState.completionPending = false;
         resultOpened = true;
         closePresentation();
         let profiles = [chart.player1.profile,
@@ -66,6 +80,19 @@ Item {
             : chart.proceed();
         openResult(scores, profiles);
         return true;
+    }
+
+    /*! Plays or invokes attempted-exit feedback. */
+    function playExitFeedback() {
+        if (!exitFeedbackEnabled) {
+            return;
+        }
+        if (typeof exitFeedbackAction === "function") {
+            exitFeedbackAction();
+            return;
+        }
+        playstopSound.stop();
+        playstopSound.play();
     }
 
     /*! Applies the standard abandon-or-complete decision. */
@@ -89,15 +116,14 @@ Item {
         if (!chart) {
             return false;
         }
-        playstopSound.play();
+        playExitFeedback();
         return complete();
     }
 
     AudioPlayer {
         id: playstopSound
 
-        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath
-            + "playstop"
+        source: root.exitFeedbackSource
     }
 
     Shortcut {
@@ -106,7 +132,20 @@ Item {
         onActivated: root.exit()
     }
 
-    onChartChanged: resultOpened = false
+    onChartChanged: {
+        resultOpened = false;
+        exitState.completionPending = false;
+    }
+
+    onEnabledChanged: {
+        if (enabled && exitState.completionPending) {
+            Qt.callLater(function() {
+                if (root.enabled && exitState.completionPending) {
+                    root.complete();
+                }
+            });
+        }
+    }
 
     Connections {
         target: root.chart
@@ -114,9 +153,13 @@ Item {
         function onStatusChanged() {
             if (root.chart?.status === ChartRunner.Ready) {
                 root.resultOpened = false;
-            } else if (root.enabled
-                       && root.chart?.status === ChartRunner.Finished) {
-                root.complete();
+                exitState.completionPending = false;
+            } else if (root.chart?.status === ChartRunner.Finished) {
+                if (root.enabled) {
+                    root.complete();
+                } else {
+                    exitState.completionPending = true;
+                }
             }
         }
     }

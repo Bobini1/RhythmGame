@@ -7,37 +7,58 @@ import RhythmGameQml
     \inqmlmodule RhythmGameQml
     \brief Owns reusable song and table browsing state.
 
-    The component owns folders, history, scores, filtering, sorting, and
-    activation while leaving the list and focus presentation to the skin.
+    The component owns folders, history, optional metadata enrichment,
+    filtering, sorting, and activation while leaving list presentation to the
+    skin. Use the lower-level selection components when these policies do not
+    fit a custom selector.
 */
 Item {
     id: root
 
     /*! Filtered and sorted logical entries before presentation adaptation. */
-    property var entries: []
+    readonly property var entries: selectionState.entries.slice()
     /*! Raw contents of the current folder, table, level, or search. */
-    property alias folderContents: sessionImpl.folderContents
+    readonly property var folderContents: sessionImpl.folderContents.slice()
     /*! Navigation history for the current selection session. */
-    property alias historyStack: sessionImpl.historyStack
-    /*! Score-database replies owned by this state. */
-    property alias pendingScoreDbReplies: sessionImpl.pendingScoreDbReplies
+    readonly property var historyStack: sessionImpl.historyStack.slice()
     /*! Score data loaded for the current folder contents. */
-    property alias scores: sessionImpl.scores
+    readonly property var scores: Object.assign({}, sessionImpl.scores)
     /*! Preview-file data loaded for the current folder contents. */
-    property alias previewFiles: sessionImpl.previewFiles
-    /*! Lower-level selection-session component. */
-    property alias session: sessionImpl
-    /*! Lower-level chart and course activation component. */
-    property alias activation: activationImpl
+    readonly property var previewFiles:
+        Object.assign({}, sessionImpl.previewFiles)
     /*! Optional opening pre-handler. True consumes; false or undefined continues. */
     property var tryOpenPlayableAction: null
-    /*! Clear statistics for folders in \l entries. */
-    property var folderClearStats: []
+    /*! Whether standard score loading is active. */
+    property bool scoresEnabled: true
+    /*! Whether standard preview-file discovery is active. */
+    property bool previewFilesEnabled: true
+    /*! Whether per-folder clear-statistic loading is active. */
+    property bool folderClearStatsEnabled: true
+    /*! Whether construction automatically opens the root selection folder. */
+    property bool autoInitialize: true
+    /*! Sort mode used to prepare logical entries. */
+    property int sortMode: generalVars.selectSortMode
+    /*! Key-mode filter used to prepare logical entries. */
+    property int keymodeFilter: generalVars.selectKeymodeFilter
+    /*! Difficulty filter used to prepare logical entries. */
+    property int difficultyFilter: 0
+    /*! Whether items without scores sort after scored items. */
+    property bool unscoredItemsLast: true
     /*! Index of \l focusedItem in \l entries. */
-    property int focusedIndex: 0
+    readonly property int focusedIndex: selectionState.focusedIndex
     /*! Logical item currently focused by the skin. */
-    property var focusedItem: null
+    readonly property var focusedItem: selectionState.focusedItem
     readonly property var searchHistoryEntry: ({ "kind": "search" })
+
+    QtObject {
+        id: selectionState
+
+        property var entries: []
+        property int focusedIndex: 0
+        property var focusedItem: null
+        property var folderClearStatsByKey: ({})
+        property int folderClearStatsRevision: 0
+    }
 
     readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
     /*! Requests that the skin focus \a index in \l entries. */
@@ -57,12 +78,17 @@ Item {
         id: activationImpl
     }
 
+    PendingReplyGroup {
+        id: folderClearStatsReplies
+    }
+
     ChartFolderModel {
         id: chartFolderModel
 
-        sortMode: root.generalVars.selectSortMode
-        keymodeFilter: root.generalVars.selectKeymodeFilter
-        unscoredItemsLast: true
+        difficultyFilter: root.difficultyFilter
+        keymodeFilter: root.keymodeFilter
+        sortMode: root.sortMode
+        unscoredItemsLast: root.unscoredItemsLast
         scores: root.scores
 
         onSortModeChanged: Qt.callLater(root.sortOrFilterChanged)
@@ -79,37 +105,43 @@ Item {
     /*! Updates the logical focused \a item after the skin moves focus. */
     function setFocused(item) {
         let logicalIndex = indexOfEntry(entries, item);
-        focusedIndex = logicalIndex;
-        focusedItem = logicalIndex >= 0 ? entries[logicalIndex] : null;
+        selectionState.focusedIndex = logicalIndex;
+        selectionState.focusedItem = logicalIndex >= 0
+            ? entries[logicalIndex] : null;
     }
 
     function requestFocus(index) {
-        focusedIndex = index;
-        focusedItem = index >= 0 && index < entries.length
+        selectionState.focusedIndex = index;
+        selectionState.focusedItem = index >= 0 && index < entries.length
             ? entries[index] : null;
         focusRequested(index);
     }
 
     function trackScoreDbReply(reply) {
-        return session.trackScoreDbReply(reply);
+        return sessionImpl.trackScoreDbReply(reply);
     }
 
     function cancelScoreDbReplies() {
-        session.cancelScoreDbReplies();
+        sessionImpl.cancelScoreDbReplies();
     }
 
     /*! Rebuilds \l entries and their associated data. */
     function refresh() {
         refreshScores();
+        refreshPreviewFiles();
         refreshFolderClearStats();
     }
 
     function folderForHistoryItem(item) {
-        return session.folderForHistoryItem(item);
+        return sessionImpl.folderForHistoryItem(item);
     }
 
     function refreshScores() {
         cancelScoreDbReplies();
+        if (!scoresEnabled) {
+            sessionImpl.scores = ({});
+            return;
+        }
         if (historyStack[historyStack.length - 1] === searchHistoryEntry) {
             let md5s = [];
             for (let item of folderContents) {
@@ -119,7 +151,7 @@ Item {
             }
             trackScoreDbReply(
                 Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s)
-            ).then(result => scores = result.scores);
+            ).then(result => sessionImpl.scores = result.scores);
         } else {
             trackScoreDbReply(
                 Rg.profileList.mainProfile.scoreDb.getScores(
@@ -130,11 +162,18 @@ Item {
                     for (let [key, value] of Object.entries(result.courseScores.scores)) {
                         newScores[key] = value;
                     }
-                    scores = newScores;
+                    sessionImpl.scores = newScores;
                 } else {
-                    scores = result.scores;
+                    sessionImpl.scores = result.scores;
                 }
             });
+        }
+    }
+
+    function refreshPreviewFiles() {
+        if (!previewFilesEnabled) {
+            sessionImpl.previewFiles = ({});
+            return;
         }
         let dirs = [];
         for (let item of folderContents) {
@@ -142,7 +181,8 @@ Item {
                 dirs.push(item.chartDirectory);
             }
         }
-        previewFiles = Rg.songDirectoryFilePathFetcher.getPreviewFilePaths(dirs);
+        sessionImpl.previewFiles =
+            Rg.songDirectoryFilePathFetcher.getPreviewFilePaths(dirs);
     }
 
     function clearStatsFromScoreSummary(summary) {
@@ -162,18 +202,49 @@ Item {
         };
     }
 
+    function folderClearStatsKey(item) {
+        if (typeof item === "string") {
+            return "folder:" + item;
+        }
+        if (item instanceof level) {
+            return "level:" + item.name;
+        }
+        if (item instanceof table) {
+            return "table:" + String(item.url || "");
+        }
+        return "";
+    }
+
+    /*! Returns loaded clear statistics for folder-like \a item, or null. */
+    function folderClearStatsFor(item) {
+        let revision = selectionState.folderClearStatsRevision;
+        let key = folderClearStatsKey(item);
+        return revision >= 0 && key
+            ? (selectionState.folderClearStatsByKey[key] || null) : null;
+    }
+
     function refreshFolderClearStats() {
-        folderClearStats = [];
+        folderClearStatsReplies.cancelAll();
+        selectionState.folderClearStatsByKey = ({});
+        ++selectionState.folderClearStatsRevision;
+        if (!folderClearStatsEnabled) {
+            return;
+        }
         for (let folder of folderContents) {
             if (folder instanceof ChartData || folder instanceof entry
                     || folder instanceof course || folder === null) {
                 continue;
             }
-            trackScoreDbReply(
+            let key = folderClearStatsKey(folder);
+            if (!key) {
+                continue;
+            }
+            folderClearStatsReplies.track(
                 Rg.profileList.mainProfile.scoreDb.getScoreSummary(folder)
             ).then(result => {
-                folderClearStats.push([folder, clearStatsFromScoreSummary(result)]);
-                folderClearStats = folderClearStats.slice();
+                selectionState.folderClearStatsByKey[key] =
+                    clearStatsFromScoreSummary(result);
+                ++selectionState.folderClearStatsRevision;
             });
         }
     }
@@ -221,16 +292,16 @@ Item {
                     item, autoplay, replay, replayScore)) {
             return true;
         }
-        return activation.openPlayable(item, autoplay, replay, replayScore);
+        return activationImpl.openPlayable(item, autoplay, replay, replayScore);
     }
 
     function open(item) {
-        let folder = session.resolveFolderContents(item);
+        let folder = sessionImpl.resolveFolderContents(item);
         if (folder === null) {
             return null;
         }
-        session.commitFolderContents(folder);
-        entries = preparedEntries(folder);
+        sessionImpl.commitFolderContents(folder);
+        selectionState.entries = preparedEntries(folder);
         publishFolderContents();
         return entries;
     }
@@ -245,9 +316,9 @@ Item {
         if (historyStack.length !== 0) {
             return false;
         }
-        historyStack = [""];
+        sessionImpl.historyStack = [""];
         if (open("") === null) {
-            historyStack = [];
+            sessionImpl.historyStack = [];
             return false;
         }
         requestFocus(0);
@@ -261,10 +332,10 @@ Item {
         }
         let oldHistory = historyStack;
         let last = oldHistory[oldHistory.length - 1];
-        historyStack = oldHistory.slice(0, oldHistory.length - 1);
+        sessionImpl.historyStack = oldHistory.slice(0, oldHistory.length - 1);
         let folder = open(historyStack[historyStack.length - 1]);
         if (folder === null) {
-            historyStack = oldHistory;
+            sessionImpl.historyStack = oldHistory;
             return false;
         }
         let index = indexOfEntry(folder, last);
@@ -282,9 +353,9 @@ Item {
             return false;
         }
         let oldHistory = historyStack;
-        historyStack = historyStack.concat([item]);
+        sessionImpl.historyStack = historyStack.concat([item]);
         if (open(item) === null) {
-            historyStack = oldHistory;
+            sessionImpl.historyStack = oldHistory;
             return false;
         }
         requestFocus(0);
@@ -335,17 +406,18 @@ Item {
 
     /*! Opens \a directory and initially focuses \a initialItem. */
     function openChartDirectory(directory, initialItem) {
-        let folder = session.resolveChartDirectory(directory);
+        let folder = sessionImpl.resolveChartDirectory(directory);
         if (!folder || !folder.length) {
             return false;
         }
         if (historyStack.length === 0
                 || folderForHistoryItem(historyStack[historyStack.length - 1])
                    !== directory) {
-            historyStack = historyStack.concat([initialItem || directory]);
+            sessionImpl.historyStack =
+                historyStack.concat([initialItem || directory]);
         }
-        session.commitFolderContents(folder);
-        entries = preparedEntries(folder);
+        sessionImpl.commitFolderContents(folder);
+        selectionState.entries = preparedEntries(folder);
         publishFolderContents();
         let index = chartFolderModel.indexOfItem(entries, initialItem);
         requestFocus(index >= 0 ? index : 0);
@@ -354,16 +426,17 @@ Item {
 
     /*! Replaces the current entries with results for \a query. */
     function search(query) {
-        let results = session.resolveSearchResults(query);
+        let results = sessionImpl.resolveSearchResults(query);
         let resultCount = results.length;
         if (!results.length) {
             console.info("Search returned no results");
             return resultCount;
         }
-        session.commitFolderContents(results);
-        entries = preparedEntries(results);
+        sessionImpl.commitFolderContents(results);
+        selectionState.entries = preparedEntries(results);
         if (historyStack[historyStack.length - 1] !== searchHistoryEntry) {
-            historyStack = historyStack.concat([searchHistoryEntry]);
+            sessionImpl.historyStack =
+                historyStack.concat([searchHistoryEntry]);
         }
         requestFocus(0);
         publishFolderContents();
@@ -376,7 +449,7 @@ Item {
             return;
         }
         let old = focusedItem;
-        entries = preparedEntries(folderContents);
+        selectionState.entries = preparedEntries(folderContents);
         let index = chartFolderModel.indexOfItem(entries, old);
         requestFocus(index >= 0 ? index : 0);
     }
@@ -417,5 +490,27 @@ Item {
             && openChartDirectory(focusedItem.chartDirectory, focusedItem);
     }
 
-    Component.onCompleted: initialize()
+    Component.onCompleted: {
+        if (autoInitialize) {
+            initialize();
+        }
+    }
+
+    onScoresEnabledChanged: {
+        if (historyStack.length > 0) {
+            refreshScores();
+        }
+    }
+
+    onPreviewFilesEnabledChanged: {
+        if (historyStack.length > 0) {
+            refreshPreviewFiles();
+        }
+    }
+
+    onFolderClearStatsEnabledChanged: {
+        if (historyStack.length > 0) {
+            refreshFolderClearStats();
+        }
+    }
 }

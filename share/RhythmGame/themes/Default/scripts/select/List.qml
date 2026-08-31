@@ -6,11 +6,10 @@ PathView {
     id: pathView
 
     property var current: model[currentIndex]
-    property alias folderContents: selectController.folderContents
-    property alias historyStack: selectController.historyStack
-    property alias scores: selectController.scores
-    property alias previewFiles: selectController.previewFiles
-    property alias folderClearStats: selectController.folderClearStats
+    readonly property var folderContents: selectController.folderContents
+    readonly property var historyStack: selectController.historyStack
+    readonly property var scores: selectController.scores
+    readonly property var previewFiles: selectController.previewFiles
     property alias controller: selectController
 
     signal openedFolder()
@@ -21,7 +20,7 @@ PathView {
         enabled: pathView.enabled
         minimumEntryCount: pathView.pathItemCount
         tryAutoplayAction: () => root.openSelectedAutoplay()
-        tryReplayAction: button => root.openSelectedReplay(button)
+        tryReplayAction: () => root.openSelectedReplay(Qt.LeftButton)
         cycleReplayTypeAction: () => root.cycleReplayType()
         tryCycleSortModeAction: delta => root.cycleSortMode(delta)
         openInternetRankingAction: () => root.openSelectedInternetRanking()
@@ -273,22 +272,7 @@ PathView {
         Component {
             id: folderComponent
             FolderEntry {
-                clearStats: {
-                    let stats = pathView.folderClearStats.find((item) => {
-                        if (item[0] instanceof table && modelData instanceof table) {
-                            return item[0].url === modelData.url;
-                        } else if (item[0] instanceof level && modelData instanceof level) {
-                            return item[0].name === modelData.name;
-                        } else if (typeof item[0] === "string" && typeof modelData === "string") {
-                            return item[0] === modelData;
-                        }
-                        return false;
-                    });
-                    if (stats) {
-                        return stats[1];
-                    }
-                    return null;
-                }
+                clearStats: selectController.folderClearStatsFor(modelData)
                 isCurrentItem: selectItemLoader.isCurrentItem
                 scrollingText: selectItemLoader.scrollingText
             }

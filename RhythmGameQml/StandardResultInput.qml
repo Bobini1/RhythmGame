@@ -24,7 +24,7 @@ Item {
     property bool delayElapsed: false
     /*! Whether result input currently accepts actions. */
     readonly property bool acceptsInput: inputDelayMillis <= 0 || delayElapsed
-    /*! Whether keyboard and pointer confirmation is active. */
+    /*! Whether semantic keyboard or pointer confirmation is active. */
     property bool confirmEnabled: true
     /*! Whether BMS-controller input is active. */
     property bool controllerEnabled: true
@@ -40,6 +40,16 @@ Item {
         }
         globalRoot.returnToPreviousScreen();
         return true;
+    }
+
+    /*! Confirms and closes from keyboard or skin-provided pointer input. */
+    function confirm() {
+        return confirmEnabled && close();
+    }
+
+    /*! Closes from controller input when controller handling is active. */
+    function closeFromController() {
+        return controllerEnabled && close();
     }
 
     /*! Retries using the play-side indicated by \a key. */
@@ -94,10 +104,10 @@ Item {
     Shortcut {
         enabled: root.enabled && root.acceptsInput && root.confirmEnabled
         sequence: "Return"
-        onActivated: root.close()
+        onActivated: root.confirm()
     }
 
     Input.onButtonPressed: key => root.handleButton(key)
-    Input.onStart1Pressed: root.close()
-    Input.onStart2Pressed: root.close()
+    Input.onStart1Pressed: root.closeFromController()
+    Input.onStart2Pressed: root.closeFromController()
 }

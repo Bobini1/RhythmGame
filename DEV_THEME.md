@@ -256,7 +256,9 @@ without using the Default theme's presentation:
   activation rules.
 - `StandardSelectState` combines the session and activation behavior with
   sorting, filtering and focus. Its `entries` contain one logical copy of each
-  filtered item.
+  filtered item. Score, preview-file and folder-stat enrichment can be disabled
+  independently, and all sorting/filtering policies have profile-backed
+  defaults that a skin can override.
 - `StandardSelectModelAdapter` can repeat a logical model to a requested
   minimum size for circular visual selectors. Skins with a finite list do not
   need to instantiate it.
@@ -264,17 +266,26 @@ without using the Default theme's presentation:
   semantic `moveRequested(steps, repeated, analog)` signals. The skin remains
   responsible for positioning and animating its list or wheel.
 - `StandardSelectInput` adds the standard activation, replay, autoplay,
-  sorting and back-button mappings around `StandardSelectNavigation`.
+  sorting and back-button mappings around `StandardSelectNavigation`. A custom
+  state can supply semantic `activateAction`, `goBackAction` and `atTopLevel`
+  values instead of pretending to be `StandardSelectState`.
 - `StandardSelectShortcuts` provides F2 reload, F3 open-folder and F11
   internet-ranking shortcuts. F2 and F3 use a supplied `selectState` by
-  default; every action can be replaced or individually disabled.
+  default; every action can be replaced or individually disabled. If the
+  standard state declines F2 or F3, the corresponding request signal is
+  emitted for the skin.
 - `StandardSelectFeedback` provides the default folder enter/leave sounds. It
   can be omitted, disabled or given replacement actions and sound sources.
-- `StandardSelectController` is the convenience composition. It exposes its
-  `session`, `activation`, `selectState`, `input`, `navigation`, `shortcuts`
-  and `feedback` objects so a skin can customize a lower layer without
-  rebuilding the rest. Set `tryOpenPlayableAction` to intercept or replace the
-  standard chart/course/Arena activation.
+- `StandardSelectController` is the convenience composition. It exposes
+  supported policies, observations, actions and semantic methods without
+  exposing mutable implementation objects. Set `tryOpenPlayableAction` to
+  intercept standard chart/course/Arena activation, configure navigation and
+  enrichment through the controller properties, or instantiate the lower-level
+  components directly for a different composition. Set `autoInitialize` to
+  false and call `initialize()` when a skin needs to control startup timing.
+- `PendingReplyGroup` owns any set of asynchronous replies with one cancellation
+  lifetime. It can be reused by custom selection enrichment or other skin
+  state that starts cancellable operations.
 
 The controller has no required list interface. Handle `focusRequested(index)`
 and `moveRequested(steps, repeated, analog)` to update the skin's selector.
@@ -284,7 +295,9 @@ up/down/release events to the controller's `handleUpPressed`,
 
 Application-wide F1, F4 and F12 behavior lives in `StandardShortcuts`. Its
 default actions work through the application content frame, while its action
-properties allow a host to replace them.
+properties allow a host to replace them. The built-in instance is available as
+`globalRoot.standardShortcuts`; a skin can override its actions, disable it, or
+disable it and instantiate a replacement.
 
 ### Reusable behavior for other screens
 
@@ -295,16 +308,21 @@ than copying the selection component structure:
   quit destinations, including START opening song selection.
 - `StandardDecideFlow` owns decide timeout, accept/cancel input, transition
   guarding and chart-runner destruction. It fills its parent by default; the
-  skin owns the decide visuals.
+  skin owns the decide visuals. A replacement start/cancel action owns its full
+  transition; `returnAfterGameplayAction` only customizes the follow-up for the
+  built-in gameplay transition.
 - `StandardResultInput` owns delayed result dismissal and retry input. A skin
   can supply `tryHandleButtonAction` for presentation-specific actions such as
   cycling a displayed gauge before the standard retry/dismissal handling runs.
+  Skin pointer handlers can call `confirm()` to share the standard confirmation
+  gate.
 - `StandardGameplayAttemptState` tracks whether a chart has received a scoring
   hit. It is available separately for custom gameplay transitions.
 - `StandardGameplayExit` combines that attempt state with Escape handling and
   normal result dispatch. Untouched charts return immediately; attempted plays
   finish and open their result. Presentation cleanup and result opening remain
-  replaceable.
+  replaceable, as does the play-stop feedback. Completion detected while the
+  screen is inactive is retained and presented when the screen becomes active.
 
 `StandardInputKeys.isPlayKey(key)` is available when a custom component needs
 the same lane-key classification used by the standard decide and result input.

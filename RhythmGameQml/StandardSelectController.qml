@@ -6,9 +6,9 @@ import QtQuick
     \brief Composes the complete standard selection behavior.
 
     Use this component when a skin wants the standard selection session, state,
-    model adaptation, feedback, input, navigation, and shortcuts together. The
-    lower-level components remain exposed and can also be instantiated
-    independently.
+    model adaptation, feedback, input, navigation, and shortcuts together.
+    Lower-level components can instead be instantiated independently when a
+    skin needs a different composition.
 
     The controller does not render a song list. Connect \l entries to the
     skin's presentation, call \l setFocused when its focus changes, and handle
@@ -47,40 +47,58 @@ Item {
     property bool shortcutsEnabled: enabled
     /*! Whether standard selection audio feedback is active. */
     property bool feedbackEnabled: enabled
+    /*! Whether standard score loading is active. */
+    property alias scoresEnabled: state.scoresEnabled
+    /*! Whether standard preview-file discovery is active. */
+    property alias previewFilesEnabled: state.previewFilesEnabled
+    /*! Whether per-folder clear-statistic loading is active. */
+    property alias folderClearStatsEnabled: state.folderClearStatsEnabled
+    /*! Whether construction automatically opens the root selection folder. */
+    property alias autoInitialize: state.autoInitialize
+    /*! Sort mode used to prepare logical entries. */
+    property alias sortMode: state.sortMode
+    /*! Key-mode filter used to prepare logical entries. */
+    property alias keymodeFilter: state.keymodeFilter
+    /*! Difficulty filter used to prepare logical entries. */
+    property alias difficultyFilter: state.difficultyFilter
+    /*! Whether items without scores sort after scored items. */
+    property alias unscoredItemsLast: state.unscoredItemsLast
+    /*! Number of analog scratch ticks required for one logical step. */
+    property alias analogTicksPerStep: input.analogTicksPerStep
+    /*! Delay before classic-scratch repeat begins, in milliseconds. */
+    property alias initialRepeatDelayMillis: input.initialRepeatDelayMillis
+    /*! Delay between repeated classic-scratch steps, in milliseconds. */
+    property alias repeatDelayMillis: input.repeatDelayMillis
+    /*! Optional replacement for entering-folder feedback. */
+    property alias enterFeedbackAction: feedback.enterAction
+    /*! Optional replacement for leaving-folder feedback. */
+    property alias leaveFeedbackAction: feedback.leaveAction
+    /*! Default entering-folder sound source. */
+    property alias enterFeedbackSource: feedback.enterSoundSource
+    /*! Default leaving-folder sound source. */
+    property alias leaveFeedbackSource: feedback.leaveSoundSource
 
     /*! Presentation entries, repeated when \l minimumEntryCount requires it. */
-    property alias entries: modelAdapter.entries
+    readonly property var entries: modelAdapter.entries.slice()
     /*! The unique, filtered, and sorted entries before presentation adaptation. */
-    property alias logicalEntries: state.entries
+    readonly property var logicalEntries: state.entries.slice()
     /*! Raw contents of the current folder, table, level, or search. */
-    property alias folderContents: state.folderContents
+    readonly property var folderContents: state.folderContents.slice()
     /*! Navigation history for the current selection session. */
-    property alias historyStack: state.historyStack
+    readonly property var historyStack: state.historyStack.slice()
     /*! Score data loaded for the current folder contents. */
-    property alias scores: state.scores
+    readonly property var scores: Object.assign({}, state.scores)
     /*! Preview-file data loaded for the current folder contents. */
-    property alias previewFiles: state.previewFiles
-    /*! Clear statistics for folders in the current entries. */
-    property alias folderClearStats: state.folderClearStats
+    readonly property var previewFiles: Object.assign({}, state.previewFiles)
     /*! The logical item currently focused by the skin. */
-    property alias focusedItem: state.focusedItem
-    /*! The composed \l StandardSelectState instance. */
-    property alias selectState: state
-    /*! The composed \l StandardSelectSession instance. */
-    property alias session: state.session
-    /*! The composed \l StandardSelectActivation instance. */
-    property alias activation: state.activation
-    /*! The composed \l StandardSelectInput instance. */
-    property alias input: input
-    /*! The composed \l StandardSelectNavigation instance. */
-    property alias navigation: input.navigation
-    /*! The composed \l StandardSelectShortcuts instance. */
-    property alias shortcuts: shortcuts
-    /*! The composed \l StandardSelectFeedback instance. */
-    property alias feedback: feedback
+    readonly property var focusedItem: state.focusedItem
 
     /*! Emitted after a folder or table has been opened. */
     signal openedFolder()
+    /*! Emitted when F2 was not handled by the standard reload behavior. */
+    signal reloadRequested()
+    /*! Emitted when F3 was not handled by the standard folder behavior. */
+    signal openSelectedFolderRequested()
     /*! Emitted when F11 has no replacement action and needs skin handling. */
     signal openInternetRankingRequested()
     /*! Requests that the skin focus \a index in \l logicalEntries. */
@@ -141,6 +159,9 @@ Item {
             root.openSelectedFolderShortcutEnabled
         openInternetRankingEnabled:
             root.openInternetRankingShortcutEnabled
+        onReloadRequested: root.reloadRequested()
+        onOpenSelectedFolderRequested:
+            root.openSelectedFolderRequested()
         onOpenInternetRankingRequested:
             root.openInternetRankingRequested()
     }
@@ -150,7 +171,12 @@ Item {
         state.setFocused(item);
     }
 
-    /*! Rebuilds the visible entries and their associated data. */
+    /*! Initializes the standard root selection session. */
+    function initialize() {
+        return state.initialize();
+    }
+
+    /*! Reloads metadata associated with the current folder contents. */
     function refresh() {
         state.refresh();
     }
@@ -214,6 +240,11 @@ Item {
         return state.openSelectedFolder();
     }
 
+    /*! Returns loaded clear statistics for folder-like \a item, or null. */
+    function folderClearStatsFor(item) {
+        return state.folderClearStatsFor(item);
+    }
+
     /*! Handles an Up key \a event from the skin's visual focus item. */
     function handleUpPressed(event) {
         input.handleUpPressed(event);
@@ -227,6 +258,11 @@ Item {
     /*! Handles a keyboard direction-release \a event from the skin. */
     function handleReleased(event) {
         input.handleReleased(event);
+    }
+
+    /*! Clears held directions, analog accumulation, and repeat timing. */
+    function resetNavigation() {
+        input.resetNavigation();
     }
 
 }

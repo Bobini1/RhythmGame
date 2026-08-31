@@ -21,6 +21,8 @@ Item {
     property var startAction: null
     /*! Optional replacement for cancelling the chart. */
     property var cancelAction: null
+    /*! Optional replacement for returning after standard gameplay closes. */
+    property var returnAfterGameplayAction: null
     /*! Automatic acceptance timeout in milliseconds; zero disables it. */
     property int timeoutMillis: 5000
     /*! Whether keyboard input is active. */
@@ -34,7 +36,13 @@ Item {
     /*! Whether a start or cancel transition has already been requested. */
     property bool transitionRequested: false
 
-    function run(action, defaultAction) {
+    QtObject {
+        id: flowState
+
+        property bool returnAfterGameplay: false
+    }
+
+    function run(action, defaultAction, returnAfterDefault = false) {
         if (transitionRequested || !enabled) {
             return false;
         }
@@ -42,6 +50,7 @@ Item {
         if (typeof action === "function") {
             action();
         } else {
+            flowState.returnAfterGameplay = returnAfterDefault;
             defaultAction();
         }
         return true;
@@ -52,13 +61,22 @@ Item {
         if (!chart) {
             return false;
         }
-        return run(startAction, () => globalRoot.openGameplay(chart));
+        return run(startAction, () => globalRoot.openGameplay(chart), true);
     }
 
     /*! Cancels the chart and returns to the previous screen. */
     function cancel() {
         return run(cancelAction,
                    () => globalRoot.returnToPreviousScreen());
+    }
+
+    /*! Returns from the decide screen after standard gameplay closes. */
+    function returnAfterGameplay() {
+        if (typeof returnAfterGameplayAction === "function") {
+            returnAfterGameplayAction();
+        } else {
+            globalRoot.returnToPreviousScreen();
+        }
     }
 
     function isStartSelectCombo(key) {
@@ -69,9 +87,15 @@ Item {
     }
 
     onEnabledChanged: {
-        if (enabled && transitionRequested) {
-            Qt.callLater(globalRoot.returnToPreviousScreen);
+        if (enabled && flowState.returnAfterGameplay) {
+            flowState.returnAfterGameplay = false;
+            Qt.callLater(root.returnAfterGameplay);
         }
+    }
+
+    onChartChanged: {
+        transitionRequested = false;
+        flowState.returnAfterGameplay = false;
     }
 
     Timer {

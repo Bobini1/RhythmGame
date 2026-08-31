@@ -111,7 +111,10 @@ TEST_CASE("LR2 folder lamp queries have a dedicated cancellation scope",
           "[ScoreDb][PendingReply][qml-contract]")
 {
     const auto source = readSource("RhythmGameQml/Lr2/Lr2SelectContext.qml");
-    CHECK(source.contains("property var pendingFolderLampScoreDbReplies: []"));
+    CHECK(source.contains("PendingReplyGroup {"));
+    CHECK(source.contains("id: folderLampScoreDbReplies"));
+    CHECK(source.contains("folderLampScoreDbReplies.track(reply)"));
+    CHECK(source.contains("folderLampScoreDbReplies.cancelAll()"));
     CHECK(
       source.contains("trackFolderLampScoreDbReply(db.getScoreSummary(item))"));
 

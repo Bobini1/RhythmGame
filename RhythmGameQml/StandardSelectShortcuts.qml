@@ -6,8 +6,8 @@ import QtQuick
     \brief Provides selection-specific F-key shortcuts.
 
     A \l StandardSelectState provides the built-in F2 and F3 behavior. Each
-    action can be replaced, and request signals allow custom handling when no
-    state-backed implementation applies.
+    action can be replaced, and request signals allow custom handling when the
+    standard implementation does not consume the operation.
 */
 Item {
     id: root
@@ -18,8 +18,8 @@ Item {
     property var openSelectedFolderAction: null
     /*! Optional replacement for the F11 Internet-ranking action. */
     property var openInternetRankingAction: null
-    /*! Selection state used by the built-in F2 and F3 implementations. */
-    property var selectState: null
+    /*! Standard selection state used by the built-in F2 and F3 implementations. */
+    property StandardSelectState selectState: null
     /*! Whether the F2 shortcut is active. */
     property bool reloadEnabled: true
     /*! Whether the F3 shortcut is active. */
@@ -40,8 +40,8 @@ Item {
             reloadAction();
             return true;
         }
-        if (selectState) {
-            return selectState.reloadCurrentFolderOrTable();
+        if (selectState && selectState.reloadCurrentFolderOrTable()) {
+            return true;
         }
         reloadRequested();
         return true;
@@ -53,8 +53,8 @@ Item {
             openSelectedFolderAction();
             return true;
         }
-        if (selectState) {
-            return selectState.openSelectedFolder();
+        if (selectState && selectState.openSelectedFolder()) {
+            return true;
         }
         openSelectedFolderRequested();
         return true;

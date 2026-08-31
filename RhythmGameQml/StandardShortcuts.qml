@@ -6,7 +6,8 @@ import QtQuick
     \brief Provides common application-wide shortcuts.
 
     Each shortcut works through \c globalRoot by default and can be replaced by
-    assigning the corresponding action property.
+    assigning the corresponding action property. The application-owned default
+    instance is available as \c globalRoot.standardShortcuts.
 */
 Item {
     id: root
