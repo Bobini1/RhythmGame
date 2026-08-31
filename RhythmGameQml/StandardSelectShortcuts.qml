@@ -5,9 +5,10 @@ import QtQuick
     \inqmlmodule RhythmGameQml
     \brief Provides selection-specific F-key shortcuts.
 
-    A \l StandardSelectState provides the built-in F2 and F3 behavior. Each
-    action can be replaced, and request signals allow custom handling when the
-    standard implementation does not consume the operation.
+    A \l StandardSelectState provides the built-in F2 and F3 behavior. F12
+    opens settings through the application content frame. Each action can be
+    replaced, and request signals allow custom handling when the standard
+    implementation does not consume the operation.
 */
 Item {
     id: root
@@ -18,6 +19,8 @@ Item {
     property var openSelectedFolderAction: null
     /*! Optional replacement for the F11 Internet-ranking action. */
     property var openInternetRankingAction: null
+    /*! Optional replacement for the F12 settings action. */
+    property var openSettingsAction: null
     /*! Standard selection state used by the built-in F2 and F3 implementations. */
     property StandardSelectState selectState: null
     /*! Whether the F2 shortcut is active. */
@@ -26,6 +29,8 @@ Item {
     property bool openSelectedFolderEnabled: true
     /*! Whether the F11 shortcut is active. */
     property bool openInternetRankingEnabled: true
+    /*! Whether the F12 settings shortcut is active. */
+    property bool openSettingsEnabled: true
 
     /*! Emitted when F2 has no action or state-backed implementation. */
     signal reloadRequested()
@@ -70,6 +75,16 @@ Item {
         return true;
     }
 
+    /*! Opens settings using the replacement or built-in action. */
+    function openSettings() {
+        if (typeof openSettingsAction === "function") {
+            openSettingsAction();
+        } else {
+            globalRoot.openSettings();
+        }
+        return true;
+    }
+
     Shortcut {
         autoRepeat: false
         enabled: root.enabled && root.reloadEnabled
@@ -89,5 +104,12 @@ Item {
         enabled: root.enabled && root.openInternetRankingEnabled
         sequence: "F11"
         onActivated: root.openInternetRanking()
+    }
+
+    Shortcut {
+        autoRepeat: false
+        enabled: root.enabled && root.openSettingsEnabled
+        sequence: "F12"
+        onActivated: root.openSettings()
     }
 }

@@ -38,21 +38,13 @@ ApplicationWindow {
             settings.visibility = contentContainer.visibility;
         }
     }
-    StandardShortcuts {
-        id: standardShortcutsImpl
-
-        settingsEnabled: Rg.arenaSession.state !== ArenaSession.InRoom
-            && Rg.arenaSession.state !== ArenaSession.Reconnecting
-    }
+    StandardShortcuts {}
 
     Item {
         id: globalRoot
 
         readonly property Profile mainProfile: Rg.profileList.mainProfile
         readonly property var arenaSession: Rg.arenaSession
-        /*! Application shortcut defaults, available for skin overrides. */
-        readonly property StandardShortcuts standardShortcuts:
-            standardShortcutsImpl
         function configuredScreen(screenKey: var, fallbackKey: var): var {
             let themeName = mainProfile.themeConfig[screenKey];
             let family = themeName ? Rg.themes.availableThemeFamilies[themeName] : null;

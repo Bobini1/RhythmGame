@@ -269,11 +269,11 @@ without using the Default theme's presentation:
   sorting and back-button mappings around `StandardSelectNavigation`. A custom
   state can supply semantic `activateAction`, `goBackAction` and `atTopLevel`
   values instead of pretending to be `StandardSelectState`.
-- `StandardSelectShortcuts` provides F2 reload, F3 open-folder and F11
-  internet-ranking shortcuts. F2 and F3 use a supplied `selectState` by
-  default; every action can be replaced or individually disabled. If the
-  standard state declines F2 or F3, the corresponding request signal is
-  emitted for the skin.
+- `StandardSelectShortcuts` provides F2 reload, F3 open-folder, F11
+  internet-ranking and F12 settings shortcuts. F2 and F3 use a supplied
+  `selectState` by default; every action can be replaced or individually
+  disabled. If the standard state declines F2 or F3, the corresponding request
+  signal is emitted for the skin.
 - `StandardSelectFeedback` provides the default folder enter/leave sounds. It
   can be omitted, disabled or given replacement actions and sound sources.
 - `StandardSelectController` is the convenience composition. It exposes
@@ -293,11 +293,9 @@ Keyboard `Keys` handlers stay on the focused visual item and can forward
 up/down/release events to the controller's `handleUpPressed`,
 `handleDownPressed` and `handleReleased` methods.
 
-Application-wide F1, F4 and F12 behavior lives in `StandardShortcuts`. Its
-default actions work through the application content frame, while its action
-properties allow a host to replace them. The built-in instance is available as
-`globalRoot.standardShortcuts`; a skin can override its actions, disable it, or
-disable it and instantiate a replacement.
+Application-owned F1 and F4 behavior lives in `StandardShortcuts`. It is not a
+skin extension point. F12 belongs to `StandardSelectShortcuts`, so it is only
+available on selection screens that opt into the standard selection shortcuts.
 
 ### Reusable behavior for other screens
 

@@ -35,12 +35,16 @@ Item {
     property var openSelectedFolderAction: null
     /*! Optional replacement for the F11 Internet-ranking action. */
     property var openInternetRankingAction: null
+    /*! Optional replacement for the F12 settings action. */
+    property var openSettingsAction: null
     /*! Whether the F2 reload shortcut is active. */
     property bool reloadShortcutEnabled: true
     /*! Whether the F3 folder shortcut is active. */
     property bool openSelectedFolderShortcutEnabled: true
     /*! Whether the F11 Internet-ranking shortcut is active. */
     property bool openInternetRankingShortcutEnabled: true
+    /*! Whether the F12 settings shortcut is active. */
+    property bool openSettingsShortcutEnabled: true
     /*! Whether standard selection input is active. */
     property bool inputEnabled: enabled
     /*! Whether selection-specific F-key shortcuts are active. */
@@ -154,11 +158,13 @@ Item {
         reloadAction: root.reloadAction
         openSelectedFolderAction: root.openSelectedFolderAction
         openInternetRankingAction: root.openInternetRankingAction
+        openSettingsAction: root.openSettingsAction
         reloadEnabled: root.reloadShortcutEnabled
         openSelectedFolderEnabled:
             root.openSelectedFolderShortcutEnabled
         openInternetRankingEnabled:
             root.openInternetRankingShortcutEnabled
+        openSettingsEnabled: root.openSettingsShortcutEnabled
         onReloadRequested: root.reloadRequested()
         onOpenSelectedFolderRequested:
             root.openSelectedFolderRequested()

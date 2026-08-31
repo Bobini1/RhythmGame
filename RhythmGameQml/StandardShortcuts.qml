@@ -3,54 +3,26 @@ import QtQuick
 /*!
     \qmltype StandardShortcuts
     \inqmlmodule RhythmGameQml
-    \brief Provides common application-wide shortcuts.
+    \brief Provides fixed application-wide shortcuts.
 
-    Each shortcut works through \c globalRoot by default and can be replaced by
-    assigning the corresponding action property. The application-owned default
-    instance is available as \c globalRoot.standardShortcuts.
+    The application content frame owns this component. F1 toggles the FPS
+    overlay and F4 toggles fullscreen. Screen-specific shortcuts belong to
+    their corresponding screen components.
 */
 Item {
     id: root
-
-    /*! Optional replacement for toggling the FPS overlay with F1. */
-    property var toggleFpsOverlayAction: null
-    /*! Optional replacement for toggling fullscreen with F4. */
-    property var toggleFullscreenAction: null
-    /*! Optional replacement for opening settings with F12. */
-    property var openSettingsAction: null
-    /*! Whether the F12 settings shortcut is active. */
-    property bool settingsEnabled: true
-
-    function run(overrideAction, defaultAction) {
-        if (typeof overrideAction === "function") {
-            overrideAction();
-            return true;
-        }
-        defaultAction();
-        return true;
-    }
 
     Shortcut {
         autoRepeat: false
         enabled: root.enabled
         sequence: "F1"
-        onActivated: root.run(root.toggleFpsOverlayAction,
-                              () => globalRoot.toggleFpsOverlay())
+        onActivated: globalRoot.toggleFpsOverlay()
     }
 
     Shortcut {
         autoRepeat: false
         enabled: root.enabled
         sequence: "F4"
-        onActivated: root.run(root.toggleFullscreenAction,
-                              () => globalRoot.toggleFullScreen())
-    }
-
-    Shortcut {
-        autoRepeat: false
-        enabled: root.enabled && root.settingsEnabled
-        sequence: "F12"
-        onActivated: root.run(root.openSettingsAction,
-                              () => globalRoot.openSettings())
+        onActivated: globalRoot.toggleFullScreen()
     }
 }
