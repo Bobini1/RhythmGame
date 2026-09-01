@@ -195,7 +195,7 @@ Item {
     StandardSelectSession {
         id: standardSession
 
-        tableCoursesAction: tableItem => root.classCoursesForTable(tableItem)
+        tableCoursesProvider: tableItem => root.classCoursesForTable(tableItem)
     }
 
     StandardSelectActivation {

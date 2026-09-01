@@ -23,33 +23,41 @@ Item {
     /*! Whether the controller Start button opens song selection. */
     property bool startOpensSelect: true
 
-    function run(overrideAction, defaultAction) {
-        if (typeof overrideAction === "function") {
-            overrideAction();
+    QtObject {
+        id: implementation
+
+        function run(overrideAction, defaultAction) {
+            if (typeof overrideAction === "function") {
+                overrideAction();
+                return true;
+            }
+            defaultAction();
             return true;
         }
-        defaultAction();
-        return true;
     }
 
     /*! Opens song selection using the replacement or built-in action. */
     function openSelect() {
-        return run(openSelectAction, () => globalRoot.openSelect());
+        return implementation.run(openSelectAction,
+                                  () => globalRoot.openSelect());
     }
 
     /*! Opens the Arena browser using the replacement or built-in action. */
     function openArena() {
-        return run(openArenaAction, () => globalRoot.openArenaBrowser());
+        return implementation.run(openArenaAction,
+                                  () => globalRoot.openArenaBrowser());
     }
 
     /*! Opens settings using the replacement or built-in action. */
     function openSettings() {
-        return run(openSettingsAction, () => globalRoot.openSettings());
+        return implementation.run(openSettingsAction,
+                                  () => globalRoot.openSettings());
     }
 
     /*! Quits using the replacement or built-in action. */
     function quit() {
-        return run(quitAction, () => globalRoot.quitApplication());
+        return implementation.run(quitAction,
+                                  () => globalRoot.quitApplication());
     }
 
     Input.onStart1Pressed: {

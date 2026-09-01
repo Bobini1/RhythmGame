@@ -15,27 +15,32 @@ Item {
     /*! Gameplay runner whose score signals are observed. */
     property var chart: null
     /*! Whether either player has produced a scoring hit. */
-    property bool attempted: false
+    readonly property bool attempted: attemptState.attempted
+
+    QtObject {
+        id: attemptState
+
+        property bool attempted: false
+
+        function hitCountsAsPlayed(tap) {
+            let judgement = tap?.points?.judgement;
+            return judgement !== undefined
+                && judgement !== Judgement.Poor
+                && judgement !== Judgement.EmptyPoor
+                && judgement !== Judgement.MineHit
+                && judgement !== Judgement.MineAvoided;
+        }
+    }
 
     /*! Clears the attempted state. */
     function reset() {
-        attempted = false;
-    }
-
-    /*! Returns whether \a tap counts as attempting the chart. */
-    function hitCountsAsPlayed(tap) {
-        let judgement = tap?.points?.judgement;
-        return judgement !== undefined
-            && judgement !== Judgement.Poor
-            && judgement !== Judgement.EmptyPoor
-            && judgement !== Judgement.MineHit
-            && judgement !== Judgement.MineAvoided;
+        attemptState.attempted = false;
     }
 
     /*! Updates \l attempted from \a tap. */
     function observeHit(tap) {
-        if (hitCountsAsPlayed(tap)) {
-            attempted = true;
+        if (attemptState.hitCountsAsPlayed(tap)) {
+            attemptState.attempted = true;
         }
     }
 

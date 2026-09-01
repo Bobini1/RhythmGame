@@ -33,11 +33,17 @@ Item {
         property var lastKeys: []
         property double nextRepeatMillis: 0
         property int repeatDirection: 0
-    }
 
-    function requestMove(steps, repeated, analog = false) {
-        if (enabled && steps !== 0) {
-            moveRequested(steps, repeated, analog);
+        function requestMove(steps, repeated, analog = false) {
+            if (root.enabled && steps !== 0) {
+                root.moveRequested(steps, repeated, analog);
+            }
+        }
+
+        function directionStillHeld(up) {
+            return up
+                ? Input.col1sUp || Input.col2sUp
+                : Input.col1sDown || Input.col2sDown;
         }
     }
 
@@ -48,17 +54,11 @@ Item {
         }
     }
 
-    function directionStillHeld(up) {
-        return up
-            ? Input.col1sUp || Input.col2sUp
-            : Input.col1sDown || Input.col2sDown;
-    }
-
     /*! Records that directional \a key was released; \a up identifies its direction. */
     function releaseDirection(key, up) {
         navigationState.lastKeys = navigationState.lastKeys.filter(
             pressedKey => pressedKey !== key);
-        if (!directionStillHeld(up)
+        if (!navigationState.directionStillHeld(up)
                 && navigationState.repeatDirection === (up ? -1 : 1)) {
             navigationState.repeatDirection = 0;
             navigationState.nextRepeatMillis = 0;
@@ -79,7 +79,7 @@ Item {
             let ticksPerStep = Math.max(1, analogTicksPerStep);
             let steps = Math.trunc(navigationState.analogBuffer / ticksPerStep);
             navigationState.analogBuffer %= ticksPerStep;
-            requestMove(steps, false, true);
+            navigationState.requestMove(steps, false, true);
             return;
         }
         if (navigationState.lastKeys[navigationState.lastKeys.length - 1]
@@ -97,10 +97,10 @@ Item {
             navigationState.repeatDirection = direction;
             navigationState.nextRepeatMillis = now + (firstTick
                 ? initialRepeatDelayMillis : repeatDelayMillis);
-            requestMove(direction, !firstTick);
+            navigationState.requestMove(direction, !firstTick);
             return;
         }
-        requestMove(direction, !!tickNumber);
+        navigationState.requestMove(direction, !!tickNumber);
     }
 
     /*! Clears held keys, analog accumulation, and repeat timing. */

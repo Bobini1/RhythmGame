@@ -20,14 +20,23 @@ Item {
     property var tryHandleButtonAction: null
     /*! Delay before result input becomes active, in milliseconds. */
     property int inputDelayMillis: 500
-    /*! Whether the input delay has elapsed. */
-    property bool delayElapsed: false
     /*! Whether result input currently accepts actions. */
-    readonly property bool acceptsInput: inputDelayMillis <= 0 || delayElapsed
+    readonly property bool acceptsInput: inputDelayMillis <= 0
+        || inputState.delayElapsed
     /*! Whether semantic keyboard or pointer confirmation is active. */
     property bool confirmEnabled: true
     /*! Whether BMS-controller input is active. */
     property bool controllerEnabled: true
+
+    QtObject {
+        id: inputState
+
+        property bool delayElapsed: false
+
+        function closeFromController() {
+            return root.controllerEnabled && root.close();
+        }
+    }
 
     /*! Closes the result screen when input is accepted. */
     function close() {
@@ -45,11 +54,6 @@ Item {
     /*! Confirms and closes from keyboard or skin-provided pointer input. */
     function confirm() {
         return confirmEnabled && close();
-    }
-
-    /*! Closes from controller input when controller handling is active. */
-    function closeFromController() {
-        return controllerEnabled && close();
     }
 
     /*! Retries using the play-side indicated by \a key. */
@@ -82,18 +86,18 @@ Item {
     Timer {
         interval: Math.max(1, root.inputDelayMillis)
         running: root.enabled && root.inputDelayMillis > 0
-            && !root.delayElapsed
+            && !inputState.delayElapsed
         repeat: false
-        onTriggered: root.delayElapsed = true
+        onTriggered: inputState.delayElapsed = true
     }
 
     onEnabledChanged: {
         if (!enabled) {
-            delayElapsed = false;
+            inputState.delayElapsed = false;
         }
     }
 
-    onInputDelayMillisChanged: delayElapsed = false
+    onInputDelayMillisChanged: inputState.delayElapsed = false
 
     Shortcut {
         enabled: root.enabled && root.acceptsInput
@@ -108,6 +112,6 @@ Item {
     }
 
     Input.onButtonPressed: key => root.handleButton(key)
-    Input.onStart1Pressed: root.closeFromController()
-    Input.onStart2Pressed: root.closeFromController()
+    Input.onStart1Pressed: inputState.closeFromController()
+    Input.onStart2Pressed: inputState.closeFromController()
 }

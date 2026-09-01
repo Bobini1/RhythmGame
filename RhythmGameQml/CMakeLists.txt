@@ -155,7 +155,6 @@ set(RHYTHM_GAME_QML_FILES
         TransientInputFocus.qml
         TransientInputFocusDismissLayer.qml
         PendingReplyGroup.qml
-        StandardShortcuts.qml
         StandardSelectState.qml
         StandardSelectSession.qml
         StandardSelectActivation.qml

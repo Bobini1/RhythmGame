@@ -20,8 +20,8 @@ Item {
     property var scores: ({})
     /*! Preview-file data loaded for the current contents. */
     property var previewFiles: ({})
-    /*! Optional replacement for obtaining a table's courses. */
-    property var tableCoursesAction: null
+    /*! Optional provider returning the courses for a table. */
+    property var tableCoursesProvider: null
 
     PendingReplyGroup {
         id: scoreDbReplies
@@ -37,8 +37,8 @@ Item {
         item = folderForHistoryItem(item);
         let folder;
         if (item instanceof table) {
-            let courses = typeof tableCoursesAction === "function"
-                ? tableCoursesAction(item) : item.courses;
+            let courses = typeof tableCoursesProvider === "function"
+                ? tableCoursesProvider(item) : item.courses;
             folder = [...item.levels, ...(courses || [])];
         } else if (item instanceof level) {
             folder = item.loadCharts();

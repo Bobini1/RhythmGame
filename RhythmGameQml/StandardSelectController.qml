@@ -221,11 +221,6 @@ Item {
         return state.search(query);
     }
 
-    /*! Rebuilds entries after a sort or filter setting changes. */
-    function sortOrFilterChanged() {
-        state.sortOrFilterChanged();
-    }
-
     /*! Returns whether \a item is a playable chart. */
     function isChartItem(item) {
         return state.isChartItem(item);

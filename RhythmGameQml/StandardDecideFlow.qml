@@ -33,27 +33,32 @@ Item {
     property bool pointerEnabled: true
     /*! Whether destruction of this component destroys \l chart. */
     property bool destroyChartOnDestruction: true
-    /*! Whether a start or cancel transition has already been requested. */
-    property bool transitionRequested: false
-
     QtObject {
         id: flowState
 
         property bool returnAfterGameplay: false
-    }
+        property bool transitionRequested: false
 
-    function run(action, defaultAction, returnAfterDefault = false) {
-        if (transitionRequested || !enabled) {
-            return false;
+        function run(action, defaultAction, returnAfterDefault = false) {
+            if (flowState.transitionRequested || !root.enabled) {
+                return false;
+            }
+            flowState.transitionRequested = true;
+            if (typeof action === "function") {
+                action();
+            } else {
+                flowState.returnAfterGameplay = returnAfterDefault;
+                defaultAction();
+            }
+            return true;
         }
-        transitionRequested = true;
-        if (typeof action === "function") {
-            action();
-        } else {
-            flowState.returnAfterGameplay = returnAfterDefault;
-            defaultAction();
+
+        function isStartSelectCombo(key) {
+            return (key === BmsKey.Start1 && Input.select1)
+                || (key === BmsKey.Select1 && Input.start1)
+                || (key === BmsKey.Start2 && Input.select2)
+                || (key === BmsKey.Select2 && Input.start2);
         }
-        return true;
     }
 
     /*! Accepts the chart and begins gameplay. */
@@ -61,13 +66,14 @@ Item {
         if (!chart) {
             return false;
         }
-        return run(startAction, () => globalRoot.openGameplay(chart), true);
+        return flowState.run(startAction,
+                             () => globalRoot.openGameplay(chart), true);
     }
 
     /*! Cancels the chart and returns to the previous screen. */
     function cancel() {
-        return run(cancelAction,
-                   () => globalRoot.returnToPreviousScreen());
+        return flowState.run(cancelAction,
+                             () => globalRoot.returnToPreviousScreen());
     }
 
     /*! Returns from the decide screen after standard gameplay closes. */
@@ -79,13 +85,6 @@ Item {
         }
     }
 
-    function isStartSelectCombo(key) {
-        return (key === BmsKey.Start1 && Input.select1)
-            || (key === BmsKey.Select1 && Input.start1)
-            || (key === BmsKey.Start2 && Input.select2)
-            || (key === BmsKey.Select2 && Input.start2);
-    }
-
     onEnabledChanged: {
         if (enabled && flowState.returnAfterGameplay) {
             flowState.returnAfterGameplay = false;
@@ -94,14 +93,14 @@ Item {
     }
 
     onChartChanged: {
-        transitionRequested = false;
+        flowState.transitionRequested = false;
         flowState.returnAfterGameplay = false;
     }
 
     Timer {
         interval: Math.max(1, root.timeoutMillis)
         running: root.enabled && root.timeoutMillis > 0
-            && !root.transitionRequested
+            && !flowState.transitionRequested
         repeat: false
         onTriggered: root.start()
     }
@@ -128,7 +127,7 @@ Item {
         if (!root.enabled || !root.controllerEnabled) {
             return;
         }
-        if (root.isStartSelectCombo(key)) {
+        if (flowState.isStartSelectCombo(key)) {
             root.cancel();
         } else if (StandardInputKeys.isPlayKey(key)) {
             root.start();

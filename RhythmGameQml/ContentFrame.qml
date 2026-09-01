@@ -38,63 +38,488 @@ ApplicationWindow {
             settings.visibility = contentContainer.visibility;
         }
     }
-    StandardShortcuts {}
+    Shortcut {
+        autoRepeat: false
+        sequence: "F1"
+        onActivated: globalRoot.toggleFpsOverlay()
+    }
+
+    Shortcut {
+        autoRepeat: false
+        sequence: "F4"
+        onActivated: globalRoot.toggleFullScreen()
+    }
 
     Item {
         id: globalRoot
 
-        readonly property Profile mainProfile: Rg.profileList.mainProfile
-        readonly property var arenaSession: Rg.arenaSession
-        function configuredScreen(screenKey: var, fallbackKey: var): var {
-            let themeName = mainProfile.themeConfig[screenKey];
-            let family = themeName ? Rg.themes.availableThemeFamilies[themeName] : null;
-            if (family && family.screens && family.screens[screenKey]) {
-                return family.screens[screenKey];
-            }
-            if (fallbackKey) {
-                themeName = mainProfile.themeConfig[fallbackKey];
-                family = themeName ? Rg.themes.availableThemeFamilies[themeName] : null;
-                if (family && family.screens && family.screens[fallbackKey]) {
-                    return family.screens[fallbackKey];
-                }
-            }
-            return null;
+        QtObject {
+            id: frameState
+
+            readonly property Profile mainProfile: Rg.profileList.mainProfile
+            readonly property var arenaSession: Rg.arenaSession
+            readonly property Component k7Component: Qt.createComponent(
+                Rg.themes.availableThemeFamilies[
+                    mainProfile.themeConfig.k7].screens.k7.script)
+            readonly property Component k7battleComponent: Qt.createComponent(
+                Rg.themes.availableThemeFamilies[
+                    mainProfile.themeConfig.k7battle].screens.k7battle.script)
+            readonly property Component k14Component: Qt.createComponent(
+                Rg.themes.availableThemeFamilies[
+                    mainProfile.themeConfig.k14].screens.k14.script)
+            readonly property Component k5Component: Qt.createComponent(
+                Rg.themes.availableThemeFamilies[
+                    mainProfile.themeConfig.k5].screens.k5.script)
+            readonly property Component k5battleComponent: Qt.createComponent(
+                Rg.themes.availableThemeFamilies[
+                    mainProfile.themeConfig.k5battle].screens.k5battle.script)
+            readonly property Component k10Component: Qt.createComponent(
+                Rg.themes.availableThemeFamilies[
+                    mainProfile.themeConfig.k10].screens.k10.script)
+            readonly property Component mainComponent: Qt.createComponent(
+                Rg.themes.availableThemeFamilies[
+                    mainProfile.themeConfig.main].screens.main.script)
+            readonly property Component resultComponent: Qt.createComponent(
+                frameImplementation.configuredScreen("result").script)
+            readonly property Component courseResultComponent:
+                Qt.createComponent(frameImplementation.configuredScreen(
+                                       "courseResult", "result").script)
+            readonly property var multiplayerScreen:
+                frameImplementation.configuredScreen("multiplayer")
+            readonly property Component settingsComponent: Qt.createComponent(
+                Rg.themes.availableThemeFamilies[
+                    mainProfile.themeConfig.settings].screens.settings.script)
+            readonly property Component selectComponent: Qt.createComponent(
+                Rg.themes.availableThemeFamilies[
+                    mainProfile.themeConfig.select].screens.select.script)
+            readonly property Component decideComponent: Qt.createComponent(
+                Rg.themes.availableThemeFamilies[
+                    mainProfile.themeConfig.decide].screens.decide.script)
+            property var activeSettingsItem: null
+            property Item activeArenaItem: null
+            property Item activeArenaGameplayItem: null
+            property var activeArenaGameplayRunner: null
+            property Item activePlayOwner: null
+            property bool fpsOverlayVisible: false
+            property var quickRetrySession: null
+            property var quickRetryRunner: null
+            property Item quickRetryReturnItem: null
+            property int quickRetrySide: 0
+            property bool quickRetryChoosing: false
+            property bool quickRetryChoiceQueued: false
+            property Item resultRetryItem: null
+            property var resultRetrySession: null
+            readonly property int quickRetryHoldDuration: 1000
+            readonly property int quickRetryInputState: (Input.start1 ? 1 : 0)
+                | (Input.select1 ? 2 : 0)
+                | (Input.start2 ? 4 : 0)
+                | (Input.select2 ? 8 : 0)
+
+            onQuickRetryInputStateChanged:
+                frameImplementation.handleQuickRetryInputChanged()
         }
 
-        readonly property Component k7Component: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k7].screens.k7.script)
-        readonly property Component k7battleComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k7battle].screens.k7battle.script)
-        readonly property Component k14Component: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k14].screens.k14.script)
-        readonly property Component k5Component: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k5].screens.k5.script)
-        readonly property Component k5battleComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k5battle].screens.k5battle.script)
-        readonly property Component k10Component: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k10].screens.k10.script)
-        readonly property Component mainComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.main].screens.main.script)
-        readonly property Component resultComponent: Qt.createComponent(configuredScreen("result").script)
-        readonly property Component courseResultComponent: Qt.createComponent(configuredScreen("courseResult", "result").script)
-        readonly property var multiplayerScreen: configuredScreen("multiplayer")
-        readonly property Component settingsComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
-        readonly property Component selectComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select.script)
-        readonly property Component decideComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide.script)
-        property var activeSettingsItem: null
-        property Item activeArenaItem: null
-        property Item activeArenaGameplayItem: null
-        property var activeArenaGameplayRunner: null
-        property Item activePlayOwner: null
-        property bool fpsOverlayVisible: false
-        property var quickRetrySession: null
-        property var quickRetryRunner: null
-        property Item quickRetryReturnItem: null
-        property int quickRetrySide: 0
-        property bool quickRetryChoosing: false
-        property bool quickRetryChoiceQueued: false
-        property Item resultRetryItem: null
-        property var resultRetrySession: null
-        readonly property int quickRetryHoldDuration: 1000
-        readonly property int quickRetryInputState: (Input.start1 ? 1 : 0)
-            | (Input.select1 ? 2 : 0)
-            | (Input.start2 ? 4 : 0)
-            | (Input.select2 ? 8 : 0)
+        QtObject {
+            id: frameImplementation
 
-        onQuickRetryInputStateChanged: handleQuickRetryInputChanged()
+            function configuredScreen(screenKey, fallbackKey) {
+                let themeName = frameState.mainProfile.themeConfig[screenKey];
+                let family = themeName
+                    ? Rg.themes.availableThemeFamilies[themeName] : null;
+                if (family && family.screens && family.screens[screenKey]) {
+                    return family.screens[screenKey];
+                }
+                if (fallbackKey) {
+                    themeName = frameState.mainProfile.themeConfig[fallbackKey];
+                    family = themeName
+                        ? Rg.themes.availableThemeFamilies[themeName] : null;
+                    if (family && family.screens
+                            && family.screens[fallbackKey]) {
+                        return family.screens[fallbackKey];
+                    }
+                }
+                return null;
+            }
+
+            function normalizeLocalPath(path) {
+                let value = String(path || "").trim();
+                if (value.length === 0) {
+                    return "";
+                }
+                if (/^file:\/\//i.test(value)) {
+                    let url = value;
+                    if (/^file:\/\/\//i.test(url)) {
+                        value = url.slice(8);
+                    } else {
+                        value = url.slice(7);
+                    }
+                    value = decodeURIComponent(value);
+                }
+                value = value.replace(/\\/g, "/");
+                while (value.length > 3 && value.endsWith("/")) {
+                    value = value.slice(0, -1);
+                }
+                return value;
+            }
+
+            function rootSongFolderForPath(path) {
+                let target = frameImplementation.normalizeLocalPath(path);
+                if (target.length === 0 || !Rg.rootSongFoldersConfig
+                        || !Rg.rootSongFoldersConfig.folders) {
+                    return null;
+                }
+                let targetLower = target.toLowerCase();
+                let folders = Rg.rootSongFoldersConfig.folders;
+                let best = null;
+                let bestLength = -1;
+                for (let i = 0; i < folders.rowCount(); ++i) {
+                    let folder = folders.at(i);
+                    let folderPath = frameImplementation.normalizeLocalPath(
+                        folder ? folder.name : "");
+                    if (folderPath.length === 0) {
+                        continue;
+                    }
+                    let folderLower = folderPath.toLowerCase();
+                    let matches = targetLower === folderLower
+                        || targetLower.startsWith(folderLower + "/");
+                    if (matches && folderLower.length > bestLength) {
+                        best = folder;
+                        bestLength = folderLower.length;
+                    }
+                }
+                return best;
+            }
+
+            function currentScreen() {
+                return sceneStack.currentItem || null;
+            }
+
+            function gameplayLayoutVariant(screenItem) {
+                if (!screenItem || !screenItem.chart) {
+                    return "";
+                }
+                const declared = String(screenItem.screen
+                                        || screenItem.screenKey || "");
+                const supported = ["k5", "k7", "k10", "k14"];
+                if (supported.indexOf(declared) >= 0) {
+                    return declared;
+                }
+                switch (Number(screenItem.chart.keymode)) {
+                case 5: return "k5";
+                case 7: return "k7";
+                case 10: return "k10";
+                case 14: return "k14";
+                default: return "";
+                }
+            }
+
+            function gameplayThemeVars(layoutVariant) {
+                if (layoutVariant.length === 0) {
+                    return null;
+                }
+                const themeName = frameState.mainProfile.themeConfig[
+                    layoutVariant];
+                const screenVars = frameState.mainProfile.vars.themeVars[
+                    layoutVariant];
+                return screenVars && screenVars[themeName]
+                    ? screenVars[themeName] : null;
+            }
+
+            function callCurrentScreen(method, args) {
+                let screen = frameImplementation.currentScreen();
+                if (screen && typeof screen[method] === "function") {
+                    return screen[method].apply(screen, args || []);
+                }
+                return false;
+            }
+
+            function currentLr2Settings(screenKey) {
+                let themeName = frameState.mainProfile.themeConfig[screenKey];
+                let screenVars = frameState.mainProfile.vars.themeVars[screenKey];
+                if (screenVars && screenVars[themeName]) {
+                    let source = screenVars[themeName];
+                    let result = {};
+                    let keys = source.keys ? source.keys() : Object.keys(source);
+                    for (let key of keys) {
+                        result[key] = source[key];
+                    }
+                    return result;
+                }
+                return undefined;
+            }
+
+            function resolvedThemeVars(screenKey) {
+                const themeName = frameState.mainProfile.themeConfig[screenKey];
+                const screenVars = frameState.mainProfile.vars.themeVars[
+                    screenKey];
+                return screenVars && screenVars[themeName]
+                    ? screenVars[themeName] : null;
+            }
+
+            function selectScreenProperties() {
+                let selectScreen = Rg.themes.availableThemeFamilies[
+                    frameState.mainProfile.themeConfig.select].screens.select;
+                let props = {};
+                if (selectScreen && selectScreen.csvPath) {
+                    props["csvPath"] = selectScreen.csvPath;
+                    props["skinSettings"] =
+                        frameImplementation.currentLr2Settings("select");
+                    props["skinSettingsData"] =
+                        selectScreen.settingsData || "";
+                    props["screenKey"] = "select";
+                }
+                return props;
+            }
+
+            function gameplayDescriptor(runner, arenaManagedRunner) {
+                let keys = runner.keymode;
+                let battle = runner.player1 && runner.player2;
+                let screenKey = "k" + keys + (battle ? "battle" : "");
+                let component = frameState[screenKey + "Component"];
+                let screenObj = Rg.themes.availableThemeFamilies[
+                    frameState.mainProfile.themeConfig[screenKey]
+                ].screens[screenKey];
+                let props = {
+                    "chart": runner,
+                    "arenaManagedRunner": arenaManagedRunner === true
+                };
+                if (screenObj && screenObj.csvPath) {
+                    props["csvPath"] = screenObj.csvPath;
+                    props["skinSettings"] =
+                        frameImplementation.currentLr2Settings(screenKey);
+                    props["skinSettingsData"] = screenObj.settingsData || "";
+                    props["screenKey"] = screenKey;
+                }
+                return {
+                    "component": component,
+                    "properties": props
+                };
+            }
+
+            function currentOwnedChartRunner() {
+                const screen = sceneStack.currentItem;
+                if (!frameState.activePlayOwner || !screen
+                        || screen === frameState.activePlayOwner
+                        || screen.arenaManagedRunner === true
+                        || !screen.chart
+                        || frameState.activePlayOwner.chart !== screen.chart
+                        || !(screen.chart instanceof ChartRunner)) {
+                    return null;
+                }
+                return screen.chart;
+            }
+
+            function resetQuickRetryControl() {
+                const session = frameState.quickRetrySession;
+                frameState.quickRetrySession = null;
+                frameState.quickRetryRunner = null;
+                frameState.quickRetryReturnItem = null;
+                quickRetryHoldTimer.stop();
+                frameState.quickRetrySide = 0;
+                frameState.quickRetryChoosing = false;
+                frameState.quickRetryChoiceQueued = false;
+                if (session) {
+                    session.destroy();
+                }
+                Qt.callLater(sceneStack.updateEnabledStates);
+            }
+
+            function handleQuickRetryInputChanged() {
+                if (frameState.quickRetryChoosing) {
+                    if (!frameState.quickRetryChoiceQueued) {
+                        frameState.quickRetryChoiceQueued = true;
+                        Qt.callLater(
+                            frameImplementation.evaluateQuickRetryChoice);
+                    }
+                    return;
+                }
+                const p1Chord = Input.start1 && Input.select1;
+                const p2Chord = Input.start2 && Input.select2;
+                const side = p1Chord ? 1 : (p2Chord ? 2 : 0);
+                const runner = frameImplementation.currentOwnedChartRunner();
+                if (side === 0 || !runner) {
+                    quickRetryHoldTimer.stop();
+                    frameState.quickRetrySide = 0;
+                    return;
+                }
+                if (frameState.quickRetrySide !== side
+                        || !quickRetryHoldTimer.running) {
+                    frameState.quickRetrySide = side;
+                    quickRetryHoldTimer.restart();
+                }
+            }
+
+            function evaluateQuickRetryChoice() {
+                frameState.quickRetryChoiceQueued = false;
+                if (!frameState.quickRetryChoosing) {
+                    return;
+                }
+                const session = frameState.quickRetrySession;
+                const runner = frameState.quickRetryRunner;
+                const returnItem = frameState.quickRetryReturnItem;
+                if (!session || !runner || !returnItem
+                        || frameImplementation.currentOwnedChartRunner()
+                           !== runner
+                        || sceneStack.depth < 3
+                        || sceneStack.get(sceneStack.depth - 2,
+                                          StackView.DontLoad)
+                                          !== frameState.activePlayOwner
+                        || sceneStack.get(sceneStack.depth - 3,
+                                          StackView.DontLoad) !== returnItem) {
+                    frameImplementation.resetQuickRetryControl();
+                    return;
+                }
+                const startHeld = frameState.quickRetrySide === 1
+                    ? Input.start1 : Input.start2;
+                const selectHeld = frameState.quickRetrySide === 1
+                    ? Input.select1 : Input.select2;
+                if (startHeld && selectHeld) {
+                    return;
+                }
+                if (!startHeld && !selectHeld) {
+                    frameImplementation.resetQuickRetryControl();
+                    return;
+                }
+                const samePattern = selectHeld;
+
+                frameState.quickRetrySession = null;
+                frameState.quickRetryRunner = null;
+                frameState.quickRetryReturnItem = null;
+                quickRetryHoldTimer.stop();
+                frameState.quickRetrySide = 0;
+                frameState.quickRetryChoosing = false;
+                frameState.quickRetryChoiceQueued = false;
+                sceneStack.pop(returnItem, StackView.Immediate);
+                frameState.activePlayOwner = null;
+
+                const replacementRunner = samePattern
+                    ? session.retryWithSamePattern()
+                    : session.retryWithFreshRandomization();
+                session.destroy();
+                if (!replacementRunner) {
+                    frameImplementation.resetQuickRetryControl();
+                    return;
+                }
+                const opened = frameImplementation.openQuickRetryGameplay(
+                    replacementRunner);
+                frameImplementation.resetQuickRetryControl();
+                if (!opened) {
+                    frameState.activePlayOwner = null;
+                }
+            }
+
+            function beginQuickRetryChoice(runner) {
+                const session = Rg.chartLoader.prepareQuickRetry(runner);
+                if (!session || !frameState.activePlayOwner
+                        || sceneStack.depth < 3
+                        || sceneStack.currentItem.chart !== runner
+                        || sceneStack.get(sceneStack.depth - 2,
+                                          StackView.DontLoad)
+                                          !== frameState.activePlayOwner) {
+                    if (session) {
+                        session.destroy();
+                    }
+                    return false;
+                }
+                const returnItem = sceneStack.get(sceneStack.depth - 3,
+                                                  StackView.DontLoad);
+                if (!returnItem) {
+                    session.destroy();
+                    return false;
+                }
+                frameState.quickRetrySession = session;
+                frameState.quickRetryRunner = runner;
+                frameState.quickRetryReturnItem = returnItem;
+                frameState.quickRetryChoosing = true;
+                return true;
+            }
+
+            function openQuickRetryGameplay(runner) {
+                const owner = sceneStack.pushItem(
+                    quickRetryOwnerComponent, { "chart": runner },
+                    StackView.Immediate);
+                if (!owner) {
+                    runner.destroy();
+                    return false;
+                }
+                frameState.activePlayOwner = owner;
+                if (globalRoot.openGameplay(runner, false)) {
+                    return true;
+                }
+                sceneStack.popCurrentItem(StackView.Immediate);
+                return false;
+            }
+
+            function resetResultRetryControl() {
+                const session = frameState.resultRetrySession;
+                frameState.resultRetryItem = null;
+                frameState.resultRetrySession = null;
+                if (session) {
+                    session.destroy();
+                }
+            }
+
+            function retryFromResult(samePattern) {
+                const session = frameState.resultRetrySession;
+                if (!session || !frameState.resultRetryItem
+                        || sceneStack.currentItem !== frameState.resultRetryItem
+                        || !frameState.activePlayOwner || sceneStack.depth < 4) {
+                    return false;
+                }
+                const gameplay = sceneStack.get(sceneStack.depth - 2,
+                                                 StackView.DontLoad);
+                const owner = sceneStack.get(sceneStack.depth - 3,
+                                             StackView.DontLoad);
+                const returnItem = sceneStack.get(sceneStack.depth - 4,
+                                                  StackView.DontLoad);
+                if (!gameplay || owner !== frameState.activePlayOwner
+                        || !gameplay.chart
+                        || owner.chart !== gameplay.chart || !returnItem) {
+                    return false;
+                }
+
+                frameState.resultRetryItem = null;
+                frameState.resultRetrySession = null;
+                sceneStack.pop(returnItem, StackView.Immediate);
+                frameState.activePlayOwner = null;
+
+                const replacementRunner = samePattern
+                    ? session.retryWithSamePattern()
+                    : session.retryWithFreshRandomization();
+                session.destroy();
+                if (replacementRunner) {
+                    frameImplementation.openQuickRetryGameplay(
+                        replacementRunner);
+                }
+                return true;
+            }
+
+            function openPreparedArenaGameplay(runner) {
+                if (!runner) {
+                    frameImplementation.closePreparedArenaGameplay();
+                    return;
+                }
+                if (frameState.activeArenaGameplayItem
+                        && frameState.activeArenaGameplayItem.StackView.view
+                           === sceneStack) {
+                    return;
+                }
+                frameState.activeArenaGameplayRunner = runner;
+                frameState.activeArenaGameplayItem =
+                    globalRoot.openGameplay(runner, true);
+            }
+
+            function closePreparedArenaGameplay() {
+                let item = frameState.activeArenaGameplayItem;
+                const runner = frameState.activeArenaGameplayRunner;
+                frameState.activeArenaGameplayItem = null;
+                frameState.activeArenaGameplayRunner = null;
+                if (item && sceneStack.currentItem === item
+                        && (!runner || runner.status !== ChartRunner.Finished)) {
+                    sceneStack.popCurrentItem();
+                }
+            }
+        }
 
         function isFullScreen(): var {
             return contentContainer.visibility === Window.FullScreen;
@@ -109,28 +534,7 @@ ApplicationWindow {
         }
 
         function toggleFpsOverlay(): void {
-            fpsOverlayVisible = !fpsOverlayVisible;
-        }
-
-        function normalizeLocalPath(path: var): var {
-            let value = String(path || "").trim();
-            if (value.length === 0) {
-                return "";
-            }
-            if (/^file:\/\//i.test(value)) {
-                let url = value;
-                if (/^file:\/\/\//i.test(url)) {
-                    value = url.slice(8);
-                } else {
-                    value = url.slice(7);
-                }
-                value = decodeURIComponent(value);
-            }
-            value = value.replace(/\\/g, "/");
-            while (value.length > 3 && value.endsWith("/")) {
-                value = value.slice(0, -1);
-            }
-            return value;
+            frameState.fpsOverlayVisible = !frameState.fpsOverlayVisible;
         }
 
         function localFileUrl(path: var): var {
@@ -151,33 +555,8 @@ ApplicationWindow {
             return Rg.fileQuery.openFolder(localPath);
         }
 
-        function rootSongFolderForPath(path: var): var {
-            let target = normalizeLocalPath(path);
-            if (target.length === 0 || !Rg.rootSongFoldersConfig || !Rg.rootSongFoldersConfig.folders) {
-                return null;
-            }
-            let targetLower = target.toLowerCase();
-            let folders = Rg.rootSongFoldersConfig.folders;
-            let best = null;
-            let bestLength = -1;
-            for (let i = 0; i < folders.rowCount(); ++i) {
-                let folder = folders.at(i);
-                let folderPath = normalizeLocalPath(folder ? folder.name : "");
-                if (folderPath.length === 0) {
-                    continue;
-                }
-                let folderLower = folderPath.toLowerCase();
-                let matches = targetLower === folderLower || targetLower.startsWith(folderLower + "/");
-                if (matches && folderLower.length > bestLength) {
-                    best = folder;
-                    bestLength = folderLower.length;
-                }
-            }
-            return best;
-        }
-
         function scanRootSongFolderForPath(path: var): var {
-            let folder = rootSongFolderForPath(path);
+            let folder = frameImplementation.rootSongFolderForPath(path);
             return !!folder && !!Rg.rootSongFoldersConfig && !!Rg.rootSongFoldersConfig.scanningQueue && Rg.rootSongFoldersConfig.scanningQueue.scan(folder);
         }
 
@@ -199,50 +578,6 @@ ApplicationWindow {
             return false;
         }
 
-        function currentScreen(): var {
-            return sceneStack.currentItem || null;
-        }
-
-        function gameplayLayoutVariant(screenItem: var): string {
-            if (!screenItem || !screenItem.chart) {
-                return "";
-            }
-            const declared = String(screenItem.screen || screenItem.screenKey || "");
-            const supported = ["k5", "k7", "k10", "k14"];
-            if (supported.indexOf(declared) >= 0) {
-                return declared;
-            }
-            switch (Number(screenItem.chart.keymode)) {
-            case 5:
-                return "k5";
-            case 7:
-                return "k7";
-            case 10:
-                return "k10";
-            case 14:
-                return "k14";
-            default:
-                return "";
-            }
-        }
-
-        function gameplayThemeVars(layoutVariant: string): var {
-            if (layoutVariant.length === 0) {
-                return null;
-            }
-            const themeName = mainProfile.themeConfig[layoutVariant];
-            const screenVars = mainProfile.vars.themeVars[layoutVariant];
-            return screenVars && screenVars[themeName] ? screenVars[themeName] : null;
-        }
-
-        function callCurrentScreen(method: var, args: var): var {
-            let screen = currentScreen();
-            if (screen && typeof screen[method] === "function") {
-                return screen[method].apply(screen, args || []);
-            }
-            return false;
-        }
-
         function returnToPreviousScreen(): var {
             return sceneStack.pop();
         }
@@ -252,10 +587,11 @@ ApplicationWindow {
         }
 
         function openSettings(initialTabIndex: var): void {
-            let item = activeSettingsItem === sceneStack.currentItem ? activeSettingsItem : null;
+            let item = frameState.activeSettingsItem === sceneStack.currentItem
+                ? frameState.activeSettingsItem : null;
             if (!item) {
-                item = sceneStack.pushItem(settingsComponent);
-                activeSettingsItem = item;
+                item = sceneStack.pushItem(frameState.settingsComponent);
+                frameState.activeSettingsItem = item;
             }
             if (item && initialTabIndex !== undefined && "initialTabIndex" in item) {
                 item.initialTabIndex = initialTabIndex;
@@ -263,54 +599,22 @@ ApplicationWindow {
         }
 
         function openArenaBrowser(): void {
-            if (activeArenaItem) {
+            if (frameState.activeArenaItem) {
                 return;
             }
             Rg.arenaSession.connectForBrowsing();
             let item = sceneStack.pushItem(arenaShellComponent, {
                 "session": Rg.arenaSession
             });
-            activeArenaItem = item;
+            frameState.activeArenaItem = item;
             if (!item) {
                 Rg.arenaSession.exitArena();
             }
         }
 
-        function currentLr2Settings(screenKey: var): var {
-            let themeName = mainProfile.themeConfig[screenKey];
-            let screenVars = mainProfile.vars.themeVars[screenKey];
-            if (screenVars && screenVars[themeName]) {
-                let source = screenVars[themeName];
-                let result = {};
-                let keys = source.keys ? source.keys() : Object.keys(source);
-                for (let key of keys) {
-                    result[key] = source[key];
-                }
-                return result;
-            }
-            return undefined;
-        }
-
-        function resolvedThemeVars(screenKey: string): var {
-            const themeName = mainProfile.themeConfig[screenKey];
-            const screenVars = mainProfile.vars.themeVars[screenKey];
-            return screenVars && screenVars[themeName] ? screenVars[themeName] : null;
-        }
-
         function openSelect(): void {
-            sceneStack.pushItem(selectComponent, selectScreenProperties());
-        }
-
-        function selectScreenProperties(): var {
-            let selectScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select;
-            let props = {};
-            if (selectScreen && selectScreen.csvPath) {
-                props["csvPath"] = selectScreen.csvPath;
-                props["skinSettings"] = currentLr2Settings("select");
-                props["skinSettingsData"] = selectScreen.settingsData || "";
-                props["screenKey"] = "select";
-            }
-            return props;
+            sceneStack.pushItem(frameState.selectComponent,
+                                frameImplementation.selectScreenProperties());
         }
 
         function openChart(path: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var): var {
@@ -319,18 +623,21 @@ ApplicationWindow {
                 console.error("Failed to load chart");
                 return;
             }
-            let decideScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide;
+            let decideScreen = Rg.themes.availableThemeFamilies[
+                frameState.mainProfile.themeConfig.decide].screens.decide;
             let props = {
                 "chart": chart
             };
             if (decideScreen.csvPath) {
                 props["csvPath"] = decideScreen.csvPath;
-                props["skinSettings"] = currentLr2Settings("decide");
+                props["skinSettings"] =
+                    frameImplementation.currentLr2Settings("decide");
                 props["skinSettingsData"] = decideScreen.settingsData || "";
                 props["screenKey"] = "decide";
             }
-            activePlayOwner = sceneStack.pushItem(decideComponent, props);
-            return activePlayOwner;
+            frameState.activePlayOwner = sceneStack.pushItem(
+                frameState.decideComponent, props);
+            return frameState.activePlayOwner;
         }
 
         function openCourse(course: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var): var {
@@ -339,240 +646,37 @@ ApplicationWindow {
                 console.error("Failed to load course");
                 return;
             }
-            let decideScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide;
+            let decideScreen = Rg.themes.availableThemeFamilies[
+                frameState.mainProfile.themeConfig.decide].screens.decide;
             let props = {
                 "chart": runner
             };
             if (decideScreen.csvPath) {
                 props["csvPath"] = decideScreen.csvPath;
-                props["skinSettings"] = currentLr2Settings("decide");
+                props["skinSettings"] =
+                    frameImplementation.currentLr2Settings("decide");
                 props["skinSettingsData"] = decideScreen.settingsData || "";
                 props["screenKey"] = "decide";
             }
-            activePlayOwner = sceneStack.pushItem(decideComponent, props);
-            return activePlayOwner;
-        }
-
-        function gameplayDescriptor(runner: var, arenaManagedRunner: var): var {
-            let keys = runner.keymode;
-            let battle = runner.player1 && runner.player2;
-            let screenKey = "k" + keys + (battle ? "battle" : "");
-            let component = globalRoot[screenKey + "Component"];
-            let screenObj = Rg.themes.availableThemeFamilies[mainProfile.themeConfig[screenKey]].screens[screenKey];
-            let props = {
-                "chart": runner,
-                "arenaManagedRunner": arenaManagedRunner === true
-            };
-            if (screenObj && screenObj.csvPath) {
-                props["csvPath"] = screenObj.csvPath;
-                props["skinSettings"] = currentLr2Settings(screenKey);
-                props["skinSettingsData"] = screenObj.settingsData || "";
-                props["screenKey"] = screenKey;
-            }
-            return {
-                "component": component,
-                "properties": props
-            };
+            frameState.activePlayOwner = sceneStack.pushItem(
+                frameState.decideComponent, props);
+            return frameState.activePlayOwner;
         }
 
         function openGameplay(runner: var, arenaManagedRunner: var): var {
-            const descriptor = gameplayDescriptor(runner, arenaManagedRunner);
+            const descriptor = frameImplementation.gameplayDescriptor(
+                runner, arenaManagedRunner);
             return sceneStack.pushItem(descriptor.component, descriptor.properties);
-        }
-
-        function currentOwnedChartRunner(): var {
-            const screen = sceneStack.currentItem;
-            if (!activePlayOwner || !screen || screen === activePlayOwner
-                    || screen.arenaManagedRunner === true
-                    || !screen.chart
-                    || activePlayOwner.chart !== screen.chart
-                    || !(screen.chart instanceof ChartRunner)) {
-                return null;
-            }
-            return screen.chart;
-        }
-
-        function resetQuickRetryControl(): void {
-            const session = quickRetrySession;
-            quickRetrySession = null;
-            quickRetryRunner = null;
-            quickRetryReturnItem = null;
-            quickRetryHoldTimer.stop();
-            quickRetrySide = 0;
-            quickRetryChoosing = false;
-            quickRetryChoiceQueued = false;
-            if (session) {
-                session.destroy();
-            }
-            Qt.callLater(sceneStack.updateEnabledStates);
-        }
-
-        function handleQuickRetryInputChanged(): void {
-            if (quickRetryChoosing) {
-                if (!quickRetryChoiceQueued) {
-                    quickRetryChoiceQueued = true;
-                    Qt.callLater(evaluateQuickRetryChoice);
-                }
-                return;
-            }
-            const p1Chord = Input.start1 && Input.select1;
-            const p2Chord = Input.start2 && Input.select2;
-            const side = p1Chord ? 1 : (p2Chord ? 2 : 0);
-            const runner = currentOwnedChartRunner();
-            if (side === 0 || !runner) {
-                quickRetryHoldTimer.stop();
-                quickRetrySide = 0;
-                return;
-            }
-            if (quickRetrySide !== side || !quickRetryHoldTimer.running) {
-                quickRetrySide = side;
-                quickRetryHoldTimer.restart();
-            }
-        }
-
-        function evaluateQuickRetryChoice(): void {
-            quickRetryChoiceQueued = false;
-            if (!quickRetryChoosing) {
-                return;
-            }
-            const session = quickRetrySession;
-            const runner = quickRetryRunner;
-            const returnItem = quickRetryReturnItem;
-            if (!session || !runner || !returnItem
-                    || currentOwnedChartRunner() !== runner
-                    || sceneStack.depth < 3
-                    || sceneStack.get(sceneStack.depth - 2,
-                                      StackView.DontLoad) !== activePlayOwner
-                    || sceneStack.get(sceneStack.depth - 3,
-                                      StackView.DontLoad) !== returnItem) {
-                resetQuickRetryControl();
-                return;
-            }
-            const startHeld = quickRetrySide === 1 ? Input.start1 : Input.start2;
-            const selectHeld = quickRetrySide === 1 ? Input.select1 : Input.select2;
-            if (startHeld && selectHeld) {
-                return;
-            }
-            if (!startHeld && !selectHeld) {
-                resetQuickRetryControl();
-                return;
-            }
-            const samePattern = selectHeld;
-
-            quickRetrySession = null;
-            quickRetryRunner = null;
-            quickRetryReturnItem = null;
-            quickRetryHoldTimer.stop();
-            quickRetrySide = 0;
-            quickRetryChoosing = false;
-            quickRetryChoiceQueued = false;
-            sceneStack.pop(returnItem, StackView.Immediate);
-            activePlayOwner = null;
-
-            const replacementRunner = samePattern
-                ? session.retryWithSamePattern()
-                : session.retryWithFreshRandomization();
-            session.destroy();
-            if (!replacementRunner) {
-                resetQuickRetryControl();
-                return;
-            }
-            const opened = openQuickRetryGameplay(replacementRunner);
-            resetQuickRetryControl();
-            if (!opened) {
-                activePlayOwner = null;
-            }
-        }
-
-        function beginQuickRetryChoice(runner: var): bool {
-            const session = Rg.chartLoader.prepareQuickRetry(runner);
-            if (!session || !activePlayOwner || sceneStack.depth < 3
-                    || sceneStack.currentItem.chart !== runner
-                    || sceneStack.get(sceneStack.depth - 2,
-                                      StackView.DontLoad) !== activePlayOwner) {
-                if (session) {
-                    session.destroy();
-                }
-                return false;
-            }
-            const returnItem = sceneStack.get(sceneStack.depth - 3,
-                                              StackView.DontLoad);
-            if (!returnItem) {
-                session.destroy();
-                return false;
-            }
-            quickRetrySession = session;
-            quickRetryRunner = runner;
-            quickRetryReturnItem = returnItem;
-            quickRetryChoosing = true;
-            return true;
-        }
-
-        function openQuickRetryGameplay(runner: var): bool {
-            const owner = sceneStack.pushItem(
-                quickRetryOwnerComponent, { "chart": runner }, StackView.Immediate);
-            if (!owner) {
-                runner.destroy();
-                return false;
-            }
-            activePlayOwner = owner;
-            if (openGameplay(runner, false)) {
-                return true;
-            }
-            sceneStack.popCurrentItem(StackView.Immediate);
-            return false;
-        }
-
-        function resetResultRetryControl(): void {
-            const session = resultRetrySession;
-            resultRetryItem = null;
-            resultRetrySession = null;
-            if (session) {
-                session.destroy();
-            }
-        }
-
-        function retryFromResult(samePattern: bool): bool {
-            const session = resultRetrySession;
-            if (!session || !resultRetryItem
-                    || sceneStack.currentItem !== resultRetryItem
-                    || !activePlayOwner || sceneStack.depth < 4) {
-                return false;
-            }
-            const gameplay = sceneStack.get(sceneStack.depth - 2,
-                                             StackView.DontLoad);
-            const owner = sceneStack.get(sceneStack.depth - 3,
-                                          StackView.DontLoad);
-            const returnItem = sceneStack.get(sceneStack.depth - 4,
-                                              StackView.DontLoad);
-            if (!gameplay || owner !== activePlayOwner || !gameplay.chart
-                    || owner.chart !== gameplay.chart || !returnItem) {
-                return false;
-            }
-
-            resultRetryItem = null;
-            resultRetrySession = null;
-            sceneStack.pop(returnItem, StackView.Immediate);
-            activePlayOwner = null;
-
-            const replacementRunner = samePattern
-                ? session.retryWithSamePattern()
-                : session.retryWithFreshRandomization();
-            session.destroy();
-            if (replacementRunner) {
-                openQuickRetryGameplay(replacementRunner);
-            }
-            return true;
         }
 
         function retryResultForKey(key: var): bool {
             switch (key) {
             case BmsKey.Col15:
             case BmsKey.Col25:
-                return retryFromResult(false);
+                return frameImplementation.retryFromResult(false);
             case BmsKey.Col17:
             case BmsKey.Col27:
-                return retryFromResult(true);
+                return frameImplementation.retryFromResult(true);
             default:
                 return false;
             }
@@ -600,8 +704,8 @@ ApplicationWindow {
                 }
 
                 Component.onDestruction: {
-                    if (globalRoot.activePlayOwner === quickRetryOwner) {
-                        globalRoot.activePlayOwner = null;
+                    if (frameState.activePlayOwner === quickRetryOwner) {
+                        frameState.activePlayOwner = null;
                     }
                     if (chart && typeof chart.destroy === "function") {
                         chart.destroy();
@@ -613,50 +717,28 @@ ApplicationWindow {
         Timer {
             id: quickRetryHoldTimer
 
-            interval: globalRoot.quickRetryHoldDuration
+            interval: frameState.quickRetryHoldDuration
             repeat: false
 
             onTriggered: {
-                const runner = globalRoot.currentOwnedChartRunner();
-                const chordHeld = globalRoot.quickRetrySide === 1
+                const runner = frameImplementation.currentOwnedChartRunner();
+                const chordHeld = frameState.quickRetrySide === 1
                     ? Input.start1 && Input.select1
                     : Input.start2 && Input.select2;
                 if (!runner || !chordHeld) {
-                    globalRoot.resetQuickRetryControl();
+                    frameImplementation.resetQuickRetryControl();
                     return;
                 }
-                if (!globalRoot.beginQuickRetryChoice(runner)) {
-                    globalRoot.resetQuickRetryControl();
+                if (!frameImplementation.beginQuickRetryChoice(runner)) {
+                    frameImplementation.resetQuickRetryControl();
                 }
-            }
-        }
-
-        function openPreparedArenaGameplay(runner: var): void {
-            if (!runner) {
-                closePreparedArenaGameplay();
-                return;
-            }
-            if (activeArenaGameplayItem && activeArenaGameplayItem.StackView.view === sceneStack) {
-                return;
-            }
-            activeArenaGameplayRunner = runner;
-            activeArenaGameplayItem = openGameplay(runner, true);
-        }
-
-        function closePreparedArenaGameplay(): void {
-            let item = activeArenaGameplayItem;
-            const runner = activeArenaGameplayRunner;
-            activeArenaGameplayItem = null;
-            activeArenaGameplayRunner = null;
-            if (item && sceneStack.currentItem === item &&
-                    (!runner || runner.status !== ChartRunner.Finished)) {
-                sceneStack.popCurrentItem();
             }
         }
 
         function openResult(scores: var, profiles: var, chartData: var): void {
-            const retryRunner = currentOwnedChartRunner();
-            let resultScreen = configuredScreen("result");
+            const retryRunner =
+                frameImplementation.currentOwnedChartRunner();
+            let resultScreen = frameImplementation.configuredScreen("result");
             let arenaRoundId = "";
             if (scores && scores.length > 0 && scores[0] && Rg.arenaSession.submitLocalResult(scores[0])) {
                 arenaRoundId = String(Rg.arenaSession.presentedResult.roundId || "");
@@ -668,30 +750,34 @@ ApplicationWindow {
             };
             if (resultScreen && resultScreen.csvPath) {
                 props["csvPath"] = resultScreen.csvPath;
-                props["skinSettings"] = currentLr2Settings("result");
+                props["skinSettings"] =
+                    frameImplementation.currentLr2Settings("result");
                 props["skinSettingsData"] = resultScreen.settingsData || "";
                 props["screenKey"] = "result";
             }
-            const item = sceneStack.pushItem(resultComponent, props);
-            resetResultRetryControl();
+            const item = sceneStack.pushItem(frameState.resultComponent, props);
+            frameImplementation.resetResultRetryControl();
             if (item && retryRunner) {
                 const session = Rg.chartLoader.prepareResultRetry(retryRunner);
                 if (session) {
-                    resultRetryItem = item;
-                    resultRetrySession = session;
+                    frameState.resultRetryItem = item;
+                    frameState.resultRetrySession = session;
                 }
             }
             if (arenaRoundId.length === 0) {
                 return;
             }
-            if (!item || !globalRoot.callCurrentScreen("presentArenaResult", [arenaRoundId])) {
+            if (!item || !frameImplementation.callCurrentScreen(
+                    "presentArenaResult", [arenaRoundId])) {
                 Rg.arenaSession.endResultPresentation(arenaRoundId);
             }
         }
 
         function openCourseResult(scores: var, profiles: var, chartDatas: var, course: var): void {
-            let hasCourseResultScreen = configuredScreen("courseResult") !== null;
-            let courseResultScreen = configuredScreen("courseResult", "result");
+            let hasCourseResultScreen = frameImplementation.configuredScreen(
+                "courseResult") !== null;
+            let courseResultScreen = frameImplementation.configuredScreen(
+                "courseResult", "result");
             let props = {
                 "scores": scores,
                 "profiles": profiles,
@@ -701,11 +787,12 @@ ApplicationWindow {
             if (courseResultScreen && courseResultScreen.csvPath) {
                 let settingsKey = hasCourseResultScreen ? "courseResult" : "result";
                 props["csvPath"] = courseResultScreen.csvPath;
-                props["skinSettings"] = currentLr2Settings(settingsKey);
+                props["skinSettings"] =
+                    frameImplementation.currentLr2Settings(settingsKey);
                 props["skinSettingsData"] = courseResultScreen.settingsData || "";
                 props["screenKey"] = settingsKey;
             }
-            sceneStack.pushItem(courseResultComponent, props);
+            sceneStack.pushItem(frameState.courseResultComponent, props);
         }
 
         anchors.fill: parent
@@ -714,11 +801,11 @@ ApplicationWindow {
             target: Rg.arenaSession
 
             function onPreparedGameplayChanged(runner) {
-                globalRoot.openPreparedArenaGameplay(runner);
+                frameImplementation.openPreparedArenaGameplay(runner);
             }
 
             function onRoundLaunchCancelled() {
-                globalRoot.closePreparedArenaGameplay();
+                frameImplementation.closePreparedArenaGameplay();
             }
         }
 
@@ -767,7 +854,7 @@ ApplicationWindow {
                 }
 
                 StackView.onRemoved: {
-                    globalRoot.activeArenaItem = null;
+                    frameState.activeArenaItem = null;
                     if (session.active) {
                         session.exitArena();
                     }
@@ -777,8 +864,9 @@ ApplicationWindow {
                     id: arenaBrowserLoader
 
                     property bool readyToLoad: false
-                    readonly property url configuredSource: globalRoot.multiplayerScreen
-                        ? globalRoot.multiplayerScreen.script
+                    readonly property url configuredSource:
+                        frameState.multiplayerScreen
+                        ? frameState.multiplayerScreen.script
                         : ""
 
                     anchors.fill: parent
@@ -793,7 +881,7 @@ ApplicationWindow {
                         }
                         setSource(configuredSource, {
                             "session": arenaShell.session,
-                            "activeProfile": globalRoot.mainProfile
+                            "activeProfile": frameState.mainProfile
                         });
                     }
 
@@ -856,7 +944,9 @@ ApplicationWindow {
                             if (currentScreen) {
                                 return;
                             }
-                            const item = selectStack.pushItem(globalRoot.selectComponent, globalRoot.selectScreenProperties());
+                            const item = selectStack.pushItem(
+                                frameState.selectComponent,
+                                frameImplementation.selectScreenProperties());
                             if (item) {
                                 item.forceActiveFocus();
                             }
@@ -885,7 +975,9 @@ ApplicationWindow {
                             ArenaLegacySelectOverlay {
                                 presentationItem: arenaSelectHost.currentScreen
                                 session: arenaShell.session
-                                themeVars: globalRoot.resolvedThemeVars("select")
+                                themeVars:
+                                    frameImplementation.resolvedThemeVars(
+                                        "select")
                                 viewport: arenaSelectHost
                             }
                         }
@@ -912,14 +1004,14 @@ ApplicationWindow {
             id: sceneStack
 
             onCurrentItemChanged: {
-                if (!globalRoot.quickRetryChoosing
-                        || globalRoot.currentOwnedChartRunner()
-                           !== globalRoot.quickRetryRunner) {
-                    globalRoot.resetQuickRetryControl();
+                if (!frameState.quickRetryChoosing
+                        || frameImplementation.currentOwnedChartRunner()
+                           !== frameState.quickRetryRunner) {
+                    frameImplementation.resetQuickRetryControl();
                 }
-                if (globalRoot.resultRetrySession
-                        && currentItem !== globalRoot.resultRetryItem) {
-                    globalRoot.resetResultRetryControl();
+                if (frameState.resultRetrySession
+                        && currentItem !== frameState.resultRetryItem) {
+                    frameImplementation.resetResultRetryControl();
                 }
                 Qt.callLater(updateEnabledStates);
             }
@@ -938,7 +1030,7 @@ ApplicationWindow {
                     let item = get(i, StackView.ForceLoad);
                     if (item) {
                         let active = i === topIndex
-                            && !globalRoot.quickRetryChoosing;
+                            && !frameState.quickRetryChoosing;
                         item.enabled = active;
                         item.visible = active;
                     }
@@ -946,7 +1038,7 @@ ApplicationWindow {
             }
 
             anchors.fill: parent
-            initialItem: globalRoot.mainComponent
+            initialItem: frameState.mainComponent
 
             popEnter: Transition {
                 PropertyAnimation {
@@ -997,11 +1089,13 @@ ApplicationWindow {
 
             anchors.fill: parent
             currentItem: sceneStack.currentItem
-            layoutVariant: globalRoot.gameplayLayoutVariant(sceneStack.currentItem)
-            resultResolvedSkinId: String(globalRoot.mainProfile.themeConfig.result || "")
-            resultThemeVars: globalRoot.resolvedThemeVars("result")
-            session: globalRoot.arenaSession
-            themeVars: globalRoot.gameplayThemeVars(layoutVariant)
+            layoutVariant: frameImplementation.gameplayLayoutVariant(
+                sceneStack.currentItem)
+            resultResolvedSkinId: String(
+                frameState.mainProfile.themeConfig.result || "")
+            resultThemeVars: frameImplementation.resolvedThemeVars("result")
+            session: frameState.arenaSession
+            themeVars: frameImplementation.gameplayThemeVars(layoutVariant)
             z: 2000000
         }
         LegacySkinCustomizeHost {
@@ -1034,7 +1128,7 @@ ApplicationWindow {
             color: "#c0000000"
             height: fpsText.implicitHeight + 10
             radius: 2
-            visible: globalRoot.fpsOverlayVisible
+            visible: frameState.fpsOverlayVisible
             width: fpsText.implicitWidth + 14
             z: 1000000
 

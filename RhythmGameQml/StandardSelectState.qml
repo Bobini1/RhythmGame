@@ -37,9 +37,9 @@ Item {
     /*! Whether construction automatically opens the root selection folder. */
     property bool autoInitialize: true
     /*! Sort mode used to prepare logical entries. */
-    property int sortMode: generalVars.selectSortMode
+    property int sortMode: selectionState.generalVars.selectSortMode
     /*! Key-mode filter used to prepare logical entries. */
-    property int keymodeFilter: generalVars.selectKeymodeFilter
+    property int keymodeFilter: selectionState.generalVars.selectKeymodeFilter
     /*! Difficulty filter used to prepare logical entries. */
     property int difficultyFilter: 0
     /*! Whether items without scores sort after scored items. */
@@ -48,8 +48,6 @@ Item {
     readonly property int focusedIndex: selectionState.focusedIndex
     /*! Logical item currently focused by the skin. */
     readonly property var focusedItem: selectionState.focusedItem
-    readonly property var searchHistoryEntry: ({ "kind": "search" })
-
     QtObject {
         id: selectionState
 
@@ -58,9 +56,214 @@ Item {
         property var focusedItem: null
         property var folderClearStatsByKey: ({})
         property int folderClearStatsRevision: 0
+        readonly property var generalVars:
+            Rg.profileList.mainProfile.vars.generalVars
+        readonly property var searchHistoryEntry: ({ "kind": "search" })
+
+        function requestFocus(index) {
+            selectionState.focusedIndex = index;
+            selectionState.focusedItem = index >= 0
+                && index < root.entries.length ? root.entries[index] : null;
+            root.focusRequested(index);
+        }
+
+        function trackScoreDbReply(reply) {
+            return sessionImpl.trackScoreDbReply(reply);
+        }
+
+        function cancelScoreDbReplies() {
+            sessionImpl.cancelScoreDbReplies();
+        }
+
+        function folderForHistoryItem(item) {
+            return sessionImpl.folderForHistoryItem(item);
+        }
+
+        function refreshScores() {
+            selectionState.cancelScoreDbReplies();
+            if (!root.scoresEnabled) {
+                sessionImpl.scores = ({});
+                return;
+            }
+            if (root.historyStack[root.historyStack.length - 1]
+                    === selectionState.searchHistoryEntry) {
+                let md5s = [];
+                for (let item of root.folderContents) {
+                    if (typeof item === "object" && "md5" in item) {
+                        md5s.push(item.md5);
+                    }
+                }
+                selectionState.trackScoreDbReply(
+                    Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s)
+                ).then(result => sessionImpl.scores = result.scores);
+            } else {
+                selectionState.trackScoreDbReply(
+                    Rg.profileList.mainProfile.scoreDb.getScores(
+                        selectionState.folderForHistoryItem(
+                            root.historyStack[root.historyStack.length - 1]))
+                ).then(result => {
+                    if (result instanceof tableQueryResult) {
+                        let newScores = result.scores.scores;
+                        for (let [key, value] of Object.entries(
+                                result.courseScores.scores)) {
+                            newScores[key] = value;
+                        }
+                        sessionImpl.scores = newScores;
+                    } else {
+                        sessionImpl.scores = result.scores;
+                    }
+                });
+            }
+        }
+
+        function refreshPreviewFiles() {
+            if (!root.previewFilesEnabled) {
+                sessionImpl.previewFiles = ({});
+                return;
+            }
+            let dirs = [];
+            for (let item of root.folderContents) {
+                if (item instanceof ChartData) {
+                    dirs.push(item.chartDirectory);
+                }
+            }
+            sessionImpl.previewFiles =
+                Rg.songDirectoryFilePathFetcher.getPreviewFilePaths(dirs);
+        }
+
+        function clearStatsFromScoreSummary(summary) {
+            let counts = summary?.counts || {};
+            return {
+                "NOPLAY": counts.NOPLAY || 0,
+                "FAILED": counts.FAILED || 0,
+                "AEASY": counts.AEASY || 0,
+                "LIGHTASSIST": counts.LIGHTASSIST
+                    || counts.LIGHT_ASSIST || 0,
+                "EASY": counts.EASY || 0,
+                "NORMAL": counts.NORMAL || 0,
+                "HARD": counts.HARD || 0,
+                "EXHARD": counts.EXHARD || 0,
+                "FC": counts.FC || 0,
+                "PERFECT": counts.PERFECT || 0,
+                "MAX": counts.MAX || 0
+            };
+        }
+
+        function folderClearStatsKey(item) {
+            if (typeof item === "string") {
+                return "folder:" + item;
+            }
+            if (item instanceof level) {
+                return "level:" + item.name;
+            }
+            if (item instanceof table) {
+                return "table:" + String(item.url || "");
+            }
+            return "";
+        }
+
+        function refreshFolderClearStats() {
+            folderClearStatsReplies.cancelAll();
+            selectionState.folderClearStatsByKey = ({});
+            ++selectionState.folderClearStatsRevision;
+            if (!root.folderClearStatsEnabled) {
+                return;
+            }
+            for (let folder of root.folderContents) {
+                if (folder instanceof ChartData || folder instanceof entry
+                        || folder instanceof course || folder === null) {
+                    continue;
+                }
+                let key = selectionState.folderClearStatsKey(folder);
+                if (!key) {
+                    continue;
+                }
+                folderClearStatsReplies.track(
+                    Rg.profileList.mainProfile.scoreDb.getScoreSummary(folder)
+                ).then(result => {
+                    selectionState.folderClearStatsByKey[key] =
+                        selectionState.clearStatsFromScoreSummary(result);
+                    ++selectionState.folderClearStatsRevision;
+                });
+            }
+        }
+
+        function preparedEntries(input) {
+            return chartFolderModel.filterAndSort(input);
+        }
+
+        function sameEntry(a, b) {
+            if (a instanceof ChartData && b instanceof ChartData) {
+                return a.path === b.path;
+            }
+            if (typeof a === "string" && typeof b === "string") {
+                return a === b;
+            }
+            if (a instanceof level && b instanceof level) {
+                return a.name === b.name;
+            }
+            if (a instanceof table && b instanceof table) {
+                return String(a.url || "") === String(b.url || "");
+            }
+            if (a instanceof course && b instanceof course) {
+                return a.identifier === b.identifier;
+            }
+            return a === b;
+        }
+
+        function indexOfEntry(items, target) {
+            for (let i = 0; i < items.length; ++i) {
+                if (selectionState.sameEntry(items[i], target)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        function open(item) {
+            let folder = sessionImpl.resolveFolderContents(item);
+            if (folder === null) {
+                return null;
+            }
+            sessionImpl.commitFolderContents(folder);
+            selectionState.entries = selectionState.preparedEntries(folder);
+            selectionState.publishFolderContents();
+            return root.entries;
+        }
+
+        function publishFolderContents() {
+            root.refresh();
+            root.openedFolder();
+        }
+
+        function selectedSongFolderPath() {
+            if (root.focusedItem instanceof ChartData
+                    && root.focusedItem.chartDirectory) {
+                return root.focusedItem.chartDirectory;
+            }
+            if (typeof root.focusedItem === "string") {
+                return root.focusedItem;
+            }
+            for (let i = root.historyStack.length - 1; i >= 0; --i) {
+                if (typeof root.historyStack[i] === "string") {
+                    return root.historyStack[i];
+                }
+            }
+            return "";
+        }
+
+        function sortOrFilterChanged() {
+            if (!root.folderContents.length) {
+                return;
+            }
+            let old = root.focusedItem;
+            selectionState.entries =
+                selectionState.preparedEntries(root.folderContents);
+            let index = chartFolderModel.indexOfItem(root.entries, old);
+            selectionState.requestFocus(index >= 0 ? index : 0);
+        }
     }
 
-    readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
     /*! Requests that the skin focus \a index in \l entries. */
     signal focusRequested(int index)
     /*! Emitted after a folder or table has been opened. */
@@ -91,194 +294,41 @@ Item {
         unscoredItemsLast: root.unscoredItemsLast
         scores: root.scores
 
-        onSortModeChanged: Qt.callLater(root.sortOrFilterChanged)
-        onKeymodeFilterChanged: Qt.callLater(root.sortOrFilterChanged)
-        onDifficultyFilterChanged: Qt.callLater(root.sortOrFilterChanged)
-        onUnscoredItemsLastChanged: Qt.callLater(root.sortOrFilterChanged)
+        onSortModeChanged: Qt.callLater(selectionState.sortOrFilterChanged)
+        onKeymodeFilterChanged:
+            Qt.callLater(selectionState.sortOrFilterChanged)
+        onDifficultyFilterChanged:
+            Qt.callLater(selectionState.sortOrFilterChanged)
+        onUnscoredItemsLastChanged:
+            Qt.callLater(selectionState.sortOrFilterChanged)
         onScoresChanged: {
             if (chartFolderModel.sortModeUsesScores()) {
-                Qt.callLater(root.sortOrFilterChanged);
+                Qt.callLater(selectionState.sortOrFilterChanged);
             }
         }
     }
 
     /*! Updates the logical focused \a item after the skin moves focus. */
     function setFocused(item) {
-        let logicalIndex = indexOfEntry(entries, item);
+        let logicalIndex = selectionState.indexOfEntry(entries, item);
         selectionState.focusedIndex = logicalIndex;
         selectionState.focusedItem = logicalIndex >= 0
             ? entries[logicalIndex] : null;
     }
 
-    function requestFocus(index) {
-        selectionState.focusedIndex = index;
-        selectionState.focusedItem = index >= 0 && index < entries.length
-            ? entries[index] : null;
-        focusRequested(index);
-    }
-
-    function trackScoreDbReply(reply) {
-        return sessionImpl.trackScoreDbReply(reply);
-    }
-
-    function cancelScoreDbReplies() {
-        sessionImpl.cancelScoreDbReplies();
-    }
-
     /*! Rebuilds \l entries and their associated data. */
     function refresh() {
-        refreshScores();
-        refreshPreviewFiles();
-        refreshFolderClearStats();
-    }
-
-    function folderForHistoryItem(item) {
-        return sessionImpl.folderForHistoryItem(item);
-    }
-
-    function refreshScores() {
-        cancelScoreDbReplies();
-        if (!scoresEnabled) {
-            sessionImpl.scores = ({});
-            return;
-        }
-        if (historyStack[historyStack.length - 1] === searchHistoryEntry) {
-            let md5s = [];
-            for (let item of folderContents) {
-                if (typeof item === "object" && "md5" in item) {
-                    md5s.push(item.md5);
-                }
-            }
-            trackScoreDbReply(
-                Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s)
-            ).then(result => sessionImpl.scores = result.scores);
-        } else {
-            trackScoreDbReply(
-                Rg.profileList.mainProfile.scoreDb.getScores(
-                    folderForHistoryItem(historyStack[historyStack.length - 1]))
-            ).then(result => {
-                if (result instanceof tableQueryResult) {
-                    let newScores = result.scores.scores;
-                    for (let [key, value] of Object.entries(result.courseScores.scores)) {
-                        newScores[key] = value;
-                    }
-                    sessionImpl.scores = newScores;
-                } else {
-                    sessionImpl.scores = result.scores;
-                }
-            });
-        }
-    }
-
-    function refreshPreviewFiles() {
-        if (!previewFilesEnabled) {
-            sessionImpl.previewFiles = ({});
-            return;
-        }
-        let dirs = [];
-        for (let item of folderContents) {
-            if (item instanceof ChartData) {
-                dirs.push(item.chartDirectory);
-            }
-        }
-        sessionImpl.previewFiles =
-            Rg.songDirectoryFilePathFetcher.getPreviewFilePaths(dirs);
-    }
-
-    function clearStatsFromScoreSummary(summary) {
-        let counts = summary?.counts || {};
-        return {
-            "NOPLAY": counts.NOPLAY || 0,
-            "FAILED": counts.FAILED || 0,
-            "AEASY": counts.AEASY || 0,
-            "LIGHTASSIST": counts.LIGHTASSIST || counts.LIGHT_ASSIST || 0,
-            "EASY": counts.EASY || 0,
-            "NORMAL": counts.NORMAL || 0,
-            "HARD": counts.HARD || 0,
-            "EXHARD": counts.EXHARD || 0,
-            "FC": counts.FC || 0,
-            "PERFECT": counts.PERFECT || 0,
-            "MAX": counts.MAX || 0
-        };
-    }
-
-    function folderClearStatsKey(item) {
-        if (typeof item === "string") {
-            return "folder:" + item;
-        }
-        if (item instanceof level) {
-            return "level:" + item.name;
-        }
-        if (item instanceof table) {
-            return "table:" + String(item.url || "");
-        }
-        return "";
+        selectionState.refreshScores();
+        selectionState.refreshPreviewFiles();
+        selectionState.refreshFolderClearStats();
     }
 
     /*! Returns loaded clear statistics for folder-like \a item, or null. */
     function folderClearStatsFor(item) {
         let revision = selectionState.folderClearStatsRevision;
-        let key = folderClearStatsKey(item);
+        let key = selectionState.folderClearStatsKey(item);
         return revision >= 0 && key
             ? (selectionState.folderClearStatsByKey[key] || null) : null;
-    }
-
-    function refreshFolderClearStats() {
-        folderClearStatsReplies.cancelAll();
-        selectionState.folderClearStatsByKey = ({});
-        ++selectionState.folderClearStatsRevision;
-        if (!folderClearStatsEnabled) {
-            return;
-        }
-        for (let folder of folderContents) {
-            if (folder instanceof ChartData || folder instanceof entry
-                    || folder instanceof course || folder === null) {
-                continue;
-            }
-            let key = folderClearStatsKey(folder);
-            if (!key) {
-                continue;
-            }
-            folderClearStatsReplies.track(
-                Rg.profileList.mainProfile.scoreDb.getScoreSummary(folder)
-            ).then(result => {
-                selectionState.folderClearStatsByKey[key] =
-                    clearStatsFromScoreSummary(result);
-                ++selectionState.folderClearStatsRevision;
-            });
-        }
-    }
-
-    function preparedEntries(input) {
-        return chartFolderModel.filterAndSort(input);
-    }
-
-    function sameEntry(a, b) {
-        if (a instanceof ChartData && b instanceof ChartData) {
-            return a.path === b.path;
-        }
-        if (typeof a === "string" && typeof b === "string") {
-            return a === b;
-        }
-        if (a instanceof level && b instanceof level) {
-            return a.name === b.name;
-        }
-        if (a instanceof table && b instanceof table) {
-            return String(a.url || "") === String(b.url || "");
-        }
-        if (a instanceof course && b instanceof course) {
-            return a.identifier === b.identifier;
-        }
-        return a === b;
-    }
-
-    function indexOfEntry(items, target) {
-        for (let i = 0; i < items.length; ++i) {
-            if (sameEntry(items[i], target)) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     /*!
@@ -295,33 +345,17 @@ Item {
         return activationImpl.openPlayable(item, autoplay, replay, replayScore);
     }
 
-    function open(item) {
-        let folder = sessionImpl.resolveFolderContents(item);
-        if (folder === null) {
-            return null;
-        }
-        sessionImpl.commitFolderContents(folder);
-        selectionState.entries = preparedEntries(folder);
-        publishFolderContents();
-        return entries;
-    }
-
-    function publishFolderContents() {
-        refresh();
-        openedFolder();
-    }
-
     /*! Initializes history from the configured song folders and tables. */
     function initialize() {
         if (historyStack.length !== 0) {
             return false;
         }
         sessionImpl.historyStack = [""];
-        if (open("") === null) {
+        if (selectionState.open("") === null) {
             sessionImpl.historyStack = [];
             return false;
         }
-        requestFocus(0);
+        selectionState.requestFocus(0);
         return true;
     }
 
@@ -333,13 +367,14 @@ Item {
         let oldHistory = historyStack;
         let last = oldHistory[oldHistory.length - 1];
         sessionImpl.historyStack = oldHistory.slice(0, oldHistory.length - 1);
-        let folder = open(historyStack[historyStack.length - 1]);
+        let folder = selectionState.open(
+            historyStack[historyStack.length - 1]);
         if (folder === null) {
             sessionImpl.historyStack = oldHistory;
             return false;
         }
-        let index = indexOfEntry(folder, last);
-        requestFocus(index >= 0 ? index : 0);
+        let index = selectionState.indexOfEntry(folder, last);
+        selectionState.requestFocus(index >= 0 ? index : 0);
         leftFolder();
         return true;
     }
@@ -354,28 +389,13 @@ Item {
         }
         let oldHistory = historyStack;
         sessionImpl.historyStack = historyStack.concat([item]);
-        if (open(item) === null) {
+        if (selectionState.open(item) === null) {
             sessionImpl.historyStack = oldHistory;
             return false;
         }
-        requestFocus(0);
+        selectionState.requestFocus(0);
         enteredFolder();
         return true;
-    }
-
-    function selectedSongFolderPath() {
-        if (focusedItem instanceof ChartData && focusedItem.chartDirectory) {
-            return focusedItem.chartDirectory;
-        }
-        if (typeof focusedItem === "string") {
-            return focusedItem;
-        }
-        for (let i = historyStack.length - 1; i >= 0; --i) {
-            if (typeof historyStack[i] === "string") {
-                return historyStack[i];
-            }
-        }
-        return "";
     }
 
     /*! Reloads the current local folder or online table. */
@@ -391,16 +411,18 @@ Item {
                 return true;
             }
         }
-        if (globalRoot.scanRootSongFolderForPath(selectedSongFolderPath())) {
+        if (globalRoot.scanRootSongFolderForPath(
+                selectionState.selectedSongFolderPath())) {
             return true;
         }
         let old = focusedItem;
-        let folder = open(historyStack[historyStack.length - 1]);
+        let folder = selectionState.open(
+            historyStack[historyStack.length - 1]);
         if (folder === null) {
             return false;
         }
-        let index = indexOfEntry(folder, old);
-        requestFocus(index >= 0 ? index : 0);
+        let index = selectionState.indexOfEntry(folder, old);
+        selectionState.requestFocus(index >= 0 ? index : 0);
         return true;
     }
 
@@ -411,16 +433,16 @@ Item {
             return false;
         }
         if (historyStack.length === 0
-                || folderForHistoryItem(historyStack[historyStack.length - 1])
-                   !== directory) {
+                || selectionState.folderForHistoryItem(
+                    historyStack[historyStack.length - 1]) !== directory) {
             sessionImpl.historyStack =
                 historyStack.concat([initialItem || directory]);
         }
         sessionImpl.commitFolderContents(folder);
-        selectionState.entries = preparedEntries(folder);
-        publishFolderContents();
+        selectionState.entries = selectionState.preparedEntries(folder);
+        selectionState.publishFolderContents();
         let index = chartFolderModel.indexOfItem(entries, initialItem);
-        requestFocus(index >= 0 ? index : 0);
+        selectionState.requestFocus(index >= 0 ? index : 0);
         return true;
     }
 
@@ -433,25 +455,15 @@ Item {
             return resultCount;
         }
         sessionImpl.commitFolderContents(results);
-        selectionState.entries = preparedEntries(results);
-        if (historyStack[historyStack.length - 1] !== searchHistoryEntry) {
-            sessionImpl.historyStack =
-                historyStack.concat([searchHistoryEntry]);
+        selectionState.entries = selectionState.preparedEntries(results);
+        if (historyStack[historyStack.length - 1]
+                !== selectionState.searchHistoryEntry) {
+            sessionImpl.historyStack = historyStack.concat(
+                [selectionState.searchHistoryEntry]);
         }
-        requestFocus(0);
-        publishFolderContents();
+        selectionState.requestFocus(0);
+        selectionState.publishFolderContents();
         return resultCount;
-    }
-
-    /*! Rebuilds entries after a sort or filter setting changes. */
-    function sortOrFilterChanged() {
-        if (!folderContents.length) {
-            return;
-        }
-        let old = focusedItem;
-        selectionState.entries = preparedEntries(folderContents);
-        let index = chartFolderModel.indexOfItem(entries, old);
-        requestFocus(index >= 0 ? index : 0);
     }
 
     /*! Returns whether \a item is a playable chart. */
@@ -498,19 +510,19 @@ Item {
 
     onScoresEnabledChanged: {
         if (historyStack.length > 0) {
-            refreshScores();
+            selectionState.refreshScores();
         }
     }
 
     onPreviewFilesEnabledChanged: {
         if (historyStack.length > 0) {
-            refreshPreviewFiles();
+            selectionState.refreshPreviewFiles();
         }
     }
 
     onFolderClearStatsEnabledChanged: {
         if (historyStack.length > 0) {
-            refreshFolderClearStats();
+            selectionState.refreshFolderClearStats();
         }
     }
 }

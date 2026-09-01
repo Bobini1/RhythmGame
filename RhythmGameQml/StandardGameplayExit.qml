@@ -32,67 +32,63 @@ Item {
     property bool exitFeedbackEnabled: true
     /*! Whether Arena owns the gameplay completion transition. */
     property bool arenaOwned: false
-    /*! Whether this component has already opened a result. */
-    property bool resultOpened: false
     /*! Whether gameplay has produced a scoring hit. */
-    property alias attempted: attemptState.attempted
+    readonly property bool attempted: attemptState.attempted
 
     QtObject {
         id: exitState
 
         property bool completionPending: false
+        property bool resultOpened: false
+
+        function closePresentation() {
+            if (typeof root.closePresentationAction === "function") {
+                root.closePresentationAction();
+            }
+        }
+
+        function openResult(scores, profiles) {
+            if (typeof root.openResultAction === "function") {
+                root.openResultAction(scores, profiles, root.chartData);
+                return true;
+            }
+            globalRoot.openResult(scores, profiles, root.chartData);
+            return true;
+        }
+
+        function complete() {
+            if (!root.chart || exitState.resultOpened) {
+                return false;
+            }
+            exitState.completionPending = false;
+            exitState.resultOpened = true;
+            exitState.closePresentation();
+            let profiles = [root.chart.player1.profile,
+                            root.chart.player2
+                                ? root.chart.player2.profile : null];
+            let scores = root.chart instanceof ChartRunner
+                ? root.chart.finish()
+                : root.chart.proceed();
+            exitState.openResult(scores, profiles);
+            return true;
+        }
+
+        function playExitFeedback() {
+            if (!root.exitFeedbackEnabled) {
+                return;
+            }
+            if (typeof root.exitFeedbackAction === "function") {
+                root.exitFeedbackAction();
+                return;
+            }
+            playstopSound.stop();
+            playstopSound.play();
+        }
     }
 
     StandardGameplayAttemptState {
         id: attemptState
         chart: root.chart
-    }
-
-    /*! Closes skin-owned gameplay presentation, if configured. */
-    function closePresentation() {
-        if (typeof closePresentationAction === "function") {
-            closePresentationAction();
-        }
-    }
-
-    /*! Opens the result for \a scores and \a profiles. */
-    function openResult(scores, profiles) {
-        if (typeof openResultAction === "function") {
-            openResultAction(scores, profiles, chartData);
-            return true;
-        }
-        globalRoot.openResult(scores, profiles, chartData);
-        return true;
-    }
-
-    /*! Completes attempted gameplay and opens or delegates its result. */
-    function complete() {
-        if (!chart || resultOpened) {
-            return false;
-        }
-        exitState.completionPending = false;
-        resultOpened = true;
-        closePresentation();
-        let profiles = [chart.player1.profile,
-                        chart.player2 ? chart.player2.profile : null];
-        let scores = chart instanceof ChartRunner
-            ? chart.finish()
-            : chart.proceed();
-        openResult(scores, profiles);
-        return true;
-    }
-
-    /*! Plays or invokes attempted-exit feedback. */
-    function playExitFeedback() {
-        if (!exitFeedbackEnabled) {
-            return;
-        }
-        if (typeof exitFeedbackAction === "function") {
-            exitFeedbackAction();
-            return;
-        }
-        playstopSound.stop();
-        playstopSound.play();
     }
 
     /*! Applies the standard abandon-or-complete decision. */
@@ -109,15 +105,15 @@ Item {
             return true;
         }
         if (!attempted && !arenaOwned) {
-            closePresentation();
+            exitState.closePresentation();
             globalRoot.returnToPreviousScreen();
             return true;
         }
         if (!chart) {
             return false;
         }
-        playExitFeedback();
-        return complete();
+        exitState.playExitFeedback();
+        return exitState.complete();
     }
 
     AudioPlayer {
@@ -133,7 +129,7 @@ Item {
     }
 
     onChartChanged: {
-        resultOpened = false;
+        exitState.resultOpened = false;
         exitState.completionPending = false;
     }
 
@@ -141,7 +137,7 @@ Item {
         if (enabled && exitState.completionPending) {
             Qt.callLater(function() {
                 if (root.enabled && exitState.completionPending) {
-                    root.complete();
+                    exitState.complete();
                 }
             });
         }
@@ -152,11 +148,11 @@ Item {
         ignoreUnknownSignals: true
         function onStatusChanged() {
             if (root.chart?.status === ChartRunner.Ready) {
-                root.resultOpened = false;
+                exitState.resultOpened = false;
                 exitState.completionPending = false;
             } else if (root.chart?.status === ChartRunner.Finished) {
                 if (root.enabled) {
-                    root.complete();
+                    exitState.complete();
                 } else {
                     exitState.completionPending = true;
                 }

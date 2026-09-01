@@ -149,29 +149,28 @@ Look at log.txt in the data folder to find out what went wrong.
 The part of the game that manages the theme most directly is
 [RhythmGameQml/ContentFrame.qml](https://github.com/Bobini1/RhythmGame/blob/master/RhythmGameQml/ContentFrame.qml).
 That qml file is compiled into the executable and is not part of any theme.
-It contains the window of the entire game and the `sceneStack`.
-`sceneStack` is a globally accessible [StackView](https://doc.qt.io/qt-6/qml-qtquick-controls-stackview.html)
-that contains screens, like `main`, `select`, `k7`, one on top of the other.
-You can go to another screen by pushing it to the stack.
-You can exit a screen by popping it from the stack.
+It contains the window of the entire game and exposes the supported screen-flow
+operations through the globally accessible `globalRoot` object. For example,
+use `globalRoot.openSelect()` to enter selection and
+`globalRoot.returnToPreviousScreen()` to leave the current screen.
+
+`ContentFrame` owns the underlying screen stack. Themes should use the semantic
+`globalRoot` operations instead of accessing that stack directly. This keeps a
+theme independent of the details of screen lifetime, retry, and Arena flow.
 
 ---
 **NOTE**
 
-When going from `select` to `k7` and then `result`, the former screens are not destroyed.
-When going back from `result`, it is the responsibility of the `k7` screen to remove itself from the stack
-to go back to select. When `k7` pushes `result`, it should remember to remove itself when it becomes active again.
-
-In most scenarios, you will want to push at most one screen on top of the stack at once.
-Then that screen can push another screen on top of itself, if needed.
-
-Do not remove screens from under yourself. It's messy and unnecessary.
+When going from `select` to `k7` and then `result`, the former screens are not
+destroyed immediately. `ContentFrame` keeps those screens alive while newer
+screens are presented and restores or closes them as the flow requires.
 
 ---
 
 ## Initial state of screens
 
-`sceneStack` contains a few helper methods:
+`globalRoot` provides the following operations for screens that require initial
+state:
 
 ```qml
 function openChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2)
@@ -186,9 +185,9 @@ those helper methods set them based on the parameters passed to them.
 See [ChartLoader docs](https://bobini1.github.io/RhythmGame/classqml__components_1_1ChartLoader.html)
 for an explanation of the parameters of `openChart` and `openCourse`.
 
-To use those methods, simply call `sceneStack.openChart(...)` from anywhere in your theme.
+Call them on `globalRoot`, for example `globalRoot.openChart(...)`.
 
-Keep the folowing in mind when writing screens with initial state:
+Keep the following in mind when writing screens with initial state:
 
 Screens `k7`, `k14` and `k7battle` are expected to have single `var` property called `chart`. The assigned `chart` will
 be either a [ChartRunner](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ChartRunner.html) or
@@ -231,9 +230,9 @@ For keyboard input, use [Keys](https://doc.qt.io/qt-6/qml-qtquick-keys.html)
 For bound key input (controller or keyboard), use
 [Input](https://bobini1.github.io/RhythmGame/classqml__components_1_1InputAttached.html).
 
-`sceneStack` automatically disables all input for screens that are not at the top of the stack.
+`ContentFrame` automatically disables all input for screens that are not active.
 Make sure to disable any background sounds and [Shortcuts](https://doc.qt.io/qt-6/qml-qtquick-shortcut.html) when
-pushing a new screen on top of the stack (Shortcuts are dumb and don't get disabled automatically).
+the screen is inactive (Shortcuts are not disabled automatically).
 Song preview should not play during gameplay. You can use the
 [enabled](https://doc.qt.io/qt-6/qml-qtquick-item.html#enabled-prop) property of `Item`
 to detect when a screen is not active.
@@ -251,7 +250,8 @@ without using the Default theme's presentation:
 
 - `StandardSelectSession` owns the raw folder contents, history, asynchronous
   score-query lifetime, scores and preview paths. Its `resolve...` methods only
-  acquire data; `commitFolderContents()` is the explicit state change.
+  acquire data; `commitFolderContents()` is the explicit state change. A custom
+  `tableCoursesProvider` can return the courses for a table.
 - `StandardSelectActivation` implements the standard chart, course and Arena
   activation rules.
 - `StandardSelectState` combines the session and activation behavior with
@@ -293,9 +293,9 @@ Keyboard `Keys` handlers stay on the focused visual item and can forward
 up/down/release events to the controller's `handleUpPressed`,
 `handleDownPressed` and `handleReleased` methods.
 
-Application-owned F1 and F4 behavior lives in `StandardShortcuts`. It is not a
-skin extension point. F12 belongs to `StandardSelectShortcuts`, so it is only
-available on selection screens that opt into the standard selection shortcuts.
+Application-owned F1 and F4 behavior is internal to `ContentFrame`. F12 belongs
+to `StandardSelectShortcuts`, so it is only available on selection screens that
+opt into the standard selection shortcuts.
 
 ### Reusable behavior for other screens
 

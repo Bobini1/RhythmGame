@@ -40,7 +40,6 @@
         \li \l StandardResultInput handles result dismissal and retry input.
         \li \l StandardGameplayExit handles gameplay escape behavior.
         \li \l StandardGameplayAttemptState tracks whether a play was attempted.
-        \li \l StandardShortcuts implements fixed application-wide F1 and F4 shortcuts.
         \li \l StandardInputKeys classifies standard gameplay input keys.
     \endlist
 */

@@ -16,17 +16,14 @@ QtObject {
     /*! Minimum number of entries required by the presentation. */
     property int minimumCount: 0
     /*! Adapted entries, repeated to a multiple of \l source when necessary. */
-    readonly property var entries: repeatToMinimumCount(source, minimumCount)
-
-    /*! Returns \a input repeated to satisfy \a count without truncation. */
-    function repeatToMinimumCount(input, count) {
-        if (!input || input.length === 0 || input.length >= count) {
-            return input || [];
+    readonly property var entries: {
+        if (!source || source.length === 0 || source.length >= minimumCount) {
+            return source || [];
         }
-        let result = input.slice();
-        let limit = Math.ceil(count / input.length) * input.length;
-        for (let i = input.length; i < limit; ++i) {
-            result.push(input[i % input.length]);
+        let result = source.slice();
+        let limit = Math.ceil(minimumCount / source.length) * source.length;
+        for (let i = source.length; i < limit; ++i) {
+            result.push(source[i % source.length]);
         }
         return result;
     }
