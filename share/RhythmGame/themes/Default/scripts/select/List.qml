@@ -23,7 +23,7 @@ PathView {
         tryReplayAction: () => root.openSelectedReplay(Qt.LeftButton)
         cycleReplayTypeAction: () => root.cycleReplayType()
         tryCycleSortModeAction: delta => root.cycleSortMode(delta)
-        openInternetRankingAction: () => root.openSelectedInternetRanking()
+        onOpenInternetRankingRequested: root.openSelectedInternetRanking()
 
         onOpenedFolder: pathView.openedFolder()
         onFocusRequested: index => {
@@ -35,7 +35,7 @@ PathView {
         }
     }
 
-    model: selectController.entries
+    model: selectController.presentationEntries
 
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
     readonly property bool movingManually: visualMoveActive || pendingWheelSteps !== 0

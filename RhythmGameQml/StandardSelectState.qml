@@ -67,20 +67,8 @@ Item {
             root.focusRequested(index);
         }
 
-        function trackScoreDbReply(reply) {
-            return sessionImpl.trackScoreDbReply(reply);
-        }
-
-        function cancelScoreDbReplies() {
-            sessionImpl.cancelScoreDbReplies();
-        }
-
-        function folderForHistoryItem(item) {
-            return sessionImpl.folderForHistoryItem(item);
-        }
-
         function refreshScores() {
-            selectionState.cancelScoreDbReplies();
+            sessionImpl.cancelScoreDbReplies();
             if (!root.scoresEnabled) {
                 sessionImpl.scores = ({});
                 return;
@@ -93,13 +81,13 @@ Item {
                         md5s.push(item.md5);
                     }
                 }
-                selectionState.trackScoreDbReply(
+                sessionImpl.trackScoreDbReply(
                     Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s)
                 ).then(result => sessionImpl.scores = result.scores);
             } else {
-                selectionState.trackScoreDbReply(
+                sessionImpl.trackScoreDbReply(
                     Rg.profileList.mainProfile.scoreDb.getScores(
-                        selectionState.folderForHistoryItem(
+                        sessionImpl.folderForHistoryItem(
                             root.historyStack[root.historyStack.length - 1]))
                 ).then(result => {
                     if (result instanceof tableQueryResult) {
@@ -279,6 +267,8 @@ Item {
 
     StandardSelectActivation {
         id: activationImpl
+
+        tryOpenPlayableAction: root.tryOpenPlayableAction
     }
 
     PendingReplyGroup {
@@ -337,11 +327,6 @@ Item {
     */
     function openPlayable(item, autoplay = false, replay = false,
                           replayScore = null) {
-        if (typeof tryOpenPlayableAction === "function"
-                && tryOpenPlayableAction(
-                    item, autoplay, replay, replayScore)) {
-            return true;
-        }
         return activationImpl.openPlayable(item, autoplay, replay, replayScore);
     }
 
@@ -433,7 +418,7 @@ Item {
             return false;
         }
         if (historyStack.length === 0
-                || selectionState.folderForHistoryItem(
+                || sessionImpl.folderForHistoryItem(
                     historyStack[historyStack.length - 1]) !== directory) {
             sessionImpl.historyStack =
                 historyStack.concat([initialItem || directory]);

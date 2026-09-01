@@ -159,7 +159,6 @@ set(RHYTHM_GAME_QML_FILES
         StandardSelectSession.qml
         StandardSelectActivation.qml
         StandardSelectModelAdapter.qml
-        StandardSelectFeedback.qml
         StandardSelectNavigation.qml
         StandardSelectInput.qml
         StandardSelectShortcuts.qml

@@ -5,10 +5,11 @@ import QtQuick
     \inqmlmodule RhythmGameQml
     \brief Provides selection-specific F-key shortcuts.
 
-    A \l StandardSelectState provides the built-in F2 and F3 behavior. F12
-    opens settings through the application content frame. Each action can be
-    replaced, and request signals allow custom handling when the standard
-    implementation does not consume the operation.
+    A \l StandardSelectState provides the built-in F2 and F3 behavior. F11
+    requests skin-owned Internet ranking, and F12 opens settings through the
+    application content frame. Built-in actions can be replaced, and request
+    signals allow custom handling when no standard implementation consumes an
+    operation.
 */
 Item {
     id: root
@@ -17,8 +18,6 @@ Item {
     property var reloadAction: null
     /*! Optional replacement for the F3 folder-opening action. */
     property var openSelectedFolderAction: null
-    /*! Optional replacement for the F11 Internet-ranking action. */
-    property var openInternetRankingAction: null
     /*! Optional replacement for the F12 settings action. */
     property var openSettingsAction: null
     /*! Standard selection state used by the built-in F2 and F3 implementations. */
@@ -36,80 +35,64 @@ Item {
     signal reloadRequested()
     /*! Emitted when F3 has no action or state-backed implementation. */
     signal openSelectedFolderRequested()
-    /*! Emitted when F11 has no replacement action. */
+    /*! Emitted when F11 requests skin-owned Internet ranking. */
     signal openInternetRankingRequested()
 
-    /*! Runs the replacement or built-in reload behavior. */
-    function reload() {
-        if (typeof reloadAction === "function") {
-            reloadAction();
-            return true;
-        }
-        if (selectState && selectState.reloadCurrentFolderOrTable()) {
-            return true;
-        }
-        reloadRequested();
-        return true;
-    }
+    QtObject {
+        id: shortcutActions
 
-    /*! Runs the replacement or built-in folder-opening behavior. */
-    function openSelectedFolder() {
-        if (typeof openSelectedFolderAction === "function") {
-            openSelectedFolderAction();
-            return true;
+        function reload() {
+            if (typeof root.reloadAction === "function") {
+                root.reloadAction();
+            } else if (!root.selectState
+                       || !root.selectState.reloadCurrentFolderOrTable()) {
+                root.reloadRequested();
+            }
         }
-        if (selectState && selectState.openSelectedFolder()) {
-            return true;
-        }
-        openSelectedFolderRequested();
-        return true;
-    }
 
-    /*! Runs or requests the Internet-ranking behavior. */
-    function openInternetRanking() {
-        if (typeof openInternetRankingAction === "function") {
-            openInternetRankingAction();
-            return true;
+        function openSelectedFolder() {
+            if (typeof root.openSelectedFolderAction === "function") {
+                root.openSelectedFolderAction();
+            } else if (!root.selectState
+                       || !root.selectState.openSelectedFolder()) {
+                root.openSelectedFolderRequested();
+            }
         }
-        openInternetRankingRequested();
-        return true;
-    }
 
-    /*! Opens settings using the replacement or built-in action. */
-    function openSettings() {
-        if (typeof openSettingsAction === "function") {
-            openSettingsAction();
-        } else {
-            globalRoot.openSettings();
+        function openSettings() {
+            if (typeof root.openSettingsAction === "function") {
+                root.openSettingsAction();
+            } else {
+                globalRoot.openSettings();
+            }
         }
-        return true;
     }
 
     Shortcut {
         autoRepeat: false
         enabled: root.enabled && root.reloadEnabled
         sequence: "F2"
-        onActivated: root.reload()
+        onActivated: shortcutActions.reload()
     }
 
     Shortcut {
         autoRepeat: false
         enabled: root.enabled && root.openSelectedFolderEnabled
         sequence: "F3"
-        onActivated: root.openSelectedFolder()
+        onActivated: shortcutActions.openSelectedFolder()
     }
 
     Shortcut {
         autoRepeat: false
         enabled: root.enabled && root.openInternetRankingEnabled
         sequence: "F11"
-        onActivated: root.openInternetRanking()
+        onActivated: root.openInternetRankingRequested()
     }
 
     Shortcut {
         autoRepeat: false
         enabled: root.enabled && root.openSettingsEnabled
         sequence: "F12"
-        onActivated: root.openSettings()
+        onActivated: shortcutActions.openSettings()
     }
 }

@@ -248,6 +248,19 @@ This will play nicely with autoplay and replays.
 Themes can import `RhythmGameQml` and opt into the standard selection behavior
 without using the Default theme's presentation:
 
+For a complete standard selector, instantiate `StandardSelectController`. It
+extends `StandardSelectState` with presentation adaptation, folder enter/leave
+feedback, input, navigation and selection shortcuts. Its inherited `entries`
+contain one logical copy of each filtered item; `presentationEntries` repeats
+them to `minimumEntryCount` for circular selectors. Handle
+`focusRequested(index)` and `moveRequested(steps, repeated, analog)` to update
+the skin's presentation. Set `autoInitialize` to false and call `initialize()`
+when a skin needs to control startup timing.
+
+For a different composition, use only the lower-level pieces required.
+
+Browsing and activation:
+
 - `StandardSelectSession` owns the raw folder contents, history, asynchronous
   score-query lifetime, scores and preview paths. Its `resolve...` methods only
   acquire data; `commitFolderContents()` is the explicit state change. A custom
@@ -262,36 +275,34 @@ without using the Default theme's presentation:
 - `StandardSelectModelAdapter` can repeat a logical model to a requested
   minimum size for circular visual selectors. Skins with a finite list do not
   need to instantiate it.
+
+Interaction policies:
+
 - `StandardSelectNavigation` converts directional key and scratch input into
   semantic `moveRequested(steps, repeated, analog)` signals. The skin remains
   responsible for positioning and animating its list or wheel.
 - `StandardSelectInput` adds the standard activation, replay, autoplay,
-  sorting and back-button mappings around `StandardSelectNavigation`. A custom
-  state can supply semantic `activateAction`, `goBackAction` and `atTopLevel`
-  values instead of pretending to be `StandardSelectState`.
+  sorting and back-button mappings by extending `StandardSelectNavigation`. A
+  custom state can supply semantic `activateAction`, `goBackAction` and
+  `atTopLevel` values instead of pretending to be `StandardSelectState`.
 - `StandardSelectShortcuts` provides F2 reload, F3 open-folder, F11
   internet-ranking and F12 settings shortcuts. F2 and F3 use a supplied
-  `selectState` by default; every action can be replaced or individually
-  disabled. If the standard state declines F2 or F3, the corresponding request
-  signal is emitted for the skin.
-- `StandardSelectFeedback` provides the default folder enter/leave sounds. It
-  can be omitted, disabled or given replacement actions and sound sources.
-- `StandardSelectController` is the convenience composition. It exposes
-  supported policies, observations, actions and semantic methods without
-  exposing mutable implementation objects. Set `tryOpenPlayableAction` to
-  intercept standard chart/course/Arena activation, configure navigation and
-  enrichment through the controller properties, or instantiate the lower-level
-  components directly for a different composition. Set `autoInitialize` to
-  false and call `initialize()` when a skin needs to control startup timing.
+  `selectState` by default. F2, F3 and F12 defaults can be replaced or
+  individually disabled. F11 emits `openInternetRankingRequested`; if the
+  standard state declines F2 or F3, the corresponding request signal is also
+  emitted for the skin.
+
+Shared asynchronous lifetime:
+
 - `PendingReplyGroup` owns any set of asynchronous replies with one cancellation
   lifetime. It can be reused by custom selection enrichment or other skin
   state that starts cancellable operations.
 
-The controller has no required list interface. Handle `focusRequested(index)`
-and `moveRequested(steps, repeated, analog)` to update the skin's selector.
-Keyboard `Keys` handlers stay on the focused visual item and can forward
-up/down/release events to the controller's `handleUpPressed`,
-`handleDownPressed` and `handleReleased` methods.
+The controller has no required list interface. Keyboard `Keys` handlers stay on
+the focused visual item and can forward up/down/release events to the
+controller's `handleUpPressed`, `handleDownPressed` and `handleReleased`
+methods. Feedback remains configurable through the controller's
+`feedbackEnabled`, action and sound-source properties.
 
 Application-owned F1 and F4 behavior is internal to `ContentFrame`. F12 belongs
 to `StandardSelectShortcuts`, so it is only available on selection screens that

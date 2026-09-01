@@ -563,7 +563,7 @@ Item {
             && root.effectiveScreenKey === "select"
         reloadEnabled: false
         openSelectedFolderAction: () => root.openSelectedFolder()
-        openInternetRankingAction: () => root.openSelectedInternetRanking()
+        onOpenInternetRankingRequested: root.openSelectedInternetRanking()
     }
 
     Timer {

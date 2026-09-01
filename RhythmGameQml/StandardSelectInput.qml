@@ -6,10 +6,11 @@ import RhythmGameQml
     \inqmlmodule RhythmGameQml
     \brief Maps standard keyboard and BMS-controller selection actions.
 
-    Directional timing is configurable here. Skins that only want movement
+    The component extends \l StandardSelectNavigation with activation, replay,
+    autoplay, sorting, and back-button mappings. Skins that only want movement
     policy can instantiate \l StandardSelectNavigation directly.
 */
-Item {
+StandardSelectNavigation {
     id: root
 
     /*! Standard selection state that receives activation and history actions. */
@@ -29,51 +30,6 @@ Item {
     property var cycleReplayTypeAction: null
     /*! Optional sort pre-handler. True consumes; false or undefined continues. */
     property var tryCycleSortModeAction: null
-    /*! Number of analog scratch ticks required for one logical step. */
-    property alias analogTicksPerStep: navigation.analogTicksPerStep
-    /*! Delay before classic-scratch repeat begins, in milliseconds. */
-    property alias initialRepeatDelayMillis: navigation.initialRepeatDelayMillis
-    /*! Delay between repeated classic-scratch steps, in milliseconds. */
-    property alias repeatDelayMillis: navigation.repeatDelayMillis
-
-    /*!
-        Requests relative focus movement by \a steps. \a repeated identifies
-        held input and \a analog identifies analog-scratch input.
-    */
-    signal moveRequested(int steps, bool repeated, bool analog)
-
-    StandardSelectNavigation {
-        id: navigation
-
-        enabled: root.enabled
-        onMoveRequested: (steps, repeated, analog) => {
-            root.moveRequested(steps, repeated, analog);
-        }
-    }
-
-    /*!
-        Forwards \a tickNumber and \a tickType for directional \a key to
-        \l navigation. \a up selects the movement direction.
-    */
-    function navigate(tickNumber, tickType, up, key) {
-        navigation.navigate(tickNumber, tickType, up, key);
-    }
-
-    /*! Records a controller direction press for \a key. */
-    function pressDirection(key) {
-        navigation.pressDirection(key);
-    }
-
-    /*! Records a release for directional \a key; \a up identifies its direction. */
-    function releaseDirection(key, up) {
-        navigation.releaseDirection(key, up);
-    }
-
-    /*! Clears held directions, analog accumulation, and repeat timing. */
-    function resetNavigation() {
-        navigation.reset();
-    }
-
     /*! Activates the focused item. */
     function activate() {
         if (!root.enabled) {
@@ -121,30 +77,30 @@ Item {
     function handleUpPressed(event) {
         event.accepted = true;
         if (!event.isAutoRepeat) {
-            pressDirection(Qt.Key_Up);
+            root.pressDirection(Qt.Key_Up);
         }
-        navigate(event.isAutoRepeat, null, true, Qt.Key_Up);
+        root.navigate(event.isAutoRepeat, null, true, Qt.Key_Up);
     }
 
     /*! Handles a Down key \a event. */
     function handleDownPressed(event) {
         event.accepted = true;
         if (!event.isAutoRepeat) {
-            pressDirection(Qt.Key_Down);
+            root.pressDirection(Qt.Key_Down);
         }
-        navigate(event.isAutoRepeat, null, false, Qt.Key_Down);
+        root.navigate(event.isAutoRepeat, null, false, Qt.Key_Down);
     }
 
     /*! Handles a keyboard direction-release \a event. */
     function handleReleased(event) {
         if (event.key === Qt.Key_Up) {
             if (!event.isAutoRepeat) {
-                releaseDirection(Qt.Key_Up, true);
+                root.releaseDirection(Qt.Key_Up, true);
             }
             event.accepted = true;
         } else if (event.key === Qt.Key_Down) {
             if (!event.isAutoRepeat) {
-                releaseDirection(Qt.Key_Down, false);
+                root.releaseDirection(Qt.Key_Down, false);
             }
             event.accepted = true;
         }
@@ -164,18 +120,18 @@ Item {
         return false;
     }
 
-    Input.onCol1sDownTicked: (number, type) => navigate(number, type, false, BmsKey.Col1sDown)
-    Input.onCol1sUpTicked: (number, type) => navigate(number, type, true, BmsKey.Col1sUp)
-    Input.onCol2sDownTicked: (number, type) => navigate(number, type, false, BmsKey.Col2sDown)
-    Input.onCol2sUpTicked: (number, type) => navigate(number, type, true, BmsKey.Col2sUp)
-    Input.onCol1sDownPressed: pressDirection(BmsKey.Col1sDown)
-    Input.onCol1sUpPressed: pressDirection(BmsKey.Col1sUp)
-    Input.onCol2sDownPressed: pressDirection(BmsKey.Col2sDown)
-    Input.onCol2sUpPressed: pressDirection(BmsKey.Col2sUp)
-    Input.onCol1sDownReleased: releaseDirection(BmsKey.Col1sDown, false)
-    Input.onCol1sUpReleased: releaseDirection(BmsKey.Col1sUp, true)
-    Input.onCol2sDownReleased: releaseDirection(BmsKey.Col2sDown, false)
-    Input.onCol2sUpReleased: releaseDirection(BmsKey.Col2sUp, true)
+    Input.onCol1sDownTicked: (number, type) => root.navigate(number, type, false, BmsKey.Col1sDown)
+    Input.onCol1sUpTicked: (number, type) => root.navigate(number, type, true, BmsKey.Col1sUp)
+    Input.onCol2sDownTicked: (number, type) => root.navigate(number, type, false, BmsKey.Col2sDown)
+    Input.onCol2sUpTicked: (number, type) => root.navigate(number, type, true, BmsKey.Col2sUp)
+    Input.onCol1sDownPressed: root.pressDirection(BmsKey.Col1sDown)
+    Input.onCol1sUpPressed: root.pressDirection(BmsKey.Col1sUp)
+    Input.onCol2sDownPressed: root.pressDirection(BmsKey.Col2sDown)
+    Input.onCol2sUpPressed: root.pressDirection(BmsKey.Col2sUp)
+    Input.onCol1sDownReleased: root.releaseDirection(BmsKey.Col1sDown, false)
+    Input.onCol1sUpReleased: root.releaseDirection(BmsKey.Col1sUp, true)
+    Input.onCol2sDownReleased: root.releaseDirection(BmsKey.Col2sDown, false)
+    Input.onCol2sUpReleased: root.releaseDirection(BmsKey.Col2sUp, true)
     Input.onCol11Pressed: activate()
     Input.onCol17Pressed: activateReplay()
     Input.onCol13Pressed: activate()

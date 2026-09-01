@@ -19,17 +19,36 @@
 
     \section1 Selection
 
+    \section2 Complete standard selector
+
     \list
-        \li \l StandardSelectController composes the complete standard selection behavior.
-        \li \l StandardSelectState owns browsing, filtering, sorting, scores, and activation.
-        \li \l StandardSelectSession owns folder contents, history, and score-query lifetime.
-        \li \l StandardSelectActivation opens charts and courses.
-        \li \l StandardSelectModelAdapter adapts logical entries for circular presentation.
-        \li \l StandardSelectFeedback provides optional navigation sounds.
-        \li \l StandardSelectInput maps keyboard and controller input.
-        \li \l StandardSelectNavigation implements directional and scratch navigation.
-        \li \l StandardSelectShortcuts implements selection-specific F-key shortcuts.
+        \li \l StandardSelectController extends the standard selection state with
+            presentation adaptation, feedback, input, navigation, and shortcuts.
+    \endlist
+
+    \section2 Browsing and activation
+
+    \list
+        \li \l StandardSelectState owns browsing, filtering, sorting, scores,
+            focus, and activation.
+        \li \l StandardSelectSession provides lower-level folder contents,
+            history, and score-query lifetime.
+        \li \l StandardSelectActivation provides lower-level chart and course
+            activation.
+        \li \l StandardSelectModelAdapter repeats logical entries for circular
+            presentation.
         \li \l PendingReplyGroup owns cancellable asynchronous work with a shared lifetime.
+    \endlist
+
+    \section2 Interaction policies
+
+    \list
+        \li \l StandardSelectInput extends navigation with keyboard and
+            controller action mappings.
+        \li \l StandardSelectNavigation implements directional and scratch
+            navigation.
+        \li \l StandardSelectShortcuts implements selection-specific F-key
+            shortcuts.
     \endlist
 
     \section1 Other screens and application behavior

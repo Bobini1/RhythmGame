@@ -58,43 +58,32 @@ ApplicationWindow {
 
             readonly property Profile mainProfile: Rg.profileList.mainProfile
             readonly property var arenaSession: Rg.arenaSession
-            readonly property Component k7Component: Qt.createComponent(
-                Rg.themes.availableThemeFamilies[
-                    mainProfile.themeConfig.k7].screens.k7.script)
-            readonly property Component k7battleComponent: Qt.createComponent(
-                Rg.themes.availableThemeFamilies[
-                    mainProfile.themeConfig.k7battle].screens.k7battle.script)
-            readonly property Component k14Component: Qt.createComponent(
-                Rg.themes.availableThemeFamilies[
-                    mainProfile.themeConfig.k14].screens.k14.script)
-            readonly property Component k5Component: Qt.createComponent(
-                Rg.themes.availableThemeFamilies[
-                    mainProfile.themeConfig.k5].screens.k5.script)
-            readonly property Component k5battleComponent: Qt.createComponent(
-                Rg.themes.availableThemeFamilies[
-                    mainProfile.themeConfig.k5battle].screens.k5battle.script)
-            readonly property Component k10Component: Qt.createComponent(
-                Rg.themes.availableThemeFamilies[
-                    mainProfile.themeConfig.k10].screens.k10.script)
-            readonly property Component mainComponent: Qt.createComponent(
-                Rg.themes.availableThemeFamilies[
-                    mainProfile.themeConfig.main].screens.main.script)
-            readonly property Component resultComponent: Qt.createComponent(
-                frameImplementation.configuredScreen("result").script)
+            readonly property Component k7Component:
+                frameImplementation.componentFor("k7")
+            readonly property Component k7battleComponent:
+                frameImplementation.componentFor("k7battle")
+            readonly property Component k14Component:
+                frameImplementation.componentFor("k14")
+            readonly property Component k5Component:
+                frameImplementation.componentFor("k5")
+            readonly property Component k5battleComponent:
+                frameImplementation.componentFor("k5battle")
+            readonly property Component k10Component:
+                frameImplementation.componentFor("k10")
+            readonly property Component mainComponent:
+                frameImplementation.componentFor("main")
+            readonly property Component resultComponent:
+                frameImplementation.componentFor("result")
             readonly property Component courseResultComponent:
-                Qt.createComponent(frameImplementation.configuredScreen(
-                                       "courseResult", "result").script)
+                frameImplementation.componentFor("courseResult", "result")
             readonly property var multiplayerScreen:
                 frameImplementation.configuredScreen("multiplayer")
-            readonly property Component settingsComponent: Qt.createComponent(
-                Rg.themes.availableThemeFamilies[
-                    mainProfile.themeConfig.settings].screens.settings.script)
-            readonly property Component selectComponent: Qt.createComponent(
-                Rg.themes.availableThemeFamilies[
-                    mainProfile.themeConfig.select].screens.select.script)
-            readonly property Component decideComponent: Qt.createComponent(
-                Rg.themes.availableThemeFamilies[
-                    mainProfile.themeConfig.decide].screens.decide.script)
+            readonly property Component settingsComponent:
+                frameImplementation.componentFor("settings")
+            readonly property Component selectComponent:
+                frameImplementation.componentFor("select")
+            readonly property Component decideComponent:
+                frameImplementation.componentFor("decide")
             property var activeSettingsItem: null
             property Item activeArenaItem: null
             property Item activeArenaGameplayItem: null
@@ -139,6 +128,13 @@ ApplicationWindow {
                     }
                 }
                 return null;
+            }
+
+            function componentFor(screenKey, fallbackKey) {
+                const screen = frameImplementation.configuredScreen(
+                    screenKey, fallbackKey);
+                return screen && screen.script
+                    ? Qt.createComponent(screen.script) : null;
             }
 
             function normalizeLocalPath(path) {
@@ -257,8 +253,8 @@ ApplicationWindow {
             }
 
             function selectScreenProperties() {
-                let selectScreen = Rg.themes.availableThemeFamilies[
-                    frameState.mainProfile.themeConfig.select].screens.select;
+                let selectScreen =
+                    frameImplementation.configuredScreen("select");
                 let props = {};
                 if (selectScreen && selectScreen.csvPath) {
                     props["csvPath"] = selectScreen.csvPath;
@@ -276,9 +272,8 @@ ApplicationWindow {
                 let battle = runner.player1 && runner.player2;
                 let screenKey = "k" + keys + (battle ? "battle" : "");
                 let component = frameState[screenKey + "Component"];
-                let screenObj = Rg.themes.availableThemeFamilies[
-                    frameState.mainProfile.themeConfig[screenKey]
-                ].screens[screenKey];
+                let screenObj =
+                    frameImplementation.configuredScreen(screenKey);
                 let props = {
                     "chart": runner,
                     "arenaManagedRunner": arenaManagedRunner === true
