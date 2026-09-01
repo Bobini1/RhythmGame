@@ -27,8 +27,10 @@ find_program(
 )
 
 set(working_dir "${PROJECT_BINARY_DIR}/docs")
-set(QDOC_OUTPUT_DIRECTORY "${DOXYGEN_OUTPUT_DIRECTORY}/html/qml")
+set(QDOC_OUTPUT_DIRECTORY "${DOXYGEN_OUTPUT_DIRECTORY}/html")
+set(QDOC_HTML_OUTPUT_DIRECTORY "${QDOC_OUTPUT_DIRECTORY}/qml")
 file(MAKE_DIRECTORY "${working_dir}")
+file(REMOVE_RECURSE "${QDOC_HTML_OUTPUT_DIRECTORY}")
 
 configure_file(
     "${PROJECT_SOURCE_DIR}/docs/Doxyfile.in"
