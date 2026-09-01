@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
 
@@ -8,11 +9,23 @@ import RhythmGameQml
 
     Assign \c tryOpenPlayableAction to intercept activation. Returning true
     from that action suppresses the built-in behavior.
+
+    \l openPlayable returns true when the item was consumed, not necessarily
+    when a gameplay screen was opened. In an Arena room, selecting a chart is
+    sent to the Arena session and course activation is deliberately consumed.
+    Outside Arena, charts and courses use the active single-player or battle
+    profiles. Unsupported items return false.
+
+    The pre-handler is called as
+    \c tryOpenPlayableAction(item, autoplay, replay, replayScore).
 */
 QtObject {
     id: root
 
-    /*! Optional opening pre-handler. True consumes; false or undefined continues. */
+    /*!
+        Optional \c tryOpenPlayableAction(item,autoplay,replay,replayScore)
+        pre-handler. True consumes the operation.
+    */
     property var tryOpenPlayableAction: null
     /*! Whether the local player is currently seated in an Arena room. */
     readonly property bool arenaSeated:

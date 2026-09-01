@@ -11,6 +11,18 @@ import RhythmGameQml
     filtering, sorting, and activation while leaving list presentation to the
     skin. Use the lower-level selection components when these policies do not
     fit a custom selector.
+
+    Unless \l autoInitialize is false, construction immediately opens the root
+    browser. The skin must handle \l focusRequested and call \l setFocused
+    whenever its visual focus changes. \l goForward opens either a folder or a
+    playable item; \l goBack performs the matching history transaction.
+
+    \l entries, \l folderContents, \l historyStack, \l scores, and
+    \l previewFiles are shallow snapshots. Reordering an array or assigning a
+    map key does not modify the selection state, but contained chart and table
+    objects are not cloned. Score, preview, and folder-stat enrichment is
+    asynchronous; consumers must react to property changes rather than assuming
+    all metadata is present when \l openedFolder is emitted.
 */
 Item {
     id: root
@@ -26,7 +38,10 @@ Item {
     /*! Preview-file data loaded for the current folder contents. */
     readonly property var previewFiles:
         Object.assign({}, sessionImpl.previewFiles)
-    /*! Optional opening pre-handler. True consumes; false or undefined continues. */
+    /*!
+        Optional \c tryOpenPlayableAction(item,autoplay,replay,replayScore)
+        pre-handler. True consumes the operation.
+    */
     property var tryOpenPlayableAction: null
     /*! Whether standard score loading is active. */
     property bool scoresEnabled: true

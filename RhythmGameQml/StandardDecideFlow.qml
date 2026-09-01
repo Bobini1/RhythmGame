@@ -9,6 +9,32 @@ import RhythmGameQml
     The surrounding skin owns every visual. This component owns accepting,
     cancelling, timeouts, and runner destruction, with override actions for
     skins that need different transitions.
+
+    Default input mapping:
+
+    \table
+        \header
+            \li Input
+            \li Operation
+        \row
+            \li Return, Enter, left click, or any play key
+            \li \l start
+        \row
+            \li Escape, right click, or Start+Select
+            \li \l cancel
+        \row
+            \li \l timeoutMillis expires
+            \li \l start
+    \endtable
+
+    Only the first start/cancel request is accepted for a chart. The built-in
+    start opens gameplay and remembers to return past the decide screen when
+    gameplay closes. A replacement \l startAction or \l cancelAction owns its
+    complete transition; it is not followed by the built-in action.
+
+    On destruction, \l chart is destroyed unless
+    \l destroyChartOnDestruction is false. A skin transferring ownership of the
+    runner must disable that cleanup explicitly.
 */
 Item {
     id: root
@@ -17,11 +43,11 @@ Item {
 
     /*! Chart runner being accepted or cancelled. */
     property var chart: null
-    /*! Optional replacement for accepting the chart. */
+    /*! Optional \c startAction() replacement that owns the start transition. */
     property var startAction: null
-    /*! Optional replacement for cancelling the chart. */
+    /*! Optional \c cancelAction() replacement that owns the cancel transition. */
     property var cancelAction: null
-    /*! Optional replacement for returning after standard gameplay closes. */
+    /*! Optional \c returnAfterGameplayAction() replacement. */
     property var returnAfterGameplayAction: null
     /*! Automatic acceptance timeout in milliseconds; zero disables it. */
     property int timeoutMillis: 5000

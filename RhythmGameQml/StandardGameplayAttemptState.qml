@@ -8,6 +8,11 @@ import RhythmGameQml
 
     This lower-level state remains useful when a skin implements its own
     gameplay exit or result transition.
+
+    A hit marks the play attempted unless its judgement is Poor, EmptyPoor,
+    MineHit, or MineAvoided. Changing \l chart, or the current chart returning
+    to \c ChartRunner.Ready, resets \l attempted. The component observes both
+    player scores when present.
 */
 Item {
     id: root

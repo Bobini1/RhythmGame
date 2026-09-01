@@ -17,6 +17,48 @@
     These components contain reusable behavior and state. Skins remain
     responsible for presentation and may instantiate only the pieces they need.
 
+    \section1 Choosing a component
+
+    \table
+        \header
+            \li Goal
+            \li Start with
+            \li The skin still owns
+        \row
+            \li A complete song selector
+            \li \l StandardSelectController
+            \li The list or wheel, focus animation, and Internet-ranking UI
+        \row
+            \li Custom browsing with standard input
+            \li \l StandardSelectState with \l StandardSelectInput and, if
+                wanted, \l StandardSelectShortcuts
+            \li Presentation and the chosen composition
+        \row
+            \li Custom input with standard browsing
+            \li \l StandardSelectState
+            \li Input mapping and presentation
+        \row
+            \li Only folder resolution or activation
+            \li \l StandardSelectSession or \l StandardSelectActivation
+            \li History transactions, focus, filtering, input, and presentation
+    \endtable
+
+    Callback properties use these contracts:
+
+    \list
+        \li A property documented as a replacement suppresses the matching
+            built-in operation when it contains a function. Its return value is
+            ignored.
+        \li A property named \c try...Action is a pre-handler. Return \c true to
+            consume the operation; return \c false or \c undefined to continue
+            with the built-in operation.
+        \li Supplemental callbacks, such as
+            \l StandardGameplayExit::closePresentationAction, are explicitly
+            documented and do not replace the surrounding operation.
+        \li Request signals identify operations that require skin-owned UI or
+            could not be completed by the standard implementation.
+    \endlist
+
     \section1 Selection
 
     \section2 Complete standard selector

@@ -15,25 +15,88 @@ import RhythmGameQml
     to a circular presentation or inherited \l entries to a finite one, call
     \l setFocused when its focus changes, and handle \l moveRequested to move
     that focus.
+
+    A finite selector needs the following wiring. A circular wheel uses
+    \l presentationEntries instead of \l entries and maps its repeated visual
+    rows back through \l setFocused in the same way.
+
+    \qml
+    import QtQuick
+    import RhythmGameQml
+
+    FocusScope {
+        id: screen
+
+        property var openRankingAction: null
+
+        StandardSelectController {
+            id: selection
+
+            onFocusRequested: index => songList.currentIndex = index
+            onMoveRequested: steps => {
+                if (songList.count > 0) {
+                    songList.currentIndex =
+                        (songList.currentIndex + steps + songList.count)
+                        % songList.count;
+                }
+            }
+            onOpenInternetRankingRequested: {
+                if (typeof screen.openRankingAction === "function") {
+                    screen.openRankingAction(focusedItem);
+                }
+            }
+        }
+
+        ListView {
+            id: songList
+
+            anchors.fill: parent
+            focus: true
+            model: selection.entries
+            currentIndex: selection.focusedIndex
+            delegate: Text {
+                required property var modelData
+                text: String(modelData)
+            }
+
+            onCurrentIndexChanged: {
+                if (currentIndex >= 0) {
+                    selection.setFocused(model[currentIndex]);
+                }
+            }
+
+            Keys.onUpPressed: event => selection.handleUpPressed(event)
+            Keys.onDownPressed: event => selection.handleDownPressed(event)
+            Keys.onReleased: event => selection.handleReleased(event)
+        }
+    }
+    \endqml
+
+    The controller initializes browsing on completion unless \l autoInitialize
+    is false. F2, F3, and F12 have built-in behavior. F11 only emits
+    \l openInternetRankingRequested because ranking presentation belongs to the
+    skin. Setting \l enabled to false suppresses selection input, shortcuts,
+    and feedback. \l inputEnabled, \l shortcutsEnabled, and
+    \l feedbackEnabled can disable those parts independently.
 */
 StandardSelectState {
     id: root
 
     /*! Minimum number of entries produced by \l presentationEntries. */
     property int minimumEntryCount: 0
-    /*! Optional autoplay pre-handler. True consumes; false or undefined continues. */
+    /*! Optional \c tryAutoplayAction() pre-handler. True consumes the input. */
     property var tryAutoplayAction: null
-    /*! Optional replay pre-handler. True consumes; false or undefined continues. */
+    /*! Optional \c tryReplayAction() pre-handler. True consumes the input. */
     property var tryReplayAction: null
-    /*! Optional replacement for cycling the selected replay type. */
+    /*! Optional \c cycleReplayTypeAction() replacement. */
     property var cycleReplayTypeAction: null
-    /*! Optional sort pre-handler. True consumes; false or undefined continues. */
+    /*! Optional \c tryCycleSortModeAction(delta) pre-handler. True consumes. */
     property var tryCycleSortModeAction: null
-    /*! Optional replacement for the F2 reload action. */
+    /*! Optional \c reloadAction() replacement for F2. */
     property var reloadAction: null
-    /*! Optional replacement for the F3 folder-opening action. */
+    /*! Optional \c openSelectedFolderAction() replacement for F3. */
     property var openSelectedFolderAction: null
-    /*! Optional replacement for the F12 settings action. */
+    /*! Optional \c openSettingsAction() replacement for F12. */
     property var openSettingsAction: null
     /*! Whether the F2 reload shortcut is active. */
     property bool reloadShortcutEnabled: true
@@ -47,7 +110,7 @@ StandardSelectState {
     property bool inputEnabled: enabled
     /*! Whether selection-specific F-key shortcuts are active. */
     property bool shortcutsEnabled: enabled
-    /*! Whether standard selection audio feedback is active. */
+    /*! Whether standard audio and replacement feedback actions are active. */
     property bool feedbackEnabled: enabled
     /*! Number of analog scratch ticks required for one logical step. */
     property alias analogTicksPerStep: input.analogTicksPerStep
@@ -55,9 +118,9 @@ StandardSelectState {
     property alias initialRepeatDelayMillis: input.initialRepeatDelayMillis
     /*! Delay between repeated classic-scratch steps, in milliseconds. */
     property alias repeatDelayMillis: input.repeatDelayMillis
-    /*! Optional replacement for entering-folder feedback. */
+    /*! Optional \c enterFeedbackAction() replacement for the entering sound. */
     property var enterFeedbackAction: null
-    /*! Optional replacement for leaving-folder feedback. */
+    /*! Optional \c leaveFeedbackAction() replacement for the leaving sound. */
     property var leaveFeedbackAction: null
     /*! Default entering-folder sound source. */
     property url enterFeedbackSource:
@@ -66,7 +129,7 @@ StandardSelectState {
     property url leaveFeedbackSource:
         Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-close"
 
-    /*! Entries repeated when \l minimumEntryCount requires it. */
+    /*! Defensive snapshot repeated when \l minimumEntryCount requires it. */
     readonly property var presentationEntries: modelAdapter.entries.slice()
 
     /*! Emitted when F2 was not handled by the standard reload behavior. */

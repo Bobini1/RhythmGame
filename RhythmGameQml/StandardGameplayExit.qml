@@ -9,6 +9,30 @@ import RhythmGameQml
     The component distinguishes abandoning before a hit from finishing an
     attempted play, while leaving presentation cleanup and result opening
     overridable.
+
+    The default \l exit decision is:
+
+    \table
+        \header
+            \li State
+            \li Result
+        \row
+            \li Arena chat is open
+            \li Close chat and remain in gameplay
+        \row
+            \li No scoring hit and not Arena-owned
+            \li Run \l closePresentationAction and return without a result
+        \row
+            \li A scoring hit occurred, or Arena owns the runner
+            \li Play exit feedback, close the presentation, finish/proceed the
+                runner, and open results
+    \endtable
+
+    \l exitAction replaces that entire decision. \l openResultAction is called
+    as \c openResultAction(scores, profiles, chartData). If a runner reaches
+    \c ChartRunner.Finished while this component is disabled, completion is
+    deferred until it becomes enabled; the result is opened at most once per
+    chart.
 */
 Item {
     id: root
@@ -17,13 +41,13 @@ Item {
     property var chart: null
     /*! Chart data passed to the result screen. */
     property var chartData: null
-    /*! Optional replacement for the entire exit decision. */
+    /*! Optional \c exitAction() replacement for the entire exit decision. */
     property var exitAction: null
-    /*! Optional action that closes skin-owned overlays before exiting. */
+    /*! Optional \c closePresentationAction() called before leaving gameplay. */
     property var closePresentationAction: null
-    /*! Optional replacement for opening the result screen. */
+    /*! Optional \c openResultAction(scores,profiles,chartData) replacement. */
     property var openResultAction: null
-    /*! Optional replacement for attempted-exit audio feedback. */
+    /*! Optional \c exitFeedbackAction() replacement for attempted-exit audio. */
     property var exitFeedbackAction: null
     /*! Default attempted-exit audio source. */
     property url exitFeedbackSource:

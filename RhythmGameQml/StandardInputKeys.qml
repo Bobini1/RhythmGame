@@ -9,6 +9,9 @@ import QtQml
 
     This singleton centralizes key-range knowledge so individual screens do not
     duplicate it.
+
+    A play key is Col11 through Col17 or Col21 through Col27, inclusive. Start,
+    Select, scratch-direction, keyboard, and function keys are not included.
 */
 QtObject {
     /*! Returns whether \a key is a standard player-one or player-two play key. */

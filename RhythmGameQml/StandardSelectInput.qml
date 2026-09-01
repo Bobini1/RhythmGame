@@ -9,26 +9,63 @@ import RhythmGameQml
     The component extends \l StandardSelectNavigation with activation, replay,
     autoplay, sorting, and back-button mappings. Skins that only want movement
     policy can instantiate \l StandardSelectNavigation directly.
+
+    Controller mapping:
+
+    \table
+        \header
+            \li Input
+            \li Operation
+        \row
+            \li 1/3 keys
+            \li Activate the focused item
+        \row
+            \li 5 key
+            \li Autoplay
+        \row
+            \li 7 key
+            \li Replay
+        \row
+            \li 6 key
+            \li Cycle the selected replay
+        \row
+            \li 2/4 keys at the root
+            \li Call \l tryCycleSortModeAction with -1/+1; if it does not
+                consume the input, go back
+        \row
+            \li 2/4 keys below the root
+            \li Go back
+        \row
+            \li Scratch directions
+            \li Emit inherited \l moveRequested signals
+    \endtable
+
+    The numeric key descriptions apply to both players. Keyboard Up and Down
+    are not global shortcuts: the focused visual item must forward its
+    pressed/released events through \l handleUpPressed,
+    \l handleDownPressed, and \l handleReleased. Assign \l selectState for the
+    built-in activate/back behavior, or provide \l activateAction,
+    \l goBackAction, and \l atTopLevel for custom state.
 */
 StandardSelectNavigation {
     id: root
 
     /*! Standard selection state that receives activation and history actions. */
     property StandardSelectState selectState: null
-    /*! Optional replacement for activating the focused item. */
+    /*! Optional \c activateAction() replacement for focused-item activation. */
     property var activateAction: null
-    /*! Optional replacement for leaving the current selection entry. */
+    /*! Optional \c goBackAction() replacement for leaving the current entry. */
     property var goBackAction: null
     /*! Whether sort-key handling is currently at the top selection level. */
     property bool atTopLevel: selectState
         ? selectState.historyStack.length <= 1 : false
-    /*! Optional autoplay pre-handler. True consumes; false or undefined continues. */
+    /*! Optional \c tryAutoplayAction() pre-handler. True consumes the input. */
     property var tryAutoplayAction: null
-    /*! Optional replay pre-handler. True consumes; false or undefined continues. */
+    /*! Optional \c tryReplayAction() pre-handler. True consumes the input. */
     property var tryReplayAction: null
-    /*! Optional replacement for cycling the selected replay type. */
+    /*! Optional \c cycleReplayTypeAction() replacement. */
     property var cycleReplayTypeAction: null
-    /*! Optional sort pre-handler. True consumes; false or undefined continues. */
+    /*! Optional \c tryCycleSortModeAction(delta) pre-handler. True consumes. */
     property var tryCycleSortModeAction: null
     /*! Activates the focused item. */
     function activate() {

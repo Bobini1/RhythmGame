@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
 
@@ -8,6 +9,15 @@ import RhythmGameQml
 
     The component provides raw folder loading, history storage, preview data,
     and pending score-query cancellation shared by standard and legacy skins.
+
+    This is a low-level storage and acquisition component. The \c resolve...
+    functions return data without changing \l folderContents or
+    \l historyStack. Call \l commitFolderContents explicitly and update history
+    as one transaction. Replies passed to \l trackScoreDbReply are cancelled by
+    \l cancelScoreDbReplies and when the reply group is destroyed.
+
+    \l tableCoursesProvider, when set, is called as
+    \c tableCoursesProvider(tableItem) and must return the table's course list.
 */
 Item {
     id: root
@@ -20,7 +30,7 @@ Item {
     property var scores: ({})
     /*! Preview-file data loaded for the current contents. */
     property var previewFiles: ({})
-    /*! Optional provider returning the courses for a table. */
+    /*! Optional \c tableCoursesProvider(tableItem) course-list provider. */
     property var tableCoursesProvider: null
 
     PendingReplyGroup {

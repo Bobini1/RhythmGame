@@ -7,6 +7,12 @@ import QtQuick
 
     This optional adapter supplies enough rows to fill every visible slot while
     preserving the source as a logical, unique list.
+
+    If \l source already has at least \l minimumCount entries, \l entries is
+    the source unchanged. Otherwise the adapter repeats the complete source, so
+    the result length is the smallest multiple of the source length that is at
+    least \l minimumCount. The repeated values identify the same logical items;
+    this component does not clone them or track visual focus.
 */
 QtObject {
     id: root

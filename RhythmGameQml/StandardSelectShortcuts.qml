@@ -10,15 +10,42 @@ import QtQuick
     application content frame. Built-in actions can be replaced, and request
     signals allow custom handling when no standard implementation consumes an
     operation.
+
+    \table
+        \header
+            \li Key
+            \li Precedence
+        \row
+            \li F2
+            \li \l reloadAction, then
+                \l StandardSelectState::reloadCurrentFolderOrTable(), then
+                \l reloadRequested
+        \row
+            \li F3
+            \li \l openSelectedFolderAction, then
+                \l StandardSelectState::openSelectedFolder(), then
+                \l openSelectedFolderRequested
+        \row
+            \li F11
+            \li Always emit \l openInternetRankingRequested
+        \row
+            \li F12
+            \li \l openSettingsAction, otherwise open the standard settings
+                screen
+    \endtable
+
+    \l selectState is optional. Without it, F2 and F3 fall through to their
+    request signals. Each key can be disabled independently, and disabling the
+    component disables all four shortcuts.
 */
 Item {
     id: root
 
-    /*! Optional replacement for the F2 reload action. */
+    /*! Optional \c reloadAction() replacement for F2. */
     property var reloadAction: null
-    /*! Optional replacement for the F3 folder-opening action. */
+    /*! Optional \c openSelectedFolderAction() replacement for F3. */
     property var openSelectedFolderAction: null
-    /*! Optional replacement for the F12 settings action. */
+    /*! Optional \c openSettingsAction() replacement for F12. */
     property var openSettingsAction: null
     /*! Standard selection state used by the built-in F2 and F3 implementations. */
     property StandardSelectState selectState: null

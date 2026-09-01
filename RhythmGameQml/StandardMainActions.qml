@@ -8,17 +8,24 @@ import RhythmGameQml
 
     Skins provide their own presentation and can replace any action while
     retaining the standard controller input.
+
+    Instantiating this component also listens for either player's Start button.
+    While \l enabled and \l startOpensSelect are true, Start calls
+    \l openSelect. Set \l startOpensSelect to false when the skin owns that
+    input. The four public methods are suitable for buttons and menus; each
+    calls its matching replacement action when provided, otherwise the
+    application-owned \c globalRoot operation.
 */
 Item {
     id: root
 
-    /*! Optional replacement for opening song selection. */
+    /*! Optional \c openSelectAction() replacement. */
     property var openSelectAction: null
-    /*! Optional replacement for opening the Arena browser. */
+    /*! Optional \c openArenaAction() replacement. */
     property var openArenaAction: null
-    /*! Optional replacement for opening settings. */
+    /*! Optional \c openSettingsAction() replacement. */
     property var openSettingsAction: null
-    /*! Optional replacement for quitting the application. */
+    /*! Optional \c quitAction() replacement. */
     property var quitAction: null
     /*! Whether the controller Start button opens song selection. */
     property bool startOpensSelect: true

@@ -8,15 +8,26 @@ import RhythmGameQml
 
     Result presentation and optional button actions such as gauge cycling
     remain with the skin.
+
+    No action is accepted until \l acceptsInput becomes true. Escape closes the
+    result regardless of \l confirmEnabled; Return and skin calls to
+    \l confirm require it. \l controllerEnabled gates all controller input but
+    does not gate keyboard or pointer confirmation.
+
+    Controller handling is ordered: \l tryHandleButtonAction, retry detection,
+    then closing for a standard play key. Start closes directly. A
+    \l tryRetryAction returning true consumes retry; otherwise retry is
+    delegated to the application content frame. This component does not create
+    buttons or pointer areas; a skin can call \l confirm from its own UI.
 */
 Item {
     id: root
 
-    /*! Optional replacement for closing the result screen. */
+    /*! Optional \c closeAction() replacement for closing the result. */
     property var closeAction: null
-    /*! Optional retry pre-handler. True consumes; false or undefined continues. */
+    /*! Optional \c tryRetryAction(key) pre-handler. True consumes the retry. */
     property var tryRetryAction: null
-    /*! Optional button pre-handler. True consumes; false or undefined continues. */
+    /*! Optional \c tryHandleButtonAction(key) pre-handler. True consumes input. */
     property var tryHandleButtonAction: null
     /*! Delay before result input becomes active, in milliseconds. */
     property int inputDelayMillis: 500

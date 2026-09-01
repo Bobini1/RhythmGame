@@ -8,6 +8,30 @@ import QtQuick
     Use separate instances for operations with independent cancellation
     lifetimes. Tracked replies are forgotten when they finish and are cancelled
     when \l cancelAll is called or the group is destroyed.
+
+    \l track returns the same reply, so cancellation ownership can be added
+    without breaking a promise chain:
+
+    \qml
+    import QtQuick
+    import RhythmGameQml
+
+    Item {
+        PendingReplyGroup {
+            id: scoreReplies
+        }
+
+        function refreshScores() {
+            scoreReplies.cancelAll();
+            scoreReplies.track(
+                Rg.profileList.mainProfile.scoreDb.getScores("")
+            ).then(result => console.info(result));
+        }
+    }
+    \endqml
+
+    Calling \l track with null or an already-finished reply is a no-op. A reply
+    must provide \c resultAvailable, a \c finished signal, and \c cancel().
 */
 Item {
     id: root

@@ -9,6 +9,16 @@ import RhythmGameQml
     The component owns analog accumulation and classic-scratch repeat timing,
     then emits \l moveRequested for a skin to present. It does not own the
     focused row or any visual list.
+
+    A negative \c steps value moves upward and a positive value moves downward.
+    \c repeated is true after the first classic-scratch or key-repeat movement;
+    \c analog is true only for accumulated analog-scratch movement. The skin
+    decides whether movement wraps, clamps, or animates.
+
+    Use \l StandardSelectInput when the standard input mapping is wanted. Call
+    \l pressDirection, \l navigate, and \l releaseDirection directly only when
+    adapting another input source. Disabling the component calls \l reset and
+    discards held-key and partial analog state.
 */
 Item {
     id: root
