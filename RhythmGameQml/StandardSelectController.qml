@@ -75,18 +75,27 @@ import RhythmGameQml
     The controller initializes browsing on completion unless \l autoInitialize
     is false. F2, F3, and F12 have built-in behavior. F11 only emits
     \l openInternetRankingRequested because ranking presentation belongs to the
-    skin. Setting \l enabled to false suppresses selection input, shortcuts,
-    and feedback. \l inputEnabled, \l shortcutsEnabled, and
-    \l feedbackEnabled can disable those parts independently.
+    skin. Autoplay also has built-in behavior; replay requires
+    \l tryReplayAction because replay-score selection belongs to the skin.
+    Setting \l enabled to false suppresses selection input, shortcuts, and
+    feedback. \l inputEnabled, \l shortcutsEnabled, and \l feedbackEnabled can
+    disable those parts independently. Disabled forwarded keyboard handlers do
+    not accept their events, allowing the skin to replace them.
 */
 StandardSelectState {
     id: root
 
     /*! Minimum number of entries produced by \l presentationEntries. */
     property int minimumEntryCount: 0
-    /*! Optional \c tryAutoplayAction() pre-handler. True consumes the input. */
+    /*!
+        Optional \c tryAutoplayAction() pre-handler. True consumes the input;
+        false continues with standard autoplay.
+    */
     property var tryAutoplayAction: null
-    /*! Optional \c tryReplayAction() pre-handler. True consumes the input. */
+    /*!
+        Optional \c tryReplayAction() handler. Replay input is ignored when it
+        is absent or returns false.
+    */
     property var tryReplayAction: null
     /*! Optional \c cycleReplayTypeAction() replacement. */
     property var cycleReplayTypeAction: null
@@ -122,10 +131,10 @@ StandardSelectState {
     property var enterFeedbackAction: null
     /*! Optional \c leaveFeedbackAction() replacement for the leaving sound. */
     property var leaveFeedbackAction: null
-    /*! Default entering-folder sound source. */
+    /*! Default entering-folder sound source, loaded only for built-in feedback. */
     property url enterFeedbackSource:
         Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-open"
-    /*! Default leaving-folder sound source. */
+    /*! Default leaving-folder sound source, loaded only for built-in feedback. */
     property url leaveFeedbackSource:
         Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-close"
 
@@ -154,7 +163,9 @@ StandardSelectState {
     AudioPlayer {
         id: enterFeedback
 
-        source: root.enterFeedbackSource
+        source: root.feedbackEnabled
+                && typeof root.enterFeedbackAction !== "function"
+            ? root.enterFeedbackSource : ""
 
         function trigger() {
             if (!root.enabled || !root.feedbackEnabled) {
@@ -172,7 +183,9 @@ StandardSelectState {
     AudioPlayer {
         id: leaveFeedback
 
-        source: root.leaveFeedbackSource
+        source: root.feedbackEnabled
+                && typeof root.leaveFeedbackAction !== "function"
+            ? root.leaveFeedbackSource : ""
 
         function trigger() {
             if (!root.enabled || !root.feedbackEnabled) {
@@ -224,17 +237,17 @@ StandardSelectState {
 
     /*! Handles an Up key \a event from the skin's visual focus item. */
     function handleUpPressed(event) {
-        input.handleUpPressed(event);
+        return input.handleUpPressed(event);
     }
 
     /*! Handles a Down key \a event from the skin's visual focus item. */
     function handleDownPressed(event) {
-        input.handleDownPressed(event);
+        return input.handleDownPressed(event);
     }
 
     /*! Handles a keyboard direction-release \a event from the skin. */
     function handleReleased(event) {
-        input.handleReleased(event);
+        return input.handleReleased(event);
     }
 
     /*! Clears held directions, analog accumulation, and repeat timing. */

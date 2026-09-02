@@ -321,7 +321,7 @@ Item {
             ? entries[logicalIndex] : null;
     }
 
-    /*! Rebuilds \l entries and their associated data. */
+    /*! Refreshes score, preview-file, and folder clear-statistic metadata. */
     function refresh() {
         selectionState.refreshScores();
         selectionState.refreshPreviewFiles();

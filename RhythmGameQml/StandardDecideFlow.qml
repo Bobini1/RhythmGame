@@ -29,8 +29,10 @@ import RhythmGameQml
 
     Only the first start/cancel request is accepted for a chart. The built-in
     start opens gameplay and remembers to return past the decide screen when
-    gameplay closes. A replacement \l startAction or \l cancelAction owns its
-    complete transition; it is not followed by the built-in action.
+    gameplay closes. If a built-in transition cannot create or remove a screen,
+    the request is released so the skin can try again. A replacement
+    \l startAction or \l cancelAction owns its complete transition; it is not
+    followed by the built-in action.
 
     On destruction, \l chart is destroyed unless
     \l destroyChartOnDestruction is false. A skin transferring ownership of the
@@ -72,10 +74,15 @@ Item {
             flowState.transitionRequested = true;
             if (typeof action === "function") {
                 action();
-            } else {
-                flowState.returnAfterGameplay = returnAfterDefault;
-                defaultAction();
+                return true;
             }
+            let result = defaultAction();
+            if (!result) {
+                flowState.transitionRequested = false;
+                flowState.returnAfterGameplay = false;
+                return false;
+            }
+            flowState.returnAfterGameplay = returnAfterDefault;
             return true;
         }
 

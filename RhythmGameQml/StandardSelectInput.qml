@@ -40,6 +40,11 @@ import RhythmGameQml
             \li Emit inherited \l moveRequested signals
     \endtable
 
+    Autoplay uses \l StandardSelectState::openPlayable when its pre-handler
+    does not consume the input. Replay requires \l tryReplayAction because the
+    choice of replay score is deliberately outside selection input; without a
+    successful handler, replay input does nothing.
+
     The numeric key descriptions apply to both players. Keyboard Up and Down
     are not global shortcuts: the focused visual item must forward its
     pressed/released events through \l handleUpPressed,
@@ -59,9 +64,16 @@ StandardSelectNavigation {
     /*! Whether sort-key handling is currently at the top selection level. */
     property bool atTopLevel: selectState
         ? selectState.historyStack.length <= 1 : false
-    /*! Optional \c tryAutoplayAction() pre-handler. True consumes the input. */
+    /*!
+        Optional \c tryAutoplayAction() pre-handler. True consumes the input;
+        false continues with standard autoplay.
+    */
     property var tryAutoplayAction: null
-    /*! Optional \c tryReplayAction() pre-handler. True consumes the input. */
+    /*!
+        Optional \c tryReplayAction() handler. Replay input is ignored when it
+        is absent or returns false because selecting a replay requires skin- or
+        application-owned replay state.
+    */
     property var tryReplayAction: null
     /*! Optional \c cycleReplayTypeAction() replacement. */
     property var cycleReplayTypeAction: null
@@ -97,50 +109,72 @@ StandardSelectNavigation {
 
     /*! Activates replay for the focused chart. */
     function activateReplay() {
-        if (typeof tryReplayAction !== "function"
-                || !tryReplayAction()) {
-            activate();
+        if (!root.enabled || typeof tryReplayAction !== "function") {
+            return false;
         }
+        return !!tryReplayAction();
     }
 
     /*! Activates autoplay for the focused chart. */
     function activateAutoplay() {
-        if (typeof tryAutoplayAction !== "function" || !tryAutoplayAction()) {
-            activate();
+        if (!root.enabled) {
+            return false;
         }
+        if (typeof tryAutoplayAction === "function" && tryAutoplayAction()) {
+            return true;
+        }
+        if (selectState && selectState.openPlayable(
+                selectState.focusedItem, true, false, null)) {
+            return true;
+        }
+        return false;
     }
 
     /*! Handles an Up key \a event. */
     function handleUpPressed(event) {
+        if (!root.enabled) {
+            return false;
+        }
         event.accepted = true;
         if (!event.isAutoRepeat) {
             root.pressDirection(Qt.Key_Up);
         }
         root.navigate(event.isAutoRepeat, null, true, Qt.Key_Up);
+        return true;
     }
 
     /*! Handles a Down key \a event. */
     function handleDownPressed(event) {
+        if (!root.enabled) {
+            return false;
+        }
         event.accepted = true;
         if (!event.isAutoRepeat) {
             root.pressDirection(Qt.Key_Down);
         }
         root.navigate(event.isAutoRepeat, null, false, Qt.Key_Down);
+        return true;
     }
 
     /*! Handles a keyboard direction-release \a event. */
     function handleReleased(event) {
+        if (!root.enabled) {
+            return false;
+        }
         if (event.key === Qt.Key_Up) {
             if (!event.isAutoRepeat) {
                 root.releaseDirection(Qt.Key_Up, true);
             }
             event.accepted = true;
+            return true;
         } else if (event.key === Qt.Key_Down) {
             if (!event.isAutoRepeat) {
                 root.releaseDirection(Qt.Key_Down, false);
             }
             event.accepted = true;
+            return true;
         }
+        return false;
     }
 
     /*! Handles top-level sort-mode input for \a key. */

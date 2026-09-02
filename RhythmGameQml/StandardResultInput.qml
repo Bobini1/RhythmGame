@@ -69,6 +69,9 @@ Item {
 
     /*! Retries using the play-side indicated by \a key. */
     function retry(key) {
+        if (!enabled || !acceptsInput) {
+            return false;
+        }
         if (typeof tryRetryAction === "function" && tryRetryAction(key)) {
             return true;
         }

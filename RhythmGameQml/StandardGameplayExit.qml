@@ -49,7 +49,7 @@ Item {
     property var openResultAction: null
     /*! Optional \c exitFeedbackAction() replacement for attempted-exit audio. */
     property var exitFeedbackAction: null
-    /*! Default attempted-exit audio source. */
+    /*! Default attempted-exit audio source, loaded only for built-in feedback. */
     property url exitFeedbackSource:
         Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playstop"
     /*! Whether attempted-exit feedback is active. */
@@ -143,7 +143,9 @@ Item {
     AudioPlayer {
         id: playstopSound
 
-        source: root.exitFeedbackSource
+        source: root.exitFeedbackEnabled
+                && typeof root.exitFeedbackAction !== "function"
+            ? root.exitFeedbackSource : ""
     }
 
     Shortcut {

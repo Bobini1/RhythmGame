@@ -285,6 +285,8 @@ Interaction policies:
   sorting and back-button mappings by extending `StandardSelectNavigation`. A
   custom state can supply semantic `activateAction`, `goBackAction` and
   `atTopLevel` values instead of pretending to be `StandardSelectState`.
+  Autoplay has a state-backed implementation. Replay needs
+  `tryReplayAction`, since choosing a replay score remains skin-owned.
 - `StandardSelectShortcuts` provides F2 reload, F3 open-folder, F11
   internet-ranking and F12 settings shortcuts. F2 and F3 use a supplied
   `selectState` by default. F2, F3 and F12 defaults can be replaced or
