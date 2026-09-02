@@ -107,7 +107,7 @@ Image {
         onClicked: {
             pathView.forceActiveFocus();
             pathView.setNavigationImmediate(index);
-            pathView.goForward(modelData);
+            pathView.controller.goForward(modelData);
         }
     }
 }

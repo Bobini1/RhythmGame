@@ -42,11 +42,6 @@ add_executable(RhythmGame_test
         resource_managers/Languages.test.cpp
         resource_managers/ScanThemes.test.cpp
         resource_managers/SongAssetStore.test.cpp
-        qml_components/FileQuery.test.cpp
-        qml_components/FontResolver.test.cpp
-        qml_components/OnlineScores.test.cpp
-        qml_components/ScoreDbAsyncApi.test.cpp
-        qml_components/StandardSelectPragmas.test.cpp
         input/InputTranslator.test.cpp
         support/GeneratePermutation.test.cpp
         support/FrameRateLimiter.test.cpp

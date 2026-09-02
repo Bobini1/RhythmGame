@@ -109,7 +109,7 @@ Image {
         onClicked: {
             pathView.forceActiveFocus();
             pathView.setNavigationImmediate(index);
-            Qt.callLater(() => pathView.goForward(pathView.current));
+            Qt.callLater(() => pathView.controller.goForward(pathView.current));
         }
     }
 }
