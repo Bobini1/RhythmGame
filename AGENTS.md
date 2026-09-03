@@ -99,8 +99,6 @@ app-linked static
 ## Translations and localization
 
 - Do not create, infer, or update translations with AI unless the user explicitly requests translation work.
-- When a change introduces or modifies user-facing source text without such a request, leave translation catalogs
-  untouched and report that translation work remains.
 - For explicitly requested translation work, follow `DEV_LANG.md` and preserve placeholders, formatting, accelerator
   markers, and the intended locale.
 
