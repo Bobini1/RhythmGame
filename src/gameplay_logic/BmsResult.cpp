@@ -242,46 +242,75 @@ gameplay_logic::BmsResult::BmsResult(
 {
 }
 void
-gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
+gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
+                                int source,
+                                int longNoteMode) const
 {
     if (guid.isEmpty()) {
         return;
     }
-    auto statement =
-      db.createStatement("INSERT OR IGNORE INTO score ("
-                         "max_points, "
-                         "max_hits, "
-                         "normal_note_count, "
-                         "scratch_count, "
-                         "ln_count, "
-                         "bss_count, "
-                         "mine_count, "
-                         "clear_type, "
-                         "points, "
-                         "max_combo, "
-                         "poor, "
-                         "empty_poor, "
-                         "bad, "
-                         "good, "
-                         "great, "
-                         "perfect,"
-                         "mine_hits,"
-                         "guid,"
-                         "sha256,"
-                         "md5,"
-                         "unix_timestamp,"
-                         "length,"
-                         "random_sequence,"
-                         "random_seed,"
-                         "note_order_algorithm,"
-                         "note_order_algorithm_p2,"
-                         "dp_options,"
-                         "keymode,"
-                         "game_version,"
-                         "owner"
-                         ")"
-                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+    auto statement = db.createStatement(
+      "INSERT INTO score ("
+      "max_points, "
+      "max_hits, "
+      "normal_note_count, "
+      "scratch_count, "
+      "ln_count, "
+      "bss_count, "
+      "mine_count, "
+      "clear_type, "
+      "points, "
+      "max_combo, "
+      "poor, "
+      "empty_poor, "
+      "bad, "
+      "good, "
+      "great, "
+      "perfect,"
+      "mine_hits,"
+      "guid,"
+      "sha256,"
+      "md5,"
+      "unix_timestamp,"
+      "length,"
+      "random_sequence,"
+      "random_seed,"
+      "note_order_algorithm,"
+      "note_order_algorithm_p2,"
+      "dp_options,"
+      "keymode,"
+      "game_version,"
+      "owner,"
+      "source,"
+      "ln_mode"
+      ")"
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+      "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+      "ON CONFLICT(guid) DO UPDATE SET "
+      "max_points=excluded.max_points, "
+      "max_hits=excluded.max_hits, "
+      "normal_note_count=excluded.normal_note_count, "
+      "scratch_count=excluded.scratch_count, "
+      "ln_count=excluded.ln_count, "
+      "bss_count=excluded.bss_count, "
+      "mine_count=excluded.mine_count, "
+      "clear_type=excluded.clear_type, points=excluded.points, "
+      "max_combo=excluded.max_combo, poor=excluded.poor, "
+      "empty_poor=excluded.empty_poor, bad=excluded.bad, "
+      "good=excluded.good, great=excluded.great, "
+      "perfect=excluded.perfect, mine_hits=excluded.mine_hits, "
+      "sha256=excluded.sha256, md5=excluded.md5, "
+      "unix_timestamp=excluded.unix_timestamp, "
+      "length=excluded.length, "
+      "random_sequence=excluded.random_sequence, "
+      "random_seed=excluded.random_seed, "
+      "note_order_algorithm=excluded.note_order_algorithm, "
+      "note_order_algorithm_p2=excluded.note_order_algorithm_p2, "
+      "dp_options=excluded.dp_options, "
+      "keymode=excluded.keymode, game_version=excluded.game_version, "
+      "owner=excluded.owner, source=excluded.source, "
+      "ln_mode=excluded.ln_mode "
+      "WHERE score.source <> 0;");
     statement.bind(1, maxPoints);
     statement.bind(2, maxHits);
     statement.bind(3, normalNoteCount);
@@ -314,6 +343,8 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db) const
     statement.bind(28, static_cast<int>(keymode));
     statement.bind(29, static_cast<int64_t>(gameVersion));
     statement.bind(30, owner.toStdString());
+    statement.bind(31, source);
+    statement.bind(32, longNoteMode);
     statement.execute();
 }
 auto

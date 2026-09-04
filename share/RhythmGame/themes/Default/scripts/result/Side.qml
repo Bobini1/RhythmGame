@@ -72,6 +72,9 @@ Column {
     Component.onDestruction: cancelScoreDbReply();
 
     function cycleGauge() {
+        if (side.score.gaugeHistory === null) {
+            return false;
+        }
         lifeGraph.incrementIndex();
         return true;
     }
@@ -99,6 +102,7 @@ Column {
 
             mean: side.mean
             stddev: side.stddev
+            visible: side.score.replayData !== null
             transform: Scale {
                 xScale: side.mirrored ? -1 : 1
                 origin.x: side.mirrored ? meanSd.width / 2 : 0
@@ -108,7 +112,7 @@ Column {
             id: lifeGraph
 
             clearType: side.score.result.clearType
-            gaugeInfo: side.score.gaugeHistory.gaugeInfo
+            gaugeInfo: side.score.gaugeHistory?.gaugeInfo || []
             length: side.score.result.length
             lengths: side.score instanceof BmsScoreCourse ? side.score.scores.map((s) => s.result.length) : [side.score.result.length]
 
@@ -116,7 +120,7 @@ Column {
             anchors.left: side.isBattle ? scoreColumn.right : undefined
             scale: side.isBattle ? 350 / implicitWidth : 1
             transformOrigin: Item.TopLeft
-            visible: !side.arenaResultMatches
+            visible: !side.arenaResultMatches && side.score.gaugeHistory !== null
             anchors.rightMargin: 90
             anchors.top: side.isBattle ? meanSd.bottom : scoreColumn.top
             transform: Scale {
@@ -289,6 +293,7 @@ Column {
             }
 
             points: side.score.result.points
+            importedSource: side.score.imported === true ? side.score.sourceName : ""
             maxPoints: side.score.result.maxPoints
             oldBestPoints: side.oldBestPointsScore?.result?.points || 0
             oldBestStats: side.oldBestStats

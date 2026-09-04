@@ -44,8 +44,11 @@ FocusScope {
             fileName: root.themeVars.songInfoFont
         }
 
-        function getScore(type) {
+        function getScore(type, requireReplayData) {
             let scoreList = songList.currentItem?.scores || [];
+            if (requireReplayData) {
+                scoreList = scoreList.filter(score => score.replayData !== null);
+            }
             if (scoreList.length === 0) {
                 return null;
             }
@@ -81,7 +84,7 @@ FocusScope {
             if (arenaSeated) {
                 return false;
             }
-            let score = getScore(type);
+            let score = getScore(type, button === Qt.LeftButton);
             if (!score) {
                 return false;
             }
@@ -633,6 +636,9 @@ FocusScope {
                 anchors.horizontalCenterOffset: scoreInfo.lineWidth / 2 + scoreInfo.spacing / 2
                 anchors.bottomMargin: 18
                 text: qsTr("Score Details")
+                    + (scoreInfo.scoreWithBestPoints?.imported
+                       ? " · " + scoreInfo.scoreWithBestPoints.sourceName
+                       : "")
                 width: scoreInfo.lineWidth - 48
             }
             ScoreInfo {

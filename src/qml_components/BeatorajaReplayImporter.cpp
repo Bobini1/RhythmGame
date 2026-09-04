@@ -1031,7 +1031,8 @@ startBeatorajaReplayImport(resource_managers::Profile* profile,
     // can do duplicate detection with an in-memory lookup instead of one
     // round-trip per file.
     auto existingStmt = profile->getDb().createStatement(
-      "SELECT sha256, md5, unix_timestamp FROM score;");
+      "SELECT score.sha256, score.md5, score.unix_timestamp FROM score "
+      "JOIN replay_data ON score.guid = replay_data.score_guid;");
     const auto existingRows =
       existingStmt
         .executeAndGetAll<std::tuple<std::string, std::string, int64_t>>();

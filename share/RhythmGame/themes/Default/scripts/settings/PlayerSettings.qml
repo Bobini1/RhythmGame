@@ -70,6 +70,15 @@ Item {
         }
     }
 
+    FileDialog {
+        id: scoreDatabaseDialog
+
+        title: qsTr("Select LR2 or beatoraja score database")
+        nameFilters: [qsTr("SQLite databases (*.db)"), qsTr("All files (*)")]
+
+        onAccepted: Rg.profileList.mainProfile.importScores(selectedFile.toString())
+    }
+
     SettingsWorkspaceScaffold {
         id: pageScaffold
 
@@ -78,7 +87,7 @@ Item {
             id: pageHeader
 
             title: qsTr("Player settings")
-            subtitle: qsTr("Choose a profile, manage online login, sync scores, and import replays.")
+            subtitle: qsTr("Choose a profile, manage online login, sync scores, and import data.")
         }
 
         RowLayout {
@@ -217,7 +226,7 @@ Item {
                     id: loginSection
 
                     title: qsTr("Online account")
-                    subtitle: qsTr("Download and upload scores for the selected profile.")
+                    subtitle: qsTr("Sync RhythmGame scores and import connected Bokutachi PBs.")
                     Layout.fillWidth: true
 
                     property var profile: Rg.profileList.mainProfile
@@ -228,25 +237,34 @@ Item {
                     function runSync() {
                         loginSection.syncing = true;
                         loginSection.syncError = false;
-                        loginSection.pendingOps = 2;
+                        loginSection.pendingOps = 3;
 
                         function attachOp(op) {
-                            op.error.connect(function(msg) {
-                                console.warn("Sync error:", msg);
-                                loginSection.syncError = true;
-                            });
-                            op.finishedChanged.connect(function() {
+                            function completeOp() {
                                 loginSection.pendingOps = Math.max(0, loginSection.pendingOps - 1);
                                 if (loginSection.pendingOps === 0) {
                                     loginSection.syncing = false;
                                     if (!loginSection.syncError)
                                         playerSettings.updateScoreCounts++;
                                 }
+                            }
+
+                            op.error.connect(function(msg) {
+                                console.warn("Sync error:", msg);
+                                loginSection.syncError = true;
+                            });
+                            if (op.finished) {
+                                completeOp();
+                                return;
+                            }
+                            op.finishedChanged.connect(function() {
+                                completeOp();
                             });
                         }
 
                         attachOp(loginSection.profile.downloadScores());
                         attachOp(loginSection.profile.uploadScores());
+                        attachOp(loginSection.profile.importBokutachiScores());
                     }
 
                     Loader {
@@ -361,6 +379,85 @@ Item {
 
                                 onClicked: loginSection.profile.login(emailField.text, passwordField.text)
                             }
+                        }
+                    }
+                }
+
+                WorkbenchPanel {
+                    id: scoreImportSection
+
+                    title: qsTr("Import score database")
+                    subtitle: qsTr("Import replay-less best scores from LR2 score.db or beatoraja score.db.")
+                    Layout.fillWidth: true
+
+                    readonly property var op: Rg.profileList.mainProfile.scoreImportOperation
+                    readonly property bool importing: op !== null && !op.finished
+
+                    Connections {
+                        target: scoreImportSection.op
+
+                        function onFinishedChanged() {
+                            playerSettings.updateScoreCounts++;
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        ActionButton {
+                            text: qsTr("Select database...")
+                            tone: ActionButton.Primary
+                            Layout.preferredWidth: 200
+                            enabled: !scoreImportSection.importing
+
+                            onClicked: scoreDatabaseDialog.open()
+                        }
+
+                        BusyIndicator {
+                            running: scoreImportSection.importing
+                            visible: scoreImportSection.importing
+                            Layout.preferredWidth: 24
+                            Layout.preferredHeight: 24
+                        }
+                    }
+
+                    ProgressBar {
+                        Layout.fillWidth: true
+                        visible: scoreImportSection.op !== null
+                        value: scoreImportSection.op !== null
+                               ? scoreImportSection.op.done / Math.max(scoreImportSection.op.total, 1)
+                               : 0
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        wrapMode: Text.Wrap
+                        visible: scoreImportSection.op !== null
+                        text: qsTr("Imported: %1, errors: %2, skipped: %3, total: %4")
+                            .arg(scoreImportSection.op ? scoreImportSection.op.imported : 0)
+                            .arg(scoreImportSection.op ? scoreImportSection.op.errored : 0)
+                            .arg(scoreImportSection.op ? scoreImportSection.op.skipped : 0)
+                            .arg(scoreImportSection.op ? scoreImportSection.op.total : 0)
+                    }
+
+                    ListView {
+                        Layout.fillWidth: true
+                        Layout.minimumHeight: 80
+                        Layout.preferredHeight: Math.min(160, contentHeight)
+                        visible: scoreImportSection.op !== null && scoreImportSection.op.count > 0
+                        model: scoreImportSection.op
+                        spacing: 2
+                        clip: true
+                        ScrollBar.vertical: ScrollBar {}
+
+                        delegate: Label {
+                            required property string message
+
+                            width: ListView.view ? ListView.view.width : 0
+                            wrapMode: Text.Wrap
+                            color: SettingsColors.dangerText(palette)
+                            text: message
                         }
                     }
                 }

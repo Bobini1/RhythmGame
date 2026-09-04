@@ -31,9 +31,17 @@
       "hidden": true,
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_INSTALL_OPTIONS": "--clean-after-build;--x-buildtrees-root=${sourceDir}/.vcpkg-buildtrees;--x-packages-root=${sourceDir}/.vcpkg-packages;--downloads-root=${sourceDir}/.vcpkg-cache/downloads",
+        "VCPKG_INSTALL_OPTIONS": "--clean-after-build;--x-buildtrees-root=$env{VCPKG_ROOT}/buildtrees;--x-packages-root=$env{VCPKG_ROOT}/packages;--downloads-root=$env{VCPKG_ROOT}/downloads",
         "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkgTriplets",
         "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkgOverlayPorts"
+      }
+    },
+    {
+      "name": "vcpkg-ci",
+      "hidden": true,
+      "inherits": "vcpkg",
+      "cacheVariables": {
+        "VCPKG_INSTALL_OPTIONS": "--clean-after-build;--x-buildtrees-root=${sourceDir}/.vcpkg-buildtrees;--x-packages-root=${sourceDir}/.vcpkg-packages;--downloads-root=${sourceDir}/.vcpkg-cache/downloads"
       }
     },
     {
@@ -153,7 +161,7 @@
       "inherits": [
         "coverage-linux",
         "dev-mode",
-        "vcpkg",
+        "vcpkg-ci",
         "vcpkg-linux-sharedqt"
       ],
       "warnings": {
@@ -170,7 +178,7 @@
       "inherits": [
         "ci-linux",
         "dev-mode",
-        "vcpkg",
+        "vcpkg-ci",
         "vcpkg-linux-sharedqt"
       ],
       "warnings": {
@@ -194,7 +202,7 @@
         "ci-build",
         "ci-darwin",
         "dev-mode",
-        "vcpkg",
+        "vcpkg-ci",
         "vcpkg-osx-sharedqt"
       ],
       "warnings": {
@@ -207,7 +215,7 @@
       "inherits": [
         "ci-build",
         "ci-linux",
-        "vcpkg",
+        "vcpkg-ci",
         "dev-mode",
         "vcpkg-linux-sharedqt"
       ],
@@ -222,7 +230,7 @@
         "ci-build",
         "ci-win64",
         "dev-mode",
-        "vcpkg",
+        "vcpkg-ci",
         "vcpkg-win64-sharedqt"
       ],
       "warnings": {

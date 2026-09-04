@@ -102,6 +102,52 @@ struct ScoreSummaryChart
     double bestMaxPoints = 0.0;
 };
 
+struct StoredScoreRow
+{
+    gameplay_logic::BmsResult::DTO result;
+    int source{};
+    int longNoteMode{};
+    int replayRowExists{};
+    gameplay_logic::BmsReplayData::DTO replayData;
+    int gaugeRowExists{};
+    gameplay_logic::BmsGaugeHistory::DTO gaugeHistory;
+};
+
+constexpr auto storedScoreColumns =
+  "score.max_points, score.max_hits, score.normal_note_count, "
+  "score.scratch_count, score.ln_count, score.bss_count, score.mine_count, "
+  "score.clear_type, score.points, score.max_combo, score.poor, "
+  "score.empty_poor, score.bad, score.good, score.great, score.perfect, "
+  "score.mine_hits, score.guid, score.sha256, score.md5, "
+  "score.unix_timestamp, score.length, score.random_sequence, "
+  "score.random_seed, score.note_order_algorithm, "
+  "score.note_order_algorithm_p2, score.dp_options, score.keymode, "
+  "score.game_version, score.owner, score.source, score.ln_mode, "
+  "replay_data.score_guid IS NOT NULL, replay_data.id, "
+  "replay_data.score_guid, replay_data.replay_data, "
+  "gauge_history.score_guid IS NOT NULL, gauge_history.id, "
+  "gauge_history.score_guid, gauge_history.gauge_info ";
+
+auto
+loadStoredScore(const StoredScoreRow& row, QObject* parent = nullptr)
+  -> std::unique_ptr<gameplay_logic::BmsScore>
+{
+    auto replayData = row.replayRowExists
+                        ? gameplay_logic::BmsReplayData::load(row.replayData)
+                        : nullptr;
+    auto gaugeHistory =
+      row.gaugeRowExists
+        ? gameplay_logic::BmsGaugeHistory::load(row.gaugeHistory)
+        : nullptr;
+    return std::make_unique<gameplay_logic::BmsScore>(
+      gameplay_logic::BmsResult::load(row.result),
+      std::move(replayData),
+      std::move(gaugeHistory),
+      parent,
+      static_cast<gameplay_logic::BmsScore::Source>(row.source),
+      static_cast<gameplay_logic::BmsScore::LongNoteMode>(row.longNoteMode));
+}
+
 template<typename Result>
 struct ScoreQueryDelivery
 {
@@ -411,28 +457,15 @@ ScoreDb::getScoresForMd5Impl(QList<QString> md5s,
         uniqueMd5s.insert(md5.toUpper());
     }
     const auto md5sToFetch = uniqueMd5s.values();
-    std::vector<std::tuple<gameplay_logic::BmsResult::DTO,
-                           gameplay_logic::BmsReplayData::DTO,
-                           gameplay_logic::BmsGaugeHistory::DTO>>
-      allResults;
+    std::vector<StoredScoreRow> allResults;
 
     for (int i = 0; i < md5sToFetch.size(); i += maxVariables) {
         auto chunk = md5sToFetch.mid(i, maxVariables);
         auto statement = scoreDb->createStatement(
-          "SELECT score.max_points, score.max_hits, score.normal_note_count, "
-          "score.scratch_count, score.ln_count, score.bss_count, "
-          "score.mine_count, "
-          "score.clear_type, score.points, score.max_combo, score.poor, "
-          "score.empty_poor, score.bad, score.good, score.great, "
-          "score.perfect, score.mine_hits, score.guid, score.sha256, "
-          "score.md5, score.unix_timestamp, score.length, "
-          "score.random_sequence, score.random_seed, "
-          "score.note_order_algorithm, score.note_order_algorithm_p2, "
-          "score.dp_options, score.keymode, score.game_version, score.owner, "
-          "replay_data.*, gauge_history.* "
+          std::string("SELECT ") + storedScoreColumns +
           "FROM score "
-          "JOIN replay_data ON score.guid = replay_data.score_guid "
-          "JOIN gauge_history ON score.guid = gauge_history.score_guid "
+          "LEFT JOIN replay_data ON score.guid = replay_data.score_guid "
+          "LEFT JOIN gauge_history ON score.guid = gauge_history.score_guid "
           "WHERE score.md5 IN (" +
           QString("?, ").repeated(chunk.size()).chopped(2).toStdString() +
           ") ORDER BY score.unix_timestamp DESC");
@@ -441,20 +474,14 @@ ScoreDb::getScoresForMd5Impl(QList<QString> md5s,
             statement.bind(j + 1, chunk[j].toStdString());
         }
 
-        const auto result = statement.executeAndGetAll<
-          std::tuple<gameplay_logic::BmsResult::DTO,
-                     gameplay_logic::BmsReplayData::DTO,
-                     gameplay_logic::BmsGaugeHistory::DTO>>();
+        const auto result = statement.executeAndGetAll<StoredScoreRow>();
         allResults.insert(allResults.end(), result.begin(), result.end());
     }
 
     QMap<QString, QVariantList> groupedScores;
     for (const auto& row : allResults) {
-        auto md5 = QString::fromStdString(std::get<0>(row).md5);
-        auto score = std::make_unique<gameplay_logic::BmsScore>(
-          gameplay_logic::BmsResult::load(std::get<0>(row)),
-          gameplay_logic::BmsReplayData::load(std::get<1>(row)),
-          gameplay_logic::BmsGaugeHistory::load(std::get<2>(row)));
+        auto md5 = QString::fromStdString(row.result.md5);
+        auto score = loadStoredScore(row);
         auto* ownedScore = objects.adopt(std::move(score));
         groupedScores[md5].append(QVariant::fromValue(ownedScore));
     }
@@ -508,28 +535,15 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds,
         scoreGuids.append(guids);
     }
 
-    std::vector<std::tuple<gameplay_logic::BmsResult::DTO,
-                           gameplay_logic::BmsReplayData::DTO,
-                           gameplay_logic::BmsGaugeHistory::DTO>>
-      allResults;
+    std::vector<StoredScoreRow> allResults;
 
     for (int i = 0; i < scoreGuids.size(); i += maxVariables) {
         auto chunk = scoreGuids.mid(i, maxVariables);
         auto statement = scoreDb->createStatement(
-          "SELECT score.max_points, score.max_hits, score.normal_note_count, "
-          "score.scratch_count, score.ln_count, score.bss_count, "
-          "score.mine_count, "
-          "score.clear_type, score.points, score.max_combo, score.poor, "
-          "score.empty_poor, score.bad, score.good, score.great, "
-          "score.perfect, score.mine_hits, score.guid, score.sha256, "
-          "score.md5, score.unix_timestamp, score.length, "
-          "score.random_sequence, score.random_seed, "
-          "score.note_order_algorithm, score.note_order_algorithm_p2, "
-          "score.dp_options, score.keymode, score.game_version, score.owner, "
-          "replay_data.*, gauge_history.* "
+          std::string("SELECT ") + storedScoreColumns +
           "FROM score "
-          "JOIN replay_data ON score.guid = replay_data.score_guid "
-          "JOIN gauge_history ON score.guid = gauge_history.score_guid "
+          "LEFT JOIN replay_data ON score.guid = replay_data.score_guid "
+          "LEFT JOIN gauge_history ON score.guid = gauge_history.score_guid "
           "WHERE score.guid IN (" +
           QString("?, ").repeated(chunk.size()).chopped(2).toStdString() +
           ") ORDER BY score.unix_timestamp DESC");
@@ -538,15 +552,12 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds,
             statement.bind(j + 1, chunk[j].toStdString());
         }
 
-        const auto result = statement.executeAndGetAll<
-          std::tuple<gameplay_logic::BmsResult::DTO,
-                     gameplay_logic::BmsReplayData::DTO,
-                     gameplay_logic::BmsGaugeHistory::DTO>>();
+        const auto result = statement.executeAndGetAll<StoredScoreRow>();
         allResults.insert(allResults.end(), result.begin(), result.end());
     }
     auto scoreRows = QHash<QString, qsizetype>{};
     for (auto index = std::size_t{}; index < allResults.size(); ++index) {
-        scoreRows[QString::fromStdString(std::get<0>(allResults[index]).guid)] =
+        scoreRows[QString::fromStdString(allResults[index].result.guid)] =
           static_cast<qsizetype>(index);
     }
 
@@ -563,11 +574,7 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds,
 
             const auto& resultRow =
               allResults.at(static_cast<std::size_t>(row.value()));
-            auto score = std::make_unique<gameplay_logic::BmsScore>(
-              gameplay_logic::BmsResult::load(std::get<0>(resultRow)),
-              gameplay_logic::BmsReplayData::load(std::get<1>(resultRow)),
-              gameplay_logic::BmsGaugeHistory::load(std::get<2>(resultRow)),
-              &constructionOwner);
+            auto score = loadStoredScore(resultRow, &constructionOwner);
             scoresForCourse.append(score.get());
             (void)score.release();
         }
@@ -756,36 +763,19 @@ ScoreDb::getScores(const QString& folder) -> support::PendingReply*
             countQuery.executeAndGet<int>().value_or(0);
 
           auto query = scoreDb->createStatement(
-            "SELECT score.max_points, score.max_hits, "
-            "score.normal_note_count, score.scratch_count, score.ln_count, "
-            "score.bss_count, "
-            "score.mine_count, score.clear_type, score.points, "
-            "score.max_combo, score.poor, score.empty_poor, score.bad, "
-            "score.good, score.great, score.perfect, score.mine_hits, "
-            "score.guid, score.sha256, score.md5, score.unix_timestamp, "
-            "score.length, score.random_sequence, score.random_seed, "
-            "score.note_order_algorithm, score.note_order_algorithm_p2, "
-            "score.dp_options, score.keymode, score.game_version, "
-            "score.owner, "
-            "replay_data.*, gauge_history.* "
+            std::string("SELECT ") + storedScoreColumns +
             "FROM score "
-            "JOIN replay_data ON score.guid = replay_data.score_guid "
-            "JOIN gauge_history ON score.guid = gauge_history.score_guid "
+            "LEFT JOIN replay_data ON score.guid = replay_data.score_guid "
+            "LEFT JOIN gauge_history ON score.guid = gauge_history.score_guid "
             "JOIN song_db.charts ON score.md5 = song_db.charts.md5 "
             "WHERE song_db.charts.path LIKE ? || '%' ");
           query.bind(1, folder.toStdString());
 
-          const auto rows = query.executeAndGetAll<
-            std::tuple<gameplay_logic::BmsResult::DTO,
-                       gameplay_logic::BmsReplayData::DTO,
-                       gameplay_logic::BmsGaugeHistory::DTO>>();
+          const auto rows = query.executeAndGetAll<StoredScoreRow>();
           QMap<QString, QVariantList> groupedScores;
           for (const auto& row : rows) {
-              const auto md5 = QString::fromStdString(std::get<0>(row).md5);
-              auto score = std::make_unique<gameplay_logic::BmsScore>(
-                gameplay_logic::BmsResult::load(std::get<0>(row)),
-                gameplay_logic::BmsReplayData::load(std::get<1>(row)),
-                gameplay_logic::BmsGaugeHistory::load(std::get<2>(row)));
+              const auto md5 = QString::fromStdString(row.result.md5);
+              auto score = loadStoredScore(row);
               auto* ownedScore = objects.adopt(std::move(score));
               groupedScores[md5].append(QVariant::fromValue(ownedScore));
           }
@@ -919,7 +909,7 @@ ScoreDb::getTotalStats() -> support::PendingReply*
             "COALESCE(SUM(bad), 0), "
             "COALESCE(SUM(poor + empty_poor), 0), "
             "COALESCE(MAX(max_combo), 0) "
-            "FROM score");
+            "FROM score WHERE source = 0");
           const auto row =
             statement.executeAndGet<ScoreStatsRow>().value_or(ScoreStatsRow{});
           return ScoreStatsResult{

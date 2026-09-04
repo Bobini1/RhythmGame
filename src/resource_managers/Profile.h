@@ -122,6 +122,9 @@ class Profile final : public QObject
     Q_PROPERTY(
       qml_components::ReplayImportOperation* replayImportOperation READ
         getReplayImportOperation NOTIFY replayImportOperationChanged FINAL)
+    Q_PROPERTY(
+      qml_components::ReplayImportOperation* scoreImportOperation READ
+        getScoreImportOperation NOTIFY scoreImportOperationChanged FINAL)
     db::SqliteCppDb db;
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;
@@ -135,6 +138,7 @@ class Profile final : public QObject
     SongAssetStore* songAssetStore;
 
     qml_components::ReplayImportOperation* currentImportOp{ nullptr };
+    qml_components::ReplayImportOperation* currentScoreImportOp{ nullptr };
 
     LoginState loginState{ LoginState::NotLoggedIn };
     LoginState tachiLoginState{ LoginState::NotLoggedIn };
@@ -210,6 +214,7 @@ class Profile final : public QObject
      * progress and per-score errors.
      */
     Q_INVOKABLE qml_components::ScoreSyncOperation* downloadScores();
+    Q_INVOKABLE qml_components::ScoreSyncOperation* importBokutachiScores();
 
     /**
      * @brief Start importing replay files from a folder.
@@ -220,12 +225,19 @@ class Profile final : public QObject
     auto getReplayImportOperation() const
       -> qml_components::ReplayImportOperation*;
 
+    /** Import best scores from an LR2 or beatoraja score database. */
+    Q_INVOKABLE void importScores(const QString& databasePath);
+    auto getScoreImportOperation() const
+      -> qml_components::ReplayImportOperation*;
+
     /**
      * @brief Create and publish a new import operation.
      * @details Must only be called on the main thread. Intended to be invoked
      * from a background import task via Qt::BlockingQueuedConnection.
      */
     auto beginImportOp(int fileCount) -> qml_components::ReplayImportOperation*;
+    auto beginScoreImportOp(int scoreCount)
+      -> qml_components::ReplayImportOperation*;
 
     auto submitScore(const gameplay_logic::BmsScore& score,
                      const gameplay_logic::ChartData& chartData) const
@@ -237,6 +249,7 @@ class Profile final : public QObject
     void onlineUserDataChanged();
     void tachiDataChanged();
     void replayImportOperationChanged();
+    void scoreImportOperationChanged();
 };
 
 } // namespace resource_managers

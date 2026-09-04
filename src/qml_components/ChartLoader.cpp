@@ -243,6 +243,18 @@ validateParams(resource_managers::Profile* player1,
         spdlog::error("Player 2 replay requested but score 2 is null");
         return false;
     }
+    if constexpr (std::is_same_v<Score, gameplay_logic::BmsScore>) {
+        if (player1Replay && score1->getReplayData() == nullptr) {
+            spdlog::error(
+              "Player 1 replay requested but score has no replay data");
+            return false;
+        }
+        if (player2Replay && score2->getReplayData() == nullptr) {
+            spdlog::error(
+              "Player 2 replay requested but score has no replay data");
+            return false;
+        }
+    }
     if (player1Replay && player1AutoPlay) {
         spdlog::error("Player 1 autoplay and replay both requested");
         return false;

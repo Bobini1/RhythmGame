@@ -28,6 +28,7 @@ Column {
     property string rankingUrl
     property string rankingSource: "rhythmGame"
     property var provider
+    property string importedSource: ""
 
     signal leftClicked()
     signal rightClicked()
@@ -39,6 +40,7 @@ Column {
         points: scoreColumn.points
         maxPoints: scoreColumn.maxPoints
         oldBestPoints: scoreColumn.oldBestPoints
+        importedSource: scoreColumn.importedSource
     }
     Rectangle {
         width: 668

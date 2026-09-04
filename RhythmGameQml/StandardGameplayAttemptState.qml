@@ -68,7 +68,7 @@ Item {
     }
 
     Connections {
-        target: root.chart
+        target: root.chart || null
         ignoreUnknownSignals: true
         function onStatusChanged() {
             if (root.chart?.status === ChartRunner.Ready) {

@@ -9,11 +9,28 @@ WindowBg {
     required property real points
     required property real maxPoints
     required property real oldBestPoints
+    property string importedSource: ""
 
     ThemeFont {
         id: scoreFont
         fileName: root.themeVars.resultStatsFont
         fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
+    }
+
+    Text {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.leftMargin: 36
+        anchors.rightMargin: 36
+        anchors.topMargin: 20
+        horizontalAlignment: Text.AlignRight
+        color: "#20242c"
+        font: scoreFont.uiFont({ pixelSize: 14, weight: Font.DemiBold })
+        text: qsTr("IMPORTED · %1").arg(score.importedSource)
+        textFormat: Text.PlainText
+        elide: Text.ElideRight
+        visible: score.importedSource.length > 0
     }
 
     Row {

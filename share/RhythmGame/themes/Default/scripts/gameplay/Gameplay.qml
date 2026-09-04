@@ -145,7 +145,11 @@ Rectangle {
             return chart.player2.score.points;
         }
         if (targetScore1) {
-            return scoreReplayer1.points;
+            if (targetScore1.replayData !== null) {
+                return scoreReplayer1.points;
+            }
+            return p1MaxPointsNow * targetScore1.result.points
+                / Math.max(1, targetScore1.result.maxPoints);
         }
         return p1MaxPointsNow * targetFraction1;
     }
@@ -169,7 +173,7 @@ Rectangle {
     }
     ScoreReplayer {
         id: bestScoreReplayer1
-        hitEvents: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.replayData.hitEvents : []
+        hitEvents: root.scoreWithBestPoints1?.replayData?.hitEvents || []
     }
 
     AudioPlayer {

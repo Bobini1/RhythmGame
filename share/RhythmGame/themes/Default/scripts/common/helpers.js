@@ -121,6 +121,12 @@ function getEarlyLate(replayData) {
         early.push(0);
         late.push(0);
     }
+    if (!replayData || !replayData.hitEvents) {
+        return {
+            early: early,
+            late: late
+        };
+    }
     for (let hit of replayData.hitEvents) {
         if (!hit.points) {
             continue;

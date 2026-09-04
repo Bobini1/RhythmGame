@@ -15,6 +15,7 @@
 #include "support/PathToUtfString.h"
 #include "qml_components/ScoreSyncOperation.h"
 #include "qml_components/BeatorajaReplayImporter.h"
+#include "qml_components/ImportedScoreImporter.h"
 #include <qt6keychain/keychain.h>
 
 #include <QNetworkCookie>
@@ -29,6 +30,8 @@
 #include "gameplay_logic/BmsScore.h"
 #include <QJsonArray>
 #include <qnetworkcookiejar.h>
+
+#include <array>
 
 namespace resource_managers {
 
@@ -67,7 +70,11 @@ fetchLocalGuids(db::SqliteCppDb& db,
 {
     threadPool.start([&db, context, onResult, onError]() mutable {
         try {
-            auto stmt = db.createStatement("SELECT guid FROM score");
+            auto stmt = db.createStatement(
+              "SELECT score.guid FROM score "
+              "JOIN replay_data ON score.guid = replay_data.score_guid "
+              "JOIN gauge_history ON score.guid = gauge_history.score_guid "
+              "WHERE score.source = 0");
             auto rows = stmt.executeAndGetAll<std::string>();
             QSet<QString> localGuids;
             for (const auto& r : rows)
@@ -457,7 +464,9 @@ Profile::Profile(
                "note_order_algorithm_p2 INTEGER NOT NULL,"
                "dp_options INTEGER NOT NULL,"
                "game_version INTEGER NOT NULL,"
-               "owner TEXT NOT NULL DEFAULT ''"
+               "owner TEXT NOT NULL DEFAULT '',"
+               "source INTEGER NOT NULL DEFAULT 0,"
+               "ln_mode INTEGER NOT NULL DEFAULT 0"
                ");");
     // For migration from earlier versions that did not have scratch_count
     auto checkScratchColumn =
@@ -498,6 +507,24 @@ Profile::Profile(
     if (!keymodeColumnExists) {
         db.execute(
           "ALTER TABLE score ADD COLUMN keymode INTEGER NOT NULL DEFAULT 0;");
+    }
+    auto checkScoreSourceColumn =
+      db.createStatement("SELECT COUNT(*) FROM pragma_table_info('score') "
+                         "WHERE name = 'source';");
+    const auto scoreSourceColumnExists =
+      checkScoreSourceColumn.executeAndGet<int64_t>().value_or(0) > 0;
+    if (!scoreSourceColumnExists) {
+        db.execute(
+          "ALTER TABLE score ADD COLUMN source INTEGER NOT NULL DEFAULT 0;");
+    }
+    auto checkLongNoteModeColumn =
+      db.createStatement("SELECT COUNT(*) FROM pragma_table_info('score') "
+                         "WHERE name = 'ln_mode';");
+    const auto longNoteModeColumnExists =
+      checkLongNoteModeColumn.executeAndGet<int64_t>().value_or(0) > 0;
+    if (!longNoteModeColumnExists) {
+        db.execute(
+          "ALTER TABLE score ADD COLUMN ln_mode INTEGER NOT NULL DEFAULT 0;");
     }
     db.execute("CREATE TABLE IF NOT EXISTS score_course ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -753,7 +780,9 @@ Profile::submitScore(const gameplay_logic::BmsScore& score,
                      const gameplay_logic::ChartData& chartData) const
   -> QNetworkReply*
 {
-    if (score.getResult()->getGuid().isEmpty()) {
+    if (score.getResult()->getGuid().isEmpty() || score.isImported() ||
+        score.getReplayData() == nullptr ||
+        score.getGaugeHistory() == nullptr) {
         return nullptr;
     }
     QJsonObject json;
@@ -875,6 +904,70 @@ Profile::downloadScores() -> qml_components::ScoreSyncOperation*
           op->setFinished(true);
       });
 
+    return op;
+}
+
+auto
+Profile::importBokutachiScores() -> qml_components::ScoreSyncOperation*
+{
+    auto* op = new qml_components::ScoreSyncOperation(this);
+    if (!tachiData || tachiLoginState != LoginState::LoggedIn) {
+        op->setFinished(true);
+        return op;
+    }
+
+    static constexpr std::array games = { "bms-7k", "bms-14k" };
+    op->setTotal(static_cast<int>(games.size()));
+    for (const auto* game : games) {
+        const auto url =
+          QUrl(QStringLiteral("https://boku.tachi.ac/api/v1/users/%1/games/%2/"
+                              "pbs/all")
+                 .arg(tachiData->userId)
+                 .arg(QString::fromLatin1(game)));
+        auto* reply = networkManager->get(QNetworkRequest(url));
+        connect(
+          reply,
+          &QNetworkReply::finished,
+          this,
+          [this, reply, op, gameName = QString::fromLatin1(game)] {
+              const auto error = reply->error();
+              const auto errorText = reply->errorString();
+              const auto response = reply->readAll();
+              reply->deleteLater();
+              if (error != QNetworkReply::NoError) {
+                  op->reportError(
+                    QStringLiteral("Bokutachi %1 import failed: %2")
+                      .arg(gameName, errorText));
+                  op->increment();
+                  return;
+              }
+
+              threadPool.start([this, op, response, gameName] {
+                  try {
+                      const auto imported =
+                        qml_components::importBokutachiPersonalBests(db,
+                                                                     response);
+                      spdlog::info(
+                        "Imported {} {} personal bests from Bokutachi",
+                        imported,
+                        gameName.toStdString());
+                      QMetaObject::invokeMethod(
+                        this, [op] { op->increment(); }, Qt::QueuedConnection);
+                  } catch (const std::exception& exception) {
+                      const auto message = QString::fromUtf8(exception.what());
+                      QMetaObject::invokeMethod(
+                        this,
+                        [op, gameName, message] {
+                            op->reportError(
+                              QStringLiteral("Bokutachi %1 import failed: %2")
+                                .arg(gameName, message));
+                            op->increment();
+                        },
+                        Qt::QueuedConnection);
+                  }
+              });
+          });
+    }
     return op;
 }
 
@@ -1112,6 +1205,82 @@ Profile::getReplayImportOperation() const
   -> qml_components::ReplayImportOperation*
 {
     return currentImportOp;
+}
+
+void
+Profile::importScores(const QString& databasePath)
+{
+    importPool.start([this, databasePath] {
+        qml_components::ReplayImportOperation* operation = nullptr;
+        auto callbacks = qml_components::ScoreImportCallbacks{
+            .started =
+              [this, &operation](int total) {
+                  QMetaObject::invokeMethod(
+                    this,
+                    [this, total, &operation] {
+                        operation = beginScoreImportOp(total);
+                    },
+                    Qt::BlockingQueuedConnection);
+              },
+            .imported =
+              [this, &operation] {
+                  QMetaObject::invokeMethod(
+                    this,
+                    [operation] { operation->incrementImported(); },
+                    Qt::QueuedConnection);
+              },
+            .skipped =
+              [this, &operation] {
+                  QMetaObject::invokeMethod(
+                    this,
+                    [operation] { operation->incrementSkipped(); },
+                    Qt::QueuedConnection);
+              },
+            .failed =
+              [this, &operation](QString message) {
+                  QMetaObject::invokeMethod(
+                    this,
+                    [operation, message = std::move(message)] {
+                        operation->reportError(message);
+                        operation->incrementErrored();
+                    },
+                    Qt::QueuedConnection);
+              },
+        };
+        try {
+            qml_components::importLocalScoreDatabase(
+              db, databasePath, callbacks);
+        } catch (const std::exception& exception) {
+            const auto message = QString::fromUtf8(exception.what());
+            QMetaObject::invokeMethod(
+              this,
+              [this, operation, message] {
+                  auto* failedOperation = operation;
+                  if (failedOperation == nullptr)
+                      failedOperation = beginScoreImportOp(1);
+                  failedOperation->reportError(message);
+                  failedOperation->incrementErrored();
+              },
+              Qt::QueuedConnection);
+        }
+    });
+}
+
+auto
+Profile::beginScoreImportOp(int scoreCount)
+  -> qml_components::ReplayImportOperation*
+{
+    currentScoreImportOp =
+      new qml_components::ReplayImportOperation(scoreCount, this);
+    emit scoreImportOperationChanged();
+    return currentScoreImportOp;
+}
+
+auto
+Profile::getScoreImportOperation() const
+  -> qml_components::ReplayImportOperation*
+{
+    return currentScoreImportOp;
 }
 
 } // namespace resource_managers

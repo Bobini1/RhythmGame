@@ -167,14 +167,18 @@ class BmsResult final : public QObject
     Q_PROPERTY(
       gameplay_logic::ChartData::Keymode keymode READ getKeymode CONSTANT)
     /**
-     * @brief The permutation of columns that resulted from NoteOrderAlgorithm.
-     * @details This is reconstructed from the saved note-order settings and
-     * random seed, so stored scores expose the same lane layout that was known
+     * @brief The permutation of columns that resulted from
+     * NoteOrderAlgorithm.
+     * @details This is reconstructed from the saved
+     * note-order settings and
+     * random seed, so stored scores expose the
+     * same lane layout that was known
      * during gameplay.
      */
     Q_PROPERTY(QList<int> permutation READ getPermutation CONSTANT)
     /**
      * @brief The game version where the score was achieved.
+     *
      * @details For migrations.
      */
     Q_PROPERTY(uint64_t gameVersion READ getGameVersion CONSTANT)
@@ -303,7 +307,7 @@ class BmsResult final : public QObject
     auto getGameVersion() const -> uint64_t;
     auto getOwner() const -> const QString&;
 
-    void save(db::SqliteCppDb& db) const;
+    void save(db::SqliteCppDb& db, int source = 0, int longNoteMode = 0) const;
     static auto load(const DTO& dto) -> std::unique_ptr<BmsResult>;
     auto toJson() const -> QJsonObject;
     static auto fromJson(const QJsonObject& obj) -> std::unique_ptr<BmsResult>;
