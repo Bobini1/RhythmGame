@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.15</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.16</span>
    </div>
   </td>
  </tr>
@@ -161,24 +161,23 @@ Translations</h3>
 <h2><a class="anchor" id="autotoc_md33"></a>
 Theme loading</h2>
 <p>Themes are loaded and validated when the game starts. If there are any critical errors in configuration files, the game will fail to start. Don't share broken themes! Look at log.txt in the data folder to find out what went wrong.</p>
-<p>The part of the game that manages the theme most directly is <a href="https://github.com/Bobini1/RhythmGame/blob/master/RhythmGameQml/ContentFrame.qml">RhythmGameQml/ContentFrame.qml</a>. That qml file is compiled into the executable and is not part of any theme. It contains the window of the entire game and the <code>sceneStack</code>. <code>sceneStack</code> is a globally accessible <a href="https://doc.qt.io/qt-6/qml-qtquick-controls-stackview.html">StackView</a> that contains screens, like <code>main</code>, <code>select</code>, <code>k7</code>, one on top of the other. You can go to another screen by pushing it to the stack. You can exit a screen by popping it from the stack.</p>
+<p>The part of the game that manages the theme most directly is <a href="https://github.com/Bobini1/RhythmGame/blob/master/RhythmGameQml/ContentFrame.qml">RhythmGameQml/ContentFrame.qml</a>. That qml file is compiled into the executable and is not part of any theme. It contains the window of the entire game and exposes the supported screen-flow operations through the globally accessible <code>globalRoot</code> object. For example, use <code>globalRoot.openSelect()</code> to enter selection and <code>globalRoot.returnToPreviousScreen()</code> to leave the current screen.</p>
+<p><code>ContentFrame</code> owns the underlying screen stack. Themes should use the semantic <code>globalRoot</code> operations instead of accessing that stack directly. This keeps a theme independent of the details of screen lifetime, retry, and Arena flow.</p>
 <hr  />
 <p> <b>NOTE</b></p>
-<p>When going from <code>select</code> to <code>k7</code> and then <code>result</code>, the former screens are not destroyed. When going back from <code>result</code>, it is the responsibility of the <code>k7</code> screen to remove itself from the stack to go back to select. When <code>k7</code> pushes <code>result</code>, it should remember to remove itself when it becomes active again.</p>
-<p>In most scenarios, you will want to push at most one screen on top of the stack at once. Then that screen can push another screen on top of itself, if needed.</p>
-<p>Do not remove screens from under yourself. It's messy and unnecessary.</p>
+<p>When going from <code>select</code> to <code>k7</code> and then <code>result</code>, the former screens are not destroyed immediately. <code>ContentFrame</code> keeps those screens alive while newer screens are presented and restores or closes them as the flow requires.</p>
 <hr  />
 <h2><a class="anchor" id="autotoc_md36"></a>
 Initial state of screens</h2>
-<p><code>sceneStack</code> contains a few helper methods:</p>
+<p><code>globalRoot</code> provides the following operations for screens that require initial state:</p>
 <div class="fragment"><div class="line">function openChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2)</div>
 <div class="line">function openCourse(course, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2)</div>
 <div class="line">function openResult(scores, profiles, chartData)</div>
 <div class="line">function openCourseResult(scores, profiles, chartDatas, course)</div>
 </div><!-- fragment --><p>Since gameplay screens and result screens need to be pushed with some initial property state, those helper methods set them based on the parameters passed to them.</p>
 <p>See <a href="https://bobini1.github.io/RhythmGame/classqml__components_1_1ChartLoader.html">ChartLoader docs</a> for an explanation of the parameters of <code>openChart</code> and <code>openCourse</code>.</p>
-<p>To use those methods, simply call <code>sceneStack.openChart(...)</code> from anywhere in your theme.</p>
-<p>Keep the folowing in mind when writing screens with initial state:</p>
+<p>Call them on <code>globalRoot</code>, for example <code>globalRoot.openChart(...)</code>.</p>
+<p>Keep the following in mind when writing screens with initial state:</p>
 <p>Screens <code>k7</code>, <code>k14</code> and <code>k7battle</code> are expected to have single <code>var</code> property called <code>chart</code>. The assigned <code>chart</code> will be either a <a href="https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ChartRunner.html">ChartRunner</a> or <a href="https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1CourseRunner.html">CourseRunner</a> object, depending on whether the player is playing a single chart or a course.</p>
 <p>Screen <code>result</code> is expected to have the following properties:</p>
 <div class="fragment"><div class="line">property list&lt;BmsScore&gt; scores</div>
@@ -197,9 +196,45 @@ Input</h2>
 <p>For mouse input, use <a href="https://doc.qt.io/qt-6/qml-qtquick-mousearea.html">MouseArea</a> or <a href="https://doc.qt.io/qt-6/qml-qtquick-taphandler.html">TapHandler</a>.</p>
 <p>For keyboard input, use <a href="https://doc.qt.io/qt-6/qml-qtquick-keys.html">Keys</a></p>
 <p>For bound key input (controller or keyboard), use <a href="https://bobini1.github.io/RhythmGame/classqml__components_1_1InputAttached.html">Input</a>.</p>
-<p><code>sceneStack</code> automatically disables all input for screens that are not at the top of the stack. Make sure to disable any background sounds and <a href="https://doc.qt.io/qt-6/qml-qtquick-shortcut.html">Shortcuts</a> when pushing a new screen on top of the stack (Shortcuts are dumb and don't get disabled automatically). Song preview should not play during gameplay. You can use the <a href="https://doc.qt.io/qt-6/qml-qtquick-item.html#enabled-prop">enabled</a> property of <code>Item</code> to detect when a screen is not active. This property propagates to all child components.</p>
+<p><code>ContentFrame</code> automatically disables all input for screens that are not active. Make sure to disable any background sounds and <a href="https://doc.qt.io/qt-6/qml-qtquick-shortcut.html">Shortcuts</a> when the screen is inactive (Shortcuts are not disabled automatically). Song preview should not play during gameplay. You can use the <a href="https://doc.qt.io/qt-6/qml-qtquick-item.html#enabled-prop">enabled</a> property of <code>Item</code> to detect when a screen is not active. This property propagates to all child components.</p>
 <p>Gameplay screens should not use <code>Input</code> directly. Instead, use <a href="https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ColumnState.html#a116fbd7d8aec0c9ebad00828b7564ab6">columnState.pressed</a>. This will play nicely with autoplay and replays. <code>Input</code> is reserved for actual input, not injected key presses.</p>
-<h2><a class="anchor" id="autotoc_md38"></a>
+<h3><a class="anchor" id="autotoc_md38"></a>
+Reusable selection components</h3>
+<p>Themes can import <code>RhythmGameQml</code> and opt into the standard selection behavior without using the Default theme's presentation:</p>
+<p>For a complete standard selector, instantiate <code>StandardSelectController</code>. It extends <code>StandardSelectState</code> with presentation adaptation, folder enter/leave feedback, input, navigation and selection shortcuts. Its inherited <code>entries</code> contain one logical copy of each filtered item; <code>presentationEntries</code> repeats them to <code>minimumEntryCount</code> for circular selectors. Handle <code>focusRequested(index)</code> and <code>moveRequested(steps, repeated, analog)</code> to update the skin's presentation. Set <code>autoInitialize</code> to false and call <code>initialize()</code> when a skin needs to control startup timing.</p>
+<p>For a different composition, use only the lower-level pieces required.</p>
+<p>Browsing and activation:</p>
+<ul>
+<li><code>StandardSelectSession</code> owns the raw folder contents, history, asynchronous score-query lifetime, scores and preview paths. Its <code>resolve...</code> methods only acquire data; <code>commitFolderContents()</code> is the explicit state change. A custom <code>tableCoursesProvider</code> can return the courses for a table.</li>
+<li><code>StandardSelectActivation</code> implements the standard chart, course and Arena activation rules.</li>
+<li><code>StandardSelectState</code> combines the session and activation behavior with sorting, filtering and focus. Its <code>entries</code> contain one logical copy of each filtered item. Score, preview-file and folder-stat enrichment can be disabled independently, and all sorting/filtering policies have profile-backed defaults that a skin can override.</li>
+<li><code>StandardSelectModelAdapter</code> can repeat a logical model to a requested minimum size for circular visual selectors. Skins with a finite list do not need to instantiate it.</li>
+</ul>
+<p>Interaction policies:</p>
+<ul>
+<li><code>StandardSelectNavigation</code> converts directional key and scratch input into semantic <code>moveRequested(steps, repeated, analog)</code> signals. The skin remains responsible for positioning and animating its list or wheel.</li>
+<li><code>StandardSelectInput</code> adds the standard activation, replay, autoplay, sorting and back-button mappings by extending <code>StandardSelectNavigation</code>. A custom state can supply semantic <code>activateAction</code>, <code>goBackAction</code> and <code>atTopLevel</code> values instead of pretending to be <code>StandardSelectState</code>. Autoplay has a state-backed implementation. Replay needs <code>tryReplayAction</code>, since choosing a replay score remains skin-owned.</li>
+<li><code>StandardSelectShortcuts</code> provides F2 reload, F3 open-folder, F11 internet-ranking and F12 settings shortcuts. F2 and F3 use a supplied <code>selectState</code> by default. F2, F3 and F12 defaults can be replaced or individually disabled. F11 emits <code>openInternetRankingRequested</code>; if the standard state declines F2 or F3, the corresponding request signal is also emitted for the skin.</li>
+</ul>
+<p>Shared asynchronous lifetime:</p>
+<ul>
+<li><code>PendingReplyGroup</code> owns any set of asynchronous replies with one cancellation lifetime. It can be reused by custom selection enrichment or other skin state that starts cancellable operations.</li>
+</ul>
+<p>The controller has no required list interface. Keyboard <code>Keys</code> handlers stay on the focused visual item and can forward up/down/release events to the controller's <code>handleUpPressed</code>, <code>handleDownPressed</code> and <code>handleReleased</code> methods. Feedback remains configurable through the controller's <code>feedbackEnabled</code>, action and sound-source properties.</p>
+<p>Application-owned F1 and F4 behavior is internal to <code>ContentFrame</code>. F12 belongs to <code>StandardSelectShortcuts</code>, so it is only available on selection screens that opt into the standard selection shortcuts.</p>
+<h3><a class="anchor" id="autotoc_md39"></a>
+Reusable behavior for other screens</h3>
+<p>Other screens expose smaller components around their own natural seams rather than copying the selection component structure:</p>
+<ul>
+<li><code>StandardMainActions</code> provides the standard song-select, Arena, settings and quit destinations, including START opening song selection.</li>
+<li><code>StandardDecideFlow</code> owns decide timeout, accept/cancel input, transition guarding and chart-runner destruction. It fills its parent by default; the skin owns the decide visuals. A replacement start/cancel action owns its full transition; <code>returnAfterGameplayAction</code> only customizes the follow-up for the built-in gameplay transition.</li>
+<li><code>StandardResultInput</code> owns delayed result dismissal and retry input. A skin can supply <code>tryHandleButtonAction</code> for presentation-specific actions such as cycling a displayed gauge before the standard retry/dismissal handling runs. Skin pointer handlers can call <code>confirm()</code> to share the standard confirmation gate.</li>
+<li><code>StandardGameplayAttemptState</code> tracks whether a chart has received a scoring hit. It is available separately for custom gameplay transitions.</li>
+<li><code>StandardGameplayExit</code> combines that attempt state with Escape handling and normal result dispatch. Untouched charts return immediately; attempted plays finish and open their result. Presentation cleanup and result opening remain replaceable, as does the play-stop feedback. Completion detected while the screen is inactive is retained and presented when the screen becomes active.</li>
+</ul>
+<p><code>StandardInputKeys.isPlayKey(key)</code> is available when a custom component needs the same lane-key classification used by the standard decide and result input.</p>
+<p>All action properties are optional. Without an override these components call the semantic operations exposed by the application content frame. An <code>Action</code> property is a complete replacement and does not need to return a value. A <code>try...Action</code> is a pre-handler: return <code>true</code> when it consumed the request, or return <code>false</code>/<code>undefined</code> to continue with the standard behavior. Skins should use <code>globalRoot.returnToPreviousScreen()</code> instead of accessing <code>sceneStack</code> directly.</p>
+<h2><a class="anchor" id="autotoc_md40"></a>
 Scaling</h2>
 <p>Your theme is expected to work on all screen sizes and aspect ratios. There are two ways you can achieve that.</p>
 <ul>
@@ -208,7 +243,7 @@ Scaling</h2>
 </ul>
 <p>In the default theme, you can see the first approach in the <code>settings</code> screen. All other screens use scaling. In general, scaling is easier to use.</p>
 <p>Please try resizing the window of the game when testing your theme edits.</p>
-<h2><a class="anchor" id="autotoc_md39"></a>
+<h2><a class="anchor" id="autotoc_md41"></a>
 The Rg singleton</h2>
 <p>The <a href="https://bobini1.github.io/RhythmGame/classRg.html">Rg</a> singleton is globally accessible upon importing <code>RhythmGameQml</code>. It contains various API objects with methods and properties useful for themes. You will probably use it a lot! Start reading the docs there. </p>
 </div></div><!-- contents -->

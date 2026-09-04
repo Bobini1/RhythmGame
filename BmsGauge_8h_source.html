@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.15</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.16</span>
    </div>
   </td>
  </tr>
@@ -126,13 +126,13 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#a11fb97e2cd6bfe1773c970ad86dc05a2">   57</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> <a class="code hl_property" href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html#a727326e93b02b0db3aa0adc56e2b755b">gauge</a> READ <a class="code hl_function" href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html#ac2756b336b9fa459771a4ad8799176e4">getGauge</a> NOTIFY gaugeChanged)</div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#adb39fa1c4d3d210e63931f09e2f1cbf3">   61</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> gaugeMax READ getGaugeMax CONSTANT)</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#ae77acc3e4ce7f373737097c5bba4f5b0">   67</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> threshold READ getThreshold CONSTANT)</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#aee6720bc39f974b46b1b4f5d4ef1c0fb">   73</a></span>    Q_PROPERTY(QList&lt;<a class="code hl_namespace" href="namespacegameplay__logic.html">gameplay_logic</a>::rules::<a class="code hl_class" href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html">GaugeHistoryEntry</a>&gt; gaugeHistory READ</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="classgameplay__logic_1_1rules_1_1BmsGauge.html#aee6720bc39f974b46b1b4f5d4ef1c0fb">   73</a></span>    Q_PROPERTY(QList&lt;<a class="code hl_namespace" href="namespacegameplay__logic.html">gameplay_logic</a>::rules::<a class="code hl_class" href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html">GaugeHistoryEntry</a>&gt; <a class="code hl_variable" href="ScoreDb_8cpp.html#aee1be3b5eb16f17e729066c2b1cec096">gaugeHistory</a> READ</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>                 getGaugeHistory NOTIFY gaugeChanged)</div>
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    QString name;</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <span class="keywordtype">double</span> gaugeMax;</div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <span class="keywordtype">double</span> threshold = 0;</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html">GaugeHistoryEntry</a>&gt; gaugeHistory;</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    QList&lt;<a class="code hl_class" href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html">GaugeHistoryEntry</a>&gt; <a class="code hl_variable" href="ScoreDb_8cpp.html#aee1be3b5eb16f17e729066c2b1cec096">gaugeHistory</a>;</div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <span class="keywordtype">bool</span> courseGauge;</div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    <a class="code hl_class" href="classgameplay__logic_1_1rules_1_1BmsGauge.html">BmsGauge</a>() = default;</div>
@@ -168,6 +168,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
 <div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_BMSGAUGE_H</span></div>
 <div class="ttc" id="aJudgement_8h_html"><div class="ttname"><a href="Judgement_8h.html">Judgement.h</a></div></div>
+<div class="ttc" id="aScoreDb_8cpp_html_aee1be3b5eb16f17e729066c2b1cec096"><div class="ttname"><a href="ScoreDb_8cpp.html#aee1be3b5eb16f17e729066c2b1cec096">gaugeHistory</a></div><div class="ttdeci">gameplay_logic::BmsGaugeHistory::DTO gaugeHistory</div><div class="ttdef"><b>Definition</b> ScoreDb.cpp:113</div></div>
 <div class="ttc" id="aclassgameplay__logic_1_1rules_1_1BmsGauge_html"><div class="ttname"><a href="classgameplay__logic_1_1rules_1_1BmsGauge.html">gameplay_logic::rules::BmsGauge</a></div><div class="ttdef"><b>Definition</b> BmsGauge.h:40</div></div>
 <div class="ttc" id="aclassgameplay__logic_1_1rules_1_1GaugeHistoryEntry_html"><div class="ttname"><a href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html">gameplay_logic::rules::GaugeHistoryEntry</a></div><div class="ttdef"><b>Definition</b> BmsGauge.h:20</div></div>
 <div class="ttc" id="aclassgameplay__logic_1_1rules_1_1GaugeHistoryEntry_html_a727326e93b02b0db3aa0adc56e2b755b"><div class="ttname"><a href="classgameplay__logic_1_1rules_1_1GaugeHistoryEntry.html#a727326e93b02b0db3aa0adc56e2b755b">gameplay_logic::rules::GaugeHistoryEntry::gauge</a></div><div class="ttdeci">double gauge</div><div class="ttdef"><b>Definition</b> BmsGauge.h:23</div></div>

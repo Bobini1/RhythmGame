@@ -8,7 +8,7 @@ var searchData=
   ['valuemilli_5',['valueMilli',['../structarena_1_1GaugeSnapshot.html#ade2b91f65809342fb669c9ef42b54474',1,'arena::GaugeSnapshot']]],
   ['values_6',['values',['../classLr2SelectScoreStats.html#ac52f886e2991cf0a3cc773d55b9a66f4',1,'Lr2SelectScoreStats']]],
   ['variant_7',['variant',['../structgameplay__logic_1_1lr2__skin_1_1Lr2SrcBarImage.html#a839c451fd028e792a09268d1112805d3',1,'gameplay_logic::lr2_skin::Lr2SrcBarImage::variant'],['../structgameplay__logic_1_1lr2__skin_1_1Lr2SrcBarNumber.html#a439a29c8f9453253050beae85f84958c',1,'gameplay_logic::lr2_skin::Lr2SrcBarNumber::variant']]],
-  ['vars_8',['vars',['../classresource__managers_1_1Profile.html#afe8a8d7f6119a390af68612c3cd1e803',1,'resource_managers::Profile::vars'],['../classresource__managers_1_1Vars.html#a074e110aa0dab4b05068ee66acd43c4b',1,'resource_managers::Vars::Vars()'],['../classresource__managers_1_1Vars.html',1,'resource_managers::Vars']]],
+  ['vars_8',['vars',['../classresource__managers_1_1Vars.html#a074e110aa0dab4b05068ee66acd43c4b',1,'resource_managers::Vars::Vars()'],['../classresource__managers_1_1Profile.html#afe8a8d7f6119a390af68612c3cd1e803',1,'resource_managers::Profile::vars'],['../classresource__managers_1_1Vars.html',1,'resource_managers::Vars']]],
   ['vars_2ecpp_9',['Vars.cpp',['../Vars_8cpp.html',1,'']]],
   ['vars_2eh_10',['Vars.h',['../Vars_8h.html',1,'']]],
   ['varsforeign_11',['VarsForeign',['../structrhythm__game__qml_1_1VarsForeign.html',1,'rhythm_game_qml']]],

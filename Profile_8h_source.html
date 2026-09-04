@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.15</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.16</span>
    </div>
   </td>
  </tr>
@@ -210,95 +210,107 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#aa7061f9c6f9586263c22d011cd929c0e">  122</a></span>    Q_PROPERTY(</div>
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>      <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ReplayImportOperation* replayImportOperation READ</div>
 <div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>        getReplayImportOperation NOTIFY replayImportOperationChanged FINAL)</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    <a class="code hl_namespace" href="namespacedb.html">db</a>::SqliteCppDb <a class="code hl_namespace" href="namespacedb.html">db</a>;</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>    std::filesystem::<a class="code hl_variable" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a> dbPath;</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>    QQmlPropertyMap* themeConfig;</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    <a class="code hl_class" href="classresource__managers_1_1Vars.html">Vars</a> vars;</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ScoreDb scoreDb{ &amp;<a class="code hl_namespace" href="namespacedb.html">db</a> };</div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>    QString guid;</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>    QNetworkAccessManager* networkManager;</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>    QNetworkRequestFactory networkRequestFactory;</div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>    QThreadPool threadPool;</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    QThreadPool importPool;</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    <a class="code hl_class" href="classresource__managers_1_1SongAssetStore.html">SongAssetStore</a>* songAssetStore;</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span> </div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>    <a class="code hl_class" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a>* currentImportOp{ <span class="keyword">nullptr</span> };</div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span> </div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    LoginState loginState{ LoginState::NotLoggedIn };</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    LoginState tachiLoginState{ LoginState::NotLoggedIn };</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>    std::optional&lt;OnlineUserData&gt; userData;</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>    std::optional&lt;TachiData&gt; tachiData;</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>    <span class="keywordtype">void</span> loadBearerToken();</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>    <span class="keywordtype">void</span> fetchOnlineData();</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    <span class="keywordtype">void</span> setLoginState(LoginState state);</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>    <span class="keywordtype">void</span> setTachiLoginState(LoginState state);</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>    <span class="keywordtype">void</span> setOnlineUserData(std::optional&lt;OnlineUserData&gt; userData);</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>    <span class="keywordtype">void</span> setTachiData(std::optional&lt;TachiData&gt; tachiData);</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>    <span class="keywordtype">void</span> fetchTachiData(<span class="keywordtype">int</span> tachiId);</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    <span class="keyword">struct </span>Payload</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>    {</div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>        QString guid;</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>        QJsonObject json;</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    };</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span> </div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>    <span class="keyword">auto</span> buildUploadPayloads(<span class="keyword">const</span> QList&lt;QString&gt;&amp; guids) -&gt; QList&lt;Payload&gt;;</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>    <span class="keywordtype">void</span> dispatchUploads(<a class="code hl_class" href="classqml__components_1_1ScoreSyncOperation.html">qml_components::ScoreSyncOperation</a>* op,</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>                         QList&lt;Payload&gt; payloads);</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>    <span class="keywordtype">void</span> dispatchDownload(<a class="code hl_class" href="classqml__components_1_1ScoreSyncOperation.html">qml_components::ScoreSyncOperation</a>* op,</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>                          <span class="keyword">const</span> QString&amp; guid);</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span> </div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#a9b8ea6a04d2015aecbef4ae601b1274f">  163</a></span>    <span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">const</span> QString keychainService = <span class="stringliteral">&quot;RhythmGame&quot;</span>;</div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classresource__managers_1_1Profile.html">Profile</a>(</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>      <span class="keyword">const</span> std::filesystem::path&amp; mainDbPath,</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>      <span class="keyword">const</span> std::filesystem::path&amp; dbPath,</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>      <span class="keyword">const</span> QMap&lt;QString, qml_components::ThemeFamily&gt;&amp; themeFamilies,</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>      QList&lt;QString&gt; assetsPaths,</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>      QNetworkAccessManager* networkManager,</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>      <a class="code hl_class" href="classresource__managers_1_1SongAssetStore.html">SongAssetStore</a>* songAssetStore,</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>      QObject* parent = <span class="keyword">nullptr</span>);</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span> </div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    <span class="keyword">auto</span> getPath() const -&gt; std::filesystem::<a class="code hl_variable" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>;</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    auto getPathQString() const -&gt; QString;</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    auto getDb() -&gt; <a class="code hl_namespace" href="namespacedb.html">db</a>::SqliteCppDb&amp;;</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>    auto getScoreDb() -&gt; <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ScoreDb*;</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>    auto getThemeConfig() const -&gt; QQmlPropertyMap*;</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    auto getVars() -&gt; <a class="code hl_class" href="classresource__managers_1_1Vars.html">Vars</a>*;</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    auto getGuid() const -&gt; QString;</div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    Q_INVOKABLE <span class="keywordtype">void</span> login(const QString&amp; email, const QString&amp; password);</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    Q_INVOKABLE <span class="keywordtype">void</span> logout();</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>    auto getLoginState() const -&gt; <a class="code hl_enumeration" href="classresource__managers_1_1Profile.html#a24ca795ca1e26537ba6acf5815cc3d14">LoginState</a>;</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>    auto getTachiLoginState() const -&gt; <a class="code hl_enumeration" href="classresource__managers_1_1Profile.html#a24ca795ca1e26537ba6acf5815cc3d14">LoginState</a>;</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>    auto getOnlineUserData() const -&gt; QVariant;</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>    [[nodiscard]] auto getOnlineUserDataValue() const</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>      -&gt; std::optional&lt;<a class="code hl_class" href="classresource__managers_1_1OnlineUserData.html">OnlineUserData</a>&gt;;</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    auto getTachiData() const -&gt; QVariant;</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>    [[nodiscard]] auto requestArenaTicket() -&gt; <a class="code hl_class" href="classresource__managers_1_1ArenaTicketOperation.html">ArenaTicketOperation</a>*;</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    Q_INVOKABLE <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ScoreSyncOperation* uploadScores();</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    Q_INVOKABLE <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ScoreSyncOperation* downloadScores();</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span> </div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>    Q_INVOKABLE <span class="keywordtype">void</span> importReplays(const QString&amp; folderPath);</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>    auto getReplayImportOperation() const</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>      -&gt; <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ReplayImportOperation*;</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span> </div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>    auto beginImportOp(<span class="keywordtype">int</span> fileCount) -&gt; <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ReplayImportOperation*;</div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span> </div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>    auto submitScore(const <a class="code hl_namespace" href="namespacegameplay__logic.html">gameplay_logic</a>::BmsScore&amp; score,</div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>                     const <a class="code hl_namespace" href="namespacegameplay__logic.html">gameplay_logic</a>::ChartData&amp; chartData) const</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>      -&gt; QNetworkReply*;</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span> </div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  signals:</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#a94a7fa6990b318984995fb0fd25a15a1">  235</a></span>    <span class="keywordtype">void</span> loginStateChanged();</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#ad225fc1ca1cd12552e07f6536aa157df">  236</a></span>    <span class="keywordtype">void</span> tachiLoginStateChanged();</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#a967db385c5b9c968c0366592d3734052">  237</a></span>    <span class="keywordtype">void</span> onlineUserDataChanged();</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#a4fc01437abff1bb9d7e2172fcf660708">  238</a></span>    <span class="keywordtype">void</span> tachiDataChanged();</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#af5c8ed758db0bf094770a95fd3a4d0dd">  239</a></span>    <span class="keywordtype">void</span> replayImportOperationChanged();</div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>};</div>
-</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#a5c03fb3572ecb39414408352753f6eeb">  125</a></span>    Q_PROPERTY(</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>      <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ReplayImportOperation* scoreImportOperation READ</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>        getScoreImportOperation NOTIFY scoreImportOperationChanged FINAL)</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    <a class="code hl_namespace" href="namespacedb.html">db</a>::SqliteCppDb <a class="code hl_namespace" href="namespacedb.html">db</a>;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    std::filesystem::<a class="code hl_variable" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a> dbPath;</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>    QQmlPropertyMap* themeConfig;</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>    <a class="code hl_class" href="classresource__managers_1_1Vars.html">Vars</a> vars;</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>    <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ScoreDb scoreDb{ &amp;<a class="code hl_namespace" href="namespacedb.html">db</a> };</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>    QString guid;</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    QNetworkAccessManager* networkManager;</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    QNetworkRequestFactory networkRequestFactory;</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    QThreadPool threadPool;</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>    QThreadPool importPool;</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    <a class="code hl_class" href="classresource__managers_1_1SongAssetStore.html">SongAssetStore</a>* songAssetStore;</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span> </div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    <a class="code hl_class" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a>* currentImportOp{ <span class="keyword">nullptr</span> };</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>    <a class="code hl_class" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a>* currentScoreImportOp{ <span class="keyword">nullptr</span> };</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span> </div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>    LoginState loginState{ LoginState::NotLoggedIn };</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>    LoginState tachiLoginState{ LoginState::NotLoggedIn };</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    std::optional&lt;OnlineUserData&gt; userData;</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>    std::optional&lt;TachiData&gt; tachiData;</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>    <span class="keywordtype">void</span> loadBearerToken();</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>    <span class="keywordtype">void</span> fetchOnlineData();</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>    <span class="keywordtype">void</span> setLoginState(LoginState state);</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    <span class="keywordtype">void</span> setTachiLoginState(LoginState state);</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>    <span class="keywordtype">void</span> setOnlineUserData(std::optional&lt;OnlineUserData&gt; userData);</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>    <span class="keywordtype">void</span> setTachiData(std::optional&lt;TachiData&gt; tachiData);</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>    <span class="keywordtype">void</span> fetchTachiData(<span class="keywordtype">int</span> tachiId);</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    <span class="keyword">struct </span>Payload</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>    {</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>        QString guid;</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>        QJsonObject json;</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    };</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span> </div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    <span class="keyword">auto</span> buildUploadPayloads(<span class="keyword">const</span> QList&lt;QString&gt;&amp; guids) -&gt; QList&lt;Payload&gt;;</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    <span class="keywordtype">void</span> dispatchUploads(<a class="code hl_class" href="classqml__components_1_1ScoreSyncOperation.html">qml_components::ScoreSyncOperation</a>* op,</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>                         QList&lt;Payload&gt; payloads);</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>    <span class="keywordtype">void</span> dispatchDownload(<a class="code hl_class" href="classqml__components_1_1ScoreSyncOperation.html">qml_components::ScoreSyncOperation</a>* op,</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>                          <span class="keyword">const</span> QString&amp; guid);</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span> </div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#a9b8ea6a04d2015aecbef4ae601b1274f">  167</a></span>    <span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">const</span> QString keychainService = <span class="stringliteral">&quot;RhythmGame&quot;</span>;</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classresource__managers_1_1Profile.html">Profile</a>(</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>      <span class="keyword">const</span> std::filesystem::path&amp; mainDbPath,</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>      <span class="keyword">const</span> std::filesystem::path&amp; dbPath,</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>      <span class="keyword">const</span> QMap&lt;QString, qml_components::ThemeFamily&gt;&amp; themeFamilies,</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>      QList&lt;QString&gt; assetsPaths,</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>      QNetworkAccessManager* networkManager,</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>      <a class="code hl_class" href="classresource__managers_1_1SongAssetStore.html">SongAssetStore</a>* songAssetStore,</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>      QObject* parent = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span> </div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>    <span class="keyword">auto</span> getPath() const -&gt; std::filesystem::<a class="code hl_variable" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>;</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    auto getPathQString() const -&gt; QString;</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    auto getDb() -&gt; <a class="code hl_namespace" href="namespacedb.html">db</a>::SqliteCppDb&amp;;</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    auto getScoreDb() -&gt; <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ScoreDb*;</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    auto getThemeConfig() const -&gt; QQmlPropertyMap*;</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>    auto getVars() -&gt; <a class="code hl_class" href="classresource__managers_1_1Vars.html">Vars</a>*;</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>    auto getGuid() const -&gt; QString;</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>    Q_INVOKABLE <span class="keywordtype">void</span> login(const QString&amp; email, const QString&amp; password);</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>    Q_INVOKABLE <span class="keywordtype">void</span> logout();</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    auto getLoginState() const -&gt; <a class="code hl_enumeration" href="classresource__managers_1_1Profile.html#a24ca795ca1e26537ba6acf5815cc3d14">LoginState</a>;</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    auto getTachiLoginState() const -&gt; <a class="code hl_enumeration" href="classresource__managers_1_1Profile.html#a24ca795ca1e26537ba6acf5815cc3d14">LoginState</a>;</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>    auto getOnlineUserData() const -&gt; QVariant;</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>    [[nodiscard]] auto getOnlineUserDataValue() const</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>      -&gt; std::optional&lt;<a class="code hl_class" href="classresource__managers_1_1OnlineUserData.html">OnlineUserData</a>&gt;;</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    auto getTachiData() const -&gt; QVariant;</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    [[nodiscard]] auto requestArenaTicket() -&gt; <a class="code hl_class" href="classresource__managers_1_1ArenaTicketOperation.html">ArenaTicketOperation</a>*;</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    Q_INVOKABLE <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ScoreSyncOperation* uploadScores();</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    Q_INVOKABLE <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ScoreSyncOperation* downloadScores();</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>    Q_INVOKABLE <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ScoreSyncOperation* importBokutachiScores();</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span> </div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>    Q_INVOKABLE <span class="keywordtype">void</span> importReplays(const QString&amp; folderPath);</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    auto getReplayImportOperation() const</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>      -&gt; <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ReplayImportOperation*;</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span> </div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>    Q_INVOKABLE <span class="keywordtype">void</span> importScores(const QString&amp; databasePath);</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>    auto getScoreImportOperation() const</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>      -&gt; <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ReplayImportOperation*;</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span> </div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>    auto beginImportOp(<span class="keywordtype">int</span> fileCount) -&gt; <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ReplayImportOperation*;</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    auto beginScoreImportOp(<span class="keywordtype">int</span> scoreCount)</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>      -&gt; <a class="code hl_namespace" href="namespaceqml__components.html">qml_components</a>::ReplayImportOperation*;</div>
 <div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span> </div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>} <span class="comment">// namespace resource_managers</span></div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span> </div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_PROFILE_H</span></div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>    auto submitScore(const <a class="code hl_namespace" href="namespacegameplay__logic.html">gameplay_logic</a>::BmsScore&amp; score,</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>                     const <a class="code hl_namespace" href="namespacegameplay__logic.html">gameplay_logic</a>::ChartData&amp; chartData) const</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>      -&gt; QNetworkReply*;</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span> </div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>  signals:</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#a94a7fa6990b318984995fb0fd25a15a1">  247</a></span>    <span class="keywordtype">void</span> loginStateChanged();</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#ad225fc1ca1cd12552e07f6536aa157df">  248</a></span>    <span class="keywordtype">void</span> tachiLoginStateChanged();</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#a967db385c5b9c968c0366592d3734052">  249</a></span>    <span class="keywordtype">void</span> onlineUserDataChanged();</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#a4fc01437abff1bb9d7e2172fcf660708">  250</a></span>    <span class="keywordtype">void</span> tachiDataChanged();</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#af5c8ed758db0bf094770a95fd3a4d0dd">  251</a></span>    <span class="keywordtype">void</span> replayImportOperationChanged();</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno"><a class="line" href="classresource__managers_1_1Profile.html#aa42f902605d996e041557f584ddd5f06">  252</a></span>    <span class="keywordtype">void</span> scoreImportOperationChanged();</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>};</div>
+</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span> </div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>} <span class="comment">// namespace resource_managers</span></div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span> </div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_PROFILE_H</span></div>
 <div class="ttc" id="aInputTranslator_8h_html"><div class="ttname"><a href="InputTranslator_8h.html">InputTranslator.h</a></div></div>
 <div class="ttc" id="aLr2SkinParser_8cpp_html_a34b772573db9a14b1acb61b24709ae73"><div class="ttname"><a href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a></div><div class="ttdeci">QString path</div><div class="ttdef"><b>Definition</b> Lr2SkinParser.cpp:85</div></div>
 <div class="ttc" id="aReplayImportOperation_8h_html"><div class="ttname"><a href="ReplayImportOperation_8h.html">ReplayImportOperation.h</a></div></div>
@@ -318,7 +330,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclassresource__managers_1_1ArenaTicketOperation_html_aad36171bbb7010de2357d0f2dfae7884ad37b1f6c0512e2118cee17fea015b699"><div class="ttname"><a href="classresource__managers_1_1ArenaTicketOperation.html#aad36171bbb7010de2357d0f2dfae7884ad37b1f6c0512e2118cee17fea015b699">resource_managers::ArenaTicketOperation::Error::Rejected</a></div><div class="ttdeci">@ Rejected</div></div>
 <div class="ttc" id="aclassresource__managers_1_1ArenaTicketOperation_html_aad36171bbb7010de2357d0f2dfae7884aeec89088ee408b80387155272b113256"><div class="ttname"><a href="classresource__managers_1_1ArenaTicketOperation.html#aad36171bbb7010de2357d0f2dfae7884aeec89088ee408b80387155272b113256">resource_managers::ArenaTicketOperation::Error::Network</a></div><div class="ttdeci">@ Network</div></div>
 <div class="ttc" id="aclassresource__managers_1_1ArenaTicketOperation_html_ad5593cb45a7c506df966adbbfce2ce62"><div class="ttname"><a href="classresource__managers_1_1ArenaTicketOperation.html#ad5593cb45a7c506df966adbbfce2ce62">resource_managers::ArenaTicketOperation::succeeded</a></div><div class="ttdeci">void succeeded(const QString &amp;ticket)</div></div>
-<div class="ttc" id="aclassresource__managers_1_1ArenaTicketOperation_html_adafeb351060d95f19674dcb55713bbf2"><div class="ttname"><a href="classresource__managers_1_1ArenaTicketOperation.html#adafeb351060d95f19674dcb55713bbf2">resource_managers::ArenaTicketOperation::cancel</a></div><div class="ttdeci">void cancel()</div><div class="ttdef"><b>Definition</b> Profile.cpp:140</div></div>
+<div class="ttc" id="aclassresource__managers_1_1ArenaTicketOperation_html_adafeb351060d95f19674dcb55713bbf2"><div class="ttname"><a href="classresource__managers_1_1ArenaTicketOperation.html#adafeb351060d95f19674dcb55713bbf2">resource_managers::ArenaTicketOperation::cancel</a></div><div class="ttdeci">void cancel()</div><div class="ttdef"><b>Definition</b> Profile.cpp:147</div></div>
 <div class="ttc" id="aclassresource__managers_1_1OnlineUserData_html"><div class="ttname"><a href="classresource__managers_1_1OnlineUserData.html">resource_managers::OnlineUserData</a></div><div class="ttdef"><b>Definition</b> Profile.h:78</div></div>
 <div class="ttc" id="aclassresource__managers_1_1Profile_html"><div class="ttname"><a href="classresource__managers_1_1Profile.html">resource_managers::Profile</a></div><div class="ttdef"><b>Definition</b> Profile.h:91</div></div>
 <div class="ttc" id="aclassresource__managers_1_1Profile_html_a24ca795ca1e26537ba6acf5815cc3d14"><div class="ttname"><a href="classresource__managers_1_1Profile.html#a24ca795ca1e26537ba6acf5815cc3d14">resource_managers::Profile::LoginState</a></div><div class="ttdeci">LoginState</div><div class="ttdef"><b>Definition</b> Profile.h:95</div></div>
