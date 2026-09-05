@@ -1362,7 +1362,7 @@
 <context>
     <name>Gameplay</name>
     <message>
-        <location filename="../scripts/gameplay/Gameplay.qml" line="851"/>
+        <location filename="../scripts/gameplay/Gameplay.qml" line="829"/>
         <source>Arena gameplay panel</source>
         <translation>Panel areny w grze</translation>
     </message>
@@ -2058,12 +2058,12 @@
 <context>
     <name>Lr2SkinScreenWrapper</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2902"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2923"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation>Zapisano zrzut ekranu do %1 i schowka.</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2904"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2925"/>
         <source>Failed to save screenshot.</source>
         <translation>Nie udało się zapisać zrzutu ekranu.</translation>
     </message>
@@ -2071,32 +2071,32 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../scripts/main/Main.qml" line="159"/>
+        <location filename="../scripts/main/Main.qml" line="165"/>
         <source>%1 %2</source>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="193"/>
+        <location filename="../scripts/main/Main.qml" line="192"/>
         <source>Song Selection</source>
         <translation>Wybór piosenek</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="202"/>
+        <location filename="../scripts/main/Main.qml" line="199"/>
         <source>Online Arena</source>
         <translation>Arena online</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="217"/>
+        <location filename="../scripts/main/Main.qml" line="212"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="232"/>
+        <location filename="../scripts/main/Main.qml" line="225"/>
         <source>Attributions</source>
         <translation>Atrybucje</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="247"/>
+        <location filename="../scripts/main/Main.qml" line="240"/>
         <source>Quit</source>
         <translation>Wyjdź</translation>
     </message>
@@ -2152,32 +2152,32 @@
         <translation>Kolor dolnej kreski</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="79"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="80"/>
         <source>Flip Scratch Lane</source>
         <translation>Przerzuć płytę</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="148"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="150"/>
         <source>Notes</source>
         <translation>Notki</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="95"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="97"/>
         <source>Enable Lane Cover</source>
         <translation>Zakrycie od góry</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="103"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="105"/>
         <source>Lane Cover Ratio</source>
         <translation>Poziom zakrycia</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="153"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="155"/>
         <source>Lane Cover</source>
         <translation>Zasłona od góry</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="107"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="109"/>
         <source>Enable Lift</source>
         <translation>Podniesienie</translation>
     </message>
@@ -2212,67 +2212,67 @@
         <translation>Zasłona od góry, podniesienie, ukrycie od dołu i scratch.</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="89"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="91"/>
         <source>Enable 5 Keys Cover</source>
         <translation>Włącz zasłonę 5K</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="115"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="117"/>
         <source>Lift Ratio</source>
         <translation>Poziom podniesienia</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="119"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="121"/>
         <source>Enable Hidden</source>
         <translation>Ukrycie od dołu</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="127"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="129"/>
         <source>Hidden Ratio</source>
         <translation>Poziom ukrycia</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="131"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="133"/>
         <source>Images</source>
         <translation>Grafiki</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="132"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="134"/>
         <source>Theme assets used by notes, covers, and effects.</source>
         <translation>Grafiki motywu dla notek, zasłon i efektów.</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="141"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="143"/>
         <source>5 Keys Cover</source>
         <translation>Zasłona 5K</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="158"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="160"/>
         <source>Lift Cover</source>
         <translation>Zakrycie z dołu</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="163"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="165"/>
         <source>Mine</source>
         <translation>Mina</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="168"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="170"/>
         <source>Key Beam</source>
         <translation>Laser</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="174"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="176"/>
         <source>Key Beam Size</source>
-        <translation type="unfinished"></translation>
+        <translation>Rozmiar lasera</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="180"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="182"/>
         <source>Bomb</source>
         <translation>Bomba</translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="185"/>
+        <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="187"/>
         <source>Glow</source>
         <translation>Poświata</translation>
     </message>
@@ -2362,122 +2362,161 @@
         <translation>Wybierz folder z powtórkami</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="133"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="76"/>
+        <source>Select LR2 or beatoraja score database</source>
+        <translation>Wybierz score.db z LR2 lub Beatoraja</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="77"/>
+        <source>SQLite databases (*.db)</source>
+        <translation>Bazy danych SQLite (*.db)</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="77"/>
+        <source>All files (*)</source>
+        <translation>Wszystkie pliki (*)</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="90"/>
+        <source>Choose a profile, manage online login, sync scores, and import data.</source>
+        <translation>Wybierz profil, zarządzaj logowaniem do rankingu, synchronizuj i importuj wyniki</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="142"/>
         <source>Scores: %1</source>
         <translation>Wyniki: %1</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="140"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="149"/>
         <source>Remove</source>
         <translation>Usuń</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="101"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="110"/>
         <source>Add profile</source>
         <translation>Dodaj profil</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="80"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="89"/>
         <source>Player settings</source>
         <translation>Ustawienia gracza</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="81"/>
         <source>Choose a profile, manage online login, sync scores, and import replays.</source>
-        <translation>Wybierz profil, skonfiguruj konto online, synchronizuj wyniki i importuj powtórki.</translation>
+        <translation type="vanished">Wybierz profil, skonfiguruj konto online, synchronizuj wyniki i importuj powtórki.</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="92"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="101"/>
         <source>Profiles</source>
         <translation>Profile</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="93"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="102"/>
         <source>%1 profiles</source>
         <translation>Profile: %1</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="206"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="215"/>
         <source>Open profile folder</source>
         <translation>Otwórz folder profilu</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="159"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="168"/>
         <source>Profile</source>
         <translation>Profil</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="219"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="228"/>
         <source>Online account</source>
         <translation>Konto online</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="220"/>
         <source>Download and upload scores for the selected profile.</source>
-        <translation>Pobieraj i wysyłaj wyniki dla wybranego profilu.</translation>
+        <translation type="vanished">Pobieraj i wysyłaj wyniki dla wybranego profilu.</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="284"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="229"/>
+        <source>Sync RhythmGame scores and import connected Bokutachi PBs.</source>
+        <translation>Synchronizuj wyniki z RhythmGame i zaimportuj wyniki z Bokutachi</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="302"/>
         <source>Logging in...</source>
         <translation>Logowanie...</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="297"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="315"/>
         <source>Logged in as %1</source>
         <translation>Zalogowano jako %1</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="302"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="320"/>
         <source>Logout</source>
         <translation>Wyloguj</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="312"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="330"/>
         <source>Sync scores</source>
         <translation>Synchronizuj wyniki</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="338"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="356"/>
         <source>Email</source>
         <translation>Email</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="349"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="367"/>
         <source>Password</source>
         <translation>Hasło</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="359"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="377"/>
         <source>Login</source>
         <translation>Zaloguj</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="371"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="389"/>
+        <source>Import score database</source>
+        <translation>Zaimportuj bazę danych z wynikami</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="390"/>
+        <source>Import scores from LR2 score.db or beatoraja score.db.</source>
+        <translation>Zaimportuj wyniki ze score.db z LR2 lub Beatoraja</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="409"/>
+        <source>Select database...</source>
+        <translation>Wybierz bazę danych...</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="468"/>
         <source>Import replays</source>
         <translation>Zaimportuj powtórki</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="373"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="470"/>
         <source>e.g. beatoraja/player/player1/replay or LR2files/Replay/player1</source>
         <translation>np. beatoraja/player/player1/replay lub LR2files/Replay/player1</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="401"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="498"/>
         <source>Import</source>
         <translation>Zaimportuj</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="410"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="507"/>
         <source>Select...</source>
         <translation>Wybierz...</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="410"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="507"/>
         <source>Change...</source>
         <translation>Zmień...</translation>
     </message>
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="437"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="534"/>
         <source>Imported: %1, errors: %2, skipped: %3, total: %4</source>
         <translation>Zaimportowano: %1, błędy: %2, pominięto: %3, łącznie: %4</translation>
     </message>
@@ -2542,20 +2581,28 @@
 <context>
     <name>Result</name>
     <message>
-        <location filename="../scripts/result/Result.qml" line="191"/>
+        <location filename="../scripts/result/Result.qml" line="159"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation>Zapisano zrzut ekranu do %1 i schowka.</translation>
     </message>
     <message>
-        <location filename="../scripts/result/Result.qml" line="193"/>
+        <location filename="../scripts/result/Result.qml" line="161"/>
         <source>Failed to save screenshot.</source>
         <translation>Nie udało się zapisać zrzutu ekranu.</translation>
     </message>
 </context>
 <context>
+    <name>Score</name>
+    <message>
+        <location filename="../scripts/result/Score.qml" line="30"/>
+        <source>IMPORTED · %1</source>
+        <translation>ZAIMPORTOWANE · %1</translation>
+    </message>
+</context>
+<context>
     <name>ScoreColumn</name>
     <message>
-        <location filename="../scripts/result/ScoreColumn.qml" line="120"/>
+        <location filename="../scripts/result/ScoreColumn.qml" line="122"/>
         <source>Arena</source>
         <translation>Arena</translation>
     </message>
@@ -2710,17 +2757,17 @@
 <context>
     <name>Select</name>
     <message>
-        <location filename="../scripts/select/Select.qml" line="323"/>
+        <location filename="../scripts/select/Select.qml" line="294"/>
         <source>Press Start twice to toggle ready.</source>
         <translation>Naciśnij dwukrotnie start, żeby przełączyć stan gotowości</translation>
     </message>
     <message>
-        <location filename="../scripts/select/Select.qml" line="667"/>
+        <location filename="../scripts/select/Select.qml" line="638"/>
         <source>Score Details</source>
         <translation>Szczegóły wyniku</translation>
     </message>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="713"/>
+        <location filename="../scripts/select/Select.qml" line="687"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>Znaleziono %n chart</numerusform>
@@ -2750,32 +2797,32 @@
         <translation>Wstecz</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="260"/>
+        <location filename="../scripts/settings/Settings.qml" line="258"/>
         <source>Player settings</source>
         <translation>Ustawienia gracza</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="268"/>
+        <location filename="../scripts/settings/Settings.qml" line="266"/>
         <source>Song directories</source>
         <translation>Foldery z piosenkami</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="276"/>
+        <location filename="../scripts/settings/Settings.qml" line="274"/>
         <source>Tables</source>
         <translation>Tabele</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="284"/>
+        <location filename="../scripts/settings/Settings.qml" line="282"/>
         <source>Themes</source>
         <translation>Motywy</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="292"/>
+        <location filename="../scripts/settings/Settings.qml" line="290"/>
         <source>General Settings</source>
         <translation>Ustawienia Ogólne</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="300"/>
+        <location filename="../scripts/settings/Settings.qml" line="298"/>
         <source>Key config</source>
         <translation>Konfiguracja klawiszy</translation>
     </message>

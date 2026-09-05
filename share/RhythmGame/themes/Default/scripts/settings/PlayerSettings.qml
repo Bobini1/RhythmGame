@@ -387,7 +387,7 @@ Item {
                     id: scoreImportSection
 
                     title: qsTr("Import score database")
-                    subtitle: qsTr("Import replay-less best scores from LR2 score.db or beatoraja score.db.")
+                    subtitle: qsTr("Import scores from LR2 score.db or beatoraja score.db.")
                     Layout.fillWidth: true
 
                     readonly property var op: Rg.profileList.mainProfile.scoreImportOperation
