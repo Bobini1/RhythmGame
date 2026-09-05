@@ -4,7 +4,7 @@ var searchData=
   ['easy_1',['easy',['../structLr2SelectScoreCountsData.html#a1017dfcdf20b37a22e8e708cb6064c7d',1,'Lr2SelectScoreCountsData']]],
   ['edit_2',['edit',['../structlr2skin_1_1runtime_1_1Source.html#aba04aeb37e5143fb25fbc2406f42886f',1,'lr2skin::runtime::Source']]],
   ['elements_3',['elements',['../structgameplay__logic_1_1lr2__skin_1_1Lr2SkinData.html#a0b75ac08ca802838123e3e3df9f5606b',1,'gameplay_logic::lr2_skin::Lr2SkinData::elements'],['../Lr2SkinParser_8cpp.html#ab02517646efbea2d789aa705fbd2d1e5',1,'elements:&#160;Lr2SkinParser.cpp']]],
-  ['emptypoor_4',['emptyPoor',['../structarena_1_1ArenaJudgements.html#aadff1496c57d5abce7aa0a14412bfcdc',1,'arena::ArenaJudgements']]],
+  ['emptypoor_4',['emptypoor',['../structarena_1_1ArenaJudgements.html#aadff1496c57d5abce7aa0a14412bfcdc',1,'arena::ArenaJudgements::emptyPoor'],['../ImportedScoreImporter_8cpp.html#a67791eb35baa211be676783191415740',1,'emptyPoor:&#160;ImportedScoreImporter.cpp']]],
   ['emptypoorcount_5',['emptyPoorCount',['../structgameplay__logic_1_1BmsResult_1_1DTO.html#aefa0c794eb28efc409e99588142042ef',1,'gameplay_logic::BmsResult::DTO']]],
   ['encrypted_6',['encrypted',['../SongAssetStore_8cpp.html#a8a32018f1892e247f08ea9a91f5505e6',1,'SongAssetStore.cpp']]],
   ['enddensity_7',['endDensity',['../structgameplay__logic_1_1ChartData_1_1DTO.html#ae40dc9fd20ea850c78786f35de43e69f',1,'gameplay_logic::ChartData::DTO']]],
@@ -15,5 +15,5 @@ var searchData=
   ['exbpmchanges_12',['exBpmChanges',['../structcharts_1_1ParsedBmsChart_1_1Measure.html#a15def1fa287566d5cab649d0f2f0770f',1,'charts::ParsedBmsChart::Measure']]],
   ['exbpms_13',['exBpms',['../structcharts_1_1ParsedBmsChart_1_1Tags.html#a4244f8c3d3c33184fafe7796a9e2610f',1,'charts::ParsedBmsChart::Tags']]],
   ['exhard_14',['exhard',['../structLr2SelectScoreCountsData.html#ae512464d47c5b6e4df3ff4908635fbbc',1,'Lr2SelectScoreCountsData']]],
-  ['exscore_15',['exscore',['../structLr2SelectScoreStatsData.html#abeddbf6d8b2b4e995ee412002ab359b7',1,'Lr2SelectScoreStatsData::exscore'],['../structarena_1_1TelemetrySnapshot.html#a8d5be66b8de7006990e2a6cddc0b223d',1,'arena::TelemetrySnapshot::exScore'],['../structarena_1_1FinalResult.html#a1c793b70ff49a2596326a82468bb6920',1,'arena::FinalResult::exScore'],['../ArenaOpponentTarget_8cpp.html#a6fc28ea50192c9e606f966857c25c3f1',1,'exScore:&#160;ArenaOpponentTarget.cpp']]]
+  ['exscore_15',['exscore',['../structarena_1_1TelemetrySnapshot.html#a8d5be66b8de7006990e2a6cddc0b223d',1,'arena::TelemetrySnapshot::exScore'],['../structarena_1_1FinalResult.html#a1c793b70ff49a2596326a82468bb6920',1,'arena::FinalResult::exScore'],['../structLr2SelectScoreStatsData.html#abeddbf6d8b2b4e995ee412002ab359b7',1,'Lr2SelectScoreStatsData::exscore'],['../ArenaOpponentTarget_8cpp.html#a6fc28ea50192c9e606f966857c25c3f1',1,'exScore:&#160;ArenaOpponentTarget.cpp']]]
 ];

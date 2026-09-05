@@ -164,7 +164,7 @@ var searchData=
   ['arenascheduler_2eh_161',['ArenaScheduler.h',['../ArenaScheduler_8h.html',1,'']]],
   ['arenaselectionbuildfailure_162',['ArenaSelectionBuildFailure',['../namespacearena.html#a9019fca8c1e64cbdd3aef3150e1c93aa',1,'arena']]],
   ['arenaselectionbuildresult_163',['ArenaSelectionBuildResult',['../namespacearena.html#a0fb162166e8628140d77f1342f2e57b3',1,'arena']]],
-  ['arenasession_164',['arenasession',['../classarena_1_1ArenaSession.html',1,'arena::ArenaSession'],['../classRg.html#a0bc551d826fd1098d7d509e7ad0d6bbe',1,'Rg::arenaSession'],['../classarena_1_1ArenaSession.html#ab8755bef86b9cfed8d6329e68d8aec3c',1,'arena::ArenaSession::ArenaSession()']]],
+  ['arenasession_164',['arenasession',['../classarena_1_1ArenaSession.html',1,'arena::ArenaSession'],['../classarena_1_1ArenaSession.html#ab8755bef86b9cfed8d6329e68d8aec3c',1,'arena::ArenaSession::ArenaSession()'],['../classRg.html#a0bc551d826fd1098d7d509e7ad0d6bbe',1,'Rg::arenaSession']]],
   ['arenasession_2ecpp_165',['ArenaSession.cpp',['../ArenaSession_8cpp.html',1,'']]],
   ['arenasession_2eh_166',['ArenaSession.h',['../ArenaSession_8h.html',1,'']]],
   ['arenasessionforeign_167',['ArenaSessionForeign',['../structrhythm__game__qml_1_1ArenaSessionForeign.html',1,'rhythm_game_qml']]],

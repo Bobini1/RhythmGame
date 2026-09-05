@@ -131,9 +131,9 @@ $(document).ready(function() { init_codefold(0); });
 <div class="foldopen" id="foldopen00045" data-start="{" data-end="}">
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="namespacegameplay__logic.html#ab58820c5a5b134abc0a8cf519fcf2c07">   45</a></span><a class="code hl_function" href="namespacegameplay__logic.html#aae5baf1af41f9f2bf338c9b5d935d2bd">operator&gt;&gt;</a>(QDataStream&amp; stream, <a class="code hl_class" href="classgameplay__logic_1_1Time.html">Time</a>&amp; time) -&gt; QDataStream&amp;</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>{</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keyword">auto</span> timestamp = qint64{};</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keyword">auto</span>&amp; ret = stream &gt;&gt; timestamp &gt;&gt; time.position;</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    time.timestamp = timestamp;</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keyword">auto</span> <a class="code hl_variable" href="ImportedScoreImporter_8cpp.html#a8a591d341723df9496cda98e225b25b4">timestamp</a> = qint64{};</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keyword">auto</span>&amp; ret = stream &gt;&gt; <a class="code hl_variable" href="ImportedScoreImporter_8cpp.html#a8a591d341723df9496cda98e225b25b4">timestamp</a> &gt;&gt; time.position;</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    time.timestamp = <a class="code hl_variable" href="ImportedScoreImporter_8cpp.html#a8a591d341723df9496cda98e225b25b4">timestamp</a>;</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <span class="keywordflow">return</span> ret;</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>}</div>
 </div>
@@ -298,6 +298,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_BMSNOTES_H</span></div>
 <div class="ttc" id="aBeatorajaReplayImporter_8cpp_html_ac08bf238fe8c57ef0755fd0794d6c504"><div class="ttname"><a href="BeatorajaReplayImporter_8cpp.html#ac08bf238fe8c57ef0755fd0794d6c504">sha256</a></div><div class="ttdeci">QString sha256</div><div class="ttdef"><b>Definition</b> BeatorajaReplayImporter.cpp:72</div></div>
 <div class="ttc" id="aBmsNotesData_8cpp_html_ab6f4e6d3fde00ce906e46494f60dfe7a"><div class="ttname"><a href="BmsNotesData_8cpp.html#ab6f4e6d3fde00ce906e46494f60dfe7a">type</a></div><div class="ttdeci">Type type</div><div class="ttdef"><b>Definition</b> BmsNotesData.cpp:32</div></div>
+<div class="ttc" id="aImportedScoreImporter_8cpp_html_a8a591d341723df9496cda98e225b25b4"><div class="ttname"><a href="ImportedScoreImporter_8cpp.html#a8a591d341723df9496cda98e225b25b4">timestamp</a></div><div class="ttdeci">int64_t timestamp</div><div class="ttdef"><b>Definition</b> ImportedScoreImporter.cpp:58</div></div>
 <div class="ttc" id="aSha256_8h_html"><div class="ttname"><a href="Sha256_8h.html">Sha256.h</a></div></div>
 <div class="ttc" id="aSqliteCppDb_8h_html"><div class="ttname"><a href="SqliteCppDb_8h.html">SqliteCppDb.h</a></div></div>
 <div class="ttc" id="aclassdb_1_1SqliteCppDb_html"><div class="ttname"><a href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></div><div class="ttdoc">Database wrapper for SQLiteCpp.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:25</div></div>

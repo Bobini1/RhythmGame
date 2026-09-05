@@ -24,5 +24,5 @@ var searchData=
   ['errored_21',['errored',['../classqml__components_1_1ReplayImportOperation.html#a26c37046fa895ceef74569b4e96fa44d',1,'qml_components::ReplayImportOperation']]],
   ['errormessagekey_22',['errorMessageKey',['../classarena_1_1ArenaSession.html#ae797c4bfd509ebfa62e4dba317d8477f',1,'arena::ArenaSession']]],
   ['exhard_23',['exhard',['../classLr2SelectScoreCounts.html#a446fd089b63563c8fff12a94f9bec0ce',1,'Lr2SelectScoreCounts']]],
-  ['exscore_24',['exscore',['../classLr2SelectScoreStats.html#a5d351f82ec0fb1414875c20c6c8dfe70',1,'Lr2SelectScoreStats::exscore'],['../classarena_1_1ArenaOpponentTarget.html#aec8d7949e2d1d5128032c8bbd212dd1e',1,'arena::ArenaOpponentTarget::exScore']]]
+  ['exscore_24',['exscore',['../classarena_1_1ArenaOpponentTarget.html#aec8d7949e2d1d5128032c8bbd212dd1e',1,'arena::ArenaOpponentTarget::exScore'],['../classLr2SelectScoreStats.html#a5d351f82ec0fb1414875c20c6c8dfe70',1,'Lr2SelectScoreStats::exscore']]]
 ];

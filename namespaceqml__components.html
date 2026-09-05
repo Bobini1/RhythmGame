@@ -135,6 +135,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html">ScoreDb</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides asynchronous access to a profile's score database.  <a href="classqml__components_1_1ScoreDb.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structqml__components_1_1ScoreImportCallbacks.html">ScoreImportCallbacks</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreObjectOwner.html">ScoreObjectOwner</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreQueryResult.html">ScoreQueryResult</a></td></tr>
@@ -171,6 +173,10 @@ Functions</h2></td></tr>
 <tr class="separator:af322aeaef1fc8e3c274202e22f05b43a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1575d1d3cc537bb5f83dfdd7791feb16" id="r_a1575d1d3cc537bb5f83dfdd7791feb16"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceqml__components.html#a1575d1d3cc537bb5f83dfdd7791feb16">constrainNoteOrderAlgorithm</a> (<a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a> algo, bool mirror) -&gt; <a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a></td></tr>
 <tr class="separator:a1575d1d3cc537bb5f83dfdd7791feb16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab68b2f9a3b5245b616e8cbe74b367013" id="r_ab68b2f9a3b5245b616e8cbe74b367013"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceqml__components.html#ab68b2f9a3b5245b616e8cbe74b367013">importLocalScoreDatabase</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;targetDb, const QString &amp;filePath, const <a class="el" href="structqml__components_1_1ScoreImportCallbacks.html">ScoreImportCallbacks</a> &amp;callbacks)</td></tr>
+<tr class="separator:ab68b2f9a3b5245b616e8cbe74b367013"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f121aab8b5ea53b7fb4532f2736d25e" id="r_a3f121aab8b5ea53b7fb4532f2736d25e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceqml__components.html#a3f121aab8b5ea53b7fb4532f2736d25e">importBokutachiPersonalBests</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;targetDb, const QByteArray &amp;response) -&gt; int</td></tr>
+<tr class="separator:a3f121aab8b5ea53b7fb4532f2736d25e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada2baf97b7644eb991dfcb7fca311471" id="r_ada2baf97b7644eb991dfcb7fca311471"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceqml__components.html#ada2baf97b7644eb991dfcb7fca311471">rhythmGameRankingEntryFromJson</a> (const QJsonObject &amp;obj) -&gt; <a class="el" href="structqml__components_1_1RankingEntry.html">RankingEntry</a></td></tr>
 <tr class="separator:ada2baf97b7644eb991dfcb7fca311471"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -205,6 +211,68 @@ Variables</h2></td></tr>
           <td>)</td>
           <td></td><td> -&gt; <a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a>
 </td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3f121aab8b5ea53b7fb4532f2736d25e" name="a3f121aab8b5ea53b7fb4532f2736d25e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f121aab8b5ea53b7fb4532f2736d25e">&#9670;&#160;</a></span>importBokutachiPersonalBests()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto qml_components::importBokutachiPersonalBests </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;&#160;</td>
+          <td class="paramname"><em>targetDb</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QByteArray &amp;&#160;</td>
+          <td class="paramname"><em>response</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt;  int</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab68b2f9a3b5245b616e8cbe74b367013" name="ab68b2f9a3b5245b616e8cbe74b367013"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab68b2f9a3b5245b616e8cbe74b367013">&#9670;&#160;</a></span>importLocalScoreDatabase()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void qml_components::importLocalScoreDatabase </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;&#160;</td>
+          <td class="paramname"><em>targetDb</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>filePath</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structqml__components_1_1ScoreImportCallbacks.html">ScoreImportCallbacks</a> &amp;&#160;</td>
+          <td class="paramname"><em>callbacks</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
