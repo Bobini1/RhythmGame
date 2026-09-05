@@ -99,10 +99,10 @@ ApplicationWindow {
             property Item resultRetryItem: null
             property var resultRetrySession: null
             readonly property int quickRetryHoldDuration: 1000
-            readonly property int quickRetryInputState: (Input.start1 ? 1 : 0)
-                | (Input.select1 ? 2 : 0)
-                | (Input.start2 ? 4 : 0)
-                | (Input.select2 ? 8 : 0)
+            readonly property int quickRetryInputState: (globalRoot.Input.start1 ? 1 : 0)
+                | (globalRoot.Input.select1 ? 2 : 0)
+                | (globalRoot.Input.start2 ? 4 : 0)
+                | (globalRoot.Input.select2 ? 8 : 0)
 
             onQuickRetryInputStateChanged:
                 frameImplementation.handleQuickRetryInputChanged()
@@ -328,8 +328,8 @@ ApplicationWindow {
                     }
                     return;
                 }
-                const p1Chord = Input.start1 && Input.select1;
-                const p2Chord = Input.start2 && Input.select2;
+                const p1Chord = globalRoot.Input.start1 && globalRoot.Input.select1;
+                const p2Chord = globalRoot.Input.start2 && globalRoot.Input.select2;
                 const side = p1Chord ? 1 : (p2Chord ? 2 : 0);
                 const runner = frameImplementation.currentOwnedChartRunner();
                 if (side === 0 || !runner) {
@@ -365,9 +365,9 @@ ApplicationWindow {
                     return;
                 }
                 const startHeld = frameState.quickRetrySide === 1
-                    ? Input.start1 : Input.start2;
+                    ? globalRoot.Input.start1 : globalRoot.Input.start2;
                 const selectHeld = frameState.quickRetrySide === 1
-                    ? Input.select1 : Input.select2;
+                    ? globalRoot.Input.select1 : globalRoot.Input.select2;
                 if (startHeld && selectHeld) {
                     return;
                 }
@@ -718,8 +718,8 @@ ApplicationWindow {
             onTriggered: {
                 const runner = frameImplementation.currentOwnedChartRunner();
                 const chordHeld = frameState.quickRetrySide === 1
-                    ? Input.start1 && Input.select1
-                    : Input.start2 && Input.select2;
+                    ? globalRoot.Input.start1 && globalRoot.Input.select1
+                    : globalRoot.Input.start2 && globalRoot.Input.select2;
                 if (!runner || !chordHeld) {
                     frameImplementation.resetQuickRetryControl();
                     return;
