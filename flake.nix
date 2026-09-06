@@ -24,6 +24,16 @@
 
       stdenv = pkgs.gcc15Stdenv;
 
+      libremidi = pkgs.libremidi.overrideAttrs (_: rec {
+        version = "5.4.3";
+        src = pkgs.fetchFromGitHub {
+          owner = "jcelerier";
+          repo = "libremidi";
+          rev = "v${version}";
+          hash = "sha256-p1abtxCJBwOt2VqKh85sF3yP4ekmwzTsden4XoMKDos=";
+        };
+      });
+
       ned14-llfio = pkgs.callPackage ./nix/packages/ned14-llfio.nix {
         inherit (nur-foolnotion) ned14-quickcpplib ned14-outcome ned14-status-code byte-lite span-lite;
         inherit stdenv;
@@ -34,7 +44,7 @@
       packages = {
         default = self.packages.${system}.rhythmgame;
         rhythmgame = pkgs.kdePackages.callPackage ./nix/packages/rhythmgame.nix {
-          inherit ned14-llfio;
+          inherit libremidi ned14-llfio;
           lexy = nur-foolnotion.foonathan-lexy;
           inherit stdenv;
         };
@@ -42,7 +52,7 @@
       };
 
       devShells.default = pkgs.kdePackages.callPackage ./nix/shells/default.nix {
-        inherit ned14-llfio;
+        inherit libremidi ned14-llfio;
         lexy = nur-foolnotion.foonathan-lexy;
         inherit (pkgs.kdePackages) qtdeclarative qtwebsockets qtsvg qtshadertools qtwayland qtmultimedia qttools qtkeychain;
         mkShell = pkgs.mkShell.override {inherit stdenv;};

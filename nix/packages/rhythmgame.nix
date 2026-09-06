@@ -37,6 +37,8 @@
   openimageio,
   libwebp,
   libtiff,
+  libzip,
+  zlib,
   zlib-ng,
   libremidi,
 }:
@@ -85,6 +87,8 @@ stdenv.mkDerivation rec {
     openimageio
     libwebp
     libtiff
+    libzip
+    zlib
     zlib-ng
     libremidi
   ];

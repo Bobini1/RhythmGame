@@ -41,6 +41,8 @@
   openimageio,
   libwebp,
   libtiff,
+  libzip,
+  zlib,
   zlib-ng,
   libremidi,
 }:
@@ -80,6 +82,8 @@ mkShell {
     openimageio
     libwebp
     libtiff
+    libzip
+    zlib
     zlib-ng
     libremidi
   ];
