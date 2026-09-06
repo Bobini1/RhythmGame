@@ -38,4 +38,11 @@ QmlUtilsAttached::fileName() const -> QString
     }
     return {};
 }
+void
+QmlUtilsAttached::adopt(QObject* object) const
+{
+    if (object) {
+        object->setParent(parent());
+    }
+}
 } // qml_components

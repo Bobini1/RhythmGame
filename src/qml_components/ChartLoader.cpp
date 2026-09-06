@@ -418,78 +418,37 @@ ChartLoader::loadChartWithConfig(
     }
 }
 
-ChartRetrySession::ChartRetrySession(RunnerFactory freshRandomizationFactory,
-                                     RunnerFactory samePatternFactory)
-  : freshRandomizationFactory(std::move(freshRandomizationFactory))
-  , samePatternFactory(std::move(samePatternFactory))
+auto
+ChartLoader::canRetry(gameplay_logic::ChartRunner* current) const -> bool
 {
+    return current != nullptr && current->getPlayer2() == nullptr &&
+           current->getPlayer1()->getProfile() != nullptr &&
+           qobject_cast<gameplay_logic::RePlayer*>(current->getPlayer1()) ==
+             nullptr &&
+           qobject_cast<gameplay_logic::AutoPlayer*>(current->getPlayer1()) ==
+             nullptr;
 }
 
 auto
-ChartRetrySession::consume(RunnerFactory& factory)
-  -> gameplay_logic::ChartRunner*
+ChartLoader::retryChart(gameplay_logic::ChartRunner* current,
+                        bool samePattern) const -> gameplay_logic::ChartRunner*
 {
-    if (consumed || !factory) {
-        return nullptr;
-    }
-    consumed = true;
-    auto selectedFactory = std::move(factory);
-    freshRandomizationFactory = {};
-    samePatternFactory = {};
-    return selectedFactory();
-}
-
-auto
-ChartRetrySession::retryWithFreshRandomization() -> gameplay_logic::ChartRunner*
-{
-    return consume(freshRandomizationFactory);
-}
-
-auto
-ChartRetrySession::retryWithSamePattern() -> gameplay_logic::ChartRunner*
-{
-    return consume(samePatternFactory);
-}
-
-auto
-ChartLoader::prepareQuickRetry(gameplay_logic::ChartRunner* current) const
-  -> ChartRetrySession*
-{
-    if (current == nullptr ||
-        current->getStatus() == gameplay_logic::ChartRunner::Finished) {
-        return nullptr;
-    }
-    return prepareRetry(current);
-}
-
-auto
-ChartLoader::prepareResultRetry(gameplay_logic::ChartRunner* current) const
-  -> ChartRetrySession*
-{
-    if (current == nullptr ||
-        current->getStatus() != gameplay_logic::ChartRunner::Finished) {
-        return nullptr;
-    }
-    return prepareRetry(current);
-}
-
-auto
-ChartLoader::prepareRetry(gameplay_logic::ChartRunner* current) const
-  -> ChartRetrySession*
-{
-    if (current->getPlayer2() != nullptr ||
-        qobject_cast<gameplay_logic::RePlayer*>(current->getPlayer1()) !=
-          nullptr ||
-        qobject_cast<gameplay_logic::AutoPlayer*>(current->getPlayer1()) !=
-          nullptr) {
+    if (!canRetry(current)) {
         return nullptr;
     }
     auto* player = current->getPlayer1()->getProfile();
-    if (player == nullptr) {
-        return nullptr;
-    }
-
     const auto filename = current->getChartData()->getPath();
+    if (!samePattern) {
+        return loadChart(filename,
+                         player,
+                         false,
+                         false,
+                         nullptr,
+                         nullptr,
+                         false,
+                         false,
+                         nullptr);
+    }
     const auto* score = current->getPlayer1()->getScore();
     const auto playConfig = resource_managers::ChartPlayConfig{
         .randomSequence = score->getRandomSequence(),
@@ -498,30 +457,7 @@ ChartLoader::prepareRetry(gameplay_logic::ChartRunner* current) const
         .dpMode = score->getDpOptions(),
         .laneSeed = score->getRandomSeed(),
     };
-    const auto loader = QPointer{ const_cast<ChartLoader*>(this) };
-    const auto profile = QPointer{ player };
-    auto freshRandomizationFactory = [loader, profile, filename] {
-        if (!loader || !profile) {
-            return static_cast<gameplay_logic::ChartRunner*>(nullptr);
-        }
-        return loader->loadChart(filename,
-                                 profile,
-                                 false,
-                                 false,
-                                 nullptr,
-                                 nullptr,
-                                 false,
-                                 false,
-                                 nullptr);
-    };
-    auto samePatternFactory = [loader, profile, filename, playConfig] {
-        if (!loader || !profile) {
-            return static_cast<gameplay_logic::ChartRunner*>(nullptr);
-        }
-        return loader->loadChartWithConfig(filename, profile, playConfig);
-    };
-    return new ChartRetrySession(std::move(freshRandomizationFactory),
-                                 std::move(samePatternFactory));
+    return loadChartWithConfig(filename, player, playConfig);
 }
 
 auto

@@ -2,9 +2,9 @@ import QtQuick
 import RhythmGameQml
 
 /*!
-    \qmltype StandardGameplayExit
+    \qmltype StandardGameplayInput
     \inqmlmodule RhythmGameQml
-    \brief Provides standard Escape handling for gameplay.
+    \brief Coordinates gameplay exit, quick retry and result completion.
 
     The component distinguishes abandoning before a hit from finishing an
     attempted play, while leaving presentation cleanup and result opening
@@ -32,7 +32,20 @@ import RhythmGameQml
     as \c openResultAction(scores, profiles, chartData). If a runner reaches
     \c ChartRunner.Finished while this component is disabled, completion is
     deferred until it becomes enabled; the result is opened at most once per
-    chart.
+    chart. \l completionEnabled can disable automatic completion for skins
+    that implement their own finish timing.
+
+    Hold Start+Select on either side for \l retryHoldDurationMillis. During
+    \l retryChoosing, release Start for the same pattern, Select for fresh
+    randomization, or both to cancel. Gameplay stays visible and standard exit
+    and completion wait until the choice ends. Gate other skin-owned controls
+    with !retryChoosing, but keep this component enabled to receive releases.
+
+    \l retryEnabled and \l exitEnabled disable the respective actions and key
+    mappings. \l retryAction replaces restarting; \l retry can also be called
+    from a skin button. Standard retry excludes courses, autoplay, replay,
+    battle and Arena. Use \l StandardChartRetry for retry without these input
+    mappings or completion handling.
 */
 Item {
     id: root
@@ -56,6 +69,18 @@ Item {
     property bool exitFeedbackEnabled: true
     /*! Whether Arena owns the gameplay completion transition. */
     property bool arenaOwned: false
+    /*! Whether Escape and calls to \l exit are accepted. */
+    property bool exitEnabled: true
+    /*! Whether finished charts automatically open their result. */
+    property bool completionEnabled: true
+    /*! Whether retry and the Start+Select gesture are enabled. */
+    property bool retryEnabled: true
+    /*! Start+Select hold duration before choosing a retry, in milliseconds. */
+    property int retryHoldDurationMillis: 1000
+    /*! Optional \c retryAction(samePattern) replacement for restarting. */
+    property var retryAction: null
+    /*! Whether the Start+Select gesture is waiting for a release choice. */
+    readonly property bool retryChoosing: inputState.choosing
     /*! Whether gameplay has produced a scoring hit. */
     readonly property bool attempted: attemptState.attempted
 
@@ -108,6 +133,13 @@ Item {
             playstopSound.stop();
             playstopSound.play();
         }
+
+        function completePending() {
+            if (root.enabled && root.completionEnabled && !root.retryChoosing
+                    && !inputState.retrying && exitState.completionPending) {
+                exitState.complete();
+            }
+        }
     }
 
     StandardGameplayAttemptState {
@@ -115,9 +147,101 @@ Item {
         chart: root.chart
     }
 
+    StandardChartRetry {
+        id: chartRetry
+        chart: root.chart
+    }
+
+    QtObject {
+        id: inputState
+        property int side: 0
+        property bool choosing: false
+        property bool retrying: false
+        readonly property bool retryAvailable: root.retryEnabled && !root.arenaOwned
+            && (typeof root.retryAction === "function" || chartRetry.available)
+        readonly property int buttons: (root.Input.start1 ? 1 : 0)
+            | (root.Input.select1 ? 2 : 0)
+            | (root.Input.start2 ? 4 : 0)
+            | (root.Input.select2 ? 8 : 0)
+
+        onRetryAvailableChanged: if (!inputState.retryAvailable) root.cancelRetry()
+
+        onButtonsChanged: {
+            if (!root.enabled || !inputState.retryAvailable) {
+                return;
+            }
+            if (root.retryChoosing) {
+                Qt.callLater(inputState.evaluateChoice);
+                return;
+            }
+            const side = (inputState.buttons & 3) === 3 ? 1
+                : ((inputState.buttons & 12) === 12 ? 2 : 0);
+            if (!side) {
+                root.cancelRetry();
+            } else if (side !== inputState.side || !holdTimer.running) {
+                inputState.side = side;
+                holdTimer.restart();
+            }
+        }
+
+        function heldButtons() {
+            return inputState.side === 1
+                ? inputState.buttons & 3 : (inputState.buttons >> 2) & 3;
+        }
+
+        function evaluateChoice() {
+            if (!root.enabled || !root.retryChoosing) {
+                return;
+            }
+            const buttons = inputState.heldButtons();
+            if (buttons === 0) {
+                root.cancelRetry();
+            } else if (buttons !== 3) {
+                root.retry(buttons === 2);
+            }
+        }
+    }
+
+    /*! Cancels the hold/release choice and resumes any pending completion. */
+    function cancelRetry() {
+        holdTimer.stop();
+        inputState.side = 0;
+        inputState.choosing = false;
+    }
+
+    /*! Retries with the same pattern if \a samePattern is true, or a fresh one. */
+    function retry(samePattern) {
+        if (!root.enabled || !inputState.retryAvailable || inputState.retrying) {
+            return false;
+        }
+        inputState.retrying = true;
+        try {
+            if (typeof root.retryAction === "function") {
+                root.retryAction(samePattern);
+                return true;
+            }
+            return chartRetry.retry(samePattern);
+        } finally {
+            inputState.retrying = false;
+            root.cancelRetry();
+        }
+    }
+
+    Timer {
+        id: holdTimer
+        interval: Math.max(1, root.retryHoldDurationMillis)
+        onTriggered: {
+            if (root.enabled && inputState.retryAvailable
+                    && root.chart?.status !== ChartRunner.Finished
+                    && inputState.heldButtons() === 3) {
+                inputState.choosing = true;
+            }
+        }
+    }
+
     /*! Applies the standard abandon-or-complete decision. */
     function exit() {
-        if (!enabled) {
+        if (!enabled || !root.exitEnabled || root.retryChoosing || inputState.retrying) {
             return false;
         }
         if (typeof exitAction === "function") {
@@ -149,25 +273,25 @@ Item {
     }
 
     Shortcut {
-        enabled: root.enabled
+        enabled: root.enabled && root.exitEnabled && !root.retryChoosing
         sequence: "Esc"
         onActivated: root.exit()
     }
 
     onChartChanged: {
+        root.cancelRetry();
         exitState.resultOpened = false;
         exitState.completionPending = false;
     }
 
     onEnabledChanged: {
-        if (enabled && exitState.completionPending) {
-            Qt.callLater(function() {
-                if (root.enabled && exitState.completionPending) {
-                    exitState.complete();
-                }
-            });
+        if (!root.enabled) {
+            root.cancelRetry();
         }
+        Qt.callLater(exitState.completePending);
     }
+    onRetryChoosingChanged: Qt.callLater(exitState.completePending)
+    onCompletionEnabledChanged: Qt.callLater(exitState.completePending)
 
     Connections {
         target: root.chart
@@ -177,11 +301,8 @@ Item {
                 exitState.resultOpened = false;
                 exitState.completionPending = false;
             } else if (root.chart?.status === ChartRunner.Finished) {
-                if (root.enabled) {
-                    exitState.complete();
-                } else {
-                    exitState.completionPending = true;
-                }
+                exitState.completionPending = true;
+                exitState.completePending();
             }
         }
     }

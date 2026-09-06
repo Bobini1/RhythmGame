@@ -167,7 +167,8 @@ set(RHYTHM_GAME_QML_FILES
         StandardMainActions.qml
         StandardDecideFlow.qml
         StandardResultInput.qml
-        StandardGameplayExit.qml
+        StandardChartRetry.qml
+        StandardGameplayInput.qml
         StandardGameplayAttemptState.qml
         Arena/ArenaChatView.qml
         Arena/ArenaChatActivityRail.qml

@@ -12,6 +12,7 @@ QtObject {
     property var optionOpenSound
     property var optionCloseSound
     property var optionChangeSound
+    property bool gameplayInputEnabled: true
 
     readonly property var root: screenRoot
     property int selectPanel: 0
@@ -199,7 +200,7 @@ QtObject {
     }
 
     function handleGameplayOptionModifierChanged() : var {
-        if (!root.gameplayScreenActive) {
+        if (!controller.gameplayInputEnabled || !root.gameplayScreenActive) {
             return;
         }
         controller.updateGameplayCoverChangeTarget(1);
@@ -1412,7 +1413,8 @@ QtObject {
     }
 
     function applyLr2GameplayOptionKey(key: var) : var {
-        if (!root.gameplayScreenActive || !root.gameplayOptionModifierHeldForKey(key)) {
+        if (!controller.gameplayInputEnabled || !root.gameplayScreenActive
+                || !root.gameplayOptionModifierHeldForKey(key)) {
             return false;
         }
 
@@ -1451,7 +1453,7 @@ QtObject {
     }
 
     function handleGameplayStartPress(key: var) : var {
-        if (!root.gameplayScreenActive
+        if (!controller.gameplayInputEnabled || !root.gameplayScreenActive
                 || (key !== BmsKey.Start1 && key !== BmsKey.Start2)) {
             return false;
         }
@@ -1536,7 +1538,7 @@ QtObject {
     }
 
     function handleLr2GameplayScratchTick(side: var, up: var, number: var) : var {
-        if (!root.gameplayScreenActive) {
+        if (!controller.gameplayInputEnabled || !root.gameplayScreenActive) {
             return false;
         }
         let key = side === 2 ? BmsKey.Col2sUp : BmsKey.Col1sUp;
@@ -1565,7 +1567,7 @@ QtObject {
     }
 
     function handleLr2GameplayArrow(key: var) : var {
-        if (!root.gameplayScreenActive) {
+        if (!controller.gameplayInputEnabled || !root.gameplayScreenActive) {
             return false;
         }
         switch (key) {

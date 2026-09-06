@@ -53,7 +53,7 @@
             consume the operation; return \c false or \c undefined to continue
             with the built-in operation.
         \li Supplemental callbacks, such as
-            \l StandardGameplayExit::closePresentationAction, are explicitly
+            \l StandardGameplayInput::closePresentationAction, are explicitly
             documented and do not replace the surrounding operation.
         \li Request signals identify operations that require skin-owned UI or
             could not be completed by the standard implementation.
@@ -99,7 +99,10 @@
         \li \l StandardMainActions provides main-menu destinations.
         \li \l StandardDecideFlow handles decide-screen lifetime and input.
         \li \l StandardResultInput handles result dismissal and retry input.
-        \li \l StandardGameplayExit handles gameplay escape behavior.
+        \li \l StandardGameplayInput coordinates Escape, Start+Select retry
+            and gameplay completion.
+        \li \l StandardChartRetry replaces gameplay for custom retry input
+            or buttons.
         \li \l StandardGameplayAttemptState tracks whether a play was attempted.
         \li \l StandardInputKeys classifies standard gameplay input keys.
     \endlist

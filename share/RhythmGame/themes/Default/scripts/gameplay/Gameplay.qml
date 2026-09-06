@@ -484,6 +484,7 @@ Rectangle {
 
     Item {
         id: scaledRoot
+        enabled: !gameplayInput.retryChoosing
 
         anchors.centerIn: parent
         width: 1920
@@ -863,18 +864,20 @@ Rectangle {
             }
         }
     }
-    StandardGameplayExit {
-        id: gameplayExit
+    StandardGameplayInput {
+        id: gameplayInput
 
         enabled: root.enabled
+        retryEnabled: !root.arenaManagedRunner
         arenaOwned: root.arenaGameplayOwned
         chart: root.chart
         chartData: root.chartData
         closePresentationAction: () => root.closeActivePopup()
+        onRetryChoosingChanged: if (retryChoosing) root.closeActivePopup()
     }
     Shortcut {
         sequence: "F2"
-        enabled: root.enabled
+        enabled: root.enabled && !gameplayInput.retryChoosing
 
         onActivated: {
             root.customizeMode = !root.customizeMode;

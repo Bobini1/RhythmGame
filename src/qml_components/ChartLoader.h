@@ -28,29 +28,6 @@ class CourseRunner;
 }
 namespace qml_components {
 
-class ChartLoader;
-
-class ChartRetrySession final : public QObject
-{
-    Q_OBJECT
-    QML_ANONYMOUS
-
-    using RunnerFactory = std::function<gameplay_logic::ChartRunner*()>;
-
-    RunnerFactory freshRandomizationFactory;
-    RunnerFactory samePatternFactory;
-    bool consumed{};
-
-    friend class ChartLoader;
-    explicit ChartRetrySession(RunnerFactory freshRandomizationFactory,
-                               RunnerFactory samePatternFactory);
-    auto consume(RunnerFactory& factory) -> gameplay_logic::ChartRunner*;
-
-  public:
-    Q_INVOKABLE gameplay_logic::ChartRunner* retryWithFreshRandomization();
-    Q_INVOKABLE gameplay_logic::ChartRunner* retryWithSamePattern();
-};
-
 /**
  * @brief Loads charts and courses with the given parameters.
  * @details This class is how a theme to load charts and courses.
@@ -86,9 +63,6 @@ class ChartLoader : public QObject
     ProfileList* profileList;
     input::InputTranslator* inputTranslator;
     db::SqliteCppDb* db;
-
-    auto prepareRetry(gameplay_logic::ChartRunner* current) const
-      -> ChartRetrySession*;
 
     auto createChart(
       resource_managers::Profile* player1,
@@ -172,13 +146,24 @@ class ChartLoader : public QObject
       const resource_managers::ChartPlayConfig& playConfig) const
       -> gameplay_logic::ChartRunner*;
 
-    /** Captures an unfinished local play without completing or saving it. */
-    Q_INVOKABLE ChartRetrySession* prepareQuickRetry(
-      gameplay_logic::ChartRunner* current) const;
+    /** Whether this is a single-player chart without autoplay or replay. */
+    Q_INVOKABLE bool canRetry(gameplay_logic::ChartRunner* current) const;
 
-    /** Captures a completed local play after its result has been saved. */
-    Q_INVOKABLE ChartRetrySession* prepareResultRetry(
-      gameplay_logic::ChartRunner* current) const;
+    /**
+     * Creates a new runner without stopping, finishing or saving
+     * current.
+     * Same-pattern retry preserves the chart's random branches
+     * and lane
+     * transformation. Otherwise the current profile options are
+     * used.
+     * Returns nullptr when unsupported or loading fails. The
+     * caller owns the
+     * new runner; Arena eligibility and screen
+     * navigation are caller policies.
+     */
+    Q_INVOKABLE gameplay_logic::ChartRunner* retryChart(
+      gameplay_logic::ChartRunner* current,
+      bool samePattern) const;
 
     /**
      * @brief Loads a course with the given parameters.

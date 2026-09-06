@@ -158,6 +158,25 @@ use `globalRoot.openSelect()` to enter selection and
 `globalRoot` operations instead of accessing that stack directly. This keeps a
 theme independent of the details of screen lifetime, retry, and Arena flow.
 
+Custom flows can use these navigation operations:
+
+- `currentScreen` is the currently presented screen.
+- `previousScreen(screen)` returns the retained screen immediately before it,
+  or `null`. Omitting `screen` uses the current screen.
+- `openGameplay(runner)` replaces the current decide screen with gameplay.
+- `replaceGameplay(runner, screen)` replaces that screen and anything above it
+  with local gameplay. Omitting `screen` replaces the current screen. It returns
+  the new screen, or `null` if creation fails or the target is unavailable.
+  The replacement is created before removing the old screens, so a broken
+  gameplay skin leaves the current screen intact.
+
+Runner lifetime follows the local screen: decide owns it until gameplay takes
+over; gameplay retains it while results are shown, and destroys it when removed
+or replaced. `ContentFrame` handles this even when a skin omits the standard
+input components. Skins must not destroy these runners themselves. Arena uses
+`openGameplay(runner, true)` to push gameplay without transferring its externally
+owned runner. `ContentFrame` has no retry-specific input or session state.
+
 ---
 **NOTE**
 
@@ -317,23 +336,42 @@ than copying the selection component structure:
 
 - `StandardMainActions` provides the standard song-select, Arena, settings and
   quit destinations, including START opening song selection.
-- `StandardDecideFlow` owns decide timeout, accept/cancel input, transition
-  guarding and chart-runner destruction. It fills its parent by default; the
-  skin owns the decide visuals. A replacement start/cancel action owns its full
-  transition; `returnAfterGameplayAction` only customizes the follow-up for the
-  built-in gameplay transition.
+- `StandardDecideFlow` owns decide timeout, accept/cancel input and transition
+  guarding. It fills its parent by default; the skin owns the decide visuals.
+  A replacement start/cancel action owns its full transition. Starting replaces
+  decide with gameplay; there is no retained decide screen to close afterward.
 - `StandardResultInput` owns delayed result dismissal and retry input. A skin
   can supply `tryHandleButtonAction` for presentation-specific actions such as
   cycling a displayed gauge before the standard retry/dismissal handling runs.
   Skin pointer handlers can call `confirm()` to share the standard confirmation
-  gate.
+  gate. Keys 5 and 7 retry with fresh randomization and the same pattern,
+  respectively. It uses `StandardChartRetry` internally and obtains the runner
+  from the preceding gameplay screen.
+- `StandardGameplayInput` combines Escape, the optional START+SELECT hold gesture
+  and normal result dispatch. Supply `chart` and `chartData`.
+  `retryHoldDurationMillis` defaults to 1000. During `retryChoosing`,
+  releasing START retries the same pattern, releasing SELECT uses fresh
+  randomization, and releasing both cancels. The gameplay screen stays visible.
+  Standard exit and result completion wait for the choice to end; skins only
+  need to gate their own controls with `!retryChoosing`. Keep this component
+  enabled to observe releases. `retryEnabled` and `exitEnabled` independently
+  disable those actions. `retryAction(samePattern)` replaces restarting;
+  `retry(samePattern)` and `cancelRetry()` are available for custom controls.
+  Untouched charts return immediately on Escape; attempted plays finish and
+  open results. Presentation cleanup, exit, feedback and result opening remain
+  replaceable. `completionEnabled: false` allows a skin such as LR2 to own its
+  finish timing. Otherwise completion detected while inactive or choosing retry
+  is retained until it can be presented.
+- `StandardChartRetry` provides `available` and `retry(samePattern)` without
+  input mappings or completion handling. Set `fromResult: true` to infer the
+  runner from gameplay under the current result; otherwise supply `chart`.
+  It replaces gameplay directly, including the result above it when present.
+  The standard implementation excludes courses, autoplay, replay, battle and
+  Arena. An unfinished retry does not finish/save the old play; result retry
+  preserves the already saved result. A supported request is consumed even if
+  loading fails, leaving the current screen intact.
 - `StandardGameplayAttemptState` tracks whether a chart has received a scoring
   hit. It is available separately for custom gameplay transitions.
-- `StandardGameplayExit` combines that attempt state with Escape handling and
-  normal result dispatch. Untouched charts return immediately; attempted plays
-  finish and open their result. Presentation cleanup and result opening remain
-  replaceable, as does the play-stop feedback. Completion detected while the
-  screen is inactive is retained and presented when the screen becomes active.
 
 `StandardInputKeys.isPlayKey(key)` is available when a custom component needs
 the same lane-key classification used by the standard decide and result input.

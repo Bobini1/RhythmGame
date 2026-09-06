@@ -318,9 +318,6 @@ Item {
     }
 
     onEnabledChanged: {
-        if (root.effectiveScreenKey === "decide" && enabled) {
-            Qt.callLater(globalRoot.returnToPreviousScreen);
-        }
         if (enabled) {
             let selectWasOpen = root.selectListAlreadyOpen();
             root.openSelectIfNeeded();
@@ -515,6 +512,7 @@ Item {
 
     Shortcut {
         enabled: root.screenUpdatesActive
+            && !root.gameplayScreenActive
             && !selectSearchState.focused
         sequence: "Esc"
 
@@ -535,9 +533,6 @@ Item {
                 Rg.arenaSession.leaveRoom();
                 return;
             }
-            if (root.gameplayScreenActive && root.handleGameplayEscape()) {
-                return;
-            }
             if (root.effectiveScreenKey === "decide") {
                 root.cancelDecideScreen();
                 return;
@@ -552,7 +547,7 @@ Item {
 
     Shortcut {
         autoRepeat: false
-        enabled: root.screenUpdatesActive
+        enabled: root.screenUpdatesActive && !gameplayInput.retryChoosing
         sequence: "F2"
 
         onActivated: root.toggleCustomizeMode()
@@ -2500,6 +2495,7 @@ Item {
 
     function activateGameplayIfNeeded() : var {
         if (!root.enabled
+                || gameplayInput.retryChoosing
                 || !root.gameplayScreenActive
                 || !root.chart
                 || StackView.status !== StackView.Active) {
@@ -2552,6 +2548,7 @@ Item {
 
     function scheduleGameplayFinishedTransition() : var {
         if (!root.enabled
+                || gameplayInput.retryChoosing
                 || !root.gameplayScreenActive
                 || !root.chart
                 || root.gameplayResultOpened
@@ -2617,6 +2614,7 @@ Item {
 
     function openGameplayStageResult() : var {
         if (!root.enabled
+                || gameplayInput.retryChoosing
                 || !root.gameplayScreenActive
                 || !root.chart
                 || root.gameplayResultOpened) {
@@ -2657,6 +2655,9 @@ Item {
     }
 
     function handleGameplayEscape() : var {
+        if (gameplayInput.retryChoosing) {
+            return true;
+        }
         if (root.arenaGameplayOwned && root.arenaSession.chatOpen === true) {
             root.arenaSession.setChatOpen(false);
             return true;
@@ -5857,6 +5858,38 @@ Item {
         navigationController: selectContext.navigationController
     }
 
+    StandardGameplayInput {
+        id: gameplayInput
+        chart: root.gameplayScreenActive ? root.chart : null
+        enabled: root.enabled && root.gameplayScreenActive
+        arenaOwned: root.arenaGameplayOwned
+        retryEnabled: !root.arenaManagedRunner
+        completionEnabled: false
+        exitFeedbackEnabled: false
+        exitAction: () => {
+            if (root.customizeMode) {
+                root.customizeMode = false;
+            } else {
+                root.handleGameplayEscape();
+            }
+        }
+        onRetryChoosingChanged: {
+            if (retryChoosing) {
+                root.stopLr2GameplayOptionRepeat();
+                root.cancelGameplayFinishedTransition();
+            } else if (root.enabled && root.gameplayScreenActive
+                    && globalRoot.currentScreen === root) {
+                root.handleGameplayStatusChanged();
+            }
+        }
+    }
+
+    StandardChartRetry {
+        id: resultRetry
+        fromResult: true
+        enabled: root.resultInputReady()
+    }
+
     Lr2PlayContext {
         id: playContext
         enabled: root.gameplayScreenActive
@@ -5947,17 +5980,6 @@ Item {
         if (root.arenaRoundId.length > 0 && arenaSession) {
             arenaSession.endResultPresentation(root.arenaRoundId);
         }
-        root.destroyOwnedChartRunner();
-    }
-
-    function destroyOwnedChartRunner() : void {
-        if (root.effectiveScreenKey !== "decide"
-                || !root.chart
-                || typeof root.chart.destroy !== "function") {
-            return;
-        }
-        let runner = root.chart;
-        runner.destroy();
     }
 
     function pauseScreenActivity() : void {
@@ -6208,8 +6230,11 @@ Item {
             return false;
         }
         root.decideTransitionRequested = true;
-        Qt.callLater(globalRoot.openGameplay, root.chart);
-        return true;
+        const item = globalRoot.openGameplay(root.chart);
+        if (!item) {
+            root.decideTransitionRequested = false;
+        }
+        return !!item;
     }
 
     function skipDecideScreen() : var {
@@ -6498,8 +6523,15 @@ Item {
         if (root.handleResultGaugeSelectKey(key)) {
             return;
         }
-        if (root.resultScreenActive && globalRoot.retryResultForKey(key)) {
-            return;
+        if (root.resultScreenActive) {
+            if ((key === BmsKey.Col15 || key === BmsKey.Col25)
+                    && resultRetry.retry(false)) {
+                return;
+            }
+            if ((key === BmsKey.Col17 || key === BmsKey.Col27)
+                    && resultRetry.retry(true)) {
+                return;
+            }
         }
         if (root.closeResultScreen()) {
             return;
@@ -6663,6 +6695,7 @@ Item {
     Lr2SelectPanelController {
         id: selectPanelController
         screenRoot: root
+        gameplayInputEnabled: root.enabled && !gameplayInput.retryChoosing
         selectContext: selectContext
         selectHoverState: selectHoverState
         scratchSound: selectSideEffects.scratchSoundPlayer
@@ -6690,6 +6723,7 @@ Item {
     // LR2 stretches its authored canvas to the actual screen aspect.
     Lr2SkinScene {
         id: skinScene
+        enabled: !gameplayInput.retryChoosing
         anchors.fill: parent
         screenRoot: root
         skinModel: skinModel

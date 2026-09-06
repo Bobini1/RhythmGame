@@ -7,7 +7,7 @@ import RhythmGameQml
     \brief Provides standard decide-screen lifetime and input behavior.
 
     The surrounding skin owns every visual. This component owns accepting,
-    cancelling, timeouts, and runner destruction, with override actions for
+    cancelling and timeouts, with override actions for
     skins that need different transitions.
 
     Default input mapping:
@@ -28,15 +28,14 @@ import RhythmGameQml
     \endtable
 
     Only the first start/cancel request is accepted for a chart. The built-in
-    start opens gameplay and remembers to return past the decide screen when
-    gameplay closes. If a built-in transition cannot create or remove a screen,
-    the request is released so the skin can try again. A replacement
+    start replaces decide with gameplay. If a built-in transition cannot create
+    or remove a screen, the request is released so the skin can try again. A replacement
     \l startAction or \l cancelAction owns its complete transition; it is not
     followed by the built-in action.
 
-    On destruction, \l chart is destroyed unless
-    \l destroyChartOnDestruction is false. A skin transferring ownership of the
-    runner must disable that cleanup explicitly.
+    The content frame owns runner lifetime: cancelling destroys the runner with
+    decide; starting transfers it to gameplay. This component does not destroy
+    the runner itself, including when a replacement action is supplied.
 */
 Item {
     id: root
@@ -49,8 +48,6 @@ Item {
     property var startAction: null
     /*! Optional \c cancelAction() replacement that owns the cancel transition. */
     property var cancelAction: null
-    /*! Optional \c returnAfterGameplayAction() replacement. */
-    property var returnAfterGameplayAction: null
     /*! Automatic acceptance timeout in milliseconds; zero disables it. */
     property int timeoutMillis: 5000
     /*! Whether keyboard input is active. */
@@ -59,15 +56,12 @@ Item {
     property bool controllerEnabled: true
     /*! Whether pointer input is active. */
     property bool pointerEnabled: true
-    /*! Whether destruction of this component destroys \l chart. */
-    property bool destroyChartOnDestruction: true
     QtObject {
         id: flowState
 
-        property bool returnAfterGameplay: false
         property bool transitionRequested: false
 
-        function run(action, defaultAction, returnAfterDefault = false) {
+        function run(action, defaultAction) {
             if (flowState.transitionRequested || !root.enabled) {
                 return false;
             }
@@ -79,18 +73,16 @@ Item {
             let result = defaultAction();
             if (!result) {
                 flowState.transitionRequested = false;
-                flowState.returnAfterGameplay = false;
                 return false;
             }
-            flowState.returnAfterGameplay = returnAfterDefault;
             return true;
         }
 
         function isStartSelectCombo(key) {
-            return (key === BmsKey.Start1 && Input.select1)
-                || (key === BmsKey.Select1 && Input.start1)
-                || (key === BmsKey.Start2 && Input.select2)
-                || (key === BmsKey.Select2 && Input.start2);
+            return (key === BmsKey.Start1 && root.Input.select1)
+                || (key === BmsKey.Select1 && root.Input.start1)
+                || (key === BmsKey.Start2 && root.Input.select2)
+                || (key === BmsKey.Select2 && root.Input.start2);
         }
     }
 
@@ -100,7 +92,7 @@ Item {
             return false;
         }
         return flowState.run(startAction,
-                             () => globalRoot.openGameplay(chart), true);
+                             () => globalRoot.openGameplay(chart));
     }
 
     /*! Cancels the chart and returns to the previous screen. */
@@ -109,25 +101,8 @@ Item {
                              () => globalRoot.returnToPreviousScreen());
     }
 
-    /*! Returns from the decide screen after standard gameplay closes. */
-    function returnAfterGameplay() {
-        if (typeof returnAfterGameplayAction === "function") {
-            returnAfterGameplayAction();
-        } else {
-            globalRoot.returnToPreviousScreen();
-        }
-    }
-
-    onEnabledChanged: {
-        if (enabled && flowState.returnAfterGameplay) {
-            flowState.returnAfterGameplay = false;
-            Qt.callLater(root.returnAfterGameplay);
-        }
-    }
-
     onChartChanged: {
         flowState.transitionRequested = false;
-        flowState.returnAfterGameplay = false;
     }
 
     Timer {
@@ -179,13 +154,6 @@ Item {
             } else if (mouse.button === Qt.RightButton) {
                 root.cancel();
             }
-        }
-    }
-
-    Component.onDestruction: {
-        if (destroyChartOnDestruction && chart
-                && typeof chart.destroy === "function") {
-            chart.destroy();
         }
     }
 }

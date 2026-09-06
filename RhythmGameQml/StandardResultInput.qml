@@ -17,7 +17,9 @@ import RhythmGameQml
     Controller handling is ordered: \l tryHandleButtonAction, retry detection,
     then closing for a standard play key. Start closes directly. A
     \l tryRetryAction returning true consumes retry; otherwise retry is
-    delegated to the application content frame. This component does not create
+    handled by \l StandardChartRetry. Keys 5 and 7 select fresh randomization
+    and the same pattern respectively, on either player side. The runner is
+    inferred from the preceding gameplay screen. This component does not create
     buttons or pointer areas; a skin can call \l confirm from its own UI.
 */
 Item {
@@ -49,6 +51,11 @@ Item {
         }
     }
 
+    StandardChartRetry {
+        id: chartRetry
+        fromResult: true
+    }
+
     /*! Closes the result screen when input is accepted. */
     function close() {
         if (!enabled || !acceptsInput) {
@@ -75,7 +82,16 @@ Item {
         if (typeof tryRetryAction === "function" && tryRetryAction(key)) {
             return true;
         }
-        return globalRoot.retryResultForKey(key);
+        switch (key) {
+        case BmsKey.Col15:
+        case BmsKey.Col25:
+            return chartRetry.retry(false);
+        case BmsKey.Col17:
+        case BmsKey.Col27:
+            return chartRetry.retry(true);
+        default:
+            return false;
+        }
     }
 
     /*! Handles a standard result-screen \a key. */

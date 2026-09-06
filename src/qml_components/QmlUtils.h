@@ -38,6 +38,11 @@ class QmlUtilsAttached : public QObject
     explicit QmlUtilsAttached(QObject* parent = nullptr);
     auto themeName() const -> QString;
     auto fileName() const -> QString;
+    /**
+     * @brief Transfers object to the attached object's QObject ownership.
+     * @note Does not change a QQuickItem's visual parent.
+     */
+    Q_INVOKABLE void adopt(QObject* object) const;
 };
 
 } // namespace qml_components
