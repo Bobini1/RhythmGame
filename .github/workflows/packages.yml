@@ -1,0 +1,76 @@
+name: Package builds
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nix:
+    name: Nix package (x86_64-linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Nix package
+        run: nix build .#rhythmgame --no-update-lock-file --print-build-logs --no-link --max-jobs 2 --cores 2
+
+  aur:
+    name: AUR package (x86_64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    container: archlinux:base-devel
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Install packaging tools
+        run: pacman -Syu --noconfirm --needed git sudo
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Prepare package builder
+        run: |
+          useradd --create-home builder
+          printf 'builder ALL=(ALL) NOPASSWD: /usr/bin/pacman\n' > /etc/sudoers.d/builder
+          chmod 0440 /etc/sudoers.d/builder
+          # Preserve the exact checkout, including a pull request's merge commit and tags.
+          git clone --bare --no-hardlinks "$GITHUB_WORKSPACE" /home/builder/RhythmGame.git
+          chown -R builder:builder /home/builder/RhythmGame.git
+
+      - name: Build AUR package
+        run: sudo --user builder --set-home bash .github/scripts/build-aur.sh /home/builder/RhythmGame.git
+
+      - name: Upload AUR build logs
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: aur-build-logs
+          path: /home/builder/aur/**/*.log
+          if-no-files-found: ignore
+          retention-days: 7
