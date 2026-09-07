@@ -37,7 +37,7 @@ var searchData=
   ['adjusty_34',['adjustY',['../classLr2BarPositionedItem.html#ad6bb20aef2b54a0c3026c81e5bdc3a58',1,'Lr2BarPositionedItem']]],
   ['adjustychanged_35',['adjustYChanged',['../classLr2BarPositionedItem.html#a8c6100340ef7d84c7a138b1b38713d45',1,'Lr2BarPositionedItem']]],
   ['admissionpendingchanged_36',['admissionPendingChanged',['../classarena_1_1ArenaSession.html#a1d50ee963aea80d3490c4d301ca437ab',1,'arena::ArenaSession']]],
-  ['adopt_37',['adopt',['../classqml__components_1_1ScoreObjectOwner.html#a960dd568f0c7e9c404204ea7dd776aad',1,'qml_components::ScoreObjectOwner']]],
+  ['adopt_37',['adopt',['../classqml__components_1_1ScoreObjectOwner.html#a960dd568f0c7e9c404204ea7dd776aad',1,'qml_components::ScoreObjectOwner::adopt()'],['../classqml__components_1_1QmlUtilsAttached.html#a7635e4ff43c0c8c34ff68138e1d865b1',1,'qml_components::QmlUtilsAttached::adopt()']]],
   ['advance_38',['advance',['../classLr2SkinClock.html#ac8868cd86eb6aa55f04e3cf94ade05e2',1,'Lr2SkinClock']]],
   ['advanceanimation_39',['advanceAnimation',['../classLr2SelectVisualState.html#a75dfdc0e93bc399b5e23320ede602ee3',1,'Lr2SelectVisualState']]],
   ['advanceframe_40',['advanceFrame',['../classLr2SkinClock.html#a089099343f79536bf945065f6473e4a6',1,'Lr2SkinClock']]],
