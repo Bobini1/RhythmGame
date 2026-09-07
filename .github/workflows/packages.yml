@@ -47,7 +47,8 @@ jobs:
 
     steps:
       - name: Install packaging tools
-        run: pacman -Syu --noconfirm --needed git sudo
+        # The AUR recipe bootstraps vcpkg, which also requires these archive tools.
+        run: pacman -Syu --noconfirm --needed git sudo curl zip unzip tar
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
