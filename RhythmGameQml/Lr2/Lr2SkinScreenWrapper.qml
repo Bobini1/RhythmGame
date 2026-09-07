@@ -2528,7 +2528,11 @@ Item {
                 root.scheduleGameplayFinishedTransition();
             } else {
                 Qt.callLater(() => {
-                    if (root.enabled && root.gameplayScreenActive && root.chart && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
+                    // Activation notifications can queue this more than once.
+                    if (globalRoot.currentScreen === root
+                            && root.enabled && root.gameplayScreenActive
+                            && root.chart
+                            && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
                         globalRoot.returnToPreviousScreen();
                     }
                 });
