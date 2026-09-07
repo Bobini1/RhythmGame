@@ -56,6 +56,8 @@ class Rg final : public QObject
                  CONSTANT FINAL)
     Q_PROPERTY(
       arena::ArenaSession* arenaSession MEMBER arenaSession CONSTANT FINAL)
+    Q_PROPERTY(arena::ArenaSession* arenaDirectorySession MEMBER
+                 arenaDirectorySession CONSTANT FINAL)
     Q_PROPERTY(resource_managers::Tables* tables MEMBER tables CONSTANT FINAL)
     Q_PROPERTY(
       resource_managers::Languages* languages MEMBER languages CONSTANT FINAL)
@@ -77,6 +79,7 @@ class Rg final : public QObject
     input::GamepadManager* gamepadManager;
     qml_components::ProfileList* profileList;
     arena::ArenaSession* arenaSession;
+    arena::ArenaSession* arenaDirectorySession;
     resource_managers::Tables* tables;
     resource_managers::Languages* languages;
     sounds::AudioEngine* audioEngine;
@@ -96,6 +99,7 @@ class Rg final : public QObject
        input::GamepadManager* gamepadManager,
        qml_components::ProfileList* profileList,
        arena::ArenaSession* arenaSession,
+       arena::ArenaSession* arenaDirectorySession,
        resource_managers::Tables* tables,
        resource_managers::Languages* languages,
        sounds::AudioEngine* audioEngine,

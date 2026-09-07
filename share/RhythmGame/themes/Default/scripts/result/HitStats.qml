@@ -1,5 +1,6 @@
 import QtQuick
 import RhythmGameQml
+import "../common"
 
 WindowBg {
     id: hitStats

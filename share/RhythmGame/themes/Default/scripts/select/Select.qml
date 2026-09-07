@@ -732,6 +732,25 @@ FocusScope {
                     }
                 }
             }
+            WindowBg {
+                anchors.left: ranking.left
+                anchors.verticalCenter: search.verticalCenter
+                width: 400
+                height: search.height
+
+                ArenaActivityLabel {
+                    anchors.fill: parent
+                    anchors.leftMargin: 24
+                    anchors.rightMargin: 24
+                    horizontalAlignment: Text.AlignHCenter
+                    font: songInfoFont.uiFont({
+                        weight: songInfoFont.fontWeight,
+                        variableAxes: songInfoFont.variableAxes,
+                        italic: songInfoFont.italic,
+                        pixelSize: 22
+                    })
+                }
+            }
             Ranking {
                 id: ranking
                 chartData: songList.current

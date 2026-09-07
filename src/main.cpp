@@ -461,6 +461,29 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          applyArenaBattlePolicy);
         applyArenaBattlePolicy();
 
+        // Keep the public room directory available without entering Arena or
+        // changing local play policy. The active Arena session has its own
+        // directory subscription, so only one connection is needed at a time.
+        auto arenaDirectoryTransport = arena::QtWebSocketArenaTransport{};
+        auto arenaDirectorySession =
+          arena::ArenaSession{ &arenaDirectoryTransport,
+                               &arenaIdentityProvider,
+                               &arenaScheduler,
+                               arenaEndpointFromEnvironment(),
+                               QCoreApplication::applicationVersion() };
+        const auto applyArenaDirectoryPolicy = [&] {
+            if (arenaSession.getActive()) {
+                arenaDirectorySession.exitArena();
+            } else {
+                arenaDirectorySession.connectForBrowsing();
+            }
+        };
+        QObject::connect(&arenaSession,
+                         &arena::ArenaSession::activeChanged,
+                         &arenaDirectorySession,
+                         applyArenaDirectoryPolicy);
+        applyArenaDirectoryPolicy();
+
         auto scanningQueue =
           qml_components::ScanningQueue{ &db, songDbScanner };
 
@@ -519,14 +542,23 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          setLang);
         setLang();
 
-        auto rg = Rg{ &programSettings,   &inputTranslator,
-                      &chartLoader,       &rootSongFoldersConfig,
-                      &songFolderFactory, &songDirectoryFilePathFetcher,
-                      &fileQuery,         &themes,
-                      &gamepadManager,    &profileList,
-                      &arenaSession,      &tables,
-                      &languages,         &audioEngine,
-                      &onlineScores,      &songAssets };
+        auto rg = Rg{ &programSettings,
+                      &inputTranslator,
+                      &chartLoader,
+                      &rootSongFoldersConfig,
+                      &songFolderFactory,
+                      &songDirectoryFilePathFetcher,
+                      &fileQuery,
+                      &themes,
+                      &gamepadManager,
+                      &profileList,
+                      &arenaSession,
+                      &arenaDirectorySession,
+                      &tables,
+                      &languages,
+                      &audioEngine,
+                      &onlineScores,
+                      &songAssets };
 
         Rg::instance = &rg;
 

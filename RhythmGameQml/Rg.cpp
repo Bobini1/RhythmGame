@@ -16,6 +16,7 @@ Rg::Rg(
   input::GamepadManager* gamepadManager,
   qml_components::ProfileList* profileList,
   arena::ArenaSession* arenaSession,
+  arena::ArenaSession* arenaDirectorySession,
   resource_managers::Tables* tables,
   resource_managers::Languages* languages,
   sounds::AudioEngine* audioEngine,
@@ -34,6 +35,7 @@ Rg::Rg(
   , gamepadManager(gamepadManager)
   , profileList(profileList)
   , arenaSession(arenaSession)
+  , arenaDirectorySession(arenaDirectorySession)
   , tables(tables)
   , languages(languages)
   , audioEngine(audioEngine)

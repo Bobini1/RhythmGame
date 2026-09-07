@@ -167,6 +167,8 @@ Image {
         }
 
         Pane {
+            id: menuPane
+
             anchors.top: parent.top
             anchors.topMargin: parent.height * 0.5
             anchors.horizontalCenter: parent.horizontalCenter
@@ -204,6 +206,19 @@ Image {
                         pixelSize: 30
                     })
                     onClicked: mainActions.openArena()
+                }
+
+                ArenaActivityLabel {
+                    width: parent.width
+                    height: 36
+                    color: menuPane.palette.text
+                    horizontalAlignment: Text.AlignHCenter
+                    font: mainMenuFont.uiFont({
+                        weight: mainMenuFont.fontWeight,
+                        variableAxes: mainMenuFont.variableAxes,
+                        italic: mainMenuFont.italic,
+                        pixelSize: 22
+                    })
                 }
 
                 Button {

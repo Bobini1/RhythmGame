@@ -1,4 +1,5 @@
 import QtQuick
+import "../common"
 
 WindowBg {
     id: lampDiff
