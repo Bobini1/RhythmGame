@@ -10,6 +10,10 @@ import RhythmGameQml
     attempted play, while leaving presentation cleanup and result opening
     overridable.
 
+    New gameplay skins should normally use \l StandardGameplayFlow, which
+    includes this component and supplies startup, course continuation and
+    return navigation. Do not instantiate both on the same screen.
+
     The default \l exit decision is:
 
     \table
@@ -96,12 +100,12 @@ Item {
             }
         }
 
-        function openResult(scores, profiles) {
+        function openResult(scores, profiles, chartData) {
             if (typeof root.openResultAction === "function") {
-                root.openResultAction(scores, profiles, root.chartData);
+                root.openResultAction(scores, profiles, chartData);
                 return true;
             }
-            globalRoot.openResult(scores, profiles, root.chartData);
+            globalRoot.openResult(scores, profiles, chartData);
             return true;
         }
 
@@ -115,10 +119,11 @@ Item {
             let profiles = [root.chart.player1.profile,
                             root.chart.player2
                                 ? root.chart.player2.profile : null];
+            const chartData = root.chartData;
             let scores = root.chart instanceof ChartRunner
                 ? root.chart.finish()
                 : root.chart.proceed();
-            exitState.openResult(scores, profiles);
+            exitState.openResult(scores, profiles, chartData);
             return true;
         }
 

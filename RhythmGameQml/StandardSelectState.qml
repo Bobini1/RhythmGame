@@ -27,6 +27,8 @@ import RhythmGameQml
 Item {
     id: root
 
+    StandardSelectReload { id: reloadAction }
+
     /*! Filtered and sorted logical entries before presentation adaptation. */
     readonly property var entries: selectionState.entries.slice()
     /*! Raw contents of the current folder, table, level, or search. */
@@ -400,20 +402,12 @@ Item {
 
     /*! Reloads the current local folder or online table. */
     function reloadCurrentFolderOrTable() {
-        if (globalRoot.reloadTableForItem(focusedItem)) {
+        if (reloadAction.reload(root.focusedItem, root.historyStack,
+                                selectionState.selectedSongFolderPath())) {
             return true;
         }
-        if (historyStack.length === 0) {
+        if (root.historyStack.length === 0) {
             return false;
-        }
-        for (let i = historyStack.length - 1; i >= 0; --i) {
-            if (globalRoot.reloadTableForItem(historyStack[i])) {
-                return true;
-            }
-        }
-        if (globalRoot.scanRootSongFolderForPath(
-                selectionState.selectedSongFolderPath())) {
-            return true;
         }
         let old = focusedItem;
         let folder = selectionState.open(

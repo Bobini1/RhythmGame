@@ -120,55 +120,6 @@ ApplicationWindow {
                     ? Qt.createComponent(screen.script) : null;
             }
 
-            function normalizeLocalPath(path) {
-                let value = String(path || "").trim();
-                if (value.length === 0) {
-                    return "";
-                }
-                if (/^file:\/\//i.test(value)) {
-                    let url = value;
-                    if (/^file:\/\/\//i.test(url)) {
-                        value = url.slice(8);
-                    } else {
-                        value = url.slice(7);
-                    }
-                    value = decodeURIComponent(value);
-                }
-                value = value.replace(/\\/g, "/");
-                while (value.length > 3 && value.endsWith("/")) {
-                    value = value.slice(0, -1);
-                }
-                return value;
-            }
-
-            function rootSongFolderForPath(path) {
-                let target = frameImplementation.normalizeLocalPath(path);
-                if (target.length === 0 || !Rg.rootSongFoldersConfig
-                        || !Rg.rootSongFoldersConfig.folders) {
-                    return null;
-                }
-                let targetLower = target.toLowerCase();
-                let folders = Rg.rootSongFoldersConfig.folders;
-                let best = null;
-                let bestLength = -1;
-                for (let i = 0; i < folders.rowCount(); ++i) {
-                    let folder = folders.at(i);
-                    let folderPath = frameImplementation.normalizeLocalPath(
-                        folder ? folder.name : "");
-                    if (folderPath.length === 0) {
-                        continue;
-                    }
-                    let folderLower = folderPath.toLowerCase();
-                    let matches = targetLower === folderLower
-                        || targetLower.startsWith(folderLower + "/");
-                    if (matches && folderLower.length > bestLength) {
-                        best = folder;
-                        bestLength = folderLower.length;
-                    }
-                }
-                return best;
-            }
-
             function currentScreen() {
                 return sceneStack.currentItem || null;
             }
@@ -263,6 +214,25 @@ ApplicationWindow {
                 return item;
             }
 
+            function pushScreen(component, properties) {
+                if (sceneStack.busy) {
+                    return null;
+                }
+                const item = frameImplementation.createScreen(component, properties);
+                if (!item) {
+                    return null;
+                }
+                // pushItem(component, properties) can return the old current
+                // item on creation failure. Compare against a prepared item.
+                if (sceneStack.pushItem(item) !== item) {
+                    item.destroy();
+                    sceneStack.updateEnabledStates();
+                    return null;
+                }
+                sceneStack.updateEnabledStates();
+                return item;
+            }
+
             function gameplayDescriptor(runner, arenaManagedRunner) {
                 let keys = runner.keymode;
                 let battle = runner.player1 && runner.player2;
@@ -346,29 +316,6 @@ ApplicationWindow {
                 ? Rg.songAssets.containingFolder(path)
                 : path;
             return Rg.fileQuery.openFolder(localPath);
-        }
-
-        function scanRootSongFolderForPath(path: var): var {
-            let folder = frameImplementation.rootSongFolderForPath(path);
-            return !!folder && !!Rg.rootSongFoldersConfig && !!Rg.rootSongFoldersConfig.scanningQueue && Rg.rootSongFoldersConfig.scanningQueue.scan(folder);
-        }
-
-        function reloadTableForItem(item: var): var {
-            if (!item || item.url === undefined) {
-                return false;
-            }
-            let targetUrl = String(item.url || "");
-            if (targetUrl.length === 0) {
-                return false;
-            }
-            let tables = Rg.tables.getList();
-            for (let i = 0; i < tables.length; ++i) {
-                if (String(tables[i].url || "") === targetUrl) {
-                    Rg.tables.reload(i);
-                    return true;
-                }
-            }
-            return false;
         }
 
         /*! The currently presented screen. */
@@ -490,7 +437,12 @@ ApplicationWindow {
             }
             const descriptor = frameImplementation.gameplayDescriptor(
                 runner, arenaManagedRunner);
-            return sceneStack.pushItem(descriptor.component, descriptor.properties);
+            const item = frameImplementation.pushScreen(descriptor.component,
+                                                         descriptor.properties);
+            if (item) {
+                item.StackView.removed.connect(() => Rg.arenaSession.releasePreparedGameplay(runner));
+            }
+            return item;
         }
 
         /*! Replaces screen and any screens above it with local gameplay. */
@@ -523,7 +475,7 @@ ApplicationWindow {
             return item;
         }
 
-        function openResult(scores: var, profiles: var, chartData: var): void {
+        function openResult(scores: var, profiles: var, chartData: var): var {
             let resultScreen = frameImplementation.configuredScreen("result");
             let arenaRoundId = "";
             if (scores && scores.length > 0 && scores[0] && Rg.arenaSession.submitLocalResult(scores[0])) {
@@ -541,17 +493,18 @@ ApplicationWindow {
                 props["skinSettingsData"] = resultScreen.settingsData || "";
                 props["screenKey"] = "result";
             }
-            const item = sceneStack.pushItem(frameState.resultComponent, props);
+            const item = frameImplementation.pushScreen(frameState.resultComponent, props);
             if (arenaRoundId.length === 0) {
-                return;
+                return item;
             }
             if (!item || !frameImplementation.callCurrentScreen(
                     "presentArenaResult", [arenaRoundId])) {
                 Rg.arenaSession.endResultPresentation(arenaRoundId);
             }
+            return item;
         }
 
-        function openCourseResult(scores: var, profiles: var, chartDatas: var, course: var): void {
+        function openCourseResult(scores: var, profiles: var, chartDatas: var, course: var): var {
             let hasCourseResultScreen = frameImplementation.configuredScreen(
                 "courseResult") !== null;
             let courseResultScreen = frameImplementation.configuredScreen(
@@ -570,7 +523,7 @@ ApplicationWindow {
                 props["skinSettingsData"] = courseResultScreen.settingsData || "";
                 props["screenKey"] = settingsKey;
             }
-            sceneStack.pushItem(frameState.courseResultComponent, props);
+            return frameImplementation.pushScreen(frameState.courseResultComponent, props);
         }
 
         anchors.fill: parent

@@ -156,6 +156,7 @@ set(RHYTHM_GAME_QML_FILES
         TransientInputFocusDismissLayer.qml
         PendingReplyGroup.qml
         StandardSelectState.qml
+        StandardSelectReload.qml
         StandardSelectSession.qml
         StandardSelectActivation.qml
         StandardSelectModelAdapter.qml
@@ -168,6 +169,8 @@ set(RHYTHM_GAME_QML_FILES
         StandardDecideFlow.qml
         StandardResultInput.qml
         StandardChartRetry.qml
+        StandardGameplayFlow.qml
+        GameplaySession.qml
         StandardGameplayInput.qml
         StandardGameplayAttemptState.qml
         Arena/ArenaChatView.qml
@@ -190,6 +193,7 @@ set(RHYTHM_GAME_QML_FILES
 set_source_files_properties(TransientInputFocus.qml StandardInputKeys.qml PROPERTIES
         QT_QML_SINGLETON_TYPE TRUE
 )
+set_source_files_properties(GameplaySession.qml PROPERTIES QT_QML_INTERNAL_TYPE TRUE)
 
 set(RHYTHM_GAME_QML_SHADERS
         ColorChanger.frag

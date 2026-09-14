@@ -52,7 +52,6 @@ QtObject {
         onGameplayStartupTickRequested: {
             if (root.host) {
                 root.host.updateGameplayStatusTimers();
-                root.host.startGameplayWhenReady();
             }
         }
     }
@@ -141,22 +140,6 @@ QtObject {
         onTriggered: {
             if (root.shouldAutoAdvance) {
                 root.autoAdvanceRequested();
-            }
-        }
-    }
-
-    property Timer gameplayStartTimer: Timer {
-        interval: Math.max(1, root.skinModel.playStart || 2000)
-        repeat: false
-        onTriggered: {
-            if (root.host
-                    && root.host.gameplayStartArmed
-                    && root.host.enabled
-                    && root.host.gameplayScreenActive
-                    && root.host.chart
-                    && root.host.chartStatusIs(root.host.chart.status, ChartRunner.Ready)) {
-                root.host.gameplayStartArmed = false;
-                root.host.chart.start();
             }
         }
     }
@@ -380,7 +363,6 @@ QtObject {
 
     function pauseActivity() : void {
         root.sceneEndTimer.stop();
-        root.gameplayStartTimer.stop();
         root.gameplayPoorBgaOptionTimer.stop();
     }
 }

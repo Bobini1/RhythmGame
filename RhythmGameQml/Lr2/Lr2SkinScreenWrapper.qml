@@ -211,14 +211,8 @@ Item {
     property var gameplayPreviousPressedTimers: ({})
     property var gameplayHitTimerStarts: ({})
     property var gameplayLongNoteTimerStarts: ({})
-    property bool gameplayResultOpened: false
     property bool gameplayFinishTransitionPending: false
     property int gameplayFadeoutSkinTime: -1
-    property bool gameplayCourseResultPending: false
-    property bool gameplayCourseResultOpening: false
-    property bool gameplayShowedCourseResult: false
-    property bool gameplayPlayStopped: false
-    property bool gameplayStartArmed: false
     readonly property int gameplayFinishMarginMillis: Math.max(0, skinModel.finishMargin || 0)
     readonly property int gameplayFadeOutMillis: Math.max(0, skinModel.fadeOut || 0)
     property alias gameplayFrameStateRef: gameplayFrameState
@@ -348,11 +342,6 @@ Item {
         } else {
             root.pauseScreenActivity();
         }
-    }
-
-    StandardGameplayAttemptState {
-        id: gameplayAttemptState
-        chart: root.chart
     }
 
     StandardSelectNavigation {
@@ -553,6 +542,11 @@ Item {
         onActivated: root.toggleCustomizeMode()
     }
 
+    StandardSelectReload {
+        id: selectReload
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select"
+    }
+
     StandardSelectShortcuts {
         enabled: root.screenUpdatesActive
             && root.effectiveScreenKey === "select"
@@ -574,7 +568,7 @@ Item {
 
         interval: Math.max(1, root.gameplayFadeOutMillis)
         repeat: false
-        onTriggered: root.completeGameplayFinishedTransition()
+        onTriggered: root.gameplayFinishTransitionPending = false
     }
 
     Shortcut {
@@ -2449,122 +2443,21 @@ Item {
         return !!(root.chart && root.chart.chartDatas && root.chart.currentChartIndex !== undefined);
     }
 
-    function isFinalCourseStage() : var {
-        if (!root.isCourseGameplay() || !root.chart.chartDatas) {
-            return false;
-        }
-        let chartCount = root.chart.chartDatas.length || 0;
-        return chartCount > 0 && (root.chart.currentChartIndex || 0) >= chartCount - 1;
-    }
-
-    function gameplayProfiles() : var {
-        return [
-            root.chart && root.chart.player1 ? root.chart.player1.profile : null,
-            root.chart && root.chart.player2 ? root.chart.player2.profile : null
-        ];
-    }
-
     function stopGameplayLifecycle() : void {
-        root.gameplayStartArmed = false;
-        skinTiming.gameplayStartTimer.stop();
         root.cancelGameplayFinishedTransition();
-        gameplayReadySound.stop();
-        gameplayStopSound.stop();
     }
 
-    function startGameplayWhenReady() : var {
-        if (!root.enabled
-                || !root.gameplayScreenActive
-                || !root.chart
-                || !root.chartStatusIs(root.chart.status, ChartRunner.Ready)
-                || root.gameplayReadySkinTime < 0
-                || StackView.status !== StackView.Active
-                || root.gameplayStartArmed) {
+    function activateGameplayIfNeeded() : void {
+        if (!root.enabled || !root.gameplayScreenActive || !root.chart
+                || root.StackView.status !== StackView.Active) {
             return;
         }
-
-        if (gameplayReadySound.length > 0) {
-            gameplayReadySound.stop();
-            root.gameplayStartArmed = true;
-            gameplayReadySound.play();
-        } else {
-            root.gameplayStartArmed = true;
-            skinTiming.gameplayStartTimer.restart();
-        }
-    }
-
-    function activateGameplayIfNeeded() : var {
-        if (!root.enabled
-                || gameplayInput.retryChoosing
-                || !root.gameplayScreenActive
-                || !root.chart
-                || StackView.status !== StackView.Active) {
-            return;
-        }
-
         root.forceActiveFocus();
-        if (root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
-            if (root.isCourseGameplay() && root.gameplayCourseResultOpening) {
-                return;
-            }
-            if (root.isCourseGameplay() && root.gameplayCourseResultPending && !root.gameplayShowedCourseResult) {
-                root.gameplayCourseResultPending = false;
-                root.gameplayCourseResultOpening = true;
-                let profiles = root.gameplayProfiles();
-                let chartDatas = root.chart.chartDatas;
-                let course = root.chart.course;
-                Qt.callLater(() => {
-                    if (root.enabled
-                            && root.gameplayScreenActive
-                            && root.chart
-                            && root.gameplayCourseResultOpening
-                            && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
-                        root.gameplayCourseResultOpening = false;
-                        root.gameplayShowedCourseResult = true;
-                        globalRoot.openCourseResult(root.chart.finish(), profiles, chartDatas, course);
-                    }
-                });
-            } else if (!root.gameplayResultOpened) {
-                root.scheduleGameplayFinishedTransition();
-            } else {
-                Qt.callLater(() => {
-                    // Activation notifications can queue this more than once.
-                    if (globalRoot.currentScreen === root
-                            && root.enabled && root.gameplayScreenActive
-                            && root.chart
-                            && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
-                        globalRoot.returnToPreviousScreen();
-                    }
-                });
-            }
-            return;
-        }
-
-        root.gameplayResultOpened = false;
-        root.cancelGameplayFinishedTransition();
-        root.gameplayPlayStopped = false;
-        root.resetGameplayScoreReplayers();
-        root.updateGameplaySavedScores();
         root.updateGameplayStatusTimers();
-        root.applyGameplayInputMapping();
-        root.startGameplayWhenReady();
     }
 
-    function scheduleGameplayFinishedTransition() : var {
-        if (!root.enabled
-                || gameplayInput.retryChoosing
-                || !root.gameplayScreenActive
-                || !root.chart
-                || root.gameplayResultOpened
-                || root.gameplayFinishTransitionPending
-                || !root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
-            return;
-        }
-
+    function scheduleGameplayFinishedTransition() : void {
         root.gameplayFinishTransitionPending = true;
-        root.gameplayStartArmed = false;
-        skinTiming.gameplayStartTimer.stop();
-
         if (root.gameplayFinishMarginMillis <= 0) {
             Qt.callLater(root.startGameplayFadeoutTransition);
         } else {
@@ -2579,15 +2472,7 @@ Item {
     }
 
     function startGameplayFadeoutTransition() : void {
-        if (!root.gameplayFinishTransitionPending) {
-            return;
-        }
-        if (!root.enabled
-                || !root.gameplayScreenActive
-                || !root.chart
-                || root.gameplayResultOpened
-                || !root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
-            root.gameplayFinishTransitionPending = false;
+        if (!root.gameplayFinishTransitionPending || !gameplayInput.active) {
             return;
         }
         if (root.gameplayFadeoutSkinTime < 0) {
@@ -2595,90 +2480,10 @@ Item {
             root.setGameplayTimerValue(2, root.gameplayFadeoutSkinTime);
         }
         if (root.gameplayFadeOutMillis <= 0) {
-            Qt.callLater(root.completeGameplayFinishedTransition);
+            root.gameplayFinishTransitionPending = false;
         } else {
             gameplayFadeoutTransitionTimer.restart();
         }
-    }
-
-    function completeGameplayFinishedTransition() : void {
-        if (!root.gameplayFinishTransitionPending) {
-            return;
-        }
-        root.gameplayFinishTransitionPending = false;
-        if (!root.enabled
-                || !root.gameplayScreenActive
-                || !root.chart
-                || root.gameplayResultOpened
-                || !root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
-            return;
-        }
-        root.openGameplayStageResult();
-    }
-
-    function openGameplayStageResult() : var {
-        if (!root.enabled
-                || gameplayInput.retryChoosing
-                || !root.gameplayScreenActive
-                || !root.chart
-                || root.gameplayResultOpened) {
-            return;
-        }
-
-        root.gameplayResultOpened = true;
-        root.cancelGameplayFinishedTransition();
-        root.gameplayStartArmed = false;
-        skinTiming.gameplayStartTimer.stop();
-
-        let chartData = root.gameplayChartData();
-        let profiles = root.gameplayProfiles();
-        let finalCourseStage = root.isFinalCourseStage();
-        let scores = root.chart instanceof ChartRunner ? root.chart.finish() : root.chart.proceed();
-        if (finalCourseStage) {
-            root.gameplayCourseResultPending = true;
-            root.gameplayCourseResultOpening = false;
-            root.gameplayShowedCourseResult = false;
-        }
-        globalRoot.openResult(scores, profiles, chartData);
-    }
-
-    function handleGameplayStatusChanged() : var {
-        root.updateGameplayStatusTimers();
-        if (!root.enabled || !root.gameplayScreenActive || !root.chart) {
-            return;
-        }
-        if (root.chartStatusIs(root.chart.status, ChartRunner.Ready)) {
-            root.startGameplayWhenReady();
-        } else if (root.chartStatusIs(root.chart.status, ChartRunner.Running)) {
-            root.cancelGameplayFinishedTransition();
-            root.gameplayStartArmed = false;
-            skinTiming.gameplayStartTimer.stop();
-        } else if (root.chartStatusIs(root.chart.status, ChartRunner.Finished) && !root.gameplayPlayStopped) {
-            root.scheduleGameplayFinishedTransition();
-        }
-    }
-
-    function handleGameplayEscape() : var {
-        if (gameplayInput.retryChoosing) {
-            return true;
-        }
-        if (root.arenaGameplayOwned && root.arenaSession.chatOpen === true) {
-            root.arenaSession.setChatOpen(false);
-            return true;
-        }
-        if (!root.chart || root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
-            return false;
-        }
-        if (!gameplayAttemptState.attempted && !root.arenaGameplayOwned) {
-            globalRoot.returnToPreviousScreen();
-            return true;
-        }
-
-        root.gameplayPlayStopped = true;
-        root.cancelGameplayFinishedTransition();
-        gameplayStopSound.play();
-        root.openGameplayStageResult();
-        return true;
     }
 
     function gameplayChartData() : var {
@@ -5355,11 +5160,6 @@ Item {
             root.clearLr2RankingTransition();
         }
         if (root.gameplayScreenActive) {
-            root.gameplayResultOpened = false;
-            root.gameplayCourseResultPending = false;
-            root.gameplayCourseResultOpening = false;
-            root.gameplayShowedCourseResult = false;
-            root.gameplayPlayStopped = false;
             root.resetGameplayTimers();
             root.refreshGameplayRuntimeActiveOptions();
             root.updateGameplayStatusTimers();
@@ -5386,11 +5186,6 @@ Item {
             root.refreshSelectRuntimeActiveOptions();
         }
         root.refreshGameplayRuntimeActiveOptions();
-        root.gameplayResultOpened = false;
-        root.gameplayCourseResultPending = false;
-        root.gameplayCourseResultOpening = false;
-        root.gameplayShowedCourseResult = false;
-        root.gameplayPlayStopped = false;
         root.stopGameplayLifecycle();
         root.resetGameplayTimers();
         root.updateGameplayStatusTimers();
@@ -5436,10 +5231,6 @@ Item {
             root.refreshGameplayNumbersForSide(0);
             root.refreshGameplayStaticNumbers();
             root.refreshGameplayRuntimeActiveOptions();
-            root.gameplayResultOpened = false;
-            root.gameplayCourseResultPending = false;
-            root.gameplayCourseResultOpening = false;
-            root.gameplayPlayStopped = false;
             root.resetGameplayTimers();
             root.updateGameplayStatusTimers();
             root.updateGameplaySavedScores();
@@ -5451,7 +5242,7 @@ Item {
             root.refreshGameplayNumbersForSide(0);
             root.refreshGameplayStaticNumbers();
             root.refreshGameplayRuntimeActiveOptions();
-            root.handleGameplayStatusChanged();
+            root.updateGameplayStatusTimers();
             root.updateGameplayTargetScoreTimer();
         }
     }
@@ -5862,30 +5653,32 @@ Item {
         navigationController: selectContext.navigationController
     }
 
-    StandardGameplayInput {
+    StandardGameplayFlow {
         id: gameplayInput
         chart: root.gameplayScreenActive ? root.chart : null
-        enabled: root.enabled && root.gameplayScreenActive
-        arenaOwned: root.arenaGameplayOwned
-        retryEnabled: !root.arenaManagedRunner
-        completionEnabled: false
-        exitFeedbackEnabled: false
-        exitAction: () => {
-            if (root.customizeMode) {
-                root.customizeMode = false;
-            } else {
-                root.handleGameplayEscape();
+        enabled: root.screenUpdatesActive && root.gameplayScreenActive
+        startReady: root.gameplayReadySkinTime >= 0
+        startDelayMillis: Math.max(1, skinModel.playStart || 2000)
+        readySoundSource: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.soundsetPath + "playready" : ""
+        exitFeedbackSource: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.soundsetPath + "playstop" : ""
+        finishReady: !root.gameplayFinishTransitionPending
+        dismissOverlayAction: () => {
+            if (!root.customizeMode) {
+                return false;
             }
+            root.customizeMode = false;
+            return true;
         }
-        onRetryChoosingChanged: {
-            if (retryChoosing) {
-                root.stopLr2GameplayOptionRepeat();
-                root.cancelGameplayFinishedTransition();
-            } else if (root.enabled && root.gameplayScreenActive
-                    && globalRoot.currentScreen === root) {
-                root.handleGameplayStatusChanged();
-            }
+        onStageActivated: {
+            root.cancelGameplayFinishedTransition();
+            root.resetGameplayScoreReplayers();
+            root.updateGameplaySavedScores();
+            root.updateGameplayStatusTimers();
+            root.applyGameplayInputMapping();
         }
+        onFinishRequested: root.scheduleGameplayFinishedTransition()
+        onClosing: root.cancelGameplayFinishedTransition()
+        onRetryChoosingChanged: if (retryChoosing) root.stopLr2GameplayOptionRepeat()
     }
 
     StandardChartRetry {
@@ -5978,9 +5771,6 @@ Item {
     Component.onDestruction: {
         root.cancelGameplayScoreDbReply();
         const arenaSession = root.arenaSession;
-        if (arenaSession && root.arenaManagedRunner && root.chart) {
-            arenaSession.releasePreparedGameplay(root.chart);
-        }
         if (root.arenaRoundId.length > 0 && arenaSession) {
             arenaSession.endResultPresentation(root.arenaRoundId);
         }
@@ -6063,15 +5853,8 @@ Item {
             return false;
         }
         selectContext.navigationController.refreshFocusedState();
-        if (globalRoot.reloadTableForItem(selectContext.activationItem())) {
-            return true;
-        }
-        for (let i = selectContext.historyStack.length - 1; i >= 0; --i) {
-            if (globalRoot.reloadTableForItem(selectContext.historyStack[i])) {
-                return true;
-            }
-        }
-        if (globalRoot.scanRootSongFolderForPath(selectContext.selectedSongFolderPath())) {
+        if (selectReload.reload(selectContext.activationItem(), selectContext.historyStack,
+                                selectContext.selectedSongFolderPath())) {
             return true;
         }
         return root.reloadCurrentSelectFolder();
@@ -6622,26 +6405,6 @@ Item {
     AudioPlayer {
         id: resultCourseFailSound
         source: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.soundsetPath + "course_fail" : ""
-    }
-
-    AudioPlayer {
-        id: gameplayReadySound
-        source: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.soundsetPath + "playready" : ""
-        onPlayingChanged: {
-            if (!playing
-                    && root.gameplayStartArmed
-                    && root.enabled
-                    && root.gameplayScreenActive
-                    && root.chart
-                    && root.chartStatusIs(root.chart.status, ChartRunner.Ready)) {
-                skinTiming.gameplayStartTimer.restart();
-            }
-        }
-    }
-
-    AudioPlayer {
-        id: gameplayStopSound
-        source: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.soundsetPath + "playstop" : ""
     }
 
     AudioPlayer {

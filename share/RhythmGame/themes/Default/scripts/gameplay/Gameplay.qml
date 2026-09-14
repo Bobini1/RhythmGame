@@ -18,7 +18,7 @@ Rectangle {
     readonly property Profile mainProfile: Rg.profileList.mainProfile
     readonly property var mainProfileVars: mainProfile.vars.themeVars[screen][themeName]
     property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
-    property ChartData chartData: chart instanceof ChartRunner ? chart.chartData : chart.chartDatas[chart.currentChartIndex];
+    readonly property ChartData chartData: gameplayInput.chartData
     readonly property string screen: {
         let keys = chart.keymode;
         let battle = chart.player1 && chart.player2;
@@ -176,44 +176,6 @@ Rectangle {
         hitEvents: root.scoreWithBestPoints1?.replayData?.hitEvents || []
     }
 
-    AudioPlayer {
-        id: playReadySound
-        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playready";
-        onPlayingChanged: {
-            if (!playing) {
-                chart.start();
-            }
-        }
-    }
-
-    property bool showedCourseResult: false
-    property bool shouldPlaySound: playReadySound.length !== 0 && chart.status === ChartRunner.Ready && StackView.status === StackView.Active
-    onShouldPlaySoundChanged: {
-        if (shouldPlaySound) {
-            playReadySound.play();
-        }
-    }
-    StackView.onActivated: {
-        cancelScoreDbReply();
-        if (chart.status === ChartRunner.Finished) {
-            if (isCourse && !showedCourseResult) {
-                showedCourseResult = true;
-                let profiles = [chart.player1.profile, chart.player2 ? chart.player2.profile : null];
-                Qt.callLater(() => globalRoot.openCourseResult(chart.finish(), profiles, chart.chartDatas, chart.course));
-            } else {
-                Qt.callLater(globalRoot.returnToPreviousScreen);
-            }
-        } else {
-            scoreReplayer1.resetPoints();
-            bestScoreReplayer1.resetPoints();
-            if (playReadySound.length === 0) {
-                startTimer.start();
-            }
-            trackScoreDbReply(chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5)).then(scores => {
-                scores1 = scores.scores[chartData.md5] || [];
-            });
-        }
-    }
     StackView.onDeactivating: {
         cancelScoreDbReply();
         closeActivePopup();
@@ -221,17 +183,6 @@ Rectangle {
     Component.onDestruction: {
         cancelScoreDbReply();
         closeActivePopup();
-        const arenaSession = root.arenaSession;
-        if (arenaSession && root.arenaManagedRunner && root.chart) {
-            arenaSession.releasePreparedGameplay(root.chart);
-        }
-    }
-    Timer {
-        id: startTimer
-        interval: 1000
-        onTriggered: {
-            chart.start();
-        }
     }
 
     function getColumnSizes(vars) {
@@ -864,15 +815,19 @@ Rectangle {
             }
         }
     }
-    StandardGameplayInput {
+    StandardGameplayFlow {
         id: gameplayInput
 
-        enabled: root.enabled
-        retryEnabled: !root.arenaManagedRunner
-        arenaOwned: root.arenaGameplayOwned
         chart: root.chart
-        chartData: root.chartData
-        closePresentationAction: () => root.closeActivePopup()
+        onStageActivated: {
+            root.cancelScoreDbReply();
+            scoreReplayer1.resetPoints();
+            bestScoreReplayer1.resetPoints();
+            root.trackScoreDbReply(root.chart.player1.profile.scoreDb.getScoresForMd5(root.chartData.md5)).then(scores => {
+                root.scores1 = scores.scores[root.chartData.md5] || [];
+            });
+        }
+        onClosing: root.closeActivePopup()
         onRetryChoosingChanged: if (retryChoosing) root.closeActivePopup()
     }
     Shortcut {
