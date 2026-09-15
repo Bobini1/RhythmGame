@@ -135,6 +135,12 @@
     "zstd"
   ],
   "features": {
+    "backbeat": {
+      "description": "Backbeat C SDK for chart-store integration",
+      "dependencies": [
+        "backbeat"
+      ]
+    },
     "docs": {
       "description": "Dependencies for generating documentation",
       "dependencies": [
