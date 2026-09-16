@@ -1,12 +1,13 @@
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
-set(backbeat_revision 8e0ca2b441b7898c7255b756f658d69a51789509)
+# Use the fork until its CMake package fixes are merged upstream.
+set(backbeat_revision 8a9bd24778b71db8aa710a7d663fe8bf3d77b598)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO zkldi/backbeat
+    REPO Bobini1/backbeat
     REF "${backbeat_revision}"
-    SHA512 273221515cbf0c253b1b968e144ba0f1ac515c1f671d6f4f57f4cce82730f18a08d6c6f3774a50e05824d3d915d42e7875eb4221293c31f9d815155d7548f754
-    PATCHES cmake-package.patch cargo-native-dependencies.patch
+    SHA512 f5ab8f5633b3f199be094ec9daae4c6b55b34857670eded489c93bec8550adcea10cc15fbe08185f17c549c71c4d6c9a1340884ffa6f60cc0168bfe83f5f4f46
+    PATCHES cargo-native-dependencies.patch
 )
 
 # pkg-config-rs has no option for rustc's static:-bundle modifier. This small
@@ -92,5 +93,5 @@ vcpkg_cmake_configure(
 vcpkg_cmake_install()
 vcpkg_cmake_config_fixup(PACKAGE_NAME Backbeat CONFIG_PATH lib/cmake/Backbeat)
 vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE.md"
-    COMMENT "This static library includes Rust dependencies. Their versions and sources are recorded in Cargo.lock at https://github.com/zkldi/backbeat/tree/${backbeat_revision}; consult each crate's license and copyright notices as well.")
+    COMMENT "This static library includes Rust dependencies. Their versions and sources are recorded in Cargo.lock at https://github.com/Bobini1/backbeat/tree/${backbeat_revision}; consult each crate's license and copyright notices as well.")
 file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
