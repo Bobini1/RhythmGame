@@ -1,12 +1,12 @@
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
 # Use the fork until its CMake package fixes are merged upstream.
-set(backbeat_revision 8a9bd24778b71db8aa710a7d663fe8bf3d77b598)
+set(backbeat_revision dfae2307c473cf45ca73b31819c65dd63383f167)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO Bobini1/backbeat
     REF "${backbeat_revision}"
-    SHA512 f5ab8f5633b3f199be094ec9daae4c6b55b34857670eded489c93bec8550adcea10cc15fbe08185f17c549c71c4d6c9a1340884ffa6f60cc0168bfe83f5f4f46
+    SHA512 7e44ca1793afe7e59741d151bada8f248d9b29c64d686030e8ae86708a98b08b6e8d6f84d71b7d1cf99c118ac1259df25ea9a2f3c4f6cc64b5829c5a8f4aaaef
     PATCHES cargo-native-dependencies.patch
 )
 
