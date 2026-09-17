@@ -12,18 +12,6 @@ FocusScope {
 
     readonly property bool arenaNativeSelectPresentation: true
 
-    Label {
-        z: 10
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.margins: 8
-        visible: Rg.songFolderFactory.refreshing || Rg.songFolderFactory.refreshError.length > 0
-        text: Rg.songFolderFactory.refreshError || qsTr("Updating song library…")
-        color: Rg.songFolderFactory.refreshError ? "#ffc979" : "white"
-        wrapMode: Text.Wrap
-    }
-
     Image {
         id: root
 
