@@ -195,7 +195,6 @@ Item {
     StandardSelectSession {
         id: standardSession
 
-        enabled: root.updatesActive
         tableCoursesProvider: tableItem => root.classCoursesForTable(tableItem)
     }
 
@@ -388,7 +387,7 @@ Item {
         chartFolderModel: selectSortFilter
         levelFolderParentKey: {
             let parent = historyStack.length > 0 ? historyStack[historyStack.length - 1] : null;
-            return isTable(parent) ? (parent.url || parent.name || "") : "";
+            return isTable(parent) ? parent.identifier : "";
         }
         levelFolderParentSymbol: {
             let parent = historyStack.length > 0 ? historyStack[historyStack.length - 1] : null;
@@ -769,11 +768,11 @@ Item {
             return "folder:" + item;
         }
         if (isTable(item)) {
-            return "table:" + (item.url || item.name || "");
+            return "table:" + item.identifier;
         }
         if (isLevel(item)) {
             let parent = historyStack.length > 0 ? historyStack[historyStack.length - 1] : null;
-            let parentKey = isTable(parent) ? (parent.url || parent.name || "") : "";
+            let parentKey = isTable(parent) ? parent.identifier : "";
             return "level:" + parentKey + ":" + (item.name || "");
         }
         return "";
@@ -1744,7 +1743,7 @@ Item {
             return a.name === b.name;
         }
         if (isTable(a) && isTable(b)) {
-            return a.name === b.name;
+            return a.identifier === b.identifier;
         }
         if (isCourse(a) && isCourse(b)) {
             return a.name === b.name;
@@ -2143,7 +2142,7 @@ Item {
             return "course:" + (item.identifier || item.name || ("index:" + fallbackIndex));
         }
         if (isTable(item)) {
-            return "table:" + (item.url || item.name || ("index:" + fallbackIndex));
+            return "table:" + item.identifier;
         }
         if (isLevel(item)) {
             return "level:" + (folderLampKey(item) || item.name || ("index:" + fallbackIndex));

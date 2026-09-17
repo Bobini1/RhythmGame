@@ -8,6 +8,7 @@
 #include <QFileInfo>
 #include <QSet>
 #include <QtConcurrent>
+#include <chrono>
 #include <spdlog/spdlog.h>
 
 namespace resource_managers {
@@ -21,6 +22,9 @@ BackbeatCatalog::BackbeatCatalog(std::shared_ptr<BackbeatSource> source,
   , databasePath(databasePath)
   , modelDatabase(modelDatabase)
 {
+    refreshTimer.setInterval(std::chrono::seconds(5));
+    connect(&refreshTimer, &QTimer::timeout, this, [this] { refresh(); });
+    refreshTimer.start();
     connect(&watcher, &QFutureWatcher<Update>::finished, this, [this] {
         active = false;
         const auto update = watcher.result();

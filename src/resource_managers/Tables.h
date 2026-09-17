@@ -134,7 +134,7 @@ struct Table
     Q_PROPERTY(QUrl url MEMBER url)
     Q_PROPERTY(Status status MEMBER status)
     Q_PROPERTY(QString symbol MEMBER symbol)
-    Q_PROPERTY(bool managedExternally MEMBER managedExternally CONSTANT)
+    Q_PROPERTY(QString identifier READ getIdentifier CONSTANT)
 
   public:
     QString name;
@@ -146,6 +146,7 @@ struct Table
     QUrl url;
     Status status{ Loading };
     bool managedExternally = false;
+    auto getIdentifier() const -> QString;
     auto getLevels() const -> QVariantList;
     auto getCourses() const -> QVariantList;
 };
@@ -172,6 +173,7 @@ class Tables final : public QAbstractListModel
     void handleHeader(const QUrl& url, const QJsonObject& header);
     void handleData(const QUrl& url, const QJsonArray& data);
     void handleHeaderReply(const QUrl& url, const QByteArray& reply);
+    auto findTable(const Table& table) const -> const Table*;
 
   public:
     explicit Tables(QNetworkAccessManager* networkManager,
@@ -198,6 +200,12 @@ class Tables final : public QAbstractListModel
      * @param index The index of the table to reload.
      */
     Q_INVOKABLE void reload(int index);
+    /** Reloads a collection through the provider that owns it. */
+    Q_INVOKABLE bool reloadTable(const Table& table);
+    /** Resolves a retained table or level against the current catalog. */
+    Q_INVOKABLE QVariant resolveTable(const Table& table) const;
+    Q_INVOKABLE QVariant resolveLevel(const Table& table,
+                                      const Level& level) const;
     /**
      * @brief Reorders a table from one index to another.
      * @param from The current index of the table.
@@ -219,6 +227,9 @@ class Tables final : public QAbstractListModel
      * matching entries.
      */
     Q_INVOKABLE QList<TableInfo> search(const QString& md5);
+
+  signals:
+    void externalReloadRequested();
 };
 } // namespace resource_managers
 

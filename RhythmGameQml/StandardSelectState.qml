@@ -204,7 +204,7 @@ Item {
                 return "level:" + item.name;
             }
             if (item instanceof table) {
-                return "table:" + String(item.url || "");
+                return "table:" + item.identifier;
             }
             return "";
         }
@@ -250,7 +250,7 @@ Item {
                 return a.name === b.name;
             }
             if (a instanceof table && b instanceof table) {
-                return String(a.url || "") === String(b.url || "");
+                return a.identifier === b.identifier;
             }
             if (a instanceof course && b instanceof course) {
                 return a.identifier === b.identifier;

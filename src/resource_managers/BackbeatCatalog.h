@@ -4,6 +4,7 @@
 #include "BackbeatSource.h"
 #include <QFutureWatcher>
 #include <QObject>
+#include <QTimer>
 #include <optional>
 
 namespace resource_managers {
@@ -45,6 +46,7 @@ class BackbeatCatalog : public QObject
     db::SqliteCppDb* modelDatabase;
     std::atomic_bool cancelled = false;
     QFutureWatcher<Update> watcher;
+    QTimer refreshTimer;
     std::optional<qint64> revision;
     bool pendingRefresh = false;
     bool active = false;

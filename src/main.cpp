@@ -546,6 +546,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          &qml_components::SongFolderFactory::refreshRequested,
                          &backbeatCatalog,
                          &resource_managers::BackbeatCatalog::refresh);
+        QObject::connect(&tables,
+                         &resource_managers::Tables::externalReloadRequested,
+                         &backbeatCatalog,
+                         [&] { backbeatCatalog.refresh(true); });
         QObject::connect(&backbeatCatalog,
                          &resource_managers::BackbeatCatalog::busyChanged,
                          &songFolderFactory,

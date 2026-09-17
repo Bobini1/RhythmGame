@@ -212,7 +212,9 @@ vcpkg, an enabled build requires an installed `Backbeat::Backbeat` CMake target.
 
 The game opens the user's normal Backbeat store, indexes new installed BMS and
 BMSON bundles, and exposes installed packs, tables, and courses in song select.
-It checks the store revision every five seconds while song select is active;
+The C++ catalog checks the store revision every five seconds, independently of
+the active screen or skin, and indexes changes asynchronously. Selectors only
+consume generic library status and content-change signals.
 F2 also requests a refresh. Collection downloads and removal remain in the
 Backbeat app. Local song folders continue to work independently.
 

@@ -284,6 +284,13 @@ resource_managers::Course::loadCharts() const
     return ret;
 }
 auto
+resource_managers::Table::getIdentifier() const -> QString
+{
+    return (managedExternally ? QStringLiteral("external:")
+                              : QStringLiteral("table:")) +
+           url.toString(QUrl::FullyEncoded);
+}
+auto
 resource_managers::Table::getLevels() const -> QVariantList
 {
     auto list = QVariantList{};
@@ -764,6 +771,58 @@ resource_managers::Tables::reload(int index)
             [this, reply, url = table.url] { handleInitialReply(reply, url); });
     emit dataChanged(createIndex(index, 0), createIndex(index, 0));
 }
+auto
+resource_managers::Tables::findTable(const Table& table) const -> const Table*
+{
+    const auto& candidates = table.managedExternally ? externalTables : tables;
+    for (const auto& candidate : candidates) {
+        if (candidate.url == table.url) {
+            return &candidate;
+        }
+    }
+    return nullptr;
+}
+
+auto
+resource_managers::Tables::resolveTable(const Table& table) const -> QVariant
+{
+    const auto* current = findTable(table);
+    return current ? QVariant::fromValue(*current) : QVariant{};
+}
+
+auto
+resource_managers::Tables::resolveLevel(const Table& table,
+                                        const Level& level) const -> QVariant
+{
+    if (const auto* current = findTable(table)) {
+        for (const auto& candidate : current->levels) {
+            if (candidate.name == level.name) {
+                return QVariant::fromValue(candidate);
+            }
+        }
+    }
+    return {};
+}
+
+auto
+resource_managers::Tables::reloadTable(const Table& table) -> bool
+{
+    if (!findTable(table)) {
+        return false;
+    }
+    if (table.managedExternally) {
+        emit externalReloadRequested();
+        return true;
+    }
+    for (qsizetype i = 0; i < tables.size(); ++i) {
+        if (tables[i].url == table.url) {
+            reload(static_cast<int>(i));
+            return true;
+        }
+    }
+    return false;
+}
+
 void
 resource_managers::Tables::reorder(int from, int to)
 {

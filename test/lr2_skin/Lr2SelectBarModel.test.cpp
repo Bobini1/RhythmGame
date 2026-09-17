@@ -516,6 +516,36 @@ TEST_CASE(
     REQUIRE(tableCell->graphValueForType(0, 2) == 3.0);
 }
 
+TEST_CASE("LR2 collection summaries distinguish providers sharing a URL",
+          "[lr2][runtime][select]")
+{
+    resource_managers::Table native;
+    native.name = "Table";
+    native.url = QUrl("https://example.test/table");
+    auto external = native;
+    external.managedExternally = true;
+    Lr2SelectItemModel source;
+    source.setItems(
+      { QVariant::fromValue(native), QVariant::fromValue(external) });
+    const auto nativeKey = QStringLiteral("table:") + native.getIdentifier();
+    const auto externalKey =
+      QStringLiteral("table:") + external.getIdentifier();
+    REQUIRE(
+      source.data(source.index(0, 0), Lr2SelectItemModel::KeyRole).toString() ==
+      nativeKey);
+    REQUIRE(
+      source.data(source.index(1, 0), Lr2SelectItemModel::KeyRole).toString() ==
+      externalKey);
+    source.setFolderSummary(nativeKey, 3, {}, {});
+    source.setFolderSummary(externalKey, 5, {}, {});
+    REQUIRE(
+      source.data(source.index(0, 0), Lr2SelectItemModel::LampRole).toInt() ==
+      3);
+    REQUIRE(
+      source.data(source.index(1, 0), Lr2SelectItemModel::LampRole).toInt() ==
+      5);
+}
+
 TEST_CASE("LR2 select item model applies score summaries by identifier",
           "[lr2][runtime][select]")
 {

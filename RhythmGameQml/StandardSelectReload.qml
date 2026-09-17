@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
 
@@ -19,7 +20,6 @@ Item {
         if (!root.enabled) {
             return false;
         }
-        Rg.songFolderFactory.refresh(true);
         if (implementation.reloadTableForItem(focusedItem)) {
             return true;
         }
@@ -28,6 +28,7 @@ Item {
                 return true;
             }
         }
+        Rg.songFolderFactory.refresh(true);
         return implementation.scanRootSongFolderForPath(folderPath);
     }
 
@@ -89,24 +90,7 @@ Item {
         }
 
         function reloadTableForItem(item: var): var {
-            if (!item || item.url === undefined) {
-                return false;
-            }
-            if (item.managedExternally) {
-                return true;
-            }
-            let targetUrl = String(item.url || "");
-            if (targetUrl.length === 0) {
-                return false;
-            }
-            let tables = Rg.tables.getList();
-            for (let i = 0; i < tables.length; ++i) {
-                if (String(tables[i].url || "") === targetUrl) {
-                    Rg.tables.reload(i);
-                    return true;
-                }
-            }
-            return false;
+            return item instanceof table && Rg.tables.reloadTable(item);
         }
 
     }

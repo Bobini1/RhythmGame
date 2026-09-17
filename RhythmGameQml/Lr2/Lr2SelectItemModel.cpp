@@ -1398,9 +1398,11 @@ QString Lr2SelectItemModel::folderLampKeyFor(const QVariant& value, const QVaria
 		return QStringLiteral("folder:%1").arg(
 			value.typeId() == QMetaType::QString ? value.toString() : stringField(value, map, "rawItem"));
 	case TableKind: {
+		const QString identifier = stringField(value, map, "identifier");
 		const QString url = stringField(value, map, "url");
 		const QString name = stringField(value, map, "name");
-		return QStringLiteral("table:%1").arg(!url.isEmpty() ? url : name);
+		return QStringLiteral("table:%1").arg(
+			!identifier.isEmpty() ? identifier : !url.isEmpty() ? url : name);
 	}
 	case LevelKind: {
 		const QString name = stringField(value, map, "name");
@@ -1596,10 +1598,12 @@ QString Lr2SelectItemModel::keyFor(const QVariant& value, const QVariantMap& map
 			: fallbackKey);
 	}
 	case TableKind: {
+		const QString identifier = stringField(value, map, "identifier");
 		const QString url = stringField(value, map, "url");
 		const QString name = stringField(value, map, "name");
 		return QStringLiteral("table:%1").arg(
-			!url.isEmpty() ? url
+			!identifier.isEmpty() ? identifier
+			: !url.isEmpty() ? url
 			: !name.isEmpty() ? name
 			: fallbackKey);
 	}

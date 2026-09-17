@@ -19,11 +19,39 @@
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QElapsedTimer>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QNetworkAccessManager>
 #include <QThread>
 #include <QTemporaryDir>
 #include <catch2/catch_test_macros.hpp>
+#include <functional>
 
 namespace {
+
+void
+ensureCoreApplication()
+{
+    if (!QCoreApplication::instance()) {
+        static int argc = 1;
+        static char name[] = "Backbeat.test";
+        static char* argv[] = { name, nullptr };
+        static QCoreApplication application(argc, argv);
+    }
+}
+
+auto
+waitUntil(const std::function<bool()>& predicate, int timeout = 6000) -> bool
+{
+    QElapsedTimer timer;
+    timer.start();
+    while (!predicate() && timer.elapsed() < timeout) {
+        QCoreApplication::processEvents();
+        QThread::msleep(1);
+    }
+    return predicate();
+}
 
 const QByteArray chartBytes =
   "#PLAYER 1\n#TITLE Backbeat fixture\n#ARTIST Test\n#BPM 120\n"
@@ -36,7 +64,11 @@ struct Library
       support::qStringToPath(temporary.filePath("songs.sqlite"));
     db::SqliteCppDb database{ path };
 
-    Library() { resource_managers::defineDb(database); }
+    Library()
+    {
+        ensureCoreApplication();
+        resource_managers::defineDb(database);
+    }
 
     auto save(const QString& chartPath, const QByteArray& bytes = chartBytes)
       -> std::unique_ptr<gameplay_logic::ChartData>
@@ -74,9 +106,10 @@ deleteCharts(const QVariantList& charts)
 class Store : public resource_managers::BackbeatSource
 {
   public:
-    qint64 currentRevision = 1;
+    std::atomic<qint64> currentRevision = 1;
     mutable int reads = 0;
     mutable int searches = 0;
+    mutable std::atomic_int revisionChecks = 0;
     QHash<QString, Bundle> installed;
     QHash<QString, Asset> assets;
     bool unavailable = false;
@@ -84,7 +117,9 @@ class Store : public resource_managers::BackbeatSource
 
     auto revision() const -> qint64 override
     {
-        return currentRevision + (changesDuringRead && reads > 0 ? 1 : 0);
+        ++revisionChecks;
+        return currentRevision.load() +
+               (changesDuringRead && reads > 0 ? 1 : 0);
     }
     auto bundles(const std::atomic_bool&) const -> QStringList override
     {
@@ -187,7 +222,124 @@ TEST_CASE("Pack entries require their exact bundle while table entries may "
     deleteCharts(charts);
 }
 
+TEST_CASE("Collection browsing and reload retain the owning provider",
+          "[library][collections]")
+{
+    ensureCoreApplication();
+    Library library;
+    const auto url =
+      QUrl::fromLocalFile(library.temporary.filePath("header.json"));
+    QFile cache(library.temporary.filePath("tables.json"));
+    REQUIRE(cache.open(QIODevice::WriteOnly));
+    cache.write(
+      QJsonDocument(
+        QJsonArray{ QJsonObject{
+          { "url", url.toString() },
+          { "header",
+            QJsonObject{ { "name", "Native" },
+                         { "level_order", QJsonArray{ "7" } } } },
+          { "data",
+            QJsonArray{ QJsonObject{ { "level", "7" },
+                                     { "title", "Original chart" },
+                                     { "md5", QString(32, 'a') } } } } } })
+        .toJson());
+    cache.close();
+
+    class Network : public QNetworkAccessManager
+    {
+      public:
+        int requests = 0;
+        auto createRequest(Operation operation,
+                           const QNetworkRequest& request,
+                           QIODevice* data) -> QNetworkReply* override
+        {
+            ++requests;
+            return QNetworkAccessManager::createRequest(
+              operation, request, data);
+        }
+    } network;
+    resource_managers::Tables tables(
+      &network, QDir(library.temporary.path()), &library.database);
+    const auto native = tables.getList()[0].value<resource_managers::Table>();
+    REQUIRE(native.levels.size() == 1);
+    REQUIRE(native.levels[0].entries.size() == 1);
+    auto external = native;
+    external.name = "External";
+    external.managedExternally = true;
+    tables.setExternalTables({ external });
+    REQUIRE(native.getIdentifier() != external.getIdentifier());
+    REQUIRE(
+      tables.resolveTable(native).value<resource_managers::Table>().name ==
+      "Native");
+    REQUIRE(
+      tables.resolveTable(external).value<resource_managers::Table>().name ==
+      "External");
+
+    const auto retainedLevel = external.levels[0];
+    auto updated = external;
+    updated.name = "Updated";
+    updated.levels[0].entries[0].title = "New chart";
+    tables.setExternalTables({ updated });
+    REQUIRE(
+      tables.resolveTable(external).value<resource_managers::Table>().name ==
+      "Updated");
+    REQUIRE(tables.resolveLevel(external, retainedLevel)
+              .value<resource_managers::Level>()
+              .entries[0]
+              .title == "New chart");
+    REQUIRE(tables.resolveLevel(native, retainedLevel)
+              .value<resource_managers::Level>()
+              .entries[0]
+              .title == "Original chart");
+
+    int externalRequests = 0;
+    QObject::connect(&tables,
+                     &resource_managers::Tables::externalReloadRequested,
+                     [&] { ++externalRequests; });
+    REQUIRE(tables.reloadTable(external));
+    REQUIRE(externalRequests == 1);
+    REQUIRE(network.requests == 0);
+    REQUIRE(tables.reloadTable(native));
+    REQUIRE(externalRequests == 1);
+    REQUIRE(network.requests == 1);
+
+    updated.levels.clear();
+    tables.setExternalTables({ updated });
+    REQUIRE_FALSE(tables.resolveLevel(external, retainedLevel).isValid());
+    tables.setExternalTables({});
+    REQUIRE_FALSE(tables.resolveTable(external).isValid());
+    REQUIRE_FALSE(tables.reloadTable(external));
+    REQUIRE(tables.resolveTable(native).isValid());
+}
+
 #ifdef RHYTHMGAME_USE_BACKBEAT
+
+TEST_CASE("Backbeat polls revisions without a QML engine or selection screen",
+          "[backbeat]")
+{
+    ensureCoreApplication();
+    Library library;
+    auto source = std::make_shared<Store>();
+    resource_managers::BackbeatCatalog catalog(
+      source, library.path, &library.database);
+    int updates = 0;
+    int completed = 0;
+    QObject::connect(&catalog,
+                     &resource_managers::BackbeatCatalog::updated,
+                     [&](const auto&) { ++updates; });
+    QObject::connect(&catalog,
+                     &resource_managers::BackbeatCatalog::busyChanged,
+                     [&](bool busy) { completed += !busy; });
+    REQUIRE(source->revisionChecks == 0);
+    REQUIRE(waitUntil([&] { return updates == 1; }));
+    catalog.refresh();
+    REQUIRE(waitUntil([&] { return completed == 2; }));
+    REQUIRE(updates == 1);
+    REQUIRE(source->searches == 1);
+    ++source->currentRevision;
+    REQUIRE(waitUntil([&] { return updates == 2; }));
+    REQUIRE(source->searches == 2);
+}
 
 TEST_CASE("Backbeat and the application use the same SQLite", "[backbeat]")
 {
@@ -329,12 +481,7 @@ TEST_CASE("Backbeat assets use memory or existing files and round-trip through "
 TEST_CASE("Arena verifies Backbeat chart bytes without a filesystem chart",
           "[backbeat][arena]")
 {
-    if (!QCoreApplication::instance()) {
-        static int argc = 1;
-        static char name[] = "Backbeat.test";
-        static char* argv[] = { name, nullptr };
-        static QCoreApplication application(argc, argv);
-    }
+    ensureCoreApplication();
     Library library;
     auto source = std::make_shared<Store>();
     const auto path = resource_managers::BackbeatSource::chartPath(
