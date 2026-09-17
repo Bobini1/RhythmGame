@@ -356,6 +356,9 @@ gameplay_logic::ChartData::getDirectory() const -> QString
 auto
 gameplay_logic::ChartData::getChartDirectory() const -> QString
 {
+    if (path.startsWith(QStringLiteral("backbeat:/"))) {
+        return path.left(path.lastIndexOf('/') + 1);
+    }
     return QFileInfo{ path }.absolutePath() + '/';
 }
 auto

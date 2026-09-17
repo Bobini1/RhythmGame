@@ -202,5 +202,27 @@ variable.
 Create ts files and qm files for the default theme.
 See the [DEV_LANG.md](DEV_LANG.md#strings-in-qml-files) document for more information.
 
+### Backbeat
+
+`RhythmGame_USE_BACKBEAT` defaults to `ON`. It selects the separate `backbeat`
+vcpkg manifest feature and links the GPL-3.0 Backbeat SDK. To build without the
+SDK or its integration code, configure with `-DRhythmGame_USE_BACKBEAT=OFF`.
+Other manifest features, such as `test` and `docs`, are preserved. Without
+vcpkg, an enabled build requires an installed `Backbeat::Backbeat` CMake target.
+
+The game opens the user's normal Backbeat store, indexes new installed BMS and
+BMSON bundles, and exposes installed packs, tables, and courses in song select.
+It checks the store revision every five seconds while song select is active;
+F2 also requests a refresh. Collection downloads and removal remain in the
+Backbeat app. Local song folders continue to work independently.
+
+Assets are read through the SDK as bytes or existing files. A temporary file is
+created only when a consumer requires a filename, such as the video player or
+an external README viewer. Packs retain exact bundle identities; tables and
+courses can also find locally installed charts by MD5 or SHA-256. Course rules
+outside the supported LR2 gauge and normal/mirror lane options are shown as
+unavailable. A build with Backbeat disabled removes its cached chart entries
+from the song database without changing profile scores or the Backbeat store.
+
 [1]: https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html
 [2]: https://cmake.org/download/

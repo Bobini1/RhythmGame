@@ -8,6 +8,24 @@
 #include "spdlog/spdlog.h"
 
 namespace qml_components {
+void
+SongFolderFactory::setRefreshing(bool value)
+{
+    if (refreshing != value) {
+        refreshing = value;
+        emit refreshStatusChanged();
+    }
+}
+
+void
+SongFolderFactory::setRefreshError(const QString& value)
+{
+    if (refreshError != value) {
+        refreshError = value;
+        emit refreshStatusChanged();
+    }
+}
+
 QVariantList
 SongFolderFactory::open(const QString& path)
 {

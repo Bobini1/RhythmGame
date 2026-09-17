@@ -14,7 +14,12 @@ namespace qml_components {
 class SongFolderFactory : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool refreshing READ isRefreshing NOTIFY refreshStatusChanged)
+    Q_PROPERTY(
+      QString refreshError READ getRefreshError NOTIFY refreshStatusChanged)
 
+    bool refreshing = false;
+    QString refreshError;
     db::SqliteCppDb* db;
     db::SqliteCppDb::Statement getCharts = db->createStatement(
       "SELECT c.id, c.title, c.artist, c.subtitle, c.subartist, "
@@ -100,6 +105,19 @@ class SongFolderFactory : public QObject
     Q_INVOKABLE int folderSize(const QString& path);
     Q_INVOKABLE QString parentFolder(const QString& path);
     Q_INVOKABLE QVariantList search(const QString& query);
+    Q_INVOKABLE void refresh(bool force = false)
+    {
+        emit refreshRequested(force);
+    }
+    auto isRefreshing() const -> bool { return refreshing; }
+    auto getRefreshError() const -> QString { return refreshError; }
+    void setRefreshing(bool value);
+    void setRefreshError(const QString& value);
+
+  signals:
+    void refreshRequested(bool force);
+    void refreshStatusChanged();
+    void contentsChanged();
 };
 
 } // namespace qml_components

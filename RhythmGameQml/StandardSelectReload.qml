@@ -19,6 +19,7 @@ Item {
         if (!root.enabled) {
             return false;
         }
+        Rg.songFolderFactory.refresh(true);
         if (implementation.reloadTableForItem(focusedItem)) {
             return true;
         }
@@ -90,6 +91,9 @@ Item {
         function reloadTableForItem(item: var): var {
             if (!item || item.url === undefined) {
                 return false;
+            }
+            if (item.managedExternally) {
+                return true;
             }
             let targetUrl = String(item.url || "");
             if (targetUrl.length === 0) {

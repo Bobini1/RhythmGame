@@ -5,24 +5,26 @@ import QtQml
 
 Column {
     id: courseSongsColumn
-    property var chartDatas: Rg.chartLoader.loadChartDataFromDb(songList.current.md5s)
-    property var canPlay: songList.current.md5s.every(md5 => chartDatas[md5] !== undefined)
+    readonly property var chartDatas: songList.current.loadCharts()
+    readonly property bool canPlay: !songList.current.unavailableReason
+        && chartDatas.length > 0 && chartDatas.every(chart => chart instanceof ChartData)
     Repeater {
         model: {
             let md5s = songList.current.md5s;
             let chartDatas = courseSongsColumn.chartDatas;
             let names = []
-            for (let md5 of md5s) {
+            for (let index = 0; index < md5s.length; ++index) {
+                const md5 = md5s[index];
                 let info = Rg.tables.search(md5);
-                let chartData = chartDatas[md5];
-                let red = (chartData === undefined);
+                let chartData = chartDatas[index];
+                let red = !(chartData instanceof ChartData);
                 if (info.length) {
                     names.push({red, text: (info[0].symbol + info[0].levelName + " " + info[0].entry.title + (info[0].entry.subtitle ? " " + info[0].entry.subtitle : "")).replace(/\r\n|\n|\r/g, " ")});
                 } else {
-                    if (chartData !== undefined) {
+                    if (!red) {
                         names.push({red, text: (chartData.title + (chartData.subtitle ? " " + chartData.subtitle : "")).replace(/\r\n|\n|\r/g, " ")});
                     } else {
-                        names.push({red, text: md5});
+                        names.push({red, text: String(chartData)});
                     }
                 }
             }
@@ -50,5 +52,12 @@ Column {
                 scrolling: songList.scrollingText
             }
         }
+    }
+    Text {
+        width: courseSongsColumn.width
+        text: songList.current.unavailableReason
+        visible: text.length > 0
+        color: "#ffc979"
+        wrapMode: Text.Wrap
     }
 }

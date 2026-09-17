@@ -13,6 +13,7 @@ db::SqliteCppDb::SqliteCppDb(const std::filesystem::path& dbPath)
        SQLite::OPEN_READWRITE | // NOLINT(hicpp-signed-bitwise)
          SQLite::OPEN_CREATE | SQLite::OPEN_FULLMUTEX)
 {
+    db.setBusyTimeout(5000);
     db.exec("PRAGMA journal_mode=WAL;");
     db.exec("PRAGMA synchronous=NORMAL;");
     db.exec("PRAGMA optimize=0x10002;");

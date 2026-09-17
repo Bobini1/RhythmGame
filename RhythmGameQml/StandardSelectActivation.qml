@@ -65,6 +65,10 @@ QtObject {
             return true;
         }
         if (item instanceof course) {
+            if (item.unavailableReason) {
+                console.warn(item.unavailableReason);
+                return true;
+            }
             if (arenaSeated) {
                 return true;
             }

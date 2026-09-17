@@ -37,9 +37,32 @@ Item {
         id: scoreDbReplies
     }
 
+    Timer {
+        interval: 5000
+        repeat: true
+        triggeredOnStart: true
+        running: root.enabled && root.visible
+        onTriggered: Rg.songFolderFactory.refresh()
+    }
+
     /*! Resolves a history \a item to the folder it represents. */
     function folderForHistoryItem(item) {
-        return item instanceof ChartData ? item.chartDirectory : item;
+        if (item instanceof ChartData) {
+            return item.chartDirectory;
+        }
+        if (item instanceof table) {
+            return Rg.tables.getList().find(candidate =>
+                String(candidate.url) === String(item.url)
+                && candidate.managedExternally === item.managedExternally) || null;
+        }
+        if (item instanceof level) {
+            const parentTable = root.historyStack.slice().reverse().find(parent => parent instanceof table);
+            if (parentTable && parentTable.managedExternally) {
+                const current = root.folderForHistoryItem(parentTable);
+                return current ? current.levels.find(candidate => candidate.name === item.name) || null : null;
+            }
+        }
+        return item;
     }
 
     /*! Returns raw contents for folder-like \a item. */

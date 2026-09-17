@@ -78,14 +78,30 @@ resource_managers::Level::getEntries() const -> QVariantList
     return list;
 }
 static auto
-queryCharts(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
-  -> size_t
+queryCharts(db::SqliteCppDb& db,
+            QVariantList& ret,
+            const QList<resource_managers::Entry>& entries) -> size_t
 {
-    // Create a single query with an IN clause
-    auto queryStr = std::string("WITH md5_list(md5, idx) AS (VALUES ");
+    if (entries.isEmpty()) {
+        return 0;
+    }
+    if (entries.size() > 128) {
+        // Stay below SQLite's parameter limit, including builds using 999.
+        size_t loaded = 0;
+        for (qsizetype offset = 0; offset < entries.size(); offset += 128) {
+            auto batch = ret.mid(offset, 128);
+            loaded += queryCharts(db, batch, entries.mid(offset, 128));
+            for (qsizetype i = 0; i < batch.size(); ++i) {
+                ret[offset + i] = batch[i];
+            }
+        }
+        return loaded;
+    }
+    auto queryStr = std::string(
+      "WITH chart_refs(md5, sha256, path, exact_path, idx) AS (VALUES ");
     auto value = std::string("");
-    for (const auto& md5 : md5List) {
-        value += "(?, ?), ";
+    for (qsizetype i = 0; i < entries.size(); ++i) {
+        value += "(?, ?, ?, ?, ?), ";
     }
     if (value.size() > 2) {
         value =
@@ -93,36 +109,50 @@ queryCharts(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
     }
     queryStr += value;
 
-    queryStr += ") SELECT min(md5_list.idx), charts.id, charts.title, "
-                "charts.artist, charts.subtitle, charts.subartist, "
-                "charts.genre, charts.stage_file, charts.banner, "
-                "charts.back_bmp, charts.rank, charts.total, "
-                "charts.play_level, charts.difficulty, charts.is_random, "
-                "charts.random_sequence, charts.normal_note_count, "
-                "charts.scratch_count, charts.ln_count, charts.bss_count, "
-                "charts.mine_count, charts.length, "
-                "charts.initial_bpm, charts.max_bpm, charts.min_bpm, "
-                "charts.main_bpm, charts.avg_bpm, charts.peak_density, "
-                "charts.avg_density, charts.end_density, charts.path, "
-                "charts.directory, charts.sha256, charts.md5, charts.keymode, "
-                "charts.game_version, h.bpms, h.histogram_data "
-                "FROM md5_list JOIN charts ON md5_list.md5 = charts.md5 "
-                "LEFT JOIN histogram_data h ON h.chart_id = charts.id GROUP "
-                "BY md5_list.idx";
+    queryStr +=
+      "), matches AS (SELECT chart_refs.idx, charts.id, charts.title, "
+      "charts.artist, charts.subtitle, charts.subartist, "
+      "charts.genre, charts.stage_file, charts.banner, "
+      "charts.back_bmp, charts.rank, charts.total, "
+      "charts.play_level, charts.difficulty, charts.is_random, "
+      "charts.random_sequence, charts.normal_note_count, "
+      "charts.scratch_count, charts.ln_count, charts.bss_count, "
+      "charts.mine_count, charts.length, "
+      "charts.initial_bpm, charts.max_bpm, charts.min_bpm, "
+      "charts.main_bpm, charts.avg_bpm, charts.peak_density, "
+      "charts.avg_density, charts.end_density, charts.path, "
+      "charts.directory, charts.sha256, charts.md5, charts.keymode, "
+      "charts.game_version, h.bpms, h.histogram_data, "
+      "ROW_NUMBER() OVER (PARTITION BY chart_refs.idx ORDER BY "
+      "CASE WHEN charts.path = chart_refs.path THEN 0 ELSE 1 END, "
+      "charts.id) AS choice "
+      "FROM chart_refs JOIN charts ON charts.path = chart_refs.path OR "
+      "(NOT chart_refs.exact_path AND chart_refs.md5 <> '' AND "
+      "chart_refs.md5 = charts.md5) OR "
+      "(NOT chart_refs.exact_path AND chart_refs.sha256 <> '' AND "
+      "chart_refs.sha256 = charts.sha256) "
+      "LEFT JOIN histogram_data h ON h.chart_id = charts.id) "
+      "SELECT * FROM matches WHERE choice = 1 ORDER BY idx";
 
     auto query = db.createStatement(queryStr);
-    for (const auto& [index, md5] : std::ranges::views::enumerate(md5List)) {
-        query.bind(index * 2 + 1, md5.toStdString());
-        query.bind(index * 2 + 2, static_cast<int64_t>(index));
+    for (const auto& [index, entry] : std::ranges::views::enumerate(entries)) {
+        query.bind(index * 5 + 1, entry.md5.toUpper().toStdString());
+        query.bind(index * 5 + 2, entry.sha256.toUpper().toStdString());
+        query.bind(index * 5 + 3, entry.path.toStdString());
+        query.bind(index * 5 + 4, entry.exactPath);
+        query.bind(index * 5 + 5, static_cast<int64_t>(index));
     }
     struct ChartDTOWithIndex
     {
         int64_t index;
         gameplay_logic::ChartData::DTO chartData;
+        int choice;
     };
     auto queryResult = query.executeAndGetAll<ChartDTOWithIndex>();
     for (const auto& result : queryResult) {
         auto chartData = gameplay_logic::ChartData::load(result.chartData);
+        QQmlEngine::setObjectOwnership(chartData.get(),
+                                       QQmlEngine::JavaScriptOwnership);
         ret[result.index] = QVariant::fromValue(chartData.release());
     }
     return queryResult.size();
@@ -136,14 +166,12 @@ resource_managers::Level::loadCharts() const -> QVariantList
 
     auto sw = spdlog::stopwatch{};
     auto ret = QVariantList{};
-    auto md5List = QStringList{};
 
     for (const auto& chart : entries) {
         ret.append(QVariant::fromValue(chart));
-        md5List.append(chart.md5.toUpper());
     }
 
-    auto loaded = queryCharts(*db, ret, md5List);
+    auto loaded = queryCharts(*db, ret, entries);
     // sort by title, subtitle
     std::ranges::sort(ret, [](QVariant& a, QVariant& b) {
         auto getTitle = [](QVariant& chart) {
@@ -209,26 +237,49 @@ resource_managers::Course::getTrophies() const -> QVariantList
 auto
 resource_managers::Course::getIdentifier() const -> QString
 {
-    auto identifier = md5s.join(" ");
+    auto ids = md5s;
+    for (qsizetype i = 0; i < ids.size(); ++i) {
+        if (!sha256s.value(i).isEmpty()) {
+            ids[i] = "sha256/" + sha256s[i];
+        }
+    }
+    auto identifier = ids.join(" ");
     identifier += '+';
     auto constraintsSorted = constraints;
     constraintsSorted.sort();
     identifier += constraintsSorted.join(",");
     return identifier;
 }
+auto
+resource_managers::Course::chartPath(qsizetype index) const -> QString
+{
+    auto query = db->createStatement(
+      "SELECT path FROM charts WHERE (md5 = ? AND md5 <> '') OR "
+      "(sha256 = ? AND sha256 <> '') ORDER BY CASE WHEN path = ? THEN 0 ELSE 1 "
+      "END, id LIMIT 1");
+    query.bind(1, md5s.value(index).toUpper().toStdString());
+    query.bind(2, sha256s.value(index).toUpper().toStdString());
+    query.bind(3, paths.value(index).toStdString());
+    return QString::fromStdString(
+      query.executeAndGet<std::string>().value_or(""));
+}
 QVariantList
 resource_managers::Course::loadCharts() const
 {
     auto sw = spdlog::stopwatch{};
     auto ret = QVariantList{};
-    auto md5List = QStringList{};
+    auto references = QList<Entry>{};
 
-    for (const auto& md5 : md5s) {
-        ret.append(md5);
-        md5List.append(md5.toUpper());
+    for (qsizetype i = 0; i < md5s.size(); ++i) {
+        ret.append(md5s[i].isEmpty() ? "sha256/" + sha256s.value(i) : md5s[i]);
+        Entry entry;
+        entry.md5 = md5s[i];
+        entry.sha256 = sha256s.value(i);
+        entry.path = paths.value(i);
+        references.append(std::move(entry));
     }
 
-    auto loaded = queryCharts(*db, ret, md5List);
+    auto loaded = queryCharts(*db, ret, references);
     spdlog::debug("Loaded {} charts in {} s", loaded, sw);
     return ret;
 }
@@ -743,17 +794,22 @@ auto
 resource_managers::Tables::getList() -> QVariantList
 {
     auto ret = QVariantList{};
-    for (const auto& table : tables) {
+    for (const auto& table : tables + externalTables) {
         ret.push_back(QVariant::fromValue(table));
     }
     return ret;
+}
+void
+resource_managers::Tables::setExternalTables(QList<Table> updated)
+{
+    externalTables = std::move(updated);
 }
 auto
 resource_managers::Tables::search(const QString& md5) -> QList<TableInfo>
 {
     const auto upper = md5.toUpper();
     auto info = QList<TableInfo>{};
-    for (const auto& table : tables) {
+    for (const auto& table : tables + externalTables) {
         for (const auto& level : table.levels) {
             if (auto entry = level.md5s.find(upper);
                 entry != level.md5s.end()) {

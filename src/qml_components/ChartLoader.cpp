@@ -32,7 +32,7 @@ loadChartComponents(
   -> resource_managers::ChartDataFactory::ChartComponents
 {
     auto extension = support::pathToQString(path.extension()).toLower();
-    if (!assetStore->isArchived(path)) {
+    if (!assetStore->isVirtual(path)) {
         return extension == QStringLiteral(".bmson")
                  ? chartDataFactory->loadBmsonChartData(path)
                  : chartDataFactory->loadChartData(path,
@@ -337,8 +337,11 @@ ChartLoader::loadChart(const QString& filename,
           }(randomEngine);
       };
     try {
+        const auto requestedPath = support::qStringToPath(filename);
         const auto fileAbsolute =
-          support::qStringToPath(QFileInfo(filename).absoluteFilePath());
+          assetStore->isVirtual(requestedPath)
+            ? requestedPath
+            : support::qStringToPath(QFileInfo(filename).absoluteFilePath());
         const auto file = [&] {
             if (score1 || score2) {
                 return getChartPathFromMd5(
@@ -492,12 +495,17 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
                         score2)) {
         return nullptr;
     }
+    if (!course.unavailableReason.isEmpty() || course.md5s.isEmpty()) {
+        spdlog::warn("Cannot play course: {}",
+                     course.unavailableReason.toStdString());
+        return nullptr;
+    }
     auto chartComponents =
       QList<resource_managers::ChartDataFactory::ChartComponents>{};
     for (const auto& [i, md5] : std::ranges::views::enumerate(course.md5s)) {
         try {
-            auto path = getChartPathFromMd5(md5.toUpper(), {});
-            if (!path) {
+            const auto path = course.chartPath(i);
+            if (path.isEmpty()) {
                 spdlog::error("Failed to find chart path for course: {}",
                               md5.toStdString());
                 return nullptr;
@@ -524,8 +532,10 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
                       charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
                   }(randomEngine);
               };
-            auto components = loadChartComponents(
-              chartDataFactory, assetStore, *path, randomGenerator);
+            auto components = loadChartComponents(chartDataFactory,
+                                                  assetStore,
+                                                  support::qStringToPath(path),
+                                                  randomGenerator);
             chartComponents.append(std::move(components));
         } catch (const std::exception& e) {
             spdlog::error("Failed to load chart: {}", e.what());

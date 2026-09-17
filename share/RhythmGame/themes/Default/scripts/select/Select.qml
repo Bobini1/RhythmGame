@@ -12,6 +12,22 @@ FocusScope {
 
     readonly property bool arenaNativeSelectPresentation: true
 
+    Label {
+        readonly property bool managedSelection: !!songList.current?.managedExternally
+            || String(songList.current?.path || songList.current || "").startsWith("backbeat:/")
+        z: 10
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.margins: 8
+        visible: managedSelection || Rg.songFolderFactory.refreshing || Rg.songFolderFactory.refreshError.length > 0
+        text: Rg.songFolderFactory.refreshError || (Rg.songFolderFactory.refreshing
+            ? qsTr("Updating Backbeat library…")
+            : qsTr("Managed in Backbeat. Press F2 to refresh."))
+        color: Rg.songFolderFactory.refreshError ? "#ffc979" : "white"
+        wrapMode: Text.Wrap
+    }
+
     Image {
         id: root
 

@@ -15,6 +15,9 @@
 #include <vector>
 
 namespace resource_managers {
+#ifdef RHYTHMGAME_USE_BACKBEAT
+class BackbeatSource;
+#endif
 
 /**
  * Resolves song-library virtual paths across ordinary directories and nested
@@ -43,6 +46,9 @@ class SongAssetStore : public QObject
 
     explicit SongAssetStore(QObject* parent = nullptr);
     ~SongAssetStore() override;
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    void setBackbeatSource(std::shared_ptr<BackbeatSource> source);
+#endif
 
     [[nodiscard]] auto read(const std::filesystem::path& virtualPath,
                             const std::atomic_bool* stop = nullptr) const
@@ -62,6 +68,8 @@ class SongAssetStore : public QObject
 
     [[nodiscard]] auto isArchived(
       const std::filesystem::path& virtualPath) const -> bool;
+    [[nodiscard]] auto isVirtual(const std::filesystem::path& virtualPath) const
+      -> bool;
 
     [[nodiscard]] static auto isArchivePath(const std::filesystem::path& path)
       -> bool;
@@ -99,6 +107,9 @@ class SongAssetStore : public QObject
     QTemporaryDir temporaryDirectory;
     std::filesystem::path materializationDirectory;
     std::unique_ptr<Impl> impl;
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    std::shared_ptr<BackbeatSource> backbeat;
+#endif
 };
 
 } // namespace resource_managers

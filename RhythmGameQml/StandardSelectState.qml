@@ -29,6 +29,47 @@ Item {
 
     StandardSelectReload { id: reloadAction }
 
+    property bool libraryRefreshPending: false
+
+    Connections {
+        target: Rg.songFolderFactory
+        function onContentsChanged() {
+            root.libraryRefreshPending = true;
+            Qt.callLater(root.refreshLibraryContents);
+        }
+    }
+
+    function refreshLibraryContents() {
+        if (!root.enabled || !root.libraryRefreshPending || !root.historyStack.length) {
+            return;
+        }
+        root.libraryRefreshPending = false;
+        const old = root.focusedItem;
+        let folder;
+        if (root.historyStack[root.historyStack.length - 1] === selectionState.searchHistoryEntry) {
+            sessionImpl.commitFolderContents(sessionImpl.resolveSearchResults(selectionState.searchQuery));
+            selectionState.entries = selectionState.preparedEntries(root.folderContents);
+            selectionState.publishFolderContents();
+            folder = root.entries;
+        } else {
+            folder = selectionState.open(root.historyStack[root.historyStack.length - 1]);
+            while (folder === null && root.historyStack.length > 1) {
+                sessionImpl.historyStack = root.historyStack.slice(0, -1);
+                folder = selectionState.open(root.historyStack[root.historyStack.length - 1]);
+            }
+        }
+        if (folder !== null) {
+            const index = selectionState.indexOfEntry(folder, old);
+            selectionState.requestFocus(index >= 0 ? index : 0);
+        }
+    }
+
+    onEnabledChanged: {
+        if (enabled) {
+            Qt.callLater(root.refreshLibraryContents);
+        }
+    }
+
     /*! Filtered and sorted logical entries before presentation adaptation. */
     readonly property var entries: selectionState.entries.slice()
     /*! Raw contents of the current folder, table, level, or search. */
@@ -76,6 +117,7 @@ Item {
         readonly property var generalVars:
             Rg.profileList.mainProfile.vars.generalVars
         readonly property var searchHistoryEntry: ({ "kind": "search" })
+        property string searchQuery: ""
 
         function requestFocus(index) {
             selectionState.focusedIndex = index;
@@ -442,6 +484,7 @@ Item {
 
     /*! Replaces the current entries with results for \a query. */
     function search(query) {
+        selectionState.searchQuery = query || "";
         let results = sessionImpl.resolveSearchResults(query);
         let resultCount = results.length;
         if (!results.length) {

@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.21)
 
 include(cmake/prelude.cmake)
+option(RhythmGame_USE_BACKBEAT "Enable the GPL-3.0 Backbeat chart library" ON)
+# Manifest features must be selected before the vcpkg toolchain runs in project().
+list(REMOVE_ITEM VCPKG_MANIFEST_FEATURES backbeat)
+if (RhythmGame_USE_BACKBEAT)
+    list(APPEND VCPKG_MANIFEST_FEATURES backbeat)
+endif ()
 project(
         RhythmGame
         VERSION 1.3.18
@@ -386,6 +392,18 @@ endif ()
 if (RhythmGame_USE_MIMALLOC)
     target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_USE_MIMALLOC)
     target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
+endif ()
+
+if (RhythmGame_USE_BACKBEAT)
+    find_package(Backbeat CONFIG REQUIRED)
+    target_sources(RhythmGame_lib PRIVATE
+            src/resource_managers/BackbeatSource.cpp
+            src/resource_managers/BackbeatSource.h
+            src/resource_managers/BackbeatCatalog.cpp
+            src/resource_managers/BackbeatCatalog.h
+    )
+    target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_USE_BACKBEAT)
+    target_link_libraries(RhythmGame_lib PUBLIC Backbeat::Backbeat)
 endif ()
 
 # <------------ SndFile (audio file reading) --------------->

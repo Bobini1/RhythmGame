@@ -27,7 +27,7 @@ struct Entry
     Q_PROPERTY(QString urlDiff MEMBER urlDiff CONSTANT)
     Q_PROPERTY(QString level MEMBER level CONSTANT)
     Q_PROPERTY(QString comment MEMBER comment CONSTANT)
-    public:
+  public:
     QString title;
     QString artist;
     QString subtitle;
@@ -38,6 +38,8 @@ struct Entry
     QString urlDiff;
     QString level;
     QString comment;
+    QString path;
+    bool exactPath = false;
 };
 
 struct Level
@@ -78,6 +80,7 @@ struct Course
     Q_PROPERTY(QVariantList trophies READ getTrophies CONSTANT)
     Q_PROPERTY(QStringList constraints MEMBER constraints CONSTANT)
     Q_PROPERTY(QString identifier READ getIdentifier STORED false CONSTANT)
+    Q_PROPERTY(QString unavailableReason MEMBER unavailableReason CONSTANT)
   public:
     db::SqliteCppDb* db;
     QString name;
@@ -85,8 +88,12 @@ struct Course
     QStringList md5s;
     QList<Trophy> trophies;
     QStringList constraints;
+    QStringList sha256s;
+    QStringList paths;
+    QString unavailableReason;
     auto getTrophies() const -> QVariantList;
     auto getIdentifier() const -> QString;
+    auto chartPath(qsizetype index) const -> QString;
     Q_INVOKABLE QVariantList loadCharts() const;
 };
 
@@ -127,6 +134,7 @@ struct Table
     Q_PROPERTY(QUrl url MEMBER url)
     Q_PROPERTY(Status status MEMBER status)
     Q_PROPERTY(QString symbol MEMBER symbol)
+    Q_PROPERTY(bool managedExternally MEMBER managedExternally CONSTANT)
 
   public:
     QString name;
@@ -137,6 +145,7 @@ struct Table
     QList<QList<Course>> courses;
     QUrl url;
     Status status{ Loading };
+    bool managedExternally = false;
     auto getLevels() const -> QVariantList;
     auto getCourses() const -> QVariantList;
 };
@@ -155,6 +164,7 @@ class Tables final : public QAbstractListModel
     QDir tableLocation;
     db::SqliteCppDb* db;
     QList<Table> tables;
+    QList<Table> externalTables;
     QThreadPool fileOperationThreadPool;
 
     void handleInitialReply(QNetworkReply* reply, const QUrl& url);
@@ -197,13 +207,13 @@ class Tables final : public QAbstractListModel
     /**
      * @brief Retrieves a list of all tables as QVariantList.
      * @return A QVariantList containing all tables.
-     * @note You're encouraged to use the model API that this class provides
-     * instead of this method, as it is more efficient. But this method is
-     * still provided for convenience.
+     * @note The editable model excludes externally managed collections.
      */
     Q_INVOKABLE QVariantList getList();
+    void setExternalTables(QList<Table> tables);
     /**
-     * @brief Searches for entries with the specified MD5 hash across all tables.
+     * @brief Searches for entries with the specified MD5 hash across all
+     * tables.
      * @param md5 The MD5 hash to search for.
      * @return A list of TableInfo objects containing information about the
      * matching entries.

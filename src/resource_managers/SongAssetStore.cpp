@@ -1,4 +1,7 @@
 #include "SongAssetStore.h"
+#ifdef RHYTHMGAME_USE_BACKBEAT
+#include "BackbeatSource.h"
+#endif
 
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
@@ -73,6 +76,11 @@ normalizedVirtualPath(const std::filesystem::path& path) -> QString
 {
     auto value = support::pathToQString(path);
     value.replace('\\', '/');
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(path)) {
+        return value;
+    }
+#endif
     return QDir::cleanPath(value);
 }
 
@@ -105,6 +113,11 @@ joinVirtual(QString directory, QString relative) -> QString
     if (!directory.endsWith('/')) {
         directory += '/';
     }
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (directory.startsWith(BackbeatSource::rootPath())) {
+        return directory + relative;
+    }
+#endif
     return QDir::cleanPath(directory + relative);
 }
 
@@ -737,6 +750,13 @@ auto
 materializationKeyDigest(const std::filesystem::path& virtualPath)
   -> std::optional<QByteArray>
 {
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(virtualPath)) {
+        return QCryptographicHash::hash(
+          normalizedVirtualPath(virtualPath).toUtf8(),
+          QCryptographicHash::Sha256);
+    }
+#endif
     const auto boundary = findPhysicalBoundary(virtualPath);
     if (!boundary || boundary->remainder.isEmpty()) {
         return std::nullopt;
@@ -857,6 +877,11 @@ auto
 candidatePaths(const QString& requested) -> QStringList
 {
     auto candidates = QStringList{ normalizeArchivePath(requested) };
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (requested.startsWith(BackbeatSource::rootPath())) {
+        candidates = { requested };
+    }
+#endif
     auto info = QFileInfo(requested);
     auto stem = info.path();
     if (stem == QStringLiteral(".")) {
@@ -872,6 +897,25 @@ candidatePaths(const QString& requested) -> QStringList
     candidates.removeDuplicates();
     return candidates;
 }
+
+#ifdef RHYTHMGAME_USE_BACKBEAT
+auto
+resolveBackbeatAsset(const BackbeatSource& source,
+                     const std::filesystem::path& path,
+                     const std::atomic_bool* stop) -> BackbeatSource::Asset
+{
+    for (const auto& candidate : candidatePaths(normalizedVirtualPath(path))) {
+        throwIfCancelled(stop);
+        if (auto asset = source.resolve(support::qStringToPath(candidate))) {
+            return std::move(*asset);
+        }
+    }
+    throw std::filesystem::filesystem_error(
+      "Backbeat asset not found",
+      path,
+      std::make_error_code(std::errc::no_such_file_or_directory));
+}
+#endif
 
 auto
 relativeKey(const std::filesystem::path& path) -> QString
@@ -1307,6 +1351,25 @@ SongAssetStore::SongAssetStore(QObject* parent)
 
 SongAssetStore::~SongAssetStore() = default;
 
+#ifdef RHYTHMGAME_USE_BACKBEAT
+void
+SongAssetStore::setBackbeatSource(std::shared_ptr<BackbeatSource> source)
+{
+    backbeat = std::move(source);
+}
+#endif
+
+auto
+SongAssetStore::isVirtual(const std::filesystem::path& path) const -> bool
+{
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(path)) {
+        return true;
+    }
+#endif
+    return isArchived(path);
+}
+
 auto
 SongAssetStore::isArchivePath(const std::filesystem::path& path) -> bool
 {
@@ -1474,6 +1537,23 @@ SongAssetStore::materializeRelative(
     if (relativePaths.empty()) {
         return {};
     }
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(virtualDirectory)) {
+        std::unordered_map<std::filesystem::path, std::filesystem::path> result;
+        for (const auto& relative : relativePaths) {
+            throwIfCancelled(stop);
+            try {
+                result.emplace(relative,
+                               materialize(virtualDirectory / relative, stop));
+            } catch (const std::filesystem::filesystem_error& error) {
+                if (error.code() != std::errc::no_such_file_or_directory) {
+                    throw;
+                }
+            }
+        }
+        return result;
+    }
+#endif
 
     const auto requestedVirtualPath =
       [&virtualDirectory](const std::filesystem::path& relative) {
@@ -1548,6 +1628,19 @@ SongAssetStore::read(const std::filesystem::path& virtualPath,
                      const std::atomic_bool* stop) const -> QByteArray
 {
     throwIfCancelled(stop);
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(virtualPath)) {
+        if (!backbeat) {
+            throw std::runtime_error("Backbeat is unavailable");
+        }
+        auto asset = resolveBackbeatAsset(*backbeat, virtualPath, stop);
+        throwIfCancelled(stop);
+        if (const auto bytes = std::get_if<QByteArray>(&asset)) {
+            return *bytes;
+        }
+        return read(std::get<std::filesystem::path>(asset), stop);
+    }
+#endif
     if (isArchived(virtualPath)) {
         const auto located = impl->locateEntry(virtualPath, stop);
         if (!located) {
@@ -1586,6 +1679,38 @@ SongAssetStore::materialize(const std::filesystem::path& virtualPath,
   -> std::filesystem::path
 {
     throwIfCancelled(stop);
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(virtualPath)) {
+        if (!backbeat) {
+            throw std::runtime_error("Backbeat is unavailable");
+        }
+        if (const auto cached =
+              existingMaterialization(materializationDirectory, virtualPath)) {
+            return *cached;
+        }
+        auto asset = resolveBackbeatAsset(*backbeat, virtualPath, stop);
+        throwIfCancelled(stop);
+        if (const auto path = std::get_if<std::filesystem::path>(&asset)) {
+            return *path;
+        }
+        const auto target =
+          sourceMaterializationPath(materializationDirectory, virtualPath)
+            .value();
+        QSaveFile file(support::pathToQString(target));
+        const auto& bytes = std::get<QByteArray>(asset);
+        if (!file.open(QIODevice::WriteOnly) ||
+            file.write(bytes) != bytes.size()) {
+            throw std::runtime_error(
+              "Could not write temporary Backbeat asset");
+        }
+        throwIfCancelled(stop);
+        if (!file.commit()) {
+            throw std::runtime_error(
+              "Could not commit temporary Backbeat asset");
+        }
+        return target;
+    }
+#endif
     if (!isArchived(virtualPath)) {
         std::error_code ec;
         if (std::filesystem::is_regular_file(virtualPath, ec)) {
@@ -1609,6 +1734,12 @@ SongAssetStore::imageUrl(const std::filesystem::path& virtualPath) -> QString
     if (virtualPath.empty()) {
         return {};
     }
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(virtualPath)) {
+        return QStringLiteral("image://song-assets/") +
+               encodedPath(virtualPath);
+    }
+#endif
     const auto boundary = findPhysicalBoundary(virtualPath);
     if (!boundary ||
         (boundary->remainder.isEmpty() && !boundary->trailingSeparator)) {
@@ -1707,6 +1838,9 @@ SongAssetStore::localFile(const QString& virtualPath) const
 QString
 SongAssetStore::containingFolder(const QString& virtualPath) const
 {
+    if (virtualPath.startsWith(QStringLiteral("backbeat:/"))) {
+        return {};
+    }
     const auto path = support::qStringToPath(virtualPath);
     if (const auto boundary = findPhysicalBoundary(path);
         boundary &&

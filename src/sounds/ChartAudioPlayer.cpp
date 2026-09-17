@@ -110,7 +110,7 @@ loadChartComponents(resource_managers::SongAssetStore* assetStore,
     };
     auto factory = resource_managers::ChartDataFactory{};
     const auto extension = support::pathToQString(path.extension()).toLower();
-    if (!assetStore->isArchived(path)) {
+    if (!assetStore->isVirtual(path)) {
         return extension == QStringLiteral(".bmson")
                  ? factory.loadBmsonChartData(path)
                  : factory.loadChartData(path, std::move(randomGenerator));
@@ -170,7 +170,7 @@ loadChartAudio(const QString& source,
     throwIfCancelled(cancellation);
     const auto chartDirectory = path.parent_path();
     auto loadedSounds =
-      assetStore->isArchived(path)
+      assetStore->isVirtual(path)
         ? loadArchivedSounds(engine,
                              assetStore,
                              chartDirectory,

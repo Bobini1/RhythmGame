@@ -19,6 +19,9 @@
 #include "resource_managers/SongDbScanner.h"
 #include "resource_managers/SongAssetImageProvider.h"
 #include "resource_managers/SongAssetStore.h"
+#ifdef RHYTHMGAME_USE_BACKBEAT
+#include "resource_managers/BackbeatCatalog.h"
+#endif
 #include "resource_managers/DefineDb.h"
 #include "input/GamepadManager.h"
 #include "input/InputTranslator.h"
@@ -295,6 +298,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         removeLegacySongAssetCache(dataFolder);
         auto songAssets = resource_managers::SongAssetStore{};
+#ifdef RHYTHMGAME_USE_BACKBEAT
+        auto backbeat = std::make_shared<resource_managers::BackbeatSource>();
+        songAssets.setBackbeatSource(backbeat);
+#endif
         auto songDbScanner =
           resource_managers::SongDbScanner{ &db, &songAssets };
         auto avatarPath = support::pathToQString(dataFolder / "avatars/");
@@ -440,8 +447,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             &chartFactory,
             &db
         };
-        auto arenaRoundLoader =
-          arena::QtArenaRoundLoader{ &profileList, &db, &chartLoader };
+        auto arenaRoundLoader = arena::QtArenaRoundLoader{
+            &profileList, &db, &chartLoader, &songAssets
+        };
         auto arenaGameplaySource = arena::QtArenaGameplaySource{};
         auto arenaSession =
           arena::ArenaSession{ &arenaTransport,
@@ -511,6 +519,56 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto tables = resource_managers::Tables{ &networkManager,
                                                  dataFolder / "tables",
                                                  &db };
+
+        QObject::connect(&scanningQueue,
+                         &qml_components::ScanningQueue::queueDrained,
+                         &songFolderFactory,
+                         &qml_components::SongFolderFactory::contentsChanged);
+        QObject::connect(
+          &folders,
+          &qml_components::RootSongFolders::chartSetMutationCommitted,
+          &songFolderFactory,
+          &qml_components::SongFolderFactory::contentsChanged);
+#ifdef RHYTHMGAME_USE_BACKBEAT
+        auto backbeatCatalog = resource_managers::BackbeatCatalog{
+            backbeat, dataFolder / "song_db.sqlite", &db
+        };
+        QObject::connect(&scanningQueue,
+                         &qml_components::ScanningQueue::queueDrained,
+                         &backbeatCatalog,
+                         [&] { backbeatCatalog.refresh(true); });
+        QObject::connect(
+          &folders,
+          &qml_components::RootSongFolders::chartSetMutationCommitted,
+          &backbeatCatalog,
+          [&] { backbeatCatalog.refresh(true); });
+        QObject::connect(&songFolderFactory,
+                         &qml_components::SongFolderFactory::refreshRequested,
+                         &backbeatCatalog,
+                         &resource_managers::BackbeatCatalog::refresh);
+        QObject::connect(&backbeatCatalog,
+                         &resource_managers::BackbeatCatalog::busyChanged,
+                         &songFolderFactory,
+                         &qml_components::SongFolderFactory::setRefreshing);
+        QObject::connect(&backbeatCatalog,
+                         &resource_managers::BackbeatCatalog::errorChanged,
+                         &songFolderFactory,
+                         &qml_components::SongFolderFactory::setRefreshError);
+        QObject::connect(
+          &backbeatCatalog,
+          &resource_managers::BackbeatCatalog::chartSetChanged,
+          &arenaInventorySource,
+          &arena::SqliteArenaInventorySource::commitLibraryMutation);
+        QObject::connect(
+          &backbeatCatalog,
+          &resource_managers::BackbeatCatalog::updated,
+          &songFolderFactory,
+          [&](const QList<resource_managers::Table>& collections) {
+              tables.setExternalTables(collections);
+              emit songFolderFactory.contentsChanged();
+          });
+        backbeatCatalog.refresh();
+#endif
 
         auto onlineScores = qml_components::OnlineScores{ &networkManager };
 

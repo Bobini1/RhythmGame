@@ -136,7 +136,7 @@
   ],
   "features": {
     "backbeat": {
-      "description": "Backbeat C SDK for chart-store integration",
+      "description": "Backbeat chart library integration (GPL-3.0)",
       "dependencies": [
         "backbeat"
       ]

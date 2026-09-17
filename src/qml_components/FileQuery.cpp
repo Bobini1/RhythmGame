@@ -326,7 +326,7 @@ FileQuery::readTextFile(const QString& path) const -> QString
                 virtualPath =
                   resource_managers::SongAssetStore::pathFromUrl(path);
             }
-            if (assetStore->isArchived(virtualPath)) {
+            if (assetStore->isVirtual(virtualPath)) {
                 return decodeTextFile(assetStore->read(virtualPath));
             }
         } catch (const std::exception& error) {

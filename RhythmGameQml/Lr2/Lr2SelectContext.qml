@@ -195,7 +195,41 @@ Item {
     StandardSelectSession {
         id: standardSession
 
+        enabled: root.updatesActive
         tableCoursesProvider: tableItem => root.classCoursesForTable(tableItem)
+    }
+
+    property bool libraryRefreshPending: false
+    property string librarySearchQuery: ""
+
+    Connections {
+        target: Rg.songFolderFactory
+        function onContentsChanged() {
+            root.libraryRefreshPending = true;
+            Qt.callLater(root.refreshLibraryContents);
+        }
+    }
+
+    function refreshLibraryContents() {
+        if (!root.updatesActive || !root.libraryRefreshPending || !root.historyStack.length) {
+            return;
+        }
+        root.libraryRefreshPending = false;
+        if (root.historyStack[root.historyStack.length - 1] === "SEARCH") {
+            const results = standardSession.resolveSearchResults(root.librarySearchQuery);
+            standardSession.commitFolderContents(results);
+            root.rebuildFolderIndexes(root.folderContents);
+            root.applySortedFolderContents(root.current, false);
+            root.refreshScores();
+            root.openedFolder();
+            root.markListContentsChanged();
+            return;
+        }
+        let folder = root.open(root.historyStack[root.historyStack.length - 1], root.current);
+        while (folder === null && root.historyStack.length > 1) {
+            root.historyStack = root.historyStack.slice(0, -1);
+            folder = root.open(root.historyStack[root.historyStack.length - 1]);
+        }
     }
 
     StandardSelectActivation {
@@ -395,6 +429,9 @@ Item {
     }
 
     onUpdatesActiveChanged: {
+        if (updatesActive) {
+            Qt.callLater(root.refreshLibraryContents);
+        }
         if (!componentReady) {
             return;
         }
@@ -1401,6 +1438,7 @@ Item {
     }
 
     function search(query: var) : var {
+        root.librarySearchQuery = query || "";
         let results = standardSession.resolveSearchResults(query);
         let resultCount = results.length;
         if (!results.length) {

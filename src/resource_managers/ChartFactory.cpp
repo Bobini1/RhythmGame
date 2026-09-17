@@ -186,7 +186,7 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaBase,
                     return ret;
                 }
                 auto image = QImage{};
-                if (assetStore && assetStore->isArchived(filePath)) {
+                if (assetStore && assetStore->isVirtual(filePath)) {
                     try {
                         image = loadBmp(assetStore->read(filePath));
                     } catch (const std::exception& error) {
@@ -227,7 +227,7 @@ loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaBase,
                   QGuiApplication::instance(),
                   [&, assetStore, id, path] {
                       auto videoPath = path;
-                      if (assetStore && assetStore->isArchived(videoPath)) {
+                      if (assetStore && assetStore->isVirtual(videoPath)) {
                           try {
                               videoPath = assetStore->materialize(videoPath);
                           } catch (const std::exception& error) {
@@ -687,7 +687,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
 {
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getChartDirectory());
-    const auto archived = assetStore->isArchived(path);
+    const auto archived = assetStore->isVirtual(path);
     auto encodedWavs = archived
                          ? charts::loadArchivedSoundData(assetStore, path, wavs)
                          : charts::EncodedSounds{};

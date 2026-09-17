@@ -141,6 +141,18 @@ defineDb(db::SqliteCppDb& db)
                "histogram_data BLOB NOT NULL"
                ");");
 
+#ifndef RHYTHMGAME_USE_BACKBEAT
+    // This database can also be used by a build with Backbeat disabled.
+    // Remove only its cached catalog; profile scores live in separate
+    // databases.
+    db.execute("DELETE FROM charts WHERE path GLOB 'backbeat:/*'");
+    db.execute("DELETE FROM parent_dir WHERE dir GLOB 'backbeat:/*'");
+    db.execute("DELETE FROM preview_files WHERE path GLOB 'backbeat:/*'");
+    db.execute("DELETE FROM readme_files WHERE path GLOB 'backbeat:/*'");
+    db.execute("DELETE FROM histogram_data WHERE chart_id NOT IN (SELECT id "
+               "FROM charts)");
+#endif
+
     if (!version || *version < std::tuple{ 1, 3, 6 }) {
         db.execute("UPDATE charts SET rank = CASE rank "
                    "WHEN 0 THEN 25 "

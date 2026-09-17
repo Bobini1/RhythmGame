@@ -790,7 +790,7 @@ createScoreFromReplay(resource_managers::Profile& profile,
           return charts::ParsedBmsChart::RandomRange{ 1 };
       };
     auto chartComponents = [&] {
-        if (!songAssetStore.isArchived(*chartPath)) {
+        if (!songAssetStore.isVirtual(*chartPath)) {
             return chartDataFactory.loadChartData(*chartPath, randomGenerator);
         }
         const auto contents = songAssetStore.read(*chartPath);
