@@ -18,6 +18,12 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
+if (RhythmGame_USE_BACKBEAT)
+    set(RhythmGame_LICENSE_FILE "${PROJECT_SOURCE_DIR}/LICENSE.GPL-3.0.md")
+else ()
+    set(RhythmGame_LICENSE_FILE "${PROJECT_SOURCE_DIR}/LICENSE.md")
+endif ()
+
 include(CheckIPOSupported)
 check_ipo_supported(RESULT supported OUTPUT error)
 
