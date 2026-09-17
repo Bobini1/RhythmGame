@@ -5,7 +5,7 @@
   "description": "Backbeat C SDK for reading installed rhythm-game charts and collections",
   "homepage": "https://github.com/zkldi/backbeat",
   "license": "GPL-3.0-only",
-  "supports": "(x64 | arm64) & ((windows & !uwp & !mingw & !staticcrt) | linux | osx)",
+  "supports": "(x64 | arm64) & ((windows & !uwp & !mingw) | linux | osx)",
   "dependencies": [
     {
       "name": "openssl",
