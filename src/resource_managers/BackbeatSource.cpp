@@ -339,9 +339,13 @@ BackbeatSource::collections(db::SqliteCppDb* db,
     const auto installedCourses =
       result<bkb_collection_metadata_list, bkb_collection_metadata_list_free>(
         bkb_store_list_courses, impl->get(), gamemodes, std::size(gamemodes));
+    Table courseTable;
+    courseTable.name = QObject::tr("Backbeat courses");
+    courseTable.url = QUrl(QStringLiteral("backbeat:/courses"));
+    courseTable.status = Table::Loaded;
+    courseTable.managedExternally = true;
     for (const auto& meta :
          std::span(installedCourses->items, installedCourses->items_len)) {
-        auto table = base(meta, QObject::tr("course"));
         const auto contents = result<bkb_course, bkb_course_free>(
           bkb_store_get_course,
           impl->get(),
@@ -377,8 +381,10 @@ BackbeatSource::collections(db::SqliteCppDb* db,
         if (course.md5s.isEmpty()) {
             continue;
         }
-        table.courses.append(QList<Course>{ std::move(course) });
-        tables.append(std::move(table));
+        courseTable.courses.append(QList<Course>{ std::move(course) });
+    }
+    if (!courseTable.courses.isEmpty()) {
+        tables.append(std::move(courseTable));
     }
     return tables;
 }
