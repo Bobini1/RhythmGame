@@ -218,6 +218,26 @@ TEST_CASE("Nested transactions roll back only their own changes",
     CHECK(query.get() == std::vector<std::string>{ "first", "last" });
 }
 
+TEST_CASE("An outer transaction cannot commit while a nested scope is active",
+          "[SqliteCppDb]")
+{
+    db::SqliteCppDb database(":memory:");
+    database.execute("CREATE TABLE entries (value TEXT)");
+    {
+        auto outer = database.transaction();
+        database.execute("INSERT INTO entries VALUES ('outer')");
+        {
+            auto inner = database.transaction();
+            database.execute("INSERT INTO entries VALUES ('inner')");
+            REQUIRE_THROWS_AS(outer.commit(), std::logic_error);
+            inner.commit();
+        }
+        // Releasing the inner savepoint still leaves its changes provisional.
+    }
+    CHECK(database.createStatement("SELECT count(*) FROM entries")
+            .executeAndGet<int>() == 0);
+}
+
 TEST_CASE("Failed commits are rolled back before reusing the connection",
           "[SqliteCppDb]")
 {

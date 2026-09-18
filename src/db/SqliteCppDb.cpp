@@ -29,35 +29,35 @@ db::SqliteCppDb::SqliteCppDb(const std::filesystem::path& dbPath,
 auto
 db::SqliteCppDb::hasTable(const std::string& table) const -> bool
 {
-    const ConnectionLock lock(db);
+    const ConnectionLock lock(&db);
     checkTransaction();
     return db.tableExists(table);
 }
 void
 db::SqliteCppDb::execute(const std::string& query)
 {
-    const ConnectionLock lock(db);
+    const ConnectionLock lock(&db);
     checkTransaction();
     db.exec(query);
 }
 auto
 db::SqliteCppDb::createStatement(const std::string& query) -> Statement
 {
-    const ConnectionLock lock(db);
+    const ConnectionLock lock(&db);
     checkTransaction();
     return Statement{ SQLite::Statement(db, query), this };
 }
 void
 db::SqliteCppDb::Statement::execute()
 {
-    StatementExecution execution(statement, *db);
+    StatementExecution execution(&statement, db);
     statement.exec();
     execution.finish();
 }
 void
 db::SqliteCppDb::Statement::reset()
 {
-    const ConnectionLock lock(db->db);
+    const ConnectionLock lock(&db->db);
     statement.reset();
     statement.clearBindings();
 }
@@ -69,8 +69,8 @@ db::SqliteCppDb::Statement::Statement(SQLite::Statement statement,
 }
 
 db::SqliteCppDb::ConnectionLock::ConnectionLock(
-  const SQLite::Database& database)
-  : mutex(sqlite3_db_mutex(database.getHandle()))
+  const SQLite::Database* database)
+  : mutex(sqlite3_db_mutex(database->getHandle()))
 {
     sqlite3_mutex_enter(mutex);
 }
@@ -87,19 +87,19 @@ db::SqliteCppDb::ConnectionLock::unlock()
 }
 
 db::SqliteCppDb::StatementExecution::StatementExecution(
-  SQLite::Statement& statement,
-  const SqliteCppDb& database)
-  : lock(database.db)
+  SQLite::Statement* statement,
+  const SqliteCppDb* database)
+  : lock(&database->db)
   , statement(statement)
 {
-    database.checkTransaction();
+    database->checkTransaction();
 }
 
 db::SqliteCppDb::StatementExecution::~StatementExecution()
 {
     if (!finished) {
         // Preserve the original exception while releasing the cursor.
-        statement.tryReset();
+        statement->tryReset();
     }
 }
 
@@ -107,28 +107,30 @@ void
 db::SqliteCppDb::StatementExecution::finish()
 {
     // Reset can report a commit failure for INSERT ... RETURNING.
-    statement.reset();
+    statement->reset();
     finished = true;
 }
 
-db::SqliteCppDb::Transaction::Transaction(SqliteCppDb& owner)
-  : lock(owner.db)
+db::SqliteCppDb::Transaction::Transaction(SqliteCppDb* owner)
+  : lock(&owner->db)
   , owner(owner)
-  , database(owner.db)
-  , nested(owner.transactionDepth != 0)
+  , database(&owner->db)
+  , nested(owner->transactionDepth != 0)
+  , depth(owner->transactionDepth + 1)
 {
-    owner.checkTransaction();
+    owner->checkTransaction();
     if (nested) {
-        const auto name = "rhythmgame_" + std::to_string(++owner.nextSavepoint);
+        const auto name =
+          "rhythmgame_" + std::to_string(++owner->nextSavepoint);
         commitQuery = "RELEASE SAVEPOINT " + name;
         rollbackQuery = "ROLLBACK TO SAVEPOINT " + name;
-        database.exec("SAVEPOINT " + name);
+        database->exec("SAVEPOINT " + name);
     } else {
         commitQuery = "COMMIT";
         rollbackQuery = "ROLLBACK";
-        database.exec("BEGIN");
+        database->exec("BEGIN");
     }
-    ++owner.transactionDepth;
+    ++owner->transactionDepth;
 }
 
 db::SqliteCppDb::Transaction::~Transaction()
@@ -136,18 +138,18 @@ db::SqliteCppDb::Transaction::~Transaction()
     if (committed) {
         return;
     }
-    --owner.transactionDepth;
-    if (sqlite3_get_autocommit(database.getHandle()) != 0) {
+    --owner->transactionDepth;
+    if (sqlite3_get_autocommit(database->getHandle()) != 0) {
         return;
     }
-    auto result = database.tryExec(rollbackQuery);
+    auto result = database->tryExec(rollbackQuery);
     if (result == SQLITE_OK && nested) {
-        result = database.tryExec(commitQuery);
+        result = database->tryExec(commitQuery);
     }
     if (result != SQLITE_OK) {
         // If a savepoint cannot be restored, abort the enclosing transaction.
         // Its subsequent commit must fail rather than publish partial changes.
-        database.tryExec("ROLLBACK");
+        database->tryExec("ROLLBACK");
         spdlog::error("Failed to roll back database transaction: {}", result);
     }
 }
@@ -158,9 +160,13 @@ db::SqliteCppDb::Transaction::commit()
     if (committed) {
         throw std::logic_error("Transaction has already been committed");
     }
-    owner.checkTransaction();
-    database.exec(commitQuery);
-    --owner.transactionDepth;
+    if (depth != owner->transactionDepth) {
+        throw std::logic_error(
+          "Finish the inner transaction before committing its parent");
+    }
+    owner->checkTransaction();
+    database->exec(commitQuery);
+    --owner->transactionDepth;
     committed = true;
     lock.unlock();
 }
@@ -168,7 +174,7 @@ db::SqliteCppDb::Transaction::commit()
 auto
 db::SqliteCppDb::transaction() -> Transaction
 {
-    return Transaction(*this);
+    return Transaction(this);
 }
 
 void

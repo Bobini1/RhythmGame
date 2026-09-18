@@ -38,7 +38,7 @@ class SqliteCppDb
         sqlite3_mutex* mutex;
 
       public:
-        explicit ConnectionLock(const SQLite::Database& database);
+        explicit ConnectionLock(const SQLite::Database* database);
         ~ConnectionLock();
         ConnectionLock(const ConnectionLock&) = delete;
         auto operator=(const ConnectionLock&) -> ConnectionLock& = delete;
@@ -48,12 +48,12 @@ class SqliteCppDb
     class StatementExecution
     {
         ConnectionLock lock;
-        SQLite::Statement& statement;
+        SQLite::Statement* statement;
         bool finished = false;
 
       public:
-        StatementExecution(SQLite::Statement& statement,
-                           const SqliteCppDb& database);
+        StatementExecution(SQLite::Statement* statement,
+                           const SqliteCppDb* database);
         ~StatementExecution();
         void finish();
     };
@@ -64,19 +64,21 @@ class SqliteCppDb
      * @details Nested transactions use savepoints. Uncommitted changes are
      * rolled back on destruction. Keep transactions on their creating thread
      * and do not wait for other threads or dispatch callbacks while holding one.
+     * The database must outlive the transaction. Finish nested scopes inside out.
      */
     class Transaction
     {
         ConnectionLock lock;
-        SqliteCppDb& owner;
-        SQLite::Database& database;
+        SqliteCppDb* owner;
+        SQLite::Database* database;
         std::string commitQuery;
         std::string rollbackQuery;
         bool nested;
+        unsigned depth;
         bool committed = false;
 
       public:
-        explicit Transaction(SqliteCppDb& database);
+        explicit Transaction(SqliteCppDb* database);
         ~Transaction();
         void commit();
     };
@@ -97,13 +99,13 @@ class SqliteCppDb
         template<typename... T>
         auto bind(int index, T&&... values) -> void
         {
-            const ConnectionLock lock(db->db);
+            const ConnectionLock lock(&db->db);
             statement.bind(index, std::forward<T>(values)...);
         }
         template<typename... T>
         auto bind(const std::string& name, T&&... values) -> void
         {
-            const ConnectionLock lock(db->db);
+            const ConnectionLock lock(&db->db);
             statement.bind(name, std::forward<T>(values)...);
         }
         void reset();
@@ -122,7 +124,7 @@ class SqliteCppDb
         template<std::default_initializable Ret>
         [[nodiscard]] auto executeAndGet() -> std::optional<Ret>
         {
-            StatementExecution execution(statement, *db);
+            StatementExecution execution(&statement, db);
             std::optional<Ret> result;
             if (statement.executeStep()) {
                 result.emplace();
@@ -142,7 +144,7 @@ class SqliteCppDb
         template<std::default_initializable Ret>
         [[nodiscard]] auto executeAndGetAll() -> std::vector<Ret>
         {
-            StatementExecution execution(statement, *db);
+            StatementExecution execution(&statement, db);
             std::vector<Ret> result;
 
             while (statement.executeStep()) {
