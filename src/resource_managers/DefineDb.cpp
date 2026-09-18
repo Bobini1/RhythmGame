@@ -9,6 +9,7 @@ namespace resource_managers {
 void
 defineDb(db::SqliteCppDb& db)
 {
+    auto transaction = db.transaction();
     db.execute("CREATE TABLE IF NOT EXISTS properties ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "key TEXT NOT NULL UNIQUE,"
@@ -176,7 +177,7 @@ defineDb(db::SqliteCppDb& db)
         stmt.execute();
     }
 
+    transaction.commit();
     db.execute("PRAGMA optimize;");
-    db.execute("VACUUM");
 }
 } // namespace resource_managers

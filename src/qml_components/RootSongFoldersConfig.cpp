@@ -344,34 +344,25 @@ ScanningQueue::clear(const QString& which)
 
     auto transaction = db->transaction();
     auto removeSongsStartingWith =
-      db->createStatement("DELETE FROM charts WHERE path LIKE :dir || '%'");
+      db->createStatement("DELETE FROM charts WHERE instr(path, :dir) = 1");
     removeSongsStartingWith.bind(":dir", sourcePrefix.toStdString());
     removeSongsStartingWith.execute();
-    db->execute("WITH RECURSIVE "
-                "chart_dirs(dir) AS ( "
-                "  SELECT pd.dir "
-                "  FROM parent_dir pd "
-                "  WHERE pd.id IN (SELECT directory FROM charts) "
-                "), "
-                "keep(dir) AS ( "
-                "  SELECT dir FROM chart_dirs "
-                "  UNION "
-                "  SELECT p.dir "
-                "  FROM parent_dir p "
-                "  JOIN parent_dir child ON child.parent_dir = p.dir "
-                "  JOIN keep k ON k.dir = child.dir "
-                ") "
-                "DELETE FROM parent_dir "
-                "WHERE dir NOT IN (SELECT dir FROM keep);");
+    auto removeDirectories =
+      db->createStatement("DELETE FROM parent_dir WHERE instr(dir, :dir) = 1");
+    removeDirectories.bind(":dir", sourcePrefix.toStdString());
+    removeDirectories.execute();
     db->execute("DELETE FROM note_data WHERE note_data.sha256 NOT IN "
                 "(SELECT sha256 FROM charts)");
     db->execute(
       "DELETE FROM histogram_data WHERE NOT EXISTS "
       "(SELECT 1 FROM charts WHERE charts.id = histogram_data.chart_id)");
-    db->execute("DELETE FROM preview_files WHERE directory NOT IN "
-                "(SELECT chart_directory FROM charts)");
-    db->execute("DELETE FROM readme_files WHERE directory NOT IN "
-                "(SELECT chart_directory FROM charts)");
+    for (const auto* table : { "preview_files", "readme_files" }) {
+        auto removeAssets =
+          db->createStatement(std::string("DELETE FROM ") + table +
+                              " WHERE instr(directory, :dir) = 1");
+        removeAssets.bind(":dir", sourcePrefix.toStdString());
+        removeAssets.execute();
+    }
     transaction.commit();
 }
 auto

@@ -84,13 +84,12 @@ QVariantList
 SongFolderFactory::openRecursive(const QString& path)
 {
     auto folder = QVariantList{};
-    auto pathStd = path.toStdString();
-    getChartsRecursive.reset();
-    if (path.isEmpty()) {
-        getChartsRecursive.bind(1);
-    } else {
-        getChartsRecursive.bind(1, pathStd);
+    auto directory = path;
+    if (!directory.isEmpty() && !directory.endsWith('/')) {
+        directory += '/';
     }
+    getChartsRecursive.reset();
+    getChartsRecursive.bind(1, directory.toStdString());
     const auto chartResult =
       getChartsRecursive.executeAndGetAll<gameplay_logic::ChartData::DTO>();
     for (const auto& row : chartResult) {
@@ -111,10 +110,12 @@ SongFolderFactory::folderSize(const QString& path) -> int
 {
     auto pathStd = path.toStdString();
     getSize.reset();
-    getSize.bind(1, pathStd);
-    getSize.bind(2, pathStd);
-    auto result = getSize.executeAndGetAll<int>();
-    return result[0] + result[1];
+    if (path.isEmpty()) {
+        getSize.bind(1);
+    } else {
+        getSize.bind(1, pathStd);
+    }
+    return getSize.executeAndGet<int>().value();
 }
 QString
 SongFolderFactory::parentFolder(const QString& path)

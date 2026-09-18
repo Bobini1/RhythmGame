@@ -42,7 +42,9 @@ auto
 createDb(const std::filesystem::path& dbPath) -> db::SqliteCppDb
 {
     create_directories(dbPath.parent_path());
-    return db::SqliteCppDb(dbPath);
+    return db::SqliteCppDb(dbPath,
+                           std::chrono::milliseconds{ 0 },
+                           db::SqliteCppDb::Durability::Full);
 }
 
 auto
@@ -396,10 +398,6 @@ Profile::Profile(
                "key TEXT NOT NULL UNIQUE,"
                "value"
                ");");
-    auto versionStmt =
-      db.createStatement("SELECT value FROM properties WHERE key = 'version';");
-    auto version = versionStmt.executeAndGet<int64_t>().transform(
-      [](int64_t v) { return support::unpackVersion(v); });
     const auto folderName = dbPath.parent_path().filename();
     auto statement = db.createStatement("INSERT OR IGNORE INTO properties "
                                         "(key, value) VALUES ('guid', ?);");
@@ -433,6 +431,11 @@ Profile::Profile(
                 writeConfig(configPath, *themeConfig);
             });
     writeConfig(configPath, *themeConfig);
+    auto transaction = db.transaction();
+    auto versionStmt =
+      db.createStatement("SELECT value FROM properties WHERE key = 'version';");
+    auto version = versionStmt.executeAndGet<int64_t>().transform(
+      [](int64_t v) { return support::unpackVersion(v); });
     db.execute("CREATE TABLE IF NOT EXISTS score ("
                "id INTEGER PRIMARY KEY,"
                "guid TEXT NOT NULL UNIQUE,"
@@ -542,6 +545,11 @@ Profile::Profile(
                "replay_data BLOB NOT NULL,"
                "FOREIGN KEY(score_guid) REFERENCES score(guid)"
                ");");
+    db.execute("CREATE INDEX IF NOT EXISTS score_md5_timestamp_index "
+               "ON score(md5, unix_timestamp DESC);");
+    db.execute(
+      "CREATE INDEX IF NOT EXISTS score_course_identifier_timestamp_index "
+      "ON score_course(identifier, unix_timestamp DESC);");
     if (version && *version < replayDataMigrationVersion) {
         gameplay_logic::BmsReplayData::migrateStoredReplayData(db);
     }
@@ -556,6 +564,7 @@ Profile::Profile(
       "('version', ?);");
     stmt.bind(1, static_cast<int64_t>(support::currentVersion));
     stmt.execute();
+    transaction.commit();
 }
 auto
 Profile::getPath() const -> std::filesystem::path

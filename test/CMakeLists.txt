@@ -30,6 +30,7 @@ add_executable(RhythmGame_test
         gameplay_logic/ChartStartGate.test.cpp
         gameplay_logic/BmsScore.test.cpp
         qml_components/ImportedScoreImporter.test.cpp
+        qml_components/ScoreDb.test.cpp
         gameplay_logic/NoteState.test.cpp
         charts/BmsChartReader.test.cpp
         db/SqliteCppDb.test.cpp
@@ -45,6 +46,7 @@ add_executable(RhythmGame_test
         resource_managers/ScanThemes.test.cpp
         resource_managers/SongAssetStore.test.cpp
         resource_managers/Backbeat.test.cpp
+        resource_managers/Database.test.cpp
         input/InputTranslator.test.cpp
         support/GeneratePermutation.test.cpp
         support/FrameRateLimiter.test.cpp

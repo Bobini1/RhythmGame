@@ -59,6 +59,12 @@ class SqliteCppDb
     };
 
   public:
+    enum class Durability
+    {
+        Normal,
+        Full
+    };
+
     /**
      * @brief Isolates a transaction from other users of this connection.
      * @details Nested transactions use savepoints. Uncommitted changes are
@@ -197,10 +203,12 @@ class SqliteCppDb
      * The database file will be created if it does not exist.
      * @param busyTimeout How long to wait for locks held by other connections.
      * Shared-connection transactions are serialized independently of this timeout.
+     * @param durability Full synchronizes each WAL commit for persistent user data.
      */
     explicit SqliteCppDb(
       const std::filesystem::path& dbPath,
-      std::chrono::milliseconds busyTimeout = std::chrono::milliseconds{ 0 });
+      std::chrono::milliseconds busyTimeout = std::chrono::milliseconds{ 0 },
+      Durability durability = Durability::Normal);
     /**
      * @brief Executes a query.
      * @note Good for single-use queries. Use Statement otherwise.

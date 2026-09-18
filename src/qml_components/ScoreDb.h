@@ -61,6 +61,8 @@ class ScoreStatsResult
  * @brief Provides asynchronous access to a profile's score database.
  * @details Queries execute in the thread pool. Each returned PendingReply owns
  * its cancellation; callers retain and cancel only the work they started.
+ * QML score lists retain their objects independently of the reply. For C++-only
+ * queries, score objects are children of the reply and share its lifetime.
  */
 class ScoreDb final : public QObject
 {

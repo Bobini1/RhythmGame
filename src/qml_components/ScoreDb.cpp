@@ -10,6 +10,7 @@
 
 #include <QFutureWatcher>
 #include <QHash>
+#include <QJSEngine>
 #include <QPointer>
 #include <QSet>
 #include <QThread>
@@ -59,10 +60,17 @@ class ScoreObjectOwner
         return movedAll;
     }
 
-    void release()
+    void releaseTo(QJSEngine* engine, QObject* reply)
     {
-        for (auto& object : objects)
+        for (auto& object : objects) {
+            if (engine) {
+                QJSEngine::setObjectOwnership(object.get(),
+                                              QJSEngine::JavaScriptOwnership);
+            } else {
+                object->setParent(reply);
+            }
             (void)object.release();
+        }
         objects.clear();
     }
 
@@ -155,6 +163,36 @@ struct ScoreQueryDelivery
     ScoreObjectOwner objects;
 };
 
+void
+wrapScoreObjects(ScoreQueryResult& result, QJSEngine* engine)
+{
+    for (auto& value : result.scores) {
+        auto scores = value.toList();
+        for (auto& score : scores) {
+            score =
+              QVariant::fromValue(engine->newQObject(score.value<QObject*>()));
+        }
+        value = scores;
+    }
+}
+
+template<typename Result>
+void
+prepareScoreResult(Result& result, QJSEngine* engine)
+{
+    if (!engine)
+        return;
+    // Keep wrappers in the returned lists so even scores that QML has not
+    // accessed survive while a consumer retains the list, independently of
+    // the reply. Unused scores are collected with those wrappers.
+    if constexpr (std::is_same_v<Result, ScoreQueryResult>) {
+        wrapScoreObjects(result, engine);
+    } else if constexpr (std::is_same_v<Result, TableQueryResult>) {
+        wrapScoreObjects(result.scores, engine);
+        wrapScoreObjects(result.courseScores, engine);
+    }
+}
+
 template<typename Result, typename Query>
 auto
 runScoreQuery(qml_components::ScoreDb* owner,
@@ -174,7 +212,7 @@ runScoreQuery(qml_components::ScoreDb* owner,
             return;
 
         try {
-            auto delivery = std::make_shared<ScoreQueryDelivery<Result>>();
+            auto delivery = std::make_unique<ScoreQueryDelivery<Result>>();
             delivery->result = query(delivery->objects);
             if (stopToken.stop_requested())
                 return;
@@ -184,7 +222,10 @@ runScoreQuery(qml_components::ScoreDb* owner,
               application &&
               QMetaObject::invokeMethod(
                 application,
-                [source, delivery, operation]() mutable {
+                [source, delivery = std::move(delivery), operation]() mutable {
+                    auto* reply = source.reply();
+                    if (!reply || reply->isResultAvailable())
+                        return;
                     auto* currentApplication = QCoreApplication::instance();
                     if (!currentApplication ||
                         !delivery->objects.moveToThread(
@@ -196,8 +237,10 @@ runScoreQuery(qml_components::ScoreDb* owner,
                         }
                         return;
                     }
-                    if (source.succeed(delivery->result))
-                        delivery->objects.release();
+                    auto* engine = qjsEngine(reply);
+                    prepareScoreResult(delivery->result, engine);
+                    delivery->objects.releaseTo(engine, reply);
+                    (void)source.succeed(delivery->result);
                 },
                 Qt::QueuedConnection);
             if (!queued) {

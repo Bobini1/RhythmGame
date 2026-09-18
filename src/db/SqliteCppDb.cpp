@@ -11,14 +11,16 @@
 #include <spdlog/spdlog.h>
 
 db::SqliteCppDb::SqliteCppDb(const std::filesystem::path& dbPath,
-                             std::chrono::milliseconds busyTimeout)
+                             std::chrono::milliseconds busyTimeout,
+                             Durability durability)
   : db(dbPath,
        SQLite::OPEN_READWRITE | // NOLINT(hicpp-signed-bitwise)
          SQLite::OPEN_CREATE | SQLite::OPEN_FULLMUTEX)
 {
     db.setBusyTimeout(static_cast<int>(busyTimeout.count()));
     db.exec("PRAGMA journal_mode=WAL;");
-    db.exec("PRAGMA synchronous=NORMAL;");
+    db.exec(durability == Durability::Full ? "PRAGMA synchronous=FULL;"
+                                           : "PRAGMA synchronous=NORMAL;");
     db.exec("PRAGMA optimize=0x10002;");
     sqlite3_limit(db.getHandle(),
                   SQLITE_LIMIT_WORKER_THREADS,
