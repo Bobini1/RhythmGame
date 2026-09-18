@@ -231,6 +231,7 @@ qt_add_library(RhythmGame_lib OBJECT
         src/resource_managers/SongAssetImageProvider.h
         src/support/PathToQString.cpp
         src/support/PathToQString.h
+        src/support/FolderName.h
         src/support/QStringToPath.cpp
         src/support/QStringToPath.h
         src/support/CreateQmlPropertyMap.cpp

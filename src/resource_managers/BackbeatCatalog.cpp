@@ -6,6 +6,7 @@
 #include "support/QStringToPath.h"
 
 #include <QFileInfo>
+#include <QCryptographicHash>
 #include <QSet>
 #include <QtConcurrent>
 #include <chrono>
@@ -161,6 +162,7 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
             errors.append(QString::fromUtf8(error.what()));
         }
     }
+    const auto packs = source->packs();
     auto collections = source->collections(modelDatabase, indexed);
     // Pagination and parsing span multiple SDK calls. Only publish a complete,
     // stable snapshot; a concurrent import will be picked up on the next check.
@@ -171,6 +173,9 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
                    .revision = currentRevision };
     {
         auto transaction = database.transaction();
+        database.execute(
+          "DELETE FROM folder_charts WHERE directory IN "
+          "(SELECT id FROM parent_dir WHERE dir GLOB 'backbeat:/packs/*')");
         qint64 directory = -1;
         if (!parsed.empty()) {
             auto insert =
@@ -215,6 +220,31 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
             saveFile("readme_files", item.readme);
             ++update.added;
         }
+        auto saveFolder = database.createStatement(
+          "INSERT INTO parent_dir (parent_dir, dir) VALUES (NULL, ?) "
+          "ON CONFLICT(dir) DO UPDATE SET parent_dir = NULL RETURNING id");
+        auto saveMembership = database.createStatement(
+          "INSERT OR IGNORE INTO folder_charts (directory, chart_id) "
+          "SELECT ?, c.id FROM backbeat_bundles b "
+          "JOIN charts c ON c.path = b.path WHERE b.bundle_id = ?");
+        for (const auto& pack : packs) {
+            const auto id = QCryptographicHash::hash(pack.url.toUtf8(),
+                                                     QCryptographicHash::Sha256)
+                              .toHex();
+            const auto path =
+              QStringLiteral("backbeat:/packs/%1/%2/")
+                .arg(QString::fromLatin1(id),
+                     QString::fromLatin1(QUrl::toPercentEncoding(pack.name)));
+            saveFolder.reset();
+            saveFolder.bind(1, path.toStdString());
+            const auto folderId = saveFolder.executeAndGet<qint64>().value();
+            for (const auto& bundle : pack.bundles) {
+                saveMembership.reset();
+                saveMembership.bind(1, folderId);
+                saveMembership.bind(2, bundle.toStdString());
+                saveMembership.execute();
+            }
+        }
         database.execute("DELETE FROM histogram_data WHERE chart_id NOT IN "
                          "(SELECT id FROM charts)");
         database.execute(
@@ -226,7 +256,7 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
         database.execute(
           "DELETE FROM parent_dir WHERE dir GLOB 'backbeat:/*' AND "
           "id NOT IN (SELECT directory FROM charts WHERE directory IS NOT "
-          "NULL)");
+          "NULL) AND id NOT IN (SELECT directory FROM folder_charts)");
         transaction.commit();
     }
     if (!errors.isEmpty()) {

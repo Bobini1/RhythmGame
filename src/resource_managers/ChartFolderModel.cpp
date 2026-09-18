@@ -5,6 +5,7 @@
 #include "gameplay_logic/ChartData.h"
 #include "gameplay_logic/Judgement.h"
 #include "resource_managers/Tables.h"
+#include "support/FolderName.h"
 
 #include <QHash>
 #include <QMetaProperty>
@@ -348,17 +349,6 @@ kindFor(const QVariant& value, const QVariantMap& map)
 }
 
 QString
-normalizedFolderName(QString path)
-{
-    path.replace(QLatin1Char('\\'), QLatin1Char('/'));
-    if (path.endsWith(QLatin1Char('/'))) {
-        path.chop(1);
-    }
-    const int slash = path.lastIndexOf(QLatin1Char('/'));
-    return slash >= 0 ? path.mid(slash + 1) : path;
-}
-
-QString
 courseCompatibleClearType(const QString& clear)
 {
     const QString value = clear.isEmpty() ? QStringLiteral("NOPLAY") : clear;
@@ -509,7 +499,7 @@ displayNameFor(const SortEntry& entry)
         return entry.name;
     }
     if (entry.kind == FolderKind) {
-        return normalizedFolderName(entry.rawString);
+        return support::folderName(entry.rawString);
     }
     return {};
 }

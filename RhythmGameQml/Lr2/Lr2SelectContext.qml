@@ -1773,9 +1773,7 @@ Item {
             return item.name || "";
         }
         if (typeof item === "string") {
-            let normalized = item.replace(/\\/g, "/").replace(/\/$/, "");
-            let slash = normalized.lastIndexOf("/");
-            return slash >= 0 ? normalized.slice(slash + 1) : normalized;
+            return root.QmlUtils.folderName(item);
         }
         return "";
     }

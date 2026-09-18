@@ -247,6 +247,26 @@ BackbeatSource::resolve(const std::filesystem::path& virtualPath) const
 }
 
 auto
+BackbeatSource::packs() const -> QList<Pack>
+{
+    QList<Pack> packs;
+    const auto installed =
+      result<bkb_collection_metadata_list, bkb_collection_metadata_list_free>(
+        bkb_store_list_packs, impl->get(), gamemodes, std::size(gamemodes));
+    for (const auto& meta : std::span(installed->items, installed->items_len)) {
+        Pack pack{ string(meta.url), string(meta.name), {} };
+        const auto contents = result<bkb_pack, bkb_pack_free>(
+          bkb_store_get_pack, impl->get(), pack.url.toUtf8().constData());
+        for (const auto& bundle :
+             std::span(contents->bundles, contents->bundles_len)) {
+            pack.bundles.append(string(bundle.id));
+        }
+        packs.append(std::move(pack));
+    }
+    return packs;
+}
+
+auto
 BackbeatSource::collections(db::SqliteCppDb* db,
                             const QHash<QString, IndexedBundle>& indexed) const
   -> QList<Table>
@@ -312,28 +332,6 @@ BackbeatSource::collections(db::SqliteCppDb* db,
              std::span(contents->folders, contents->folders_len)) {
             appendLevel(folder, string(folder.name));
         }
-        tables.append(std::move(table));
-    }
-    const auto installedPacks =
-      result<bkb_collection_metadata_list, bkb_collection_metadata_list_free>(
-        bkb_store_list_packs, impl->get(), gamemodes, std::size(gamemodes));
-    for (const auto& meta :
-         std::span(installedPacks->items, installedPacks->items_len)) {
-        auto table = base(meta, QObject::tr("pack"));
-        const auto contents = result<bkb_pack, bkb_pack_free>(
-          bkb_store_get_pack,
-          impl->get(),
-          string(meta.url).toUtf8().constData());
-        Level level{ db, QObject::tr("Charts") };
-        for (const auto& bundle :
-             std::span(contents->bundles, contents->bundles_len)) {
-            auto entry = entryFor({}, string(bundle.desc), string(bundle.id));
-            // Packs specify an exact bundle, including its assets. A matching
-            // chart from another bundle is not a substitute for a missing one.
-            entry.exactPath = true;
-            addEntry(level, std::move(entry));
-        }
-        table.levels.append(std::move(level));
         tables.append(std::move(table));
     }
     const auto installedCourses =

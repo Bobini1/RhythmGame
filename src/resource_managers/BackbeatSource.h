@@ -30,6 +30,12 @@ class BackbeatSource
         QString md5;
         QString sha256;
     };
+    struct Pack
+    {
+        QString url;
+        QString name;
+        QStringList bundles;
+    };
     using Asset = std::variant<std::filesystem::path, QByteArray>;
 
     BackbeatSource();
@@ -41,6 +47,7 @@ class BackbeatSource
     virtual auto bundles(const std::atomic_bool& cancelled) const
       -> QStringList;
     virtual auto bundle(const QString& id) const -> Bundle;
+    virtual auto packs() const -> QList<Pack>;
     virtual auto resolve(const std::filesystem::path& virtualPath) const
       -> std::optional<Asset>;
     virtual auto collections(db::SqliteCppDb* db,

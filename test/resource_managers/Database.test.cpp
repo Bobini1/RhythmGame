@@ -7,6 +7,7 @@
 #include "resource_managers/SongAssetStore.h"
 #include "support/QStringToPath.h"
 #include "support/Version.h"
+#include "support/FolderName.h"
 
 #include <QCoreApplication>
 #include <QTemporaryDir>
@@ -147,4 +148,14 @@ TEST_CASE(
     const auto all = folders.openRecursive("");
     CHECK(all.size() == 3);
     deleteCharts(all);
+}
+
+TEST_CASE("Folder names decode URLs and preserve literal filesystem names",
+          "[folders]")
+{
+    CHECK(support::folderName("C:/songs/100%20 #1/") == "100%20 #1");
+    CHECK(support::folderName("/songs/100%20 #1/") == "100%20 #1");
+    CHECK(support::folderName("C:\\songs\\name\\") == "name");
+    CHECK(support::folderName("catalog:/packs/Pack%2F100%25/") == "Pack/100%");
+    CHECK(support::folderName("file:///C:/songs/100%25%20%231/") == "100% #1");
 }

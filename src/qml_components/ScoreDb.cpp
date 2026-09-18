@@ -694,7 +694,10 @@ ScoreDb::getFolderScoreSummaryImpl(const QString& folder) const -> QVariantMap
       "COALESCE(score.max_points, 0) "
       "FROM song_db.charts "
       "LEFT JOIN score ON score.md5 = song_db.charts.md5 "
-      "WHERE song_db.charts.path LIKE ? || '%'");
+      "WHERE instr(song_db.charts.path, ?1) = 1 OR "
+      "song_db.charts.id IN (SELECT chart_id FROM song_db.folder_charts "
+      "WHERE directory IN (SELECT id FROM song_db.parent_dir "
+      "WHERE instr(dir, ?1) = 1))");
 
     query.bind(1, folder.toStdString());
     const auto rows = query.executeAndGetAll<ScoreSummaryRow>();
@@ -797,7 +800,10 @@ ScoreDb::getScores(const QString& folder) -> support::PendingReply*
           auto countQuery = scoreDb->createStatement(
             "SELECT COUNT(*) "
             "FROM song_db.charts "
-            "WHERE path LIKE ? || '%' "
+            "WHERE (instr(path, ?1) = 1 OR "
+            "id IN (SELECT chart_id FROM song_db.folder_charts "
+            "WHERE directory IN (SELECT id FROM song_db.parent_dir "
+            "WHERE instr(dir, ?1) = 1))) "
             "AND NOT EXISTS ("
             "  SELECT 1 FROM score WHERE score.md5 = song_db.charts.md5"
             ")");
@@ -811,7 +817,10 @@ ScoreDb::getScores(const QString& folder) -> support::PendingReply*
             "LEFT JOIN replay_data ON score.guid = replay_data.score_guid "
             "LEFT JOIN gauge_history ON score.guid = gauge_history.score_guid "
             "JOIN song_db.charts ON score.md5 = song_db.charts.md5 "
-            "WHERE song_db.charts.path LIKE ? || '%' ");
+            "WHERE instr(song_db.charts.path, ?1) = 1 OR "
+            "song_db.charts.id IN (SELECT chart_id FROM song_db.folder_charts "
+            "WHERE directory IN (SELECT id FROM song_db.parent_dir "
+            "WHERE instr(dir, ?1) = 1))");
           query.bind(1, folder.toStdString());
 
           const auto rows = query.executeAndGetAll<StoredScoreRow>();

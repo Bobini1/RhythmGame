@@ -7,6 +7,7 @@
 #include "resource_managers/Tables.h"
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
+#include "support/FolderName.h"
 
 #ifdef RHYTHMGAME_USE_BACKBEAT
 #include "arena/QtArenaRoundLoader.h"
@@ -111,6 +112,7 @@ class Store : public resource_managers::BackbeatSource
     mutable int searches = 0;
     mutable std::atomic_int revisionChecks = 0;
     QHash<QString, Bundle> installed;
+    QList<Pack> installedPacks;
     QHash<QString, Asset> assets;
     bool unavailable = false;
     mutable bool changesDuringRead = false;
@@ -149,6 +151,7 @@ class Store : public resource_managers::BackbeatSource
         }
         return assets.value(key);
     }
+    auto packs() const -> QList<Pack> override { return installedPacks; }
     auto collections(db::SqliteCppDb*,
                      const QHash<QString, IndexedBundle>&) const
       -> QList<resource_managers::Table> override
@@ -214,8 +217,7 @@ TEST_CASE(
     REQUIRE(course.getIdentifier() == identifier);
 }
 
-TEST_CASE("Pack entries require their exact bundle while table entries may "
-          "fall back by hash",
+TEST_CASE("Collection entries can require an exact path or fall back by hash",
           "[library][collections]")
 {
     Library library;
@@ -475,6 +477,121 @@ TEST_CASE("Backbeat refresh failures and concurrent imports do not discard "
     REQUIRE(library.count() == 1);
 }
 
+TEST_CASE("Backbeat packs are ordinary folders with independent membership",
+          "[backbeat][folders]")
+{
+    Library library;
+    const auto native = library.save(library.temporary.filePath("native.bms"));
+    auto source = std::make_shared<Store>();
+    const auto firstId = QString(64, 'a');
+    const auto secondId = QString(64, 'b');
+    const auto looseId = QString(64, 'c');
+    const auto missingId = QString(64, 'd');
+    for (const auto& id : { firstId, secondId, looseId }) {
+        source->installed.insert(id, { "chart.bms", chartBytes, {} });
+    }
+    const auto name = QString::fromUtf8("Pack / 100% #1 \\ 音楽");
+    source->installedPacks = {
+        { "https://example.test/one", name, { firstId, missingId, firstId } },
+        { "https://example.test/two", name, { firstId, secondId } },
+        { "https://example.test/empty", "Empty pack", { missingId } }
+    };
+    resource_managers::BackbeatCatalog catalog(
+      source, library.path, &library.database);
+    const auto first = catalog.synchronize();
+    REQUIRE(first.added == 3);
+    REQUIRE(first.collections.isEmpty());
+
+    qml_components::SongFolderFactory folders(&library.database);
+    const auto root = resource_managers::BackbeatSource::rootPath();
+    const auto packFolders = [&] {
+        QStringList paths;
+        const auto items = folders.open("");
+        for (const auto& item : items) {
+            if (item.typeId() == QMetaType::QString &&
+                item.toString() != root) {
+                paths.append(item.toString());
+            }
+        }
+        deleteCharts(items);
+        return paths;
+    };
+    const auto paths = packFolders();
+    REQUIRE(paths.size() == 2);
+    CHECK(paths[0] != paths[1]);
+    QString single;
+    QString shared;
+    for (const auto& path : paths) {
+        CHECK(support::folderName(path) == name);
+        CHECK(folders.parentFolder(path).isEmpty());
+        const auto charts = folders.open(path);
+        CHECK(folders.folderSize(path) == charts.size());
+        REQUIRE_FALSE(charts.isEmpty());
+        for (const auto& item : charts) {
+            const auto* chart = item.value<gameplay_logic::ChartData*>();
+            REQUIRE(chart);
+            CHECK(chart->getPath() != native->getPath());
+            CHECK(chart->getChartDirectory().startsWith(root));
+        }
+        if (charts.size() == 1) {
+            single = path;
+        } else {
+            REQUIRE(charts.size() == 2);
+            shared = path;
+        }
+        const auto recursive = folders.openRecursive(path.chopped(1));
+        CHECK(recursive.size() == charts.size());
+        deleteCharts(recursive);
+        deleteCharts(charts);
+    }
+    REQUIRE_FALSE(single.isEmpty());
+    REQUIRE_FALSE(shared.isEmpty());
+    const auto all = folders.openRecursive("");
+    CHECK(all.size() == 4);
+    deleteCharts(all);
+    const auto allBackbeat = folders.open(root);
+    CHECK(allBackbeat.size() == 3);
+    deleteCharts(allBackbeat);
+
+    library.database.execute(
+      "CREATE TRIGGER reject_pack BEFORE INSERT ON folder_charts "
+      "BEGIN SELECT RAISE(ABORT, 'injected pack publication failure'); END");
+    REQUIRE_THROWS(catalog.synchronize());
+    CHECK(folders.folderSize(single) == 1);
+    CHECK(folders.folderSize(shared) == 2);
+    CHECK(library.count() == 4);
+    library.database.execute("DROP TRIGGER reject_pack");
+
+    source->installedPacks[0].name = "Renamed";
+    source->installedPacks[1].bundles = { secondId };
+    ++source->currentRevision;
+    const auto changed = catalog.synchronize(first.revision);
+    CHECK(changed.added == 0);
+    CHECK(changed.removed == 0);
+    CHECK(source->reads == 3);
+    const auto removedFolder = folders.open(single);
+    CHECK(removedFolder.isEmpty());
+    CHECK(folders.folderSize(single) == 0);
+    deleteCharts(removedFolder);
+    CHECK(folders.folderSize(shared) == 1);
+
+    source->installed.remove(secondId);
+    ++source->currentRevision;
+    CHECK(catalog.synchronize(changed.revision).removed == 1);
+    const auto remaining = packFolders();
+    REQUIRE(remaining.size() == 1);
+    CHECK(support::folderName(remaining[0]) == "Renamed");
+    CHECK(folders.folderSize(shared) == 0);
+
+    source->installedPacks.clear();
+    ++source->currentRevision;
+    REQUIRE(catalog.synchronize().revision.has_value());
+    CHECK(packFolders().isEmpty());
+    CHECK(library.count() == 3);
+    CHECK(library.database.createStatement("SELECT count(*) FROM folder_charts")
+            .executeAndGet<int>() == 0);
+}
+
 TEST_CASE("Backbeat assets use memory or existing files and round-trip through "
           "image URLs",
           "[backbeat]")
@@ -571,11 +688,23 @@ TEST_CASE("A build without Backbeat removes only its cached catalog",
     Library library;
     const auto native = library.save(library.temporary.filePath("native.bms"));
     library.save("backbeat:/Backbeat/" + QString(64, 'a') + "/chart.bms");
+    library.database.execute(
+      "INSERT INTO parent_dir(dir) VALUES ('backbeat:/packs/old/Pack/')");
+    library.database.execute("INSERT INTO folder_charts(directory, chart_id) "
+                             "SELECT p.id, c.id FROM parent_dir p, charts c "
+                             "WHERE p.dir = 'backbeat:/packs/old/Pack/' "
+                             "AND c.path GLOB 'backbeat:/*'");
     REQUIRE(library.count() == 2);
     resource_managers::defineDb(library.database);
     REQUIRE(library.count() == 1);
     REQUIRE(library.database.createStatement("SELECT path FROM charts")
               .executeAndGet<std::string>() == native->getPath().toStdString());
+    CHECK(library.database.createStatement("SELECT count(*) FROM folder_charts")
+            .executeAndGet<int>() == 0);
+    CHECK(library.database
+            .createStatement("SELECT count(*) FROM parent_dir "
+                             "WHERE dir GLOB 'backbeat:/*'")
+            .executeAndGet<int>() == 0);
 }
 
 #endif

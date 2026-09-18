@@ -94,12 +94,7 @@ Image {
             if (!modelData) {
                 return "- EMPTY -";
             }
-            let name = modelData.slice(0, -1);
-            let lastSlash = name.lastIndexOf("/");
-            if (lastSlash !== -1) {
-                name = name.slice(lastSlash + 1);
-            }
-            return name;
+            return folder.QmlUtils.folderName(modelData);
         }
         width: parent.width * 0.7
     }

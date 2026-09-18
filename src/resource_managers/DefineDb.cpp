@@ -116,6 +116,16 @@ defineDb(db::SqliteCppDb& db)
                "dir TEXT NOT NULL UNIQUE"
                ");");
 
+    // Additional folder memberships leave each chart's asset location intact.
+    db.execute("CREATE TABLE IF NOT EXISTS folder_charts ("
+               "directory INTEGER NOT NULL REFERENCES parent_dir(id) "
+               "ON DELETE CASCADE,"
+               "chart_id INTEGER NOT NULL REFERENCES charts(id) "
+               "ON DELETE CASCADE,"
+               "PRIMARY KEY (directory, chart_id))");
+    db.execute("CREATE INDEX IF NOT EXISTS folder_charts_chart_index "
+               "ON folder_charts(chart_id)");
+
     db.execute(
       "CREATE TABLE IF NOT EXISTS root_dir ("
       "id INTEGER PRIMARY KEY AUTOINCREMENT,"

@@ -3,6 +3,7 @@
 //
 
 #include "QmlUtils.h"
+#include "support/FolderName.h"
 
 namespace qml_components {
 auto
@@ -37,6 +38,11 @@ QmlUtilsAttached::fileName() const -> QString
         return url.toLocalFile();
     }
     return {};
+}
+auto
+QmlUtilsAttached::folderName(const QString& path) const -> QString
+{
+    return support::folderName(path);
 }
 void
 QmlUtilsAttached::adopt(QObject* object) const

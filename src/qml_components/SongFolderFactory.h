@@ -33,7 +33,10 @@ class SongFolderFactory : public QObject
       "h.bpms, h.histogram_data "
       "FROM charts c "
       "LEFT JOIN histogram_data h ON h.chart_id = c.id "
-      "WHERE c.directory IS (SELECT id FROM parent_dir WHERE dir IS ?) "
+      "WHERE (?1 IS NULL AND c.directory IS NULL) OR "
+      "c.directory = (SELECT id FROM parent_dir WHERE dir = ?1) OR "
+      "c.id IN (SELECT chart_id FROM folder_charts WHERE directory = "
+      "(SELECT id FROM parent_dir WHERE dir = ?1)) "
       "ORDER BY c.title, c.subtitle ASC");
     db::SqliteCppDb::Statement getChartsRecursive = db->createStatement(
       "SELECT c.id, c.title, c.artist, c.subtitle, c.subartist, "
@@ -48,7 +51,9 @@ class SongFolderFactory : public QObject
       "FROM charts c "
       "LEFT JOIN histogram_data h ON h.chart_id = c.id "
       "WHERE ?1 = '' OR c.directory IN "
-      "(SELECT id FROM parent_dir WHERE instr(dir, ?1) = 1) "
+      "(SELECT id FROM parent_dir WHERE instr(dir, ?1) = 1) OR "
+      "c.id IN (SELECT chart_id FROM folder_charts WHERE directory IN "
+      "(SELECT id FROM parent_dir WHERE instr(dir, ?1) = 1)) "
       "ORDER BY c.title ASC");
     db::SqliteCppDb::Statement getChartsInChartDirectory = db->createStatement(
       "SELECT c.id, c.title, c.artist, c.subtitle, c.subartist, "
@@ -78,7 +83,10 @@ class SongFolderFactory : public QObject
     db::SqliteCppDb::Statement getSize = db->createStatement(
       "SELECT (SELECT COUNT(*) FROM parent_dir WHERE parent_dir IS ?1) + "
       "(SELECT COUNT(*) FROM charts WHERE "
-      "directory IS (SELECT id FROM parent_dir WHERE dir IS ?1))");
+      "(?1 IS NULL AND directory IS NULL) OR "
+      "directory = (SELECT id FROM parent_dir WHERE dir = ?1) OR "
+      "id IN (SELECT chart_id FROM folder_charts WHERE directory = "
+      "(SELECT id FROM parent_dir WHERE dir = ?1)))");
     db::SqliteCppDb::Statement searchCharts = db->createStatement(
       "SELECT c.id, c.title, c.artist, c.subtitle, c.subartist, "
       "c.genre, c.stage_file, c.banner, c.back_bmp, c.rank, c.total, "

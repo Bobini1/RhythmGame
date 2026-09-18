@@ -1,6 +1,7 @@
 #include "qml_components/ScoreDb.h"
 #include "gameplay_logic/BmsScoreCourse.h"
 #include "resource_managers/DefineDb.h"
+#include "resource_managers/ChartDataFactory.h"
 #include "resource_managers/Profile.h"
 #include "resource_managers/SongAssetStore.h"
 #include "support/QStringToPath.h"
@@ -166,6 +167,53 @@ TEST_CASE("Profile migrations are atomic and score history uses indexes",
             .createStatement("SELECT count(*) FROM pragma_table_info('score') "
                              "WHERE name = 'source'")
             .executeAndGet<int>() == 1);
+}
+
+TEST_CASE("Folder scores include exact additional memberships",
+          "[ScoreDb][folders]")
+{
+    Scores fixture;
+    fixture.save();
+    const auto folder = QStringLiteral("catalog:/packs/Pack%2F100%25/");
+    fixture.songs.execute("INSERT INTO parent_dir(id, dir) VALUES "
+                          "(1, 'catalog:/packs/Pack%2F100%25/'), "
+                          "(2, 'catalog:/packs/Packx2F100x25/')");
+    for (const auto* md5 : { "MD5", "UNPLAYED", "OUTSIDE" }) {
+        const resource_managers::ChartDataFactory factory;
+        const auto path = QStringLiteral("C:/songs/%1/chart.bms").arg(md5);
+        auto components = factory.loadChartData(
+          "#PLAYER 1\n#TITLE Test\n#ARTIST Test\n#BPM 120\n#00111:0100\n",
+          support::qStringToPath(path),
+          [](auto) { return 1; },
+          -1);
+        components.chartData->save(fixture.songs);
+        auto update = fixture.songs.createStatement(
+          "UPDATE charts SET md5 = ? WHERE path = ?");
+        update.bind(1, md5);
+        update.bind(2, path.toStdString());
+        update.execute();
+    }
+    fixture.songs.execute(
+      "INSERT INTO folder_charts(directory, chart_id) "
+      "SELECT CASE md5 WHEN 'OUTSIDE' THEN 2 ELSE 1 END, id FROM charts");
+
+    const auto summaryReply = std::unique_ptr<support::PendingReply>(
+      fixture.profile->getScoreDb()->getScoreSummary(folder));
+    waitFor(summaryReply.get());
+    const auto summary = summaryReply->value().toMap();
+    const auto counts = summary.value("counts").toMap();
+    CHECK(counts.value("HARD").toInt() == 1);
+    CHECK(counts.value("NOPLAY").toInt() == 1);
+
+    const auto scoresReply = std::unique_ptr<support::PendingReply>(
+      fixture.profile->getScoreDb()->getScores(folder));
+    waitFor(scoresReply.get());
+    const auto scores =
+      scoresReply->value().value<qml_components::ScoreQueryResult>();
+    CHECK(scores.unplayed == 1);
+    REQUIRE(scores.scores.size() == 1);
+    REQUIRE(scores.scores.contains("MD5"));
+    CHECK(scores.scores.value("MD5").toList().size() == 1);
 }
 
 TEST_CASE("QML score lists retain their payload independently of replies",

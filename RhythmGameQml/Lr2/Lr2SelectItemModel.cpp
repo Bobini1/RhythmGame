@@ -1,4 +1,5 @@
 #include "Lr2SelectItemModel.h"
+#include "support/FolderName.h"
 
 #include "Lr2SelectBarCell.h"
 #include "gameplay_logic/BmsResult.h"
@@ -157,15 +158,6 @@ Lr2SelectItemModel::ItemKind kindFromFolderKey(const QString& key) {
 	if (key.startsWith(QStringLiteral("level:"))) return Lr2SelectItemModel::LevelKind;
 	if (key.startsWith(QStringLiteral("folder:"))) return Lr2SelectItemModel::FolderKind;
 	return Lr2SelectItemModel::UnknownKind;
-}
-
-QString normalizedFolderName(QString path) {
-	path.replace(QLatin1Char('\\'), QLatin1Char('/'));
-	if (path.endsWith(QLatin1Char('/'))) {
-		path.chop(1);
-	}
-	const int slash = path.lastIndexOf(QLatin1Char('/'));
-	return slash >= 0 ? path.mid(slash + 1) : path;
 }
 
 QVariantList paddedNumberList(const QVariant& value, int size) {
@@ -1367,7 +1359,7 @@ Lr2SelectItemModel::ItemKind Lr2SelectItemModel::kindFor(const QVariant& value, 
 
 QString Lr2SelectItemModel::displayTextFor(const QVariant& value, const QVariantMap& map, ItemKind kind) {
 	if (kind == FolderKind && value.typeId() == QMetaType::QString) {
-		return normalizedFolderName(value.toString());
+		return support::folderName(value.toString());
 	}
 	const QString displayText = stringField(value, map, "displayText");
 	if (!displayText.isEmpty()) {
@@ -1387,7 +1379,7 @@ QString Lr2SelectItemModel::displayTextFor(const QVariant& value, const QVariant
 		return name;
 	}
 	if (value.typeId() == QMetaType::QString) {
-		return normalizedFolderName(value.toString());
+		return support::folderName(value.toString());
 	}
 	return {};
 }
