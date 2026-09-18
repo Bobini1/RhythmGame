@@ -110,6 +110,7 @@ gameplay_logic::BmsScore::getSubmissionState() const -> SubmissionState
 void
 gameplay_logic::BmsScore::save(db::SqliteCppDb& db) const
 {
+    auto transaction = db.transaction();
     result->save(db, static_cast<int>(source), static_cast<int>(longNoteMode));
     if (replayData != nullptr) {
         replayData->save(db);
@@ -117,4 +118,5 @@ gameplay_logic::BmsScore::save(db::SqliteCppDb& db) const
     if (gaugeHistory != nullptr) {
         gaugeHistory->save(db);
     }
+    transaction.commit();
 }

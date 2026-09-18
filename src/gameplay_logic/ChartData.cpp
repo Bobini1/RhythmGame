@@ -158,6 +158,13 @@ gameplay_logic::ChartData::getGenre() const -> const QString&
 auto
 gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
 {
+    save(db, directory);
+}
+
+auto
+gameplay_logic::ChartData::save(db::SqliteCppDb& db, int64_t directory) const
+  -> void
+{
     auto query = db.createStatement(
       "INSERT OR REPLACE INTO charts (title, artist, subtitle, subartist, "
       "genre, stage_file, banner, back_bmp, rank, total, play_level, "
@@ -168,7 +175,7 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
       "path, chart_directory, directory, sha256, "
       "md5, keymode, game_version) "
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-      "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+      "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id;");
     query.bind(1, title.toStdString());
     query.bind(2, artist.toStdString());
     query.bind(3, subtitle.toStdString());
@@ -209,7 +216,6 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query.bind(33, md5.toStdString());
     query.bind(34, static_cast<int>(keymode));
     query.bind(35, static_cast<int64_t>(gameVersion));
-    auto id = query.execute();
     auto query2 =
       db.createStatement("INSERT OR REPLACE INTO histogram_data "
                          "(histogram_data, bpms, chart_id) VALUES (?, ?, ?);");
@@ -218,8 +224,12 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
     query2.bind(1, compressedHistogram.data(), compressedHistogram.size());
     auto compressedBpmChanges = support::compress(bpmChanges);
     query2.bind(2, compressedBpmChanges.data(), compressedBpmChanges.size());
+
+    auto transaction = db.transaction();
+    const auto id = query.executeAndGet<int64_t>().value();
     query2.bind(3, id);
     query2.execute();
+    transaction.commit();
 }
 auto
 gameplay_logic::ChartData::getSha256() const -> const QString&

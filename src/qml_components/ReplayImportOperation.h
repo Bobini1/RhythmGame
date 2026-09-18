@@ -37,8 +37,6 @@ class ReplayImportOperation final : public QAbstractListModel
     bool finishedFlag{ false };
     QStringList errorMessages;
 
-    void checkFinished();
-
   public:
     enum Roles
     {
@@ -60,6 +58,15 @@ class ReplayImportOperation final : public QAbstractListModel
     [[nodiscard]] auto getSkipped() const -> int { return skippedCount; }
     [[nodiscard]] auto getErrored() const -> int { return erroredCount; }
     [[nodiscard]] auto isFinished() const -> bool { return finishedFlag; }
+
+    /** Called on the main thread after discovering the work to import. */
+    void setTotal(int total);
+
+    /** Called on the main thread after the worker has committed all its saves. */
+    void finish();
+
+    /** Reports a fatal worker failure and finishes the operation (main thread). */
+    void fail(const QString& message);
 
     /** Called on the main thread when a replay was successfully saved. */
     void incrementImported();

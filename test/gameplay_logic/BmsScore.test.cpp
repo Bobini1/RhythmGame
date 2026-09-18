@@ -75,6 +75,17 @@ struct StoredProvenance
     int source{};
     int longNoteMode{};
 };
+
+auto
+makeCompleteScore(const QString& guid) -> gameplay_logic::BmsScore
+{
+    return gameplay_logic::BmsScore(
+      makeResult(guid),
+      std::make_unique<gameplay_logic::BmsReplayData>(
+        QList<gameplay_logic::HitEvent>{}, guid),
+      std::make_unique<gameplay_logic::BmsGaugeHistory>(
+        QList<gameplay_logic::BmsGaugeInfo>{}, guid));
+}
 }
 
 TEST_CASE("Imported scores persist without replay-owned attachments",
@@ -150,4 +161,60 @@ TEST_CASE("Complete score data upgrades an imported score with the same GUID",
               .executeAndGet<int>() == 1);
     REQUIRE(db.createStatement("SELECT COUNT(*) FROM gauge_history;")
               .executeAndGet<int>() == 1);
+}
+
+TEST_CASE(
+  "A failed score save preserves the previous score and its attachments",
+  "[BmsScore]")
+{
+    db::SqliteCppDb database(":memory:");
+    createScoreTables(database);
+    const auto guid = QStringLiteral("failed-upgrade");
+    gameplay_logic::BmsScore::fromImportedResult(
+      makeResult(guid),
+      gameplay_logic::BmsScore::Source::Lr2,
+      gameplay_logic::BmsScore::LongNoteMode::Hcn)
+      ->save(database);
+    database.execute(
+      "CREATE TRIGGER reject_gauge BEFORE INSERT ON gauge_history "
+      "BEGIN SELECT RAISE(ABORT, 'injected gauge failure'); END");
+    REQUIRE_THROWS_AS(makeCompleteScore(guid).save(database),
+                      SQLite::Exception);
+    const auto previous =
+      database.createStatement("SELECT source, ln_mode FROM score")
+        .executeAndGet<StoredProvenance>();
+    REQUIRE(previous);
+    CHECK(previous->source ==
+          static_cast<int>(gameplay_logic::BmsScore::Source::Lr2));
+    CHECK(previous->longNoteMode ==
+          static_cast<int>(gameplay_logic::BmsScore::LongNoteMode::Hcn));
+    CHECK(database.createStatement("SELECT count(*) FROM replay_data")
+            .executeAndGet<int>() == 0);
+    CHECK(database.createStatement("SELECT count(*) FROM gauge_history")
+            .executeAndGet<int>() == 0);
+}
+
+TEST_CASE("A failed score inside a batch leaves no partial replay",
+          "[BmsScore]")
+{
+    db::SqliteCppDb database(":memory:");
+    createScoreTables(database);
+    database.execute(
+      "CREATE TRIGGER reject_gauge BEFORE INSERT ON gauge_history "
+      "WHEN NEW.score_guid = 'failed' "
+      "BEGIN SELECT RAISE(ABORT, 'injected gauge failure'); END");
+    auto batch = database.transaction();
+    makeCompleteScore("first").save(database);
+    REQUIRE_THROWS_AS(makeCompleteScore("failed").save(database),
+                      SQLite::Exception);
+    makeCompleteScore("last").save(database);
+    batch.commit();
+    for (const auto* table : { "score", "replay_data", "gauge_history" }) {
+        const auto key = std::string(table) == "score" ? "guid" : "score_guid";
+        CHECK(database
+                .createStatement(std::string("SELECT ") + key + " FROM " +
+                                 table + " ORDER BY " + key)
+                .executeAndGetAll<std::string>() ==
+              std::vector<std::string>{ "first", "last" });
+    }
 }

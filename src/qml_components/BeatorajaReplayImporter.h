@@ -17,14 +17,15 @@ class SongAssetStore;
 namespace qml_components {
 
 /**
- * @brief Start an asynchronous beatoraja/LR2 replay import.
- * @details The returned operation is parented to @p parent and tracks progress.
- * The caller is responsible for exposing it to QML.
+ * @brief Imports beatoraja/LR2 replays on a worker thread.
+ * @details Progress is queued to the existing main-thread operation. The caller
+ * handles completion and exceptions after this function returns.
  */
-ReplayImportOperation*
+void
 startBeatorajaReplayImport(resource_managers::Profile* profile,
                            resource_managers::SongAssetStore* songAssetStore,
-                           const QString& folderPath);
+                           const QString& folderPath,
+                           ReplayImportOperation* operation);
 
 } // namespace qml_components
 

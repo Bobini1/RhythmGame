@@ -5,6 +5,9 @@
 #include "db/SqliteCppDb.h"
 #include <filesystem>
 #include <thread>
+#include <future>
+#include <QTemporaryDir>
+#include "support/QStringToPath.h"
 
 auto
 getDb(const std::string& path) -> db::SqliteCppDb
@@ -124,4 +127,193 @@ TEST_CASE("Simple scalar types don't need to be wrapped in structs or tuples",
     REQUIRE(rows.size() == 1);
     row = rows[0];
     REQUIRE(x == 1);
+}
+
+TEST_CASE("Concurrent inserts return their own generated IDs", "[SqliteCppDb]")
+{
+    db::SqliteCppDb database(":memory:");
+    database.execute(
+      "CREATE TABLE entries (id INTEGER PRIMARY KEY, value TEXT)");
+    using Inserted = std::pair<int64_t, std::string>;
+    std::vector<std::future<std::vector<Inserted>>> workers;
+    for (int worker = 0; worker < 4; ++worker) {
+        workers.push_back(std::async(std::launch::async, [&, worker] {
+            auto insert = database.createStatement(
+              "INSERT INTO entries (value) VALUES (?) RETURNING id");
+            std::vector<Inserted> inserted;
+            for (int index = 0; index < 50; ++index) {
+                const auto value =
+                  std::to_string(worker) + ":" + std::to_string(index);
+                insert.bind(1, value);
+                inserted.emplace_back(insert.executeAndGet<int64_t>().value(),
+                                      value);
+            }
+            return inserted;
+        }));
+    }
+    for (auto& worker : workers) {
+        for (const auto& [id, value] : worker.get()) {
+            auto query = database.createStatement(
+              "SELECT value FROM entries WHERE id = ?");
+            query.bind(1, id);
+            CHECK(query.executeAndGet<std::string>() == value);
+        }
+    }
+}
+
+TEST_CASE("A rollback cannot include another thread's save", "[SqliteCppDb]")
+{
+    db::SqliteCppDb database(":memory:");
+    database.execute("CREATE TABLE entries (value TEXT)");
+    std::promise<void> attempting;
+    auto started = attempting.get_future();
+    std::future<int> other;
+    bool blocked = false;
+    {
+        auto transaction = database.transaction();
+        database.execute("INSERT INTO entries VALUES ('rolled back')");
+        other = std::async(std::launch::async, [&] {
+            attempting.set_value();
+            const auto count =
+              database.createStatement("SELECT count(*) FROM entries")
+                .executeAndGet<int>()
+                .value();
+            database.execute("INSERT INTO entries VALUES ('other thread')");
+            return count;
+        });
+        started.wait();
+        blocked = other.wait_for(std::chrono::milliseconds(30)) ==
+                  std::future_status::timeout;
+    }
+    CHECK(other.get() == 0);
+    CHECK(blocked);
+    CHECK(database.createStatement("SELECT value FROM entries")
+            .executeAndGetAll<std::string>() ==
+          std::vector<std::string>{ "other thread" });
+}
+
+TEST_CASE("Nested transactions roll back only their own changes",
+          "[SqliteCppDb]")
+{
+    db::SqliteCppDb database(":memory:");
+    database.execute("CREATE TABLE entries (value TEXT)");
+    auto outer = database.transaction();
+    database.execute("INSERT INTO entries VALUES ('first')");
+    {
+        auto inner = database.transaction();
+        database.execute("INSERT INTO entries VALUES ('discarded')");
+    }
+    {
+        auto inner = database.transaction();
+        database.execute("INSERT INTO entries VALUES ('last')");
+        inner.commit();
+    }
+    outer.commit();
+    // commit releases the connection even while the scope object is alive.
+    auto query = std::async(std::launch::async, [&] {
+        return database
+          .createStatement("SELECT value FROM entries ORDER BY rowid")
+          .executeAndGetAll<std::string>();
+    });
+    CHECK(query.get() == std::vector<std::string>{ "first", "last" });
+}
+
+TEST_CASE("Failed commits are rolled back before reusing the connection",
+          "[SqliteCppDb]")
+{
+    db::SqliteCppDb database(":memory:");
+    database.execute("CREATE TABLE parent (id INTEGER PRIMARY KEY)");
+    database.execute(
+      "CREATE TABLE child (parent_id INTEGER REFERENCES parent(id) "
+      "DEFERRABLE INITIALLY DEFERRED)");
+    {
+        auto transaction = database.transaction();
+        database.execute("INSERT INTO child VALUES (1)");
+        REQUIRE_THROWS_AS(transaction.commit(), SQLite::Exception);
+    }
+    database.execute("INSERT INTO parent VALUES (1)");
+    CHECK(database.createStatement("SELECT count(*) FROM child")
+            .executeAndGet<int>() == 0);
+    CHECK(database.createStatement("SELECT count(*) FROM parent")
+            .executeAndGet<int>() == 1);
+}
+
+TEST_CASE(
+  "An automatic rollback cannot silently turn a batch into autocommit writes",
+  "[SqliteCppDb]")
+{
+    db::SqliteCppDb database(":memory:");
+    database.execute("CREATE TABLE entries (value TEXT)");
+    database.execute("CREATE TRIGGER abort_batch BEFORE INSERT ON entries "
+                     "WHEN NEW.value = 'abort' BEGIN SELECT RAISE(ROLLBACK, "
+                     "'injected rollback'); END");
+    auto retained =
+      database.createStatement("INSERT INTO entries VALUES ('later')");
+    {
+        auto outer = database.transaction();
+        database.execute("INSERT INTO entries VALUES ('first')");
+        {
+            auto inner = database.transaction();
+            REQUIRE_THROWS_AS(
+              database.execute("INSERT INTO entries VALUES ('abort')"),
+              SQLite::Exception);
+        }
+        REQUIRE_THROWS(retained.execute());
+        REQUIRE_THROWS(
+          database.execute("INSERT INTO entries VALUES ('later')"));
+        REQUIRE_THROWS(database.transaction());
+        REQUIRE_THROWS(outer.commit());
+    }
+    CHECK(database.createStatement("SELECT count(*) FROM entries")
+            .executeAndGet<int>() == 0);
+    REQUIRE_NOTHROW(retained.execute());
+}
+
+TEST_CASE("Single-row queries release WAL snapshots even when decoding fails",
+          "[SqliteCppDb]")
+{
+    QTemporaryDir directory;
+    REQUIRE(directory.isValid());
+    const auto path =
+      support::qStringToPath(directory.filePath("snapshots.sqlite"));
+    db::SqliteCppDb first(path);
+    first.execute("CREATE TABLE entries (id INTEGER PRIMARY KEY)");
+    first.execute("INSERT INTO entries VALUES (1), (2)");
+    db::SqliteCppDb second(path);
+    auto retained = first.createStatement("SELECT id FROM entries");
+    SECTION("Successful query")
+    {
+        REQUIRE(retained.executeAndGet<int>() == 1);
+    }
+    SECTION("Result conversion failure")
+    {
+        REQUIRE_THROWS(retained.executeAndGet<std::tuple<int, int>>());
+    }
+    second.execute("INSERT INTO entries VALUES (3)");
+    REQUIRE_NOTHROW(first.execute("INSERT INTO entries VALUES (4)"));
+    CHECK(first.createStatement("SELECT count(*) FROM entries")
+            .executeAndGet<int>() == 4);
+}
+
+TEST_CASE("RETURNING reports commit failures before returning an ID",
+          "[SqliteCppDb]")
+{
+    QTemporaryDir directory;
+    REQUIRE(directory.isValid());
+    const auto path =
+      support::qStringToPath(directory.filePath("returning.sqlite"));
+    db::SqliteCppDb writer(path);
+    writer.execute("PRAGMA journal_mode=DELETE");
+    writer.execute("CREATE TABLE entries (id INTEGER PRIMARY KEY)");
+    writer.execute("INSERT INTO entries VALUES (1), (2)");
+    SQLite::Database reader(path, SQLite::OPEN_READONLY);
+    SQLite::Statement retained(reader, "SELECT id FROM entries");
+    REQUIRE(retained.executeStep());
+    auto insert =
+      writer.createStatement("INSERT INTO entries DEFAULT VALUES RETURNING id");
+    REQUIRE_THROWS_AS(insert.executeAndGet<int64_t>(), SQLite::Exception);
+    retained.reset();
+    CHECK(writer.createStatement("SELECT count(*) FROM entries")
+            .executeAndGet<int>() == 2);
+    CHECK(insert.executeAndGet<int64_t>() == 3);
 }

@@ -45,11 +45,13 @@ BmsScoreCourse::getReplayData() const -> BmsReplayData*
 void
 BmsScoreCourse::save(db::SqliteCppDb& db) const
 {
+    auto transaction = db.transaction();
     // they should be saved already but just in case
     for (const auto* score : scores) {
         score->save(db);
     }
     result->save(db);
+    transaction.commit();
     // these are not saved! We generate them from scores
     // gaugeHistory->save(db);
     // replayData->save(db);

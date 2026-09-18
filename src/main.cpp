@@ -72,6 +72,7 @@
 #include "arena/SqliteArenaInventorySource.h"
 
 #include <filesystem>
+#include <chrono>
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 Q_IMPORT_PLUGIN(TgaPlugin)
@@ -292,7 +293,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             qputenv("QV4_GC_TIMELIMIT", QByteArray("1"));
         }
 
-        auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite" };
+        // The scanner and Backbeat catalog write through separate connections.
+        auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite",
+                                   std::chrono::seconds(5) };
 
         resource_managers::defineDb(db);
 

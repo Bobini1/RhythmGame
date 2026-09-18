@@ -342,6 +342,7 @@ ScanningQueue::clear(const QString& which)
         sourcePrefix += '/';
     }
 
+    auto transaction = db->transaction();
     auto removeSongsStartingWith =
       db->createStatement("DELETE FROM charts WHERE path LIKE :dir || '%'");
     removeSongsStartingWith.bind(":dir", sourcePrefix.toStdString());
@@ -371,6 +372,7 @@ ScanningQueue::clear(const QString& which)
                 "(SELECT chart_directory FROM charts)");
     db->execute("DELETE FROM readme_files WHERE directory NOT IN "
                 "(SELECT chart_directory FROM charts)");
+    transaction.commit();
 }
 auto
 ScanningQueue::rowCount(const QModelIndex& parent) const -> int

@@ -1,7 +1,15 @@
 #include "qml_components/ImportedScoreImporter.h"
+#include "qml_components/ReplayImportOperation.h"
+#include "qml_components/ThemeFamily.h"
+#include "resource_managers/Profile.h"
+#include "resource_managers/SongAssetStore.h"
 #include "support/QStringToPath.h"
 
 #include <QTemporaryDir>
+#include <QCoreApplication>
+#include <QElapsedTimer>
+#include <QNetworkAccessManager>
+#include <QThread>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <catch2/catch_test_macros.hpp>
 
@@ -51,6 +59,94 @@ struct ImportedRow
 };
 
 } // namespace
+
+TEST_CASE("Import completion is explicit after the worker finishes",
+          "[ImportedScoreImporter]")
+{
+    qml_components::ReplayImportOperation operation(0);
+    CHECK_FALSE(operation.isFinished());
+    operation.setTotal(1);
+    operation.incrementImported();
+    CHECK(operation.getDone() == 1);
+    CHECK_FALSE(operation.isFinished());
+    operation.finish();
+    CHECK(operation.isFinished());
+}
+
+TEST_CASE("An import can fail before discovering its input",
+          "[ImportedScoreImporter]")
+{
+    qml_components::ReplayImportOperation operation(0);
+    operation.fail("Cannot open database");
+    CHECK(operation.isFinished());
+    CHECK(operation.getErrored() == 1);
+    CHECK(operation.getDone() == operation.getTotal());
+    CHECK(operation.rowCount() == 1);
+}
+
+TEST_CASE("Profile import workers finish without synchronous GUI calls",
+          "[ImportedScoreImporter][Profile]")
+{
+    if (!QCoreApplication::instance()) {
+        static int argc = 1;
+        static char name[] = "ImportTests";
+        static char* argv[] = { name, nullptr };
+        static QCoreApplication application(argc, argv);
+    }
+    QTemporaryDir directory;
+    REQUIRE(directory.isValid());
+    const auto songPath =
+      support::qStringToPath(directory.filePath("songs.sqlite"));
+    db::SqliteCppDb songs(songPath);
+    QNetworkAccessManager network;
+    resource_managers::SongAssetStore assets;
+    auto profile = std::make_unique<resource_managers::Profile>(
+      songPath,
+      support::qStringToPath(directory.filePath("scores.sqlite")),
+      QMap<QString, qml_components::ThemeFamily>{},
+      QList<QString>{},
+      &network,
+      &assets);
+    qml_components::ReplayImportOperation* operation = nullptr;
+    bool failed = false;
+    SECTION("Empty replay import")
+    {
+        profile->importReplays(directory.path());
+        operation = profile->getReplayImportOperation();
+    }
+    SECTION("Replay setup query failure")
+    {
+        profile->getDb().execute("DROP TABLE replay_data");
+        profile->importReplays(directory.path());
+        operation = profile->getReplayImportOperation();
+        failed = true;
+    }
+    SECTION("Score database cannot be opened")
+    {
+        profile->importScores(directory.filePath("missing.sqlite"));
+        operation = profile->getScoreImportOperation();
+        failed = true;
+    }
+    SECTION("Destruction while imports are queued")
+    {
+        profile->importReplays(directory.path());
+        profile->importScores(directory.filePath("missing.sqlite"));
+        // Destruction waits for both workers without pumping GUI events.
+        profile.reset();
+        return;
+    }
+    REQUIRE(operation != nullptr);
+    CHECK_FALSE(operation->isFinished());
+    QElapsedTimer timer;
+    timer.start();
+    while (!operation->isFinished() && timer.elapsed() < 5000) {
+        QCoreApplication::processEvents();
+        QThread::msleep(1);
+    }
+    REQUIRE(operation->isFinished());
+    CHECK(operation->getErrored() == (failed ? 1 : 0));
+    CHECK(operation->getImported() == 0);
+}
 
 TEST_CASE("LR2 score databases import with LR2 provenance",
           "[ImportedScoreImporter]")

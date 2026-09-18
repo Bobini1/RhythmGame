@@ -114,6 +114,7 @@ class Store : public resource_managers::BackbeatSource
     QHash<QString, Asset> assets;
     bool unavailable = false;
     mutable bool changesDuringRead = false;
+    std::function<void()> onBundleRead;
 
     auto revision() const -> qint64 override
     {
@@ -134,6 +135,9 @@ class Store : public resource_managers::BackbeatSource
     auto bundle(const QString& id) const -> Bundle override
     {
         ++reads;
+        if (onBundleRead) {
+            onBundleRead();
+        }
         return installed.value(id);
     }
     auto resolve(const std::filesystem::path& path) const
@@ -155,6 +159,27 @@ class Store : public resource_managers::BackbeatSource
 #endif
 
 } // namespace
+
+TEST_CASE("Chart and histogram replacement rolls back together",
+          "[library][ChartData]")
+{
+    Library library;
+    const auto path = library.temporary.filePath("chart.bms");
+    const auto original = library.save(path);
+    library.database.execute(
+      "CREATE TRIGGER reject_histogram BEFORE INSERT ON histogram_data "
+      "BEGIN SELECT RAISE(ABORT, 'injected histogram failure'); END");
+    REQUIRE_THROWS_AS(
+      library.save(path, chartBytes + "#SUBTITLE Replacement\n"),
+      SQLite::Exception);
+    CHECK(library.count() == 1);
+    CHECK(library.database.createStatement("SELECT md5 FROM charts")
+            .executeAndGet<std::string>() == original->getMd5().toStdString());
+    CHECK(library.database
+            .createStatement("SELECT count(*) FROM charts c "
+                             "JOIN histogram_data h ON h.chart_id = c.id")
+            .executeAndGet<int>() == 1);
+}
 
 TEST_CASE(
   "Collections preserve course order, repeated charts and SHA-256 references",
@@ -313,6 +338,32 @@ TEST_CASE("Collection browsing and reload retain the owning provider",
 }
 
 #ifdef RHYTHMGAME_USE_BACKBEAT
+
+TEST_CASE(
+  "Native folder cleanup during Backbeat parsing cannot orphan its charts",
+  "[backbeat]")
+{
+    Library library;
+    auto source = std::make_shared<Store>();
+    source->installed.insert(QString(64, 'a'), { "chart.bms", chartBytes, {} });
+    source->onBundleRead = [&] {
+        library.database.execute(
+          "DELETE FROM parent_dir WHERE id NOT IN "
+          "(SELECT directory FROM charts WHERE directory IS NOT NULL)");
+    };
+    resource_managers::BackbeatCatalog catalog(
+      source, library.path, &library.database);
+    REQUIRE(catalog.synchronize().added == 1);
+    CHECK(library.database
+            .createStatement("SELECT count(*) FROM charts c "
+                             "JOIN parent_dir p ON p.id = c.directory")
+            .executeAndGet<int>() == 1);
+    qml_components::SongFolderFactory folders(&library.database);
+    const auto charts =
+      folders.open(resource_managers::BackbeatSource::rootPath());
+    CHECK(charts.size() == 1);
+    deleteCharts(charts);
+}
 
 TEST_CASE("Backbeat polls revisions without a QML engine or selection screen",
           "[backbeat]")

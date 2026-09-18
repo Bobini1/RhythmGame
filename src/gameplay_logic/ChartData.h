@@ -380,6 +380,7 @@ class ChartData : public QObject
     };
 
     auto save(db::SqliteCppDb& db) const -> void;
+    auto save(db::SqliteCppDb& db, int64_t directory) const -> void;
     static auto load(const DTO& chartDataDto) -> std::unique_ptr<ChartData>;
     auto toJson() const -> QJsonObject;
 

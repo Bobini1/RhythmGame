@@ -232,12 +232,10 @@ class Profile final : public QObject
 
     /**
      * @brief Create and publish a new import operation.
-     * @details Must only be called on the main thread. Intended to be invoked
-     * from a background import task via Qt::BlockingQueuedConnection.
+     * @details Must only be called on the main thread, before starting the worker.
      */
-    auto beginImportOp(int fileCount) -> qml_components::ReplayImportOperation*;
-    auto beginScoreImportOp(int scoreCount)
-      -> qml_components::ReplayImportOperation*;
+    auto beginImportOp() -> qml_components::ReplayImportOperation*;
+    auto beginScoreImportOp() -> qml_components::ReplayImportOperation*;
 
     auto submitScore(const gameplay_logic::BmsScore& score,
                      const gameplay_logic::ChartData& chartData) const

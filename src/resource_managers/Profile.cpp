@@ -1185,17 +1185,30 @@ namespace resource_managers {
 void
 Profile::importReplays(const QString& folderPath)
 {
-    importPool.start([this, folderPath]() {
-        qml_components::startBeatorajaReplayImport(
-          this, songAssetStore, folderPath);
+    auto* operation = beginImportOp();
+    importPool.start([this, folderPath, operation]() {
+        try {
+            qml_components::startBeatorajaReplayImport(
+              this, songAssetStore, folderPath, operation);
+            QMetaObject::invokeMethod(
+              operation,
+              [operation] { operation->finish(); },
+              Qt::QueuedConnection);
+        } catch (const std::exception& exception) {
+            QMetaObject::invokeMethod(
+              operation,
+              [operation, message = QString::fromUtf8(exception.what())] {
+                  operation->fail(message);
+              },
+              Qt::QueuedConnection);
+        }
     });
 }
 
 auto
-Profile::beginImportOp(int fileCount) -> qml_components::ReplayImportOperation*
+Profile::beginImportOp() -> qml_components::ReplayImportOperation*
 {
-    currentImportOp =
-      new qml_components::ReplayImportOperation(fileCount, this);
+    currentImportOp = new qml_components::ReplayImportOperation(0, this);
     emit replayImportOperationChanged();
     return currentImportOp;
 }
@@ -1210,36 +1223,34 @@ Profile::getReplayImportOperation() const
 void
 Profile::importScores(const QString& databasePath)
 {
-    importPool.start([this, databasePath] {
-        qml_components::ReplayImportOperation* operation = nullptr;
+    auto* operation = beginScoreImportOp();
+    importPool.start([this, databasePath, operation] {
         auto callbacks = qml_components::ScoreImportCallbacks{
             .started =
-              [this, &operation](int total) {
+              [operation](int total) {
                   QMetaObject::invokeMethod(
-                    this,
-                    [this, total, &operation] {
-                        operation = beginScoreImportOp(total);
-                    },
-                    Qt::BlockingQueuedConnection);
+                    operation,
+                    [operation, total] { operation->setTotal(total); },
+                    Qt::QueuedConnection);
               },
             .imported =
-              [this, &operation] {
+              [operation] {
                   QMetaObject::invokeMethod(
-                    this,
+                    operation,
                     [operation] { operation->incrementImported(); },
                     Qt::QueuedConnection);
               },
             .skipped =
-              [this, &operation] {
+              [operation] {
                   QMetaObject::invokeMethod(
-                    this,
+                    operation,
                     [operation] { operation->incrementSkipped(); },
                     Qt::QueuedConnection);
               },
             .failed =
-              [this, &operation](QString message) {
+              [operation](QString message) {
                   QMetaObject::invokeMethod(
-                    this,
+                    operation,
                     [operation, message = std::move(message)] {
                         operation->reportError(message);
                         operation->incrementErrored();
@@ -1250,28 +1261,24 @@ Profile::importScores(const QString& databasePath)
         try {
             qml_components::importLocalScoreDatabase(
               db, databasePath, callbacks);
+            QMetaObject::invokeMethod(
+              operation,
+              [operation] { operation->finish(); },
+              Qt::QueuedConnection);
         } catch (const std::exception& exception) {
             const auto message = QString::fromUtf8(exception.what());
             QMetaObject::invokeMethod(
-              this,
-              [this, operation, message] {
-                  auto* failedOperation = operation;
-                  if (failedOperation == nullptr)
-                      failedOperation = beginScoreImportOp(1);
-                  failedOperation->reportError(message);
-                  failedOperation->incrementErrored();
-              },
+              operation,
+              [operation, message] { operation->fail(message); },
               Qt::QueuedConnection);
         }
     });
 }
 
 auto
-Profile::beginScoreImportOp(int scoreCount)
-  -> qml_components::ReplayImportOperation*
+Profile::beginScoreImportOp() -> qml_components::ReplayImportOperation*
 {
-    currentScoreImportOp =
-      new qml_components::ReplayImportOperation(scoreCount, this);
+    currentScoreImportOp = new qml_components::ReplayImportOperation(0, this);
     emit scoreImportOperationChanged();
     return currentScoreImportOp;
 }

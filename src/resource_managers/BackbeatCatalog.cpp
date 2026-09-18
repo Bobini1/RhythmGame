@@ -84,7 +84,7 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
         return {};
     }
     const QSet<QString> installed(ids.cbegin(), ids.cend());
-    db::SqliteCppDb database(databasePath);
+    db::SqliteCppDb database(databasePath, std::chrono::seconds(5));
     database.execute("CREATE TABLE IF NOT EXISTS backbeat_bundles ("
                      "bundle_id TEXT PRIMARY KEY, path TEXT NOT NULL UNIQUE "
                      "REFERENCES charts(path) ON DELETE CASCADE)");
@@ -105,20 +105,6 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
                          QString::fromStdString(row.md5),
                          QString::fromStdString(row.sha256) });
     }
-    cachedQuery.reset();
-    qint64 directory = -1;
-    if (!ids.isEmpty()) {
-        auto insert =
-          database.createStatement("INSERT OR IGNORE INTO parent_dir "
-                                   "(parent_dir, dir) VALUES (NULL, ?)");
-        insert.bind(1, BackbeatSource::rootPath().toStdString());
-        insert.execute();
-        auto query =
-          database.createStatement("SELECT id FROM parent_dir WHERE dir = ?");
-        query.bind(1, BackbeatSource::rootPath().toStdString());
-        directory = query.executeAndGet<qint64>().value();
-    }
-
     struct Parsed
     {
         QString id;
@@ -144,9 +130,9 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
             const ChartDataFactory factory;
             auto components =
               bundle.filename.endsWith(".bmson", Qt::CaseInsensitive)
-                ? factory.loadBmsonChartData(contents, path, directory)
+                ? factory.loadBmsonChartData(contents, path, -1)
                 : factory.loadChartData(
-                    contents, path, [](auto) { return 1; }, directory);
+                    contents, path, [](auto) { return 1; }, -1);
             Parsed item{ id, std::move(components.chartData), {}, {} };
             for (const auto& asset : bundle.assets) {
                 const auto name = QFileInfo(asset).fileName().toLower();
@@ -183,8 +169,20 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
     }
     Update update{ .collections = std::move(collections),
                    .revision = currentRevision };
-    database.execute("BEGIN IMMEDIATE");
-    try {
+    {
+        auto transaction = database.transaction();
+        qint64 directory = -1;
+        if (!parsed.empty()) {
+            auto insert =
+              database.createStatement("INSERT OR IGNORE INTO parent_dir "
+                                       "(parent_dir, dir) VALUES (NULL, ?)");
+            insert.bind(1, BackbeatSource::rootPath().toStdString());
+            insert.execute();
+            auto query = database.createStatement(
+              "SELECT id FROM parent_dir WHERE dir = ?");
+            query.bind(1, BackbeatSource::rootPath().toStdString());
+            directory = query.executeAndGet<qint64>().value();
+        }
         for (auto it = indexed.cbegin(); it != indexed.cend(); ++it) {
             if (installed.contains(it.key())) {
                 continue;
@@ -196,7 +194,7 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
             ++update.removed;
         }
         for (const auto& item : parsed) {
-            item.chart->save(database);
+            item.chart->save(database, directory);
             auto insert = database.createStatement(
               "INSERT INTO backbeat_bundles (bundle_id, path) VALUES (?, ?)");
             insert.bind(1, item.id.toStdString());
@@ -229,10 +227,7 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
           "DELETE FROM parent_dir WHERE dir GLOB 'backbeat:/*' AND "
           "id NOT IN (SELECT directory FROM charts WHERE directory IS NOT "
           "NULL)");
-        database.execute("COMMIT");
-    } catch (...) {
-        database.execute("ROLLBACK");
-        throw;
+        transaction.commit();
     }
     if (!errors.isEmpty()) {
         update.error = tr("Backbeat: %1 chart(s) could not be indexed. %2")
