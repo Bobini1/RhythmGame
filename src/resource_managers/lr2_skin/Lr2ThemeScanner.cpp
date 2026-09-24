@@ -610,8 +610,17 @@ scanThemeDirectory(const std::filesystem::path& themeDirectory)
 
             const auto csvPath = support::pathToQString(
               std::filesystem::absolute(lr2Entry.path()));
-            const auto wrapperUrl =
-              QUrl("qrc:///qt/qml/RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml");
+            static const QHash<QString, QString> entryNames{
+                { "select", "Select" },
+                { "decide", "Decide" },
+                { "result", "Result" },
+                { "courseResult", "CourseResult" },
+            };
+            const auto entryName = screenKey.startsWith('k')
+                                     ? QStringLiteral("Gameplay")
+                                     : entryNames.value(screenKey);
+            const auto wrapperUrl = QUrl("qrc:///qt/qml/RhythmGameQml/Lr2/Lr2" +
+                                         entryName + "Screen.qml");
 
             auto themeMap = QMap<QString, qml_components::Screen>();
             themeMap.insert(screenKey,

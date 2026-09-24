@@ -308,6 +308,11 @@ class BmsResult final : public QObject
     auto getOwner() const -> const QString&;
 
     void save(db::SqliteCppDb& db, int source = 0, int longNoteMode = 0) const;
+    auto serializeRandomSequence() const -> QByteArray;
+    void save(db::SqliteCppDb& db,
+              const QByteArray& randomSequenceCompressed,
+              int source,
+              int longNoteMode) const;
     static auto load(const DTO& dto) -> std::unique_ptr<BmsResult>;
     auto toJson() const -> QJsonObject;
     static auto fromJson(const QJsonObject& obj) -> std::unique_ptr<BmsResult>;

@@ -231,8 +231,10 @@ Item {
         }
     }
 
-    StandardSelectActivation {
-        id: standardActivation
+    readonly property alias actions: standardActions
+
+    StandardSelectActions {
+        id: standardActions
     }
 
     PendingReplyGroup {
@@ -1136,7 +1138,8 @@ Item {
     function activeSortMode() : var {
         return legacySortModeForSelectSortMode(selectSortMode);
     }
-    function activeSortUsesScores() : var {
+
+    function activeSortUsesScores() : var {
         switch (activeSortMode()) {
         case 3: // clear lamp
         case 4: // score rate
@@ -1689,7 +1692,7 @@ Item {
             hideRanking();
             item = baseItem;
         }
-        if (standardActivation.openPlayable(
+        if (standardActions.openPlayable(
                 item, !!autoplay, !!replay, replayScore || null)) {
             return;
         }
@@ -1712,19 +1715,7 @@ Item {
             hideRanking();
             item = baseItem;
         }
-        if (isCourse(item)) {
-            globalRoot.openCourseResult(
-                [replayScore],
-                [Rg.profileList.mainProfile],
-                courseStages(item),
-                item);
-            return true;
-        }
-        if (isChart(item)) {
-            globalRoot.openResult([replayScore], [Rg.profileList.mainProfile], item);
-            return true;
-        }
-        return false;
+        return standardActions.openResult(item, replayScore);
     }
 
     function sameEntry(a: var, b: var) : var {

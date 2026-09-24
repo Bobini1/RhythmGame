@@ -8,9 +8,6 @@ Rectangle {
     id: root
 
     required property var session
-    required property string placementKind
-    required property string resolvedSkinId
-    required property string layoutVariant
     property bool expanded: true
     readonly property alias dragHandle: resultHeader
     readonly property bool chatOpen: root.session && root.session.chatOpen === true

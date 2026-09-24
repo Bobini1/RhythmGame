@@ -57,6 +57,8 @@ class BmsReplayData final : public QObject
     };
 
     void save(db::SqliteCppDb& db) const;
+    auto serialize() const -> QByteArray;
+    void save(db::SqliteCppDb& db, const QByteArray& serialized) const;
     static auto load(const DTO& dto) -> std::unique_ptr<BmsReplayData>;
     static void migrateStoredReplayData(db::SqliteCppDb& db);
     auto toJsonArray() const -> QJsonArray;

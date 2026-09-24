@@ -6,8 +6,7 @@ import QtQuick
 QtObject {
     id: root
 
-    property string explicitKey: ""
-    property string csvPath: ""
+    required property string screenKey
     property bool hostEnabled: false
     property bool hostVisible: false
     property bool stackActive: false
@@ -16,44 +15,18 @@ QtObject {
     property bool selectSearchFocused: false
     property int readmeMode: 0
 
-    readonly property string effectiveKey: explicitKey || inferKey(csvPath)
-    readonly property bool gameplayScreen: isGameplayKey(effectiveKey)
-    readonly property bool resultScreen: effectiveKey === "result" || effectiveKey === "courseResult"
+    readonly property bool gameplayScreen: isGameplayKey(root.screenKey)
+    readonly property bool resultScreen: root.screenKey === "result" || root.screenKey === "courseResult"
     readonly property bool updatesActive: hostEnabled && hostVisible && stackActive
-    readonly property bool gatesInputByStartInput: effectiveKey === "select"
-        || effectiveKey === "decide"
+    readonly property bool gatesInputByStartInput: root.screenKey === "select"
+        || root.screenKey === "decide"
         || resultScreen
     readonly property bool acceptsInput: !gatesInputByStartInput || globalSkinTime >= startInput
-    readonly property bool selectPointerInputReady: updatesActive && effectiveKey === "select" && acceptsInput
+    readonly property bool selectPointerInputReady: updatesActive && root.screenKey === "select" && acceptsInput
     readonly property bool selectInputReady: selectPointerInputReady && !selectSearchFocused
     readonly property bool selectScrollReady: selectInputReady && readmeMode === 0
     readonly property bool selectPointerScrollReady: selectPointerInputReady && readmeMode === 0
     readonly property bool selectNavigationReady: selectInputReady && readmeMode === 0
-
-    function inferKey(path: var) : var {
-        let normalized = (path || "").replace(/\\/g, "/").toLowerCase();
-        if (normalized.indexOf("/select/") !== -1
-                || normalized.endsWith("select.lr2skin")
-                || normalized.endsWith("select.csv")) {
-            return "select";
-        }
-        if (normalized.indexOf("/decide/") !== -1
-                || normalized.endsWith("decide.lr2skin")
-                || normalized.endsWith("decide.csv")) {
-            return "decide";
-        }
-        if (normalized.indexOf("/courseresult/") !== -1
-                || normalized.endsWith("courseresult.lr2skin")
-                || normalized.endsWith("courseresult.csv")) {
-            return "courseResult";
-        }
-        if (normalized.indexOf("/result/") !== -1
-                || normalized.endsWith("result.lr2skin")
-                || normalized.endsWith("result.csv")) {
-            return "result";
-        }
-        return "";
-    }
 
     function isGameplayKey(key: var) : var {
         switch (key) {

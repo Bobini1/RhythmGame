@@ -5,6 +5,7 @@
 #include <QFutureWatcher>
 #include <QObject>
 #include <QTimer>
+#include <QThreadPool>
 #include <optional>
 
 namespace resource_managers {
@@ -26,12 +27,14 @@ class BackbeatCatalog : public QObject
     BackbeatCatalog(std::shared_ptr<BackbeatSource> source,
                     const std::filesystem::path& databasePath,
                     db::SqliteCppDb* modelDatabase,
+                    db::SqliteCppDb* writeDatabase,
                     QObject* parent = nullptr);
     ~BackbeatCatalog() override;
     void refresh(bool force = false);
 
-    // Runs on the catalog worker. Uses its own SQLite connection so its
-    // transaction cannot accidentally include a UI query or filesystem scan.
+    // Reads through a separate connection; publication shares the scanner's
+    // writer connection so their transactions serialize without blocking UI
+    // reads.
     auto synchronize(std::optional<qint64> previousRevision = {}) -> Update;
 
   signals:
@@ -44,7 +47,9 @@ class BackbeatCatalog : public QObject
     std::shared_ptr<BackbeatSource> source;
     std::filesystem::path databasePath;
     db::SqliteCppDb* modelDatabase;
+    db::SqliteCppDb* writeDatabase;
     std::atomic_bool cancelled = false;
+    QThreadPool threadPool;
     QFutureWatcher<Update> watcher;
     QTimer refreshTimer;
     std::optional<qint64> revision;

@@ -110,7 +110,16 @@ class BmsScore final : public QObject
     auto isImported() const -> bool;
     void setSubmissionState(SubmissionState newState);
     auto getSubmissionState() const -> SubmissionState;
+    struct PreparedData
+    {
+        QByteArray randomSequence;
+        QByteArray replay;
+        QByteArray gauges;
+    };
+
+    auto prepareSave() const -> PreparedData;
     void save(db::SqliteCppDb& db) const;
+    void save(db::SqliteCppDb& db, const PreparedData& prepared) const;
   signals:
     void submissionStateChanged();
 };

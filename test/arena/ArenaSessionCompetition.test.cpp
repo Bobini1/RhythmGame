@@ -4,6 +4,7 @@
 #include "FakeArenaRoundLoader.h"
 #include "FakeArenaScheduler.h"
 #include "FakeArenaTransport.h"
+#include "ScreenContexts.h"
 #include "arena/ArenaSession.h"
 #include "gameplay_logic/BmsGameReferee.h"
 #include "gameplay_logic/BmsGaugeHistory.h"
@@ -1803,4 +1804,71 @@ TEST_CASE("ArenaSessionCompetition: capability downgrade rejects admission and "
               QStringLiteral("competition_capability_required"));
         CHECK_FALSE(fixture.session.competitionAvailable());
     }
+}
+
+TEST_CASE("Screen contexts match Arena gameplay and result lifetimes",
+          "[arena][ScreenContexts]")
+{
+    ensureCoreApplication();
+    auto runner = makeReadyRunner();
+    auto unrelatedRunner = makeReadyRunner();
+    runner.runner->holdStart();
+    int gameplayChanges = 0;
+    Fixture fixture;
+    fixture.enterRoom();
+    rhythm_game_qml::ScreenContexts contexts;
+    auto* gameplay =
+      contexts.createGameplay(runner.runner.get(), &fixture.session);
+    auto* unrelated =
+      contexts.createGameplay(unrelatedRunner.runner.get(), &fixture.session);
+    REQUIRE(gameplay);
+    REQUIRE(unrelated);
+    CHECK(gameplay->isArena());
+    CHECK_FALSE(gameplay->arenaActive());
+    QObject::connect(gameplay,
+                     &rhythm_game_qml::GameplayContext::arenaActiveChanged,
+                     gameplay,
+                     [&] { ++gameplayChanges; });
+    fixture.gameplaySource.finalHandler = [](gameplay_logic::BmsScore*) {
+        return std::expected<arena::FinalResult,
+                             arena::ArenaGameplayCaptureFailure>{ finalValue(
+          100) };
+    };
+    fixture.loadRound(runner.runner.get());
+    fixture.startRound();
+    CHECK(gameplay->arenaActive());
+    CHECK_FALSE(unrelated->arenaActive());
+    CHECK(gameplayChanges > 0);
+    const auto changesAtStart = gameplayChanges;
+
+    const auto scores = runner.runner->finish();
+    REQUIRE(scores.size() == 1);
+    auto score = std::unique_ptr<gameplay_logic::BmsScore>{ scores.front() };
+    CHECK_FALSE(gameplay->arenaActive());
+    CHECK(gameplay->isArena());
+    CHECK(gameplayChanges > changesAtStart);
+    REQUIRE(fixture.session.submitLocalResult(score.get()));
+    const auto roundId = fixture.session.presentedResult()->roundId();
+    rhythm_game_qml::ResultContext result(
+      scores, {}, runner.runner->getChartData(), gameplay, roundId);
+    rhythm_game_qml::ResultContext wrongRound(scores,
+                                              {},
+                                              runner.runner->getChartData(),
+                                              gameplay,
+                                              QStringLiteral("other-round"));
+    rhythm_game_qml::ResultContext savedResult(
+      scores, {}, runner.runner->getChartData(), nullptr);
+    CHECK(result.arenaActive());
+    CHECK_FALSE(wrongRound.arenaActive());
+    CHECK_FALSE(savedResult.arenaActive());
+    int resultChanges = 0;
+    QObject::connect(&result,
+                     &rhythm_game_qml::ResultContext::arenaActiveChanged,
+                     &result,
+                     [&] { ++resultChanges; });
+    fixture.session.endResultPresentation(QStringLiteral("other-round"));
+    CHECK(result.arenaActive());
+    fixture.session.endResultPresentation(roundId);
+    CHECK_FALSE(result.arenaActive());
+    CHECK(resultChanges > 0);
 }

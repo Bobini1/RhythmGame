@@ -57,27 +57,14 @@ ApplicationWindow {
             id: frameState
 
             readonly property Profile mainProfile: Rg.profileList.mainProfile
-            readonly property var arenaSession: Rg.arenaSession
-            readonly property Component k7Component:
-                frameImplementation.componentFor("k7")
-            readonly property Component k7battleComponent:
-                frameImplementation.componentFor("k7battle")
-            readonly property Component k14Component:
-                frameImplementation.componentFor("k14")
-            readonly property Component k5Component:
-                frameImplementation.componentFor("k5")
-            readonly property Component k5battleComponent:
-                frameImplementation.componentFor("k5battle")
-            readonly property Component k10Component:
-                frameImplementation.componentFor("k10")
             readonly property Component mainComponent:
                 frameImplementation.componentFor("main")
             readonly property Component resultComponent:
                 frameImplementation.componentFor("result")
             readonly property Component courseResultComponent:
-                frameImplementation.componentFor("courseResult", "result")
-            readonly property var multiplayerScreen:
-                frameImplementation.configuredScreen("multiplayer")
+                frameImplementation.componentFor("courseResult")
+            readonly property Component multiplayerComponent:
+                frameImplementation.componentFor("multiplayer")
             readonly property Component settingsComponent:
                 frameImplementation.componentFor("settings")
             readonly property Component selectComponent:
@@ -85,128 +72,32 @@ ApplicationWindow {
             readonly property Component decideComponent:
                 frameImplementation.componentFor("decide")
             property var activeSettingsItem: null
-            property Item activeArenaItem: null
-            property Item activeArenaGameplayItem: null
-            property var activeArenaGameplayRunner: null
             property bool fpsOverlayVisible: false
         }
 
         QtObject {
             id: frameImplementation
 
-            function configuredScreen(screenKey, fallbackKey) {
-                let themeName = frameState.mainProfile.themeConfig[screenKey];
-                let family = themeName
-                    ? Rg.themes.availableThemeFamilies[themeName] : null;
-                if (family && family.screens && family.screens[screenKey]) {
-                    return family.screens[screenKey];
-                }
-                if (fallbackKey) {
-                    themeName = frameState.mainProfile.themeConfig[fallbackKey];
-                    family = themeName
-                        ? Rg.themes.availableThemeFamilies[themeName] : null;
-                    if (family && family.screens
-                            && family.screens[fallbackKey]) {
-                        return family.screens[fallbackKey];
-                    }
-                }
-                return null;
-            }
-
-            function componentFor(screenKey, fallbackKey) {
-                const screen = frameImplementation.configuredScreen(
-                    screenKey, fallbackKey);
-                return screen && screen.script
-                    ? Qt.createComponent(screen.script) : null;
-            }
-
-            function currentScreen() {
-                return sceneStack.currentItem || null;
-            }
-
-            function gameplayLayoutVariant(screenItem) {
-                if (!screenItem || !screenItem.chart) {
-                    return "";
-                }
-                const declared = String(screenItem.screen
-                                        || screenItem.screenKey || "");
-                const supported = ["k5", "k7", "k10", "k14"];
-                if (supported.indexOf(declared) >= 0) {
-                    return declared;
-                }
-                switch (Number(screenItem.chart.keymode)) {
-                case 5: return "k5";
-                case 7: return "k7";
-                case 10: return "k10";
-                case 14: return "k14";
-                default: return "";
-                }
-            }
-
-            function gameplayThemeVars(layoutVariant) {
-                if (layoutVariant.length === 0) {
-                    return null;
-                }
-                const themeName = frameState.mainProfile.themeConfig[
-                    layoutVariant];
-                const screenVars = frameState.mainProfile.vars.themeVars[
-                    layoutVariant];
-                return screenVars && screenVars[themeName]
-                    ? screenVars[themeName] : null;
-            }
-
-            function callCurrentScreen(method, args) {
-                let screen = frameImplementation.currentScreen();
-                if (screen && typeof screen[method] === "function") {
-                    return screen[method].apply(screen, args || []);
-                }
-                return false;
-            }
-
-            function currentLr2Settings(screenKey) {
-                let themeName = frameState.mainProfile.themeConfig[screenKey];
-                let screenVars = frameState.mainProfile.vars.themeVars[screenKey];
-                if (screenVars && screenVars[themeName]) {
-                    let source = screenVars[themeName];
-                    let result = {};
-                    let keys = source.keys ? source.keys() : Object.keys(source);
-                    for (let key of keys) {
-                        result[key] = source[key];
-                    }
-                    return result;
-                }
-                return undefined;
-            }
-
-            function resolvedThemeVars(screenKey) {
+            function componentFor(screenKey) {
                 const themeName = frameState.mainProfile.themeConfig[screenKey];
-                const screenVars = frameState.mainProfile.vars.themeVars[
-                    screenKey];
-                return screenVars && screenVars[themeName]
-                    ? screenVars[themeName] : null;
-            }
-
-            function selectScreenProperties() {
-                let selectScreen =
-                    frameImplementation.configuredScreen("select");
-                let props = {};
-                if (selectScreen && selectScreen.csvPath) {
-                    props["csvPath"] = selectScreen.csvPath;
-                    props["skinSettings"] =
-                        frameImplementation.currentLr2Settings("select");
-                    props["skinSettingsData"] =
-                        selectScreen.settingsData || "";
-                    props["screenKey"] = "select";
-                }
-                return props;
+                return Qt.createComponent(Rg.themes.availableThemeFamilies[themeName].screens[screenKey].script);
             }
 
             function createScreen(component, properties) {
-                if (!component) {
+                if (!component || sceneStack.busy) {
                     return null;
                 }
                 const item = component.createObject(sceneStack,
                     Object.assign({}, properties, { "enabled": false, "visible": false }));
+                // An incompatible QObject can leave a typed property null even
+                // when Qt creates the root. Reject it before changing screens.
+                if (item && properties
+                        && ((properties.gameplay && item.gameplay !== properties.gameplay)
+                            || (properties.result && item.result !== properties.result))) {
+                    console.error("Screen did not accept its injected context");
+                    item.destroy();
+                    return null;
+                }
                 if (item) {
                     // StackView does not destroy items created outside the stack.
                     item.StackView.removed.connect(() => item.destroy());
@@ -214,17 +105,13 @@ ApplicationWindow {
                 return item;
             }
 
-            function pushScreen(component, properties) {
-                if (sceneStack.busy) {
-                    return null;
-                }
-                const item = frameImplementation.createScreen(component, properties);
+            function pushScreen(item) {
                 if (!item) {
                     return null;
                 }
                 // pushItem(component, properties) can return the old current
                 // item on creation failure. Compare against a prepared item.
-                if (sceneStack.pushItem(item) !== item) {
+                if (sceneStack.busy || sceneStack.pushItem(item) !== item) {
                     item.destroy();
                     sceneStack.updateEnabledStates();
                     return null;
@@ -233,54 +120,14 @@ ApplicationWindow {
                 return item;
             }
 
-            function gameplayDescriptor(runner, arenaManagedRunner) {
-                let keys = runner.keymode;
-                let battle = runner.player1 && runner.player2;
-                let screenKey = "k" + keys + (battle ? "battle" : "");
-                let component = frameState[screenKey + "Component"];
-                let screenObj =
-                    frameImplementation.configuredScreen(screenKey);
-                let props = {
-                    "chart": runner,
-                    "arenaManagedRunner": arenaManagedRunner === true
-                };
-                if (screenObj && screenObj.csvPath) {
-                    props["csvPath"] = screenObj.csvPath;
-                    props["skinSettings"] =
-                        frameImplementation.currentLr2Settings(screenKey);
-                    props["skinSettingsData"] = screenObj.settingsData || "";
-                    props["screenKey"] = screenKey;
+            function createGameplayScreen(gameplay) {
+                if (!gameplay) {
+                    return null;
                 }
-                return {
-                    "component": component,
-                    "properties": props
-                };
-            }
-
-            function openPreparedArenaGameplay(runner) {
-                if (!runner) {
-                    frameImplementation.closePreparedArenaGameplay();
-                    return;
-                }
-                if (frameState.activeArenaGameplayItem
-                        && frameState.activeArenaGameplayItem.StackView.view
-                           === sceneStack) {
-                    return;
-                }
-                frameState.activeArenaGameplayRunner = runner;
-                frameState.activeArenaGameplayItem =
-                    globalRoot.openGameplay(runner, true);
-            }
-
-            function closePreparedArenaGameplay() {
-                let item = frameState.activeArenaGameplayItem;
-                const runner = frameState.activeArenaGameplayRunner;
-                frameState.activeArenaGameplayItem = null;
-                frameState.activeArenaGameplayRunner = null;
-                if (item && sceneStack.currentItem === item
-                        && (!runner || runner.status !== ChartRunner.Finished)) {
-                    sceneStack.popCurrentItem();
-                }
+                const battle = gameplay.players.length === 2;
+                const screenKey = "k" + gameplay.keymode + (battle ? "battle" : "");
+                return frameImplementation.createScreen(
+                    frameImplementation.componentFor(screenKey), { "gameplay": gameplay });
             }
         }
 
@@ -321,15 +168,6 @@ ApplicationWindow {
         /*! The currently presented screen. */
         readonly property Item currentScreen: sceneStack.currentItem
 
-        /*! Returns the retained screen immediately before screen, or null. */
-        function previousScreen(screen = currentScreen): var {
-            if (!screen || screen.StackView.view !== sceneStack
-                    || screen.StackView.index <= 0) {
-                return null;
-            }
-            return sceneStack.get(screen.StackView.index - 1, StackView.DontLoad);
-        }
-
         function returnToPreviousScreen(): var {
             return sceneStack.pop();
         }
@@ -338,35 +176,29 @@ ApplicationWindow {
             Qt.quit();
         }
 
-        function openSettings(initialTabIndex: var): void {
+        function openSettings(section = ""): var {
             let item = frameState.activeSettingsItem === sceneStack.currentItem
                 ? frameState.activeSettingsItem : null;
             if (!item) {
-                item = sceneStack.pushItem(frameState.settingsComponent);
+                item = frameImplementation.pushScreen(
+                    frameImplementation.createScreen(frameState.settingsComponent,
+                                                     { "initialSection": section }));
                 frameState.activeSettingsItem = item;
             }
-            if (item && initialTabIndex !== undefined && "initialTabIndex" in item) {
-                item.initialTabIndex = initialTabIndex;
+            if (item && section) {
+                item.initialSection = section;
             }
+            return item;
         }
 
-        function openArenaBrowser(): void {
-            if (frameState.activeArenaItem) {
-                return;
-            }
-            Rg.arenaSession.connectForBrowsing();
-            let item = sceneStack.pushItem(arenaShellComponent, {
-                "session": Rg.arenaSession
-            });
-            frameState.activeArenaItem = item;
-            if (!item) {
-                Rg.arenaSession.exitArena();
-            }
+        function openArenaBrowser(): var {
+            return frameImplementation.pushScreen(
+                frameImplementation.createScreen(frameState.multiplayerComponent, {}));
         }
 
-        function openSelect(): void {
-            sceneStack.pushItem(frameState.selectComponent,
-                                frameImplementation.selectScreenProperties());
+        function openSelect(): var {
+            return frameImplementation.pushScreen(frameImplementation.createScreen(
+                frameState.selectComponent, {}));
         }
 
         function openChart(path: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var): var {
@@ -378,26 +210,16 @@ ApplicationWindow {
                 console.error("Failed to load chart");
                 return;
             }
-            let decideScreen = Rg.themes.availableThemeFamilies[
-                frameState.mainProfile.themeConfig.decide].screens.decide;
-            let props = {
-                "chart": chart
-            };
-            if (decideScreen.csvPath) {
-                props["csvPath"] = decideScreen.csvPath;
-                props["skinSettings"] =
-                    frameImplementation.currentLr2Settings("decide");
-                props["skinSettingsData"] = decideScreen.settingsData || "";
-                props["screenKey"] = "decide";
-            }
-            const item = frameImplementation.createScreen(frameState.decideComponent, props);
-            if (item) {
-                item.QmlUtils.adopt(chart);
-                sceneStack.pushItem(item);
-            } else {
+            const gameplay = ScreenContexts.createGameplay(chart);
+            const item = frameImplementation.createScreen(
+                frameState.decideComponent, { "gameplay": gameplay });
+            if (!item) {
                 chart.destroy();
+                return null;
             }
-            return item;
+            item.QmlUtils.adopt(chart);
+            gameplay._screen = item;
+            return frameImplementation.pushScreen(item);
         }
 
         function openCourse(course: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var): var {
@@ -409,52 +231,39 @@ ApplicationWindow {
                 console.error("Failed to load course");
                 return;
             }
-            let decideScreen = Rg.themes.availableThemeFamilies[
-                frameState.mainProfile.themeConfig.decide].screens.decide;
-            let props = {
-                "chart": runner
-            };
-            if (decideScreen.csvPath) {
-                props["csvPath"] = decideScreen.csvPath;
-                props["skinSettings"] =
-                    frameImplementation.currentLr2Settings("decide");
-                props["skinSettingsData"] = decideScreen.settingsData || "";
-                props["screenKey"] = "decide";
-            }
-            const item = frameImplementation.createScreen(frameState.decideComponent, props);
-            if (item) {
-                item.QmlUtils.adopt(runner);
-                sceneStack.pushItem(item);
-            } else {
+            const gameplay = ScreenContexts.createGameplay(runner);
+            const item = frameImplementation.createScreen(
+                frameState.decideComponent, { "gameplay": gameplay });
+            if (!item) {
                 runner.destroy();
+                return null;
             }
-            return item;
+            item.QmlUtils.adopt(runner);
+            gameplay._screen = item;
+            return frameImplementation.pushScreen(item);
         }
 
-        function openGameplay(runner: var, arenaManagedRunner: var): var {
-            if (arenaManagedRunner !== true) {
-                return globalRoot.replaceGameplay(runner);
+        function openGameplay(gameplay: GameplayContext): var {
+            if (!gameplay) {
+                return null;
             }
-            const descriptor = frameImplementation.gameplayDescriptor(
-                runner, arenaManagedRunner);
-            const item = frameImplementation.pushScreen(descriptor.component,
-                                                         descriptor.properties);
+            const item = frameImplementation.pushScreen(
+                frameImplementation.createGameplayScreen(gameplay));
             if (item) {
-                item.StackView.removed.connect(() => Rg.arenaSession.releasePreparedGameplay(runner));
+                if (!gameplay.isArena) item.QmlUtils.adopt(gameplay._runner);
+                gameplay._screen = item;
             }
             return item;
         }
 
         /*! Replaces screen and any screens above it with local gameplay. */
-        function replaceGameplay(runner: var, screen = currentScreen): var {
-            if (!runner || !screen || screen.StackView.view !== sceneStack
+        function replaceGameplay(gameplay: GameplayContext, screen = currentScreen): var {
+            if (!gameplay || gameplay.isArena || !screen || screen.StackView.view !== sceneStack
                     || sceneStack.busy) {
                 return null;
             }
-            const descriptor = frameImplementation.gameplayDescriptor(runner, false);
             // Create first: an invalid skin must leave the existing screen intact.
-            const item = frameImplementation.createScreen(descriptor.component,
-                                                           descriptor.properties);
+            const item = frameImplementation.createGameplayScreen(gameplay);
             if (!item) {
                 return null;
             }
@@ -470,266 +279,37 @@ ApplicationWindow {
                 sceneStack.updateEnabledStates();
                 return null;
             }
-            item.QmlUtils.adopt(runner);
+            item.QmlUtils.adopt(gameplay._runner);
+            gameplay._screen = item;
             sceneStack.updateEnabledStates();
             return item;
         }
 
-        function openResult(scores: var, profiles: var, chartData: var): var {
-            let resultScreen = frameImplementation.configuredScreen("result");
-            let arenaRoundId = "";
-            if (scores && scores.length > 0 && scores[0] && Rg.arenaSession.submitLocalResult(scores[0])) {
-                arenaRoundId = String(Rg.arenaSession.presentedResult.roundId || "");
+        function openResult(scores: var, profiles: var, chartData: var, gameplay = null, arenaRoundId = ""): var {
+            const context = ScreenContexts.createResult(scores, profiles, chartData, gameplay, arenaRoundId);
+            if (!context) {
+                return null;
             }
-            let props = {
-                "scores": scores,
-                "profiles": profiles,
-                "chartData": chartData
-            };
-            if (resultScreen && resultScreen.csvPath) {
-                props["csvPath"] = resultScreen.csvPath;
-                props["skinSettings"] =
-                    frameImplementation.currentLr2Settings("result");
-                props["skinSettingsData"] = resultScreen.settingsData || "";
-                props["screenKey"] = "result";
-            }
-            const item = frameImplementation.pushScreen(frameState.resultComponent, props);
-            if (arenaRoundId.length === 0) {
-                return item;
-            }
-            if (!item || !frameImplementation.callCurrentScreen(
-                    "presentArenaResult", [arenaRoundId])) {
-                Rg.arenaSession.endResultPresentation(arenaRoundId);
-            }
+            const item = frameImplementation.pushScreen(
+                frameImplementation.createScreen(frameState.resultComponent, { "result": context }));
+            if (item) item.QmlUtils.adopt(context);
+            else context.destroy();
             return item;
         }
 
         function openCourseResult(scores: var, profiles: var, chartDatas: var, course: var): var {
-            let hasCourseResultScreen = frameImplementation.configuredScreen(
-                "courseResult") !== null;
-            let courseResultScreen = frameImplementation.configuredScreen(
-                "courseResult", "result");
-            let props = {
-                "scores": scores,
-                "profiles": profiles,
-                "chartDatas": chartDatas,
-                "course": course
-            };
-            if (courseResultScreen && courseResultScreen.csvPath) {
-                let settingsKey = hasCourseResultScreen ? "courseResult" : "result";
-                props["csvPath"] = courseResultScreen.csvPath;
-                props["skinSettings"] =
-                    frameImplementation.currentLr2Settings(settingsKey);
-                props["skinSettingsData"] = courseResultScreen.settingsData || "";
-                props["screenKey"] = settingsKey;
+            const context = ScreenContexts.createCourseResult(scores, profiles, chartDatas, course);
+            if (!context) {
+                return null;
             }
-            return frameImplementation.pushScreen(frameState.courseResultComponent, props);
+            const item = frameImplementation.pushScreen(
+                frameImplementation.createScreen(frameState.courseResultComponent, { "result": context }));
+            if (item) item.QmlUtils.adopt(context);
+            else context.destroy();
+            return item;
         }
 
         anchors.fill: parent
-
-        Connections {
-            target: Rg.arenaSession
-
-            function onPreparedGameplayChanged(runner) {
-                frameImplementation.openPreparedArenaGameplay(runner);
-            }
-
-            function onRoundLaunchCancelled() {
-                frameImplementation.closePreparedArenaGameplay();
-            }
-        }
-
-        Component {
-            id: arenaShellComponent
-
-            FocusScope {
-                id: arenaShell
-
-                required property ArenaSession session
-                property bool closing: false
-                readonly property bool showSelect: session.state === ArenaSession.InRoom || session.state === ArenaSession.Reconnecting
-
-                function syncSelectHost(): void {
-                    const host = arenaSelectLoader.item;
-                    if (!host) {
-                        return;
-                    }
-                    if (showSelect) {
-                        host.openSelectScreen();
-                        host.forceActiveFocus();
-                    } else {
-                        host.closeSelectScreen();
-                    }
-                }
-
-                onShowSelectChanged: syncSelectHost()
-
-                function requestCloseArena(): void {
-                    if (closing) {
-                        return;
-                    }
-                    closing = true;
-                    Qt.callLater(function () {
-                        session.exitArena();
-                        if (arenaShell.StackView.view) {
-                            arenaShell.StackView.view.popCurrentItem();
-                        }
-                    });
-                }
-
-                function requestLeaveRoom(): void {
-                    Qt.callLater(function () {
-                        session.leaveRoom();
-                    });
-                }
-
-                StackView.onRemoved: {
-                    frameState.activeArenaItem = null;
-                    if (session.active) {
-                        session.exitArena();
-                    }
-                }
-
-                Loader {
-                    id: arenaBrowserLoader
-
-                    property bool readyToLoad: false
-                    readonly property url configuredSource:
-                        frameState.multiplayerScreen
-                        ? frameState.multiplayerScreen.script
-                        : ""
-
-                    anchors.fill: parent
-                    active: true
-                    enabled: !arenaShell.showSelect
-                    visible: !arenaShell.showSelect
-
-                    function loadConfiguredScreen(): void {
-                        if (configuredSource.toString().length === 0) {
-                            arenaShell.requestCloseArena();
-                            return;
-                        }
-                        setSource(configuredSource, {
-                            "session": arenaShell.session,
-                            "activeProfile": frameState.mainProfile
-                        });
-                    }
-
-                    Component.onCompleted: {
-                        readyToLoad = true;
-                        loadConfiguredScreen();
-                    }
-                    onConfiguredSourceChanged: {
-                        if (readyToLoad) {
-                            loadConfiguredScreen();
-                        }
-                    }
-                    onLoaded: {
-                        if (!arenaShell.showSelect && status === Loader.Ready && item) {
-                            item.forceActiveFocus();
-                        }
-                    }
-                    onStatusChanged: {
-                        if (status === Loader.Error) {
-                            console.warn("Failed to load configured multiplayer screen:", configuredSource);
-                            arenaShell.requestCloseArena();
-                        }
-                    }
-                    onVisibleChanged: {
-                        if (visible && status === Loader.Ready && item) {
-                            item.forceActiveFocus();
-                        }
-                    }
-                }
-
-                Connections {
-                    target: arenaBrowserLoader.status === Loader.Ready
-                        ? arenaBrowserLoader.item
-                        : null
-
-                    function onCreateRequested(name, password): void {
-                        arenaShell.session.createRoom(name, password);
-                    }
-                    function onExitRequested(): void {
-                        arenaShell.requestCloseArena();
-                    }
-                    function onJoinRequested(roomId, password): void {
-                        arenaShell.session.joinRoom(roomId, password);
-                    }
-                    function onRetryRequested(): void {
-                        arenaShell.session.retry();
-                    }
-                }
-
-                Component {
-                    id: arenaSelectComponent
-
-                    FocusScope {
-                        id: arenaSelectHost
-
-                        readonly property var currentScreen: selectStack.currentItem
-                        readonly property bool nativeArenaPresentation: currentScreen !== null && currentScreen.arenaNativeSelectPresentation !== undefined && currentScreen.arenaNativeSelectPresentation === true
-
-                        function openSelectScreen(): void {
-                            if (currentScreen) {
-                                return;
-                            }
-                            const item = selectStack.pushItem(
-                                frameState.selectComponent,
-                                frameImplementation.selectScreenProperties());
-                            if (item) {
-                                item.forceActiveFocus();
-                            }
-                        }
-
-                        function closeSelectScreen(): void {
-                            selectStack.clear(StackView.Immediate);
-                        }
-
-                        StackView {
-                            id: selectStack
-
-                            anchors.fill: parent
-                        }
-
-                        Loader {
-                            anchors.fill: parent
-                            active: arenaSelectHost.currentScreen !== null && !arenaSelectHost.nativeArenaPresentation
-                            sourceComponent: legacySelectOverlayComponent
-                            z: 1000000
-                        }
-
-                        Component {
-                            id: legacySelectOverlayComponent
-
-                            ArenaLegacySelectOverlay {
-                                presentationItem: arenaSelectHost.currentScreen
-                                session: arenaShell.session
-                                themeVars:
-                                    frameImplementation.resolvedThemeVars(
-                                        "select")
-                                viewport: arenaSelectHost
-                            }
-                        }
-                    }
-                }
-
-                Loader {
-                    id: arenaSelectLoader
-
-                    anchors.fill: parent
-                    active: true
-                    enabled: arenaShell.showSelect
-                    sourceComponent: arenaSelectComponent
-                    visible: arenaShell.showSelect
-
-                    onLoaded: {
-                        arenaShell.syncSelectHost();
-                    }
-                }
-            }
-        }
 
         StackView {
             id: sceneStack
@@ -801,28 +381,7 @@ ApplicationWindow {
         Binding {
             target: Rg.programSettings
             property: "continuousRendering"
-            value: !!sceneStack.currentItem
-                && !!sceneStack.currentItem.chart
-                && sceneStack.currentItem.chart.status === ChartRunner.Running
-        }
-        ArenaOverlayHost {
-            id: arenaOverlayHost
-
-            anchors.fill: parent
-            currentItem: sceneStack.currentItem
-            layoutVariant: frameImplementation.gameplayLayoutVariant(
-                sceneStack.currentItem)
-            resultResolvedSkinId: String(
-                frameState.mainProfile.themeConfig.result || "")
-            resultThemeVars: frameImplementation.resolvedThemeVars("result")
-            session: frameState.arenaSession
-            themeVars: frameImplementation.gameplayThemeVars(layoutVariant)
-            z: 2000000
-        }
-        LegacySkinCustomizeHost {
-            anchors.fill: parent
-            screen: sceneStack.currentItem
-            z: 2100000
+            value: sceneStack.currentItem?.gameplay?.status === ChartRunner.Running
         }
         Loader {
             id: debugLogLoader

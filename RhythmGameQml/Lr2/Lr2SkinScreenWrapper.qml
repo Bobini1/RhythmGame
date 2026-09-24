@@ -8,28 +8,30 @@ Item {
     id: root
     focus: true
     property string csvPath
-    property string screenKey: ""
-    property string arenaRoundId: ""
-    property bool arenaManagedRunner: false
-    property var chart
-    property var scores: []
-    property var profiles: []
-    property var chartData: null
-    property var chartDatas: []
-    property var course: null
+    required property string screenKey
+    property GameplayContext gameplay: null
+    property QtObject resultContext: null
+    readonly property var chart: root.gameplay ? root.gameplay._runner : null
+    readonly property var scores: root.resultContext
+        ? Array.from(root.resultContext.players, player => player.score) : []
+    readonly property var profiles: root.resultContext
+        ? Array.from(root.resultContext.players, player => player.profile) : []
+    readonly property var chartData: root.resultContext instanceof ResultContext
+        ? root.resultContext.chartData : null
+    readonly property var chartDatas: root.resultContext instanceof CourseResultContext
+        ? root.resultContext.charts : []
+    readonly property var course: root.resultContext instanceof CourseResultContext
+        ? root.resultContext.course : null
     property var skinSettings
     property string skinSettingsData: ""
     property var selectContextRef: null
     property bool componentReady: false
     property bool customizeMode: false
     property var legacySkinCustomizeItems: []
-    readonly property bool legacySkinCustomizeAvailable: true
     readonly property var arenaSession: Rg.arenaSession
     readonly property bool arenaSeated: arenaSession.state === ArenaSession.InRoom
         || arenaSession.state === ArenaSession.Reconnecting
-    readonly property bool arenaGameplayOwned: root.gameplayScreenActive
-        && arenaSession.arenaGameplayActive === true
-        && arenaSession.arenaRunner === root.chart
+    readonly property bool arenaGameplayOwned: root.gameplay?.arenaActive ?? false
     readonly property var legacySkinCustomizeThemeVars:
         root.lr2SettingDestinationForScreen(root.effectiveScreenKey)
     readonly property string legacySkinCustomizeTitle:
@@ -487,7 +489,7 @@ Item {
             return root.toggleSelectPanel(3);
         case 6:
             if (!root.arenaSeated) {
-                globalRoot.openSettings(5);
+                globalRoot.openSettings("keys");
             }
             return true;
         case 8:
@@ -518,8 +520,8 @@ Item {
                 root.closeSelectPanel();
                 return;
             }
-            if (root.effectiveScreenKey === "select" && root.arenaSeated) {
-                Rg.arenaSession.leaveRoom();
+            if (root.effectiveScreenKey === "select") {
+                selectContext.actions.exit();
                 return;
             }
             if (root.effectiveScreenKey === "decide") {
@@ -660,21 +662,10 @@ Item {
         root.activateGameplayIfNeeded();
     }
 
-    readonly property string effectiveScreenKey: screenState.effectiveKey
+    readonly property string effectiveScreenKey: root.screenKey
     readonly property bool gameplayScreenActive: screenState.gameplayScreen
     readonly property bool resultScreenActive: screenState.resultScreen
-    readonly property bool arenaResultMatches: root.resultScreenActive
-        && root.arenaRoundId.length > 0
-        && root.arenaSession.resultPresentationActive === true
-        && root.arenaSession.presentedResult !== null
-        && root.arenaSession.presentedResult.valid === true
-        && root.arenaRoundId
-            === String(root.arenaSession.presentedResult.roundId || "")
-
-    function presentArenaResult(roundId: string) : bool {
-        root.arenaRoundId = roundId;
-        return root.arenaRoundId.length > 0;
-    }
+    readonly property bool arenaResultMatches: root.resultContext instanceof ResultContext && root.resultContext.arenaActive
 
     readonly property bool decideScreenActive: root.enabled
         && root.visible
@@ -5527,8 +5518,7 @@ Item {
 
     Lr2ScreenState {
         id: screenState
-        explicitKey: root.screenKey
-        csvPath: root.csvPath
+        screenKey: root.screenKey
         hostEnabled: root.enabled
         hostVisible: root.visible
         stackActive: root.StackView.status === StackView.Active
@@ -5655,7 +5645,7 @@ Item {
 
     StandardGameplayFlow {
         id: gameplayInput
-        chart: root.gameplayScreenActive ? root.chart : null
+        gameplay: root.gameplayScreenActive ? root.gameplay : null
         enabled: root.screenUpdatesActive && root.gameplayScreenActive
         startReady: root.gameplayReadySkinTime >= 0
         startDelayMillis: Math.max(1, skinModel.playStart || 2000)
@@ -5683,7 +5673,7 @@ Item {
 
     StandardChartRetry {
         id: resultRetry
-        fromResult: true
+        result: root.resultContext
         enabled: root.resultInputReady()
     }
 
@@ -5753,6 +5743,7 @@ Item {
     }
 
     Component.onCompleted: {
+        skinSettingsState.initializeScreen();
         root.componentReady = true;
         selectSideEffects.ready = true;
         root.commitLr2RankingRequest();
@@ -5770,10 +5761,6 @@ Item {
 
     Component.onDestruction: {
         root.cancelGameplayScoreDbReply();
-        const arenaSession = root.arenaSession;
-        if (root.arenaRoundId.length > 0 && arenaSession) {
-            arenaSession.endResultPresentation(root.arenaRoundId);
-        }
     }
 
     function pauseScreenActivity() : void {
@@ -6017,7 +6004,7 @@ Item {
             return false;
         }
         root.decideTransitionRequested = true;
-        const item = globalRoot.openGameplay(root.chart);
+        const item = globalRoot.replaceGameplay(root.gameplay);
         if (!item) {
             root.decideTransitionRequested = false;
         }
@@ -6298,7 +6285,7 @@ Item {
         if (root.handleDecideButtonPress(key)) {
             return;
         }
-        if (selectPanelController.handleArenaReadyStartPress(key)) {
+        if (root.selectInputReady() && selectContext.actions.handleStartPress(key)) {
             return;
         }
         if (root.handleLr2GameplayOptionKey(key)) {
@@ -6498,6 +6485,48 @@ Item {
         selectContext: selectContext
         selectBarGeometry: selectBarGeometry
     }
+
+    StandardArenaSelectOverlay {
+        readyShortcutDescription: selectContext.actions.readyShortcutDescription
+        active: root.effectiveScreenKey === "select" && root.arenaSeated
+        z: 2000000
+        enabled: root.screenUpdatesActive
+        customizeMode: root.customizeMode
+        navigationFocusTarget: root
+        themeVars: root.lr2SettingDestinationForScreen("select")
+        viewport: root
+    }
+
+    StandardArenaGameplayOverlay {
+        id: arenaGameplayOverlay
+        gameplay: root.gameplayScreenActive ? root.gameplay : null
+        z: 2000000
+        enabled: root.screenUpdatesActive
+        customizeMode: root.customizeMode
+        themeVars: root.lr2SettingDestinationForScreen(root.effectiveScreenKey)
+        viewport: root
+    }
+
+    StandardArenaResultOverlay {
+        id: arenaResultOverlay
+        result: root.resultScreenActive ? root.resultContext as ResultContext : null
+        z: 2000000
+        enabled: root.screenUpdatesActive
+        customizeMode: root.customizeMode
+        themeVars: root.lr2SettingDestinationForScreen("result")
+        viewport: root
+    }
+
+    Loader {
+        anchors.fill: parent
+        active: root.customizeMode
+        z: 2100000
+        sourceComponent: LegacySkinCustomizeOverlay {
+            screen: root
+        }
+    }
+
+    TransientInputFocusDismissLayer {}
 
     MouseArea {
         anchors.fill: parent

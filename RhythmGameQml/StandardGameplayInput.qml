@@ -4,157 +4,46 @@ import RhythmGameQml
 /*!
     \qmltype StandardGameplayInput
     \inqmlmodule RhythmGameQml
-    \brief Coordinates gameplay exit, quick retry and result completion.
+    \brief Maps Escape and the Start+Select retry gesture for gameplay.
 
-    The component distinguishes abandoning before a hit from finishing an
-    attempted play, while leaving presentation cleanup and result opening
-    overridable.
+    Use StandardGameplayFlow for a complete gameplay screen. It already includes
+    this component. Use StandardGameplayInput separately only when your skin
+    supplies its own gameplay flow. Handle \l exitRequested to leave gameplay
+    or finish the stage. This component does not save scores or open results.
 
-    New gameplay skins should normally use \l StandardGameplayFlow, which
-    includes this component and supplies startup, course continuation and
-    return navigation. Do not instantiate both on the same screen.
+    Hold Start+Select for \l retryHoldDurationMillis to enter \l retryChoosing.
+    Release Start for the same pattern, Select for fresh randomization, or both
+    to cancel. While choosing, exit is blocked. Delay completion and disable your
+    other controls with \c {!retryChoosing}, but leave this component enabled so
+    it can receive the releases.
 
-    The default \l exit decision is:
-
-    \table
-        \header
-            \li State
-            \li Result
-        \row
-            \li Arena chat is open
-            \li Close chat and remain in gameplay
-        \row
-            \li No scoring hit and not Arena-owned
-            \li Run \l closePresentationAction and return without a result
-        \row
-            \li A scoring hit occurred, or Arena owns the runner
-            \li Play exit feedback, close the presentation, finish/proceed the
-                runner, and open results
-    \endtable
-
-    \l exitAction replaces that entire decision. \l openResultAction is called
-    as \c openResultAction(scores, profiles, chartData). If a runner reaches
-    \c ChartRunner.Finished while this component is disabled, completion is
-    deferred until it becomes enabled; the result is opened at most once per
-    chart. \l completionEnabled can disable automatic completion for skins
-    that implement their own finish timing.
-
-    Hold Start+Select on either side for \l retryHoldDurationMillis. During
-    \l retryChoosing, release Start for the same pattern, Select for fresh
-    randomization, or both to cancel. Gameplay stays visible and standard exit
-    and completion wait until the choice ends. Gate other skin-owned controls
-    with !retryChoosing, but keep this component enabled to receive releases.
-
-    \l retryEnabled and \l exitEnabled disable the respective actions and key
-    mappings. \l retryAction replaces restarting; \l retry can also be called
-    from a skin button. Standard retry excludes courses, autoplay, replay,
-    battle and Arena. Use \l StandardChartRetry for retry without these input
-    mappings or completion handling.
+    \l retryEnabled and \l exitEnabled disable the corresponding methods and
+    input mappings. \l retryAction replaces restarting, and \l retry can also be
+    called by a button. Standard retry excludes courses, autoplay, replay, battle
+    and Arena. Use StandardChartRetry if you only need the retry operation.
 */
 Item {
     id: root
 
-    /*! Gameplay runner being exited. */
-    property var chart: null
-    /*! Chart data passed to the result screen. */
-    property var chartData: null
-    /*! Optional \c exitAction() replacement for the entire exit decision. */
-    property var exitAction: null
-    /*! Optional \c closePresentationAction() called before leaving gameplay. */
-    property var closePresentationAction: null
-    /*! Optional \c openResultAction(scores,profiles,chartData) replacement. */
-    property var openResultAction: null
-    /*! Optional \c exitFeedbackAction() replacement for attempted-exit audio. */
-    property var exitFeedbackAction: null
-    /*! Default attempted-exit audio source, loaded only for built-in feedback. */
-    property url exitFeedbackSource:
-        Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playstop"
-    /*! Whether attempted-exit feedback is active. */
-    property bool exitFeedbackEnabled: true
-    /*! Whether Arena owns the gameplay completion transition. */
-    property bool arenaOwned: false
-    /*! Whether Escape and calls to \l exit are accepted. */
+    /*! Supplies the GameplayContext received by the gameplay screen. */
+    property GameplayContext gameplay: null
+    /*! Controls whether Escape and calls to \l exit are accepted. */
     property bool exitEnabled: true
-    /*! Whether finished charts automatically open their result. */
-    property bool completionEnabled: true
-    /*! Whether retry and the Start+Select gesture are enabled. */
+    /*! Controls whether retry and the Start+Select gesture are enabled. */
     property bool retryEnabled: true
     /*! Start+Select hold duration before choosing a retry, in milliseconds. */
     property int retryHoldDurationMillis: 1000
-    /*! Optional \c retryAction(samePattern) replacement for restarting. */
+    /*! Calls \c retryAction(samePattern) in place of restarting. */
     property var retryAction: null
-    /*! Whether the Start+Select gesture is waiting for a release choice. */
+    /*! Reports whether the Start+Select gesture is waiting for a release choice. */
     readonly property bool retryChoosing: inputState.choosing
-    /*! Whether gameplay has produced a scoring hit. */
-    readonly property bool attempted: attemptState.attempted
 
-    QtObject {
-        id: exitState
-
-        property bool completionPending: false
-        property bool resultOpened: false
-
-        function closePresentation() {
-            if (typeof root.closePresentationAction === "function") {
-                root.closePresentationAction();
-            }
-        }
-
-        function openResult(scores, profiles, chartData) {
-            if (typeof root.openResultAction === "function") {
-                root.openResultAction(scores, profiles, chartData);
-                return true;
-            }
-            globalRoot.openResult(scores, profiles, chartData);
-            return true;
-        }
-
-        function complete() {
-            if (!root.chart || exitState.resultOpened) {
-                return false;
-            }
-            exitState.completionPending = false;
-            exitState.resultOpened = true;
-            exitState.closePresentation();
-            let profiles = [root.chart.player1.profile,
-                            root.chart.player2
-                                ? root.chart.player2.profile : null];
-            const chartData = root.chartData;
-            let scores = root.chart instanceof ChartRunner
-                ? root.chart.finish()
-                : root.chart.proceed();
-            exitState.openResult(scores, profiles, chartData);
-            return true;
-        }
-
-        function playExitFeedback() {
-            if (!root.exitFeedbackEnabled) {
-                return;
-            }
-            if (typeof root.exitFeedbackAction === "function") {
-                root.exitFeedbackAction();
-                return;
-            }
-            playstopSound.stop();
-            playstopSound.play();
-        }
-
-        function completePending() {
-            if (root.enabled && root.completionEnabled && !root.retryChoosing
-                    && !inputState.retrying && exitState.completionPending) {
-                exitState.complete();
-            }
-        }
-    }
-
-    StandardGameplayAttemptState {
-        id: attemptState
-        chart: root.chart
-    }
+    /*! Emitted by Escape or \l exit. The owning flow decides how to leave. */
+    signal exitRequested()
 
     StandardChartRetry {
         id: chartRetry
-        chart: root.chart
+        gameplay: root.gameplay
     }
 
     QtObject {
@@ -162,7 +51,7 @@ Item {
         property int side: 0
         property bool choosing: false
         property bool retrying: false
-        readonly property bool retryAvailable: root.retryEnabled && !root.arenaOwned
+        readonly property bool retryAvailable: root.retryEnabled && !root.gameplay?.isArena
             && (typeof root.retryAction === "function" || chartRetry.available)
         readonly property int buttons: (root.Input.start1 ? 1 : 0)
             | (root.Input.select1 ? 2 : 0)
@@ -207,7 +96,7 @@ Item {
         }
     }
 
-    /*! Cancels the hold/release choice and resumes any pending completion. */
+    /*! Cancels the hold/release choice. */
     function cancelRetry() {
         holdTimer.stop();
         inputState.side = 0;
@@ -237,44 +126,20 @@ Item {
         interval: Math.max(1, root.retryHoldDurationMillis)
         onTriggered: {
             if (root.enabled && inputState.retryAvailable
-                    && root.chart?.status !== ChartRunner.Finished
+                    && root.gameplay?.status !== ChartRunner.Finished
                     && inputState.heldButtons() === 3) {
                 inputState.choosing = true;
             }
         }
     }
 
-    /*! Applies the standard abandon-or-complete decision. */
+    /*! Emits exitRequested() if exit input is allowed. */
     function exit() {
         if (!enabled || !root.exitEnabled || root.retryChoosing || inputState.retrying) {
             return false;
         }
-        if (typeof exitAction === "function") {
-            exitAction();
-            return true;
-        }
-        if (arenaOwned && Rg.arenaSession.chatOpen === true) {
-            Rg.arenaSession.setChatOpen(false);
-            return true;
-        }
-        if (!attempted && !arenaOwned) {
-            exitState.closePresentation();
-            globalRoot.returnToPreviousScreen();
-            return true;
-        }
-        if (!chart) {
-            return false;
-        }
-        exitState.playExitFeedback();
-        return exitState.complete();
-    }
-
-    AudioPlayer {
-        id: playstopSound
-
-        source: root.exitFeedbackEnabled
-                && typeof root.exitFeedbackAction !== "function"
-            ? root.exitFeedbackSource : ""
+        root.exitRequested();
+        return true;
     }
 
     Shortcut {
@@ -283,32 +148,6 @@ Item {
         onActivated: root.exit()
     }
 
-    onChartChanged: {
-        root.cancelRetry();
-        exitState.resultOpened = false;
-        exitState.completionPending = false;
-    }
-
-    onEnabledChanged: {
-        if (!root.enabled) {
-            root.cancelRetry();
-        }
-        Qt.callLater(exitState.completePending);
-    }
-    onRetryChoosingChanged: Qt.callLater(exitState.completePending)
-    onCompletionEnabledChanged: Qt.callLater(exitState.completePending)
-
-    Connections {
-        target: root.chart
-        ignoreUnknownSignals: true
-        function onStatusChanged() {
-            if (root.chart?.status === ChartRunner.Ready) {
-                exitState.resultOpened = false;
-                exitState.completionPending = false;
-            } else if (root.chart?.status === ChartRunner.Finished) {
-                exitState.completionPending = true;
-                exitState.completePending();
-            }
-        }
-    }
+    onGameplayChanged: root.cancelRetry()
+    onEnabledChanged: if (!root.enabled) root.cancelRetry()
 }

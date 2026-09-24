@@ -4,22 +4,22 @@ import RhythmGameQml
 /*!
     \qmltype StandardGameplayAttemptState
     \inqmlmodule RhythmGameQml
-    \brief Tracks whether a gameplay runner has received a scoring hit.
+    \brief Reports whether either player has made a scoring hit.
 
-    This lower-level state remains useful when a skin implements its own
-    gameplay exit or result transition.
+    Use this component when writing your own gameplay exit or result flow.
+    StandardGameplayFlow already includes it.
 
-    A hit marks the play attempted unless its judgement is Poor, EmptyPoor,
-    MineHit, or MineAvoided. Changing \l chart, or the current chart returning
-    to \c ChartRunner.Ready, resets \l attempted. The component observes both
-    player scores when present.
+    Bind \l gameplay to the supplied context. A hit sets \l attempted unless its
+    judgement is Poor, EmptyPoor, MineHit or MineAvoided. Changing the context or
+    returning the current chart to \c ChartRunner.Ready resets the flag.
+    The component observes both players when a second player is present.
 */
 Item {
     id: root
 
-    /*! Gameplay runner whose score signals are observed. */
-    property var chart: null
-    /*! Whether either player has produced a scoring hit. */
+    /*! Supplies the GameplayContext whose player scores are observed. */
+    property GameplayContext gameplay: null
+    /*! Reports whether either player has produced a scoring hit. */
     readonly property bool attempted: attemptState.attempted
 
     QtObject {
@@ -49,29 +49,27 @@ Item {
         }
     }
 
-    onChartChanged: reset()
+    onGameplayChanged: reset()
 
     Connections {
-        target: root.chart?.player1?.score || null
-        ignoreUnknownSignals: true
+        target: root.gameplay?.players[0]?.score || null
         function onHit(tap) {
             root.observeHit(tap);
         }
     }
 
     Connections {
-        target: root.chart?.player2?.score || null
-        ignoreUnknownSignals: true
+        target: root.gameplay?.players[1]?.score || null
         function onHit(tap) {
             root.observeHit(tap);
         }
     }
 
     Connections {
-        target: root.chart || null
-        ignoreUnknownSignals: true
+        target: root.gameplay
+        function onStageChanged() { root.reset(); }
         function onStatusChanged() {
-            if (root.chart?.status === ChartRunner.Ready) {
+            if (root.gameplay.status === ChartRunner.Ready) {
                 root.reset();
             }
         }

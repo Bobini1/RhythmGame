@@ -5,17 +5,23 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectReload
     \inqmlmodule RhythmGameQml
-    \brief Reloads the focused online table or scans the containing song root.
+    \brief Reloads a table or scans the root folder containing the current song.
 
-    StandardSelectController includes this behavior. Instantiate this component
-    only when assembling a custom selector. Folder navigation and focus remain
-    with the caller; a false return means it should refresh its folder model.
+    StandardSelectState and StandardSelectController already include this behavior.
+    Use the component separately when writing your own selector.
+
+    Call \l reload with the focused item, browsing history and folder path.
+    A true return means a reload or scan was requested. A false return means the
+    caller should refresh its current folder contents instead. The caller keeps
+    responsibility for navigation and focus.
 */
 Item {
     id: root
 
-    /*! Reloads the table at \a focusedItem or in \a history, or scans the root
-        containing \a folderPath. Returns true when a reload or scan was requested. */
+    /*!
+        Reloads the table at \a focusedItem or in \a history, or scans the root containing \a
+        folderPath. Returns true when a reload or scan was requested.
+    */
     function reload(focusedItem, history, folderPath) {
         if (!root.enabled) {
             return false;
@@ -28,8 +34,11 @@ Item {
                 return true;
             }
         }
+        if (implementation.scanRootSongFolderForPath(folderPath)) {
+            return true;
+        }
         Rg.songFolderFactory.refresh(true);
-        return implementation.scanRootSongFolderForPath(folderPath);
+        return false;
     }
 
     QtObject {

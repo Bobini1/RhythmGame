@@ -72,14 +72,19 @@ class ScoreDb final : public QObject
     QThreadPool threadPool;
     bool stopping = false;
     auto getScoresForMd5Impl(QList<QString> md5s,
-                             ScoreObjectOwner& objects) const
+                             ScoreObjectOwner& objects,
+                             std::stop_token stopToken) const
       -> ScoreQueryResult;
     auto getScoresForCourseIdImpl(const QList<QString>& courseIds,
-                                  ScoreObjectOwner& objects) const
+                                  ScoreObjectOwner& objects,
+                                  std::stop_token stopToken) const
       -> ScoreQueryResult;
-    auto getScoreSummaryForMd5Impl(const QList<QString>& md5s) const
+    auto getScoreSummaryForMd5Impl(const QList<QString>& md5s,
+                                   std::stop_token stopToken) const
       -> QVariantMap;
-    auto getFolderScoreSummaryImpl(const QString& folder) const -> QVariantMap;
+    auto getFolderScoreSummaryImpl(const QString& folder,
+                                   std::stop_token stopToken) const
+      -> QVariantMap;
     auto makeStoppedReply() -> support::PendingReply*;
 
   public:

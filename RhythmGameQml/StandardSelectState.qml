@@ -5,24 +5,27 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectState
     \inqmlmodule RhythmGameQml
-    \brief Owns reusable song and table browsing state.
+    \brief Loads and tracks the entries shown by a song selector.
 
-    The component owns folders, history, optional metadata enrichment,
-    filtering, sorting, and activation while leaving list presentation to the
-    skin. Use the lower-level selection components when these policies do not
-    fit a custom selector.
+    The state keeps the current folder, history and focused entry. It also handles
+    sorting, filtering, activation and optional score and preview loading. The skin
+    draws the list. Use StandardSelectController to include standard input and
+    shortcuts, or combine this state with your own controls.
 
-    Unless \l autoInitialize is false, construction immediately opens the root
-    browser. The skin must handle \l focusRequested and call \l setFocused
-    whenever its visual focus changes. \l goForward opens either a folder or a
-    playable item; \l goBack performs the matching history transaction.
+    The root folder opens when the component is completed unless \l autoInitialize
+    is false. Handle \l focusRequested to move the view and call \l setFocused
+    when the user moves focus. \l goForward opens a folder or playable item, while
+    \l goBack restores the preceding history entry. Call \l exit to leave the
+    selector, including its Arena room. \l openResult chooses the correct result
+    role for a saved chart or course score.
 
-    \l entries, \l folderContents, \l historyStack, \l scores, and
-    \l previewFiles are shallow snapshots. Reordering an array or assigning a
-    map key does not modify the selection state, but contained chart and table
-    objects are not cloned. Score, preview, and folder-stat enrichment is
-    asynchronous; consumers must react to property changes rather than assuming
-    all metadata is present when \l openedFolder is emitted.
+    The arrays and maps in \l entries, \l folderContents, \l historyStack,
+    \l scores and \l previewFiles are shallow copies. Changing an array or map
+    doesn't update the state. The chart and table objects inside them are shared.
+
+    Scores, previews and folder clear statistics load asynchronously. They may
+    not be available when \l openedFolder is emitted, so bind to their properties
+    and let the display update when the data arrives.
 */
 Item {
     id: root
@@ -82,17 +85,17 @@ Item {
     readonly property var previewFiles:
         Object.assign({}, sessionImpl.previewFiles)
     /*!
-        Optional \c tryOpenPlayableAction(item,autoplay,replay,replayScore)
-        pre-handler. True consumes the operation.
+        Called as \c tryOpenPlayableAction(item,autoplay,replay,replayScore). Return true to
+        handle the request, or false to continue with the standard action.
     */
     property var tryOpenPlayableAction: null
-    /*! Whether standard score loading is active. */
+    /*! Controls whether standard score loading is active. */
     property bool scoresEnabled: true
-    /*! Whether standard preview-file discovery is active. */
+    /*! Controls whether standard preview-file discovery is active. */
     property bool previewFilesEnabled: true
-    /*! Whether per-folder clear-statistic loading is active. */
+    /*! Controls whether per-folder clear-statistic loading is active. */
     property bool folderClearStatsEnabled: true
-    /*! Whether construction automatically opens the root selection folder. */
+    /*! Controls whether construction automatically opens the root selection folder. */
     property bool autoInitialize: true
     /*! Sort mode used to prepare logical entries. */
     property int sortMode: selectionState.generalVars.selectSortMode
@@ -100,7 +103,7 @@ Item {
     property int keymodeFilter: selectionState.generalVars.selectKeymodeFilter
     /*! Difficulty filter used to prepare logical entries. */
     property int difficultyFilter: 0
-    /*! Whether items without scores sort after scored items. */
+    /*! Controls whether items without scores sort after scored items. */
     property bool unscoredItemsLast: true
     /*! Index of \l focusedItem in \l entries. */
     readonly property int focusedIndex: selectionState.focusedIndex
@@ -324,7 +327,20 @@ Item {
         id: sessionImpl
     }
 
-    StandardSelectActivation {
+    /*! Shared play, saved-result, exit and Arena ready actions. */
+    readonly property alias actions: activationImpl
+    /*! Calls \c exitAction() in place of leaving selection. */
+    property alias exitAction: activationImpl.exitAction
+    /*! Describes the standard Arena ready gesture. */
+    readonly property alias readyShortcutDescription: activationImpl.readyShortcutDescription
+
+    /*! Leaves selection or its Arena room. Use goBack() for folder history. */
+    function exit() { return activationImpl.exit(); }
+
+    /*! Opens the saved \a score for the chart or course \a item. */
+    function openResult(item, score) { return activationImpl.openResult(item, score); }
+
+    StandardSelectActions {
         id: activationImpl
 
         tryOpenPlayableAction: root.tryOpenPlayableAction
@@ -381,8 +397,8 @@ Item {
     }
 
     /*!
-        Opens \a item using \a autoplay, \a replay, and \a replayScore to
-        select the requested play mode.
+        Opens \a item using \a autoplay, \a replay, and \a replayScore to select the requested
+        play mode.
     */
     function openPlayable(item, autoplay = false, replay = false,
                           replayScore = null) {

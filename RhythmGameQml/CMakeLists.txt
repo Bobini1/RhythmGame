@@ -77,6 +77,11 @@ set(LR2_SKIN_QML_FILES
         Lr2/Lr2SkinUtils.js
         Lr2/Lr2TimelineFrame.qml
         Lr2/Lr2SkinScreenWrapper.qml
+        Lr2/Lr2SelectScreen.qml
+        Lr2/Lr2DecideScreen.qml
+        Lr2/Lr2GameplayScreen.qml
+        Lr2/Lr2ResultScreen.qml
+        Lr2/Lr2CourseResultScreen.qml
         Lr2/Lr2SkinScene.qml
         Lr2/Lr2SkinElementDelegate.qml
         Lr2/Lr2SelectPointerSurface.qml
@@ -133,6 +138,8 @@ set(LR2_SKIN_SHADERS
 )
 
 set(RHYTHM_GAME_QML_SOURCES
+        ScreenContexts.h
+        ScreenContexts.cpp
         FontResolver.h
         FontResolver.cpp
         Rg.h
@@ -144,7 +151,6 @@ set(RHYTHM_GAME_QML_FILES
         ContentFrame.qml
         Log.qml
         ColorChanger.qml
-        LegacySkinCustomizeHost.qml
         LegacySkinCustomizeOverlay.qml
         LegacySkinCustomizePlacementFrame.qml
         OverlayResizeHandle.qml
@@ -158,7 +164,7 @@ set(RHYTHM_GAME_QML_FILES
         StandardSelectState.qml
         StandardSelectReload.qml
         StandardSelectSession.qml
-        StandardSelectActivation.qml
+        StandardSelectActions.qml
         StandardSelectModelAdapter.qml
         StandardSelectNavigation.qml
         StandardSelectInput.qml
@@ -166,6 +172,11 @@ set(RHYTHM_GAME_QML_FILES
         StandardSelectController.qml
         StandardInputKeys.qml
         StandardMainActions.qml
+        StandardMultiplayerFlow.qml
+        StandardArenaOverlay.qml
+        StandardArenaSelectOverlay.qml
+        StandardArenaGameplayOverlay.qml
+        StandardArenaResultOverlay.qml
         StandardDecideFlow.qml
         StandardResultInput.qml
         StandardChartRetry.qml
@@ -179,9 +190,6 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaTypography.qml
         Arena/ArenaSelectionSummary.qml
         Arena/ArenaSelectPanel.qml
-        Arena/ArenaSelectOverlay.qml
-        Arena/ArenaLegacySelectOverlay.qml
-        Arena/ArenaOverlayHost.qml
         Arena/ArenaGameplayOverlay.qml
         Arena/ArenaJudgementBreakdown.qml
         Arena/ArenaCompetitionText.qml

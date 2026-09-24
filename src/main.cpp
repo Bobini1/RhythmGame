@@ -293,11 +293,12 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             qputenv("QV4_GC_TIMELIMIT", QByteArray("1"));
         }
 
-        // The scanner and Backbeat catalog write through separate connections.
         auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite",
                                    std::chrono::seconds(5) };
 
         resource_managers::defineDb(db);
+        auto catalogWriteDb = db::SqliteCppDb{ dataFolder / "song_db.sqlite",
+                                               std::chrono::seconds(5) };
 
         removeLegacySongAssetCache(dataFolder);
         auto songAssets = resource_managers::SongAssetStore{};
@@ -306,7 +307,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         songAssets.setBackbeatSource(backbeat);
 #endif
         auto songDbScanner =
-          resource_managers::SongDbScanner{ &db, &songAssets };
+          resource_managers::SongDbScanner{ &catalogWriteDb, &songAssets };
         auto avatarPath = support::pathToQString(dataFolder / "avatars/");
         if (!avatarPath.startsWith("/")) {
             avatarPath = "/" + avatarPath;
@@ -496,7 +497,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         applyArenaDirectoryPolicy();
 
         auto scanningQueue =
-          qml_components::ScanningQueue{ &db, songDbScanner };
+          qml_components::ScanningQueue{ &catalogWriteDb, songDbScanner };
 
         auto folders = qml_components::RootSongFolders{ &db, &scanningQueue };
 
@@ -534,7 +535,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           &qml_components::SongFolderFactory::contentsChanged);
 #ifdef RHYTHMGAME_USE_BACKBEAT
         auto backbeatCatalog = resource_managers::BackbeatCatalog{
-            backbeat, dataFolder / "song_db.sqlite", &db
+            backbeat, dataFolder / "song_db.sqlite", &db, &catalogWriteDb
         };
         QObject::connect(&scanningQueue,
                          &qml_components::ScanningQueue::queueDrained,

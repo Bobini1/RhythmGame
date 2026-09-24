@@ -4,83 +4,35 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectController
     \inqmlmodule RhythmGameQml
-    \brief Composes the complete standard selection behavior.
+    \brief Supplies browsing, input and shortcuts for a song selector.
 
-    The controller extends \l StandardSelectState with presentation adaptation,
-    feedback, input, navigation, and shortcuts. Lower-level components can
-    instead be instantiated independently when a skin needs a different
-    composition.
+    The controller includes StandardSelectState plus navigation, shortcuts and
+    folder feedback. Your skin draws the list or wheel and moves its focus.
+    Don't add the included components separately to the same screen.
 
-    The controller does not render a song list. Connect \l presentationEntries
-    to a circular presentation or inherited \l entries to a finite one, call
-    \l setFocused when its focus changes, and handle \l moveRequested to move
-    that focus.
+    Use inherited \l entries for a list with one row per item. For a circular
+    wheel that needs repeated rows, use \l presentationEntries and set
+    \l minimumEntryCount. Call \l setFocused when the focused item changes.
+    Handle \l focusRequested to restore focus and \l moveRequested to move it.
 
-    A finite selector needs the following wiring. A circular wheel uses
-    \l presentationEntries instead of \l entries and maps its repeated visual
-    rows back through \l setFocused in the same way.
+    The focused visual item must forward its keyboard events to \l handleUpPressed,
+    \l handleDownPressed and \l handleReleased. The
+    \l {../skin_tutorial_select.html}{selection lesson} contains an installable
+    list with the focus and keyboard handling in place.
 
-    \qml
-    import QtQuick
-    import RhythmGameQml
+    Browsing initializes when the component is completed. To choose the timing,
+    set \l autoInitialize to false and call \l initialize after the view is ready.
 
-    FocusScope {
-        id: screen
+    F2 reloads the current folder or table, F3 opens the selected folder, and F12
+    opens Settings. F11 emits \l openInternetRankingRequested so the skin can show
+    its own ranking view. Autoplay has a standard action. Replay requires
+    \l tryReplayAction to choose a saved replay. Escape leaves selection or
+    its Arena room. In Arena, pressing Start twice on the same player side
+    toggles ready. Disable either gesture with \l exitEnabled or \l readyEnabled.
 
-        property var openRankingAction: null
-
-        StandardSelectController {
-            id: selection
-
-            onFocusRequested: index => songList.currentIndex = index
-            onMoveRequested: steps => {
-                if (songList.count > 0) {
-                    songList.currentIndex =
-                        (songList.currentIndex + steps + songList.count)
-                        % songList.count;
-                }
-            }
-            onOpenInternetRankingRequested: {
-                if (typeof screen.openRankingAction === "function") {
-                    screen.openRankingAction(focusedItem);
-                }
-            }
-        }
-
-        ListView {
-            id: songList
-
-            anchors.fill: parent
-            focus: true
-            model: selection.entries
-            currentIndex: selection.focusedIndex
-            delegate: Text {
-                required property var modelData
-                text: String(modelData)
-            }
-
-            onCurrentIndexChanged: {
-                if (currentIndex >= 0) {
-                    selection.setFocused(model[currentIndex]);
-                }
-            }
-
-            Keys.onUpPressed: event => selection.handleUpPressed(event)
-            Keys.onDownPressed: event => selection.handleDownPressed(event)
-            Keys.onReleased: event => selection.handleReleased(event)
-        }
-    }
-    \endqml
-
-    The controller initializes browsing on completion unless \l autoInitialize
-    is false. F2, F3, and F12 have built-in behavior. F11 only emits
-    \l openInternetRankingRequested because ranking presentation belongs to the
-    skin. Autoplay also has built-in behavior; replay requires
-    \l tryReplayAction because replay-score selection belongs to the skin.
-    Setting \l enabled to false suppresses selection input, shortcuts, and
-    feedback. \l inputEnabled, \l shortcutsEnabled, and \l feedbackEnabled can
-    disable those parts independently. Disabled forwarded keyboard handlers do
-    not accept their events, allowing the skin to replace them.
+    Disabling the controller stops its input, shortcuts and feedback. Use
+    \l inputEnabled, \l shortcutsEnabled or \l feedbackEnabled to disable just
+    one part. Disabled keyboard handlers leave events unaccepted for another handler.
 */
 StandardSelectState {
     id: root
@@ -88,38 +40,45 @@ StandardSelectState {
     /*! Minimum number of entries produced by \l presentationEntries. */
     property int minimumEntryCount: 0
     /*!
-        Optional \c tryAutoplayAction() pre-handler. True consumes the input;
-        false continues with standard autoplay.
+        Called as \c tryAutoplayAction(). Return true to handle the request, or false to
+        continue with the standard action.
     */
     property var tryAutoplayAction: null
     /*!
-        Optional \c tryReplayAction() handler. Replay input is ignored when it
-        is absent or returns false.
+        Called as \c tryReplayAction() to choose and open a replay. Return true when handled.
+        Without a successful handler, replay input does nothing.
     */
     property var tryReplayAction: null
-    /*! Optional \c cycleReplayTypeAction() replacement. */
+    /*! Calls \c cycleReplayTypeAction() when key 6 is pressed. Without a callback, the key does nothing. */
     property var cycleReplayTypeAction: null
-    /*! Optional \c tryCycleSortModeAction(delta) pre-handler. True consumes. */
+    /*!
+        Called as \c tryCycleSortModeAction(delta). Return true to handle the request, or
+        false to continue with the standard action.
+    */
     property var tryCycleSortModeAction: null
-    /*! Optional \c reloadAction() replacement for F2. */
+    /*! Calls \c reloadAction() in place of F2. */
     property var reloadAction: null
-    /*! Optional \c openSelectedFolderAction() replacement for F3. */
+    /*! Calls \c openSelectedFolderAction() in place of F3. */
     property var openSelectedFolderAction: null
-    /*! Optional \c openSettingsAction() replacement for F12. */
+    /*! Calls \c openSettingsAction() in place of F12. */
     property var openSettingsAction: null
-    /*! Whether the F2 reload shortcut is active. */
+    /*! Controls whether the F2 reload shortcut is active. */
     property bool reloadShortcutEnabled: true
-    /*! Whether the F3 folder shortcut is active. */
+    /*! Controls whether the F3 folder shortcut is active. */
     property bool openSelectedFolderShortcutEnabled: true
-    /*! Whether the F11 Internet-ranking shortcut is active. */
+    /*! Controls whether the F11 Internet-ranking shortcut is active. */
     property bool openInternetRankingShortcutEnabled: true
-    /*! Whether the F12 settings shortcut is active. */
+    /*! Controls whether the F12 settings shortcut is active. */
     property bool openSettingsShortcutEnabled: true
-    /*! Whether standard selection input is active. */
+    /*! Controls whether standard selection input is active. */
     property bool inputEnabled: enabled
-    /*! Whether selection-specific F-key shortcuts are active. */
+    /*! Controls the Escape shortcut for leaving selection. */
+    property alias exitEnabled: input.exitEnabled
+    /*! Controls the double-Start Arena ready gesture. */
+    property alias readyEnabled: input.readyEnabled
+    /*! Controls whether selection-specific F-key shortcuts are active. */
     property bool shortcutsEnabled: enabled
-    /*! Whether standard audio and replacement feedback actions are active. */
+    /*! Controls whether standard audio and replacement feedback actions are active. */
     property bool feedbackEnabled: enabled
     /*! Number of analog scratch ticks required for one logical step. */
     property alias analogTicksPerStep: input.analogTicksPerStep
@@ -127,9 +86,9 @@ StandardSelectState {
     property alias initialRepeatDelayMillis: input.initialRepeatDelayMillis
     /*! Delay between repeated classic-scratch steps, in milliseconds. */
     property alias repeatDelayMillis: input.repeatDelayMillis
-    /*! Optional \c enterFeedbackAction() replacement for the entering sound. */
+    /*! Calls \c enterFeedbackAction() in place of the entering sound. */
     property var enterFeedbackAction: null
-    /*! Optional \c leaveFeedbackAction() replacement for the leaving sound. */
+    /*! Calls \c leaveFeedbackAction() in place of the leaving sound. */
     property var leaveFeedbackAction: null
     /*! Default entering-folder sound source, loaded only for built-in feedback. */
     property url enterFeedbackSource:
@@ -138,18 +97,18 @@ StandardSelectState {
     property url leaveFeedbackSource:
         Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-close"
 
-    /*! Defensive snapshot repeated when \l minimumEntryCount requires it. */
+    /*! Contains a copy of the entries, repeated to fill \l minimumEntryCount when needed. */
     readonly property var presentationEntries: modelAdapter.entries.slice()
 
     /*! Emitted when F2 was not handled by the standard reload behavior. */
     signal reloadRequested()
     /*! Emitted when F3 was not handled by the standard folder behavior. */
     signal openSelectedFolderRequested()
-    /*! Emitted when F11 requests skin-owned Internet ranking. */
+    /*! Emitted when F11 requests the skin's ranking view. */
     signal openInternetRankingRequested()
     /*!
-        Requests relative focus movement by \a steps. \a repeated identifies
-        held input and \a analog identifies analog-scratch input.
+        Requests relative focus movement by \a steps. \a repeated identifies held input and \a
+        analog identifies analog-scratch input.
     */
     signal moveRequested(int steps, bool repeated, bool analog)
 

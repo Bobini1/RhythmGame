@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <chrono>
 #include <cstdint>
+#include <stop_token>
 #include "support/get.h"
 #include "support/TupleSize.h"
 
@@ -49,12 +50,16 @@ class SqliteCppDb
     {
         ConnectionLock lock;
         SQLite::Statement* statement;
+        const SQLite::Database* database;
+        std::stop_token stopToken;
         bool finished = false;
 
       public:
         StatementExecution(SQLite::Statement* statement,
-                           const SqliteCppDb* database);
+                           const SqliteCppDb* database,
+                           std::stop_token stopToken);
         ~StatementExecution();
+        void checkCancelled() const;
         void finish();
     };
 
@@ -94,6 +99,10 @@ class SqliteCppDb
     /**
      * @brief Wrapper for SQLiteCpp::Statement.
      * @note A statement must not be used by multiple threads simultaneously.
+     * @details Execution accepts an optional stop token. Cancellation is checked
+     * after acquiring the connection and during SQL execution and row copying.
+     * It throws SQLite::Exception with SQLITE_INTERRUPT without interrupting
+     * other statements. Interrupted writes may roll back their transaction.
      */
     class Statement
     {
@@ -116,7 +125,7 @@ class SqliteCppDb
         }
         void reset();
 
-        void execute();
+        void execute(std::stop_token stopToken = {});
 
         /**
          * @brief Executes a query that returns a single row.
@@ -128,9 +137,10 @@ class SqliteCppDb
          * or an aggregate. Must be default constructible.
          */
         template<std::default_initializable Ret>
-        [[nodiscard]] auto executeAndGet() -> std::optional<Ret>
+        [[nodiscard]] auto executeAndGet(std::stop_token stopToken = {})
+          -> std::optional<Ret>
         {
-            StatementExecution execution(&statement, db);
+            StatementExecution execution(&statement, db, stopToken);
             std::optional<Ret> result;
             if (statement.executeStep()) {
                 result.emplace();
@@ -148,12 +158,14 @@ class SqliteCppDb
          * or an aggregate. Must be default constructible.
          */
         template<std::default_initializable Ret>
-        [[nodiscard]] auto executeAndGetAll() -> std::vector<Ret>
+        [[nodiscard]] auto executeAndGetAll(std::stop_token stopToken = {})
+          -> std::vector<Ret>
         {
-            StatementExecution execution(&statement, db);
+            StatementExecution execution(&statement, db, stopToken);
             std::vector<Ret> result;
 
             while (statement.executeStep()) {
+                execution.checkCancelled();
                 result.emplace_back();
                 writeRow(statement, result.back());
             }
@@ -209,6 +221,10 @@ class SqliteCppDb
       const std::filesystem::path& dbPath,
       std::chrono::milliseconds busyTimeout = std::chrono::milliseconds{ 0 },
       Durability durability = Durability::Normal);
+    /** Opens an existing database for reads, without write-side maintenance. */
+    static auto openReadOnly(const std::filesystem::path& dbPath,
+                             std::chrono::milliseconds busyTimeout =
+                               std::chrono::milliseconds{ 0 }) -> SqliteCppDb;
     /**
      * @brief Executes a query.
      * @note Good for single-use queries. Use Statement otherwise.
@@ -223,6 +239,12 @@ class SqliteCppDb
      * @return True if the table exists, false otherwise.
      */
     [[nodiscard]] auto hasTable(const std::string& table) const -> bool;
+
+  private:
+    SqliteCppDb(const std::filesystem::path& dbPath,
+                std::chrono::milliseconds busyTimeout,
+                Durability durability,
+                bool readOnly);
 };
 } // namespace db
 

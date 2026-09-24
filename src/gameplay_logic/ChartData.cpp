@@ -162,8 +162,24 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
 }
 
 auto
+gameplay_logic::ChartData::prepareSave() const -> PreparedData
+{
+    return { support::compress(randomSequence),
+             support::compress(histogramData),
+             support::compress(bpmChanges) };
+}
+
+auto
 gameplay_logic::ChartData::save(db::SqliteCppDb& db, int64_t directory) const
   -> void
+{
+    save(db, directory, prepareSave());
+}
+
+void
+gameplay_logic::ChartData::save(db::SqliteCppDb& db,
+                                int64_t directory,
+                                const PreparedData& prepared) const
 {
     auto query = db.createStatement(
       "INSERT OR REPLACE INTO charts (title, artist, subtitle, subartist, "
@@ -189,8 +205,8 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db, int64_t directory) const
     query.bind(11, playLevel);
     query.bind(12, difficulty);
     query.bind(13, isRandom);
-    auto compressed = support::compress(randomSequence);
-    query.bind(14, compressed.data(), compressed.size());
+    query.bind(
+      14, prepared.randomSequence.constData(), prepared.randomSequence.size());
     query.bind(15, normalNoteCount);
     query.bind(16, scratchCount);
     query.bind(17, lnCount);
@@ -220,10 +236,9 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db, int64_t directory) const
       db.createStatement("INSERT OR REPLACE INTO histogram_data "
                          "(histogram_data, bpms, chart_id) VALUES (?, ?, ?);");
 
-    auto compressedHistogram = support::compress(histogramData);
-    query2.bind(1, compressedHistogram.data(), compressedHistogram.size());
-    auto compressedBpmChanges = support::compress(bpmChanges);
-    query2.bind(2, compressedBpmChanges.data(), compressedBpmChanges.size());
+    query2.bind(
+      1, prepared.histogramData.constData(), prepared.histogramData.size());
+    query2.bind(2, prepared.bpmChanges.constData(), prepared.bpmChanges.size());
 
     auto transaction = db.transaction();
     const auto id = query.executeAndGet<int64_t>().value();

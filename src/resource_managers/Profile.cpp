@@ -381,6 +381,7 @@ Profile::Profile(
   QObject* parent)
   : QObject(parent)
   , db(createDb(dbPath))
+  , readDb(db::SqliteCppDb::openReadOnly(dbPath))
   , dbPath(dbPath)
   , themeConfig(
       createConfig(themeFamilies, dbPath.parent_path() / "theme_config.json")
@@ -420,9 +421,12 @@ Profile::Profile(
                    "application/json");
     networkRequestFactory.setCommonHeaders(headers);
     loadBearerToken();
-    auto attachStatement = db.createStatement("ATTACH DATABASE ? AS song_db;");
-    attachStatement.bind(1, support::pathToUtfString(mainDbPath));
-    attachStatement.execute();
+    for (auto* connection : { &db, &readDb }) {
+        auto attachStatement =
+          connection->createStatement("ATTACH DATABASE ? AS song_db;");
+        attachStatement.bind(1, support::pathToUtfString(mainDbPath));
+        attachStatement.execute();
+    }
     auto configPath = dbPath.parent_path() / "theme_config.json";
     connect(themeConfig,
             &QQmlPropertyMap::valueChanged,

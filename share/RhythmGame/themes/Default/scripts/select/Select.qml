@@ -10,8 +10,6 @@ import "./options"
 FocusScope {
     id: selectScreen
 
-    readonly property bool arenaNativeSelectPresentation: true
-
     Image {
         id: root
 
@@ -89,8 +87,7 @@ FocusScope {
                 return false;
             }
             if (button === Qt.RightButton) {
-                globalRoot.openResult([score], [Rg.profileList.mainProfile], songList.current);
-                return true;
+                return songList.controller.openResult(songList.current, score);
             }
             let replay = true;
             if (button === Qt.MiddleButton) {
@@ -157,14 +154,6 @@ FocusScope {
             return openReplay(selectedReplayType(), button || Qt.LeftButton);
         }
 
-        function reloadCurrentFolderOrTable() {
-            return songList.controller.reloadCurrentFolderOrTable();
-        }
-
-        function openSelectedFolder() {
-            return songList.controller.openSelectedFolder();
-        }
-
         function openSelectedInternetRanking() {
             return rankingPosition.rankingLink.length > 0
                 && Qt.openUrlExternally(rankingPosition.rankingLink);
@@ -189,7 +178,7 @@ FocusScope {
         }
 
         function openKeyConfig() {
-            globalRoot.openSettings(5);
+            globalRoot.openSettings("keys");
             return true;
         }
 
@@ -276,26 +265,18 @@ FocusScope {
                 height: 480
                 width: 640
             }
-            Loader {
-                id: arenaPanelLoader
-
-                objectName: "arenaNativeSelectPanelLoader"
-                active: root.arenaSeated
-                anchors.fill: parent
+            StandardArenaSelectOverlay {
+                readyShortcutDescription: songList.controller.readyEnabled
+                    ? songList.controller.readyShortcutDescription : ""
                 enabled: !options.visible
                 parent: root
-                sourceComponent: ArenaSelectOverlay {
-                    defaultPixelRectHint: Qt.rect(root.contentLeft + 728 * root.contentScale,
-                                                  root.contentTop + 120 * root.contentScale,
-                                                  520 * root.contentScale,
-                                                  480 * root.contentScale)
-                    navigationFocusTarget: songList
-                    presentationActive: root.enabled && root.visible
-                    readyShortcutDescription: qsTr("Press Start twice to toggle ready.")
-                    session: Rg.arenaSession
-                    themeVars: root.themeVars
-                    viewport: root
-                }
+                defaultPixelRectHint: Qt.rect(root.contentLeft + 728 * root.contentScale,
+                                              root.contentTop + 120 * root.contentScale,
+                                              520 * root.contentScale,
+                                              480 * root.contentScale)
+                navigationFocusTarget: songList
+                themeVars: root.themeVars
+                viewport: root
                 z: options.visible ? 0 : 3
             }
             Banner {
@@ -418,18 +399,6 @@ FocusScope {
                     bssCount: songList.current ? songList.current.bssCount : 0
                     gapsEnabled: Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName].densityGraphGapsEnabled
                     bpmConnectorOpacity: Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName].densityGraphBpmConnectorOpacity
-                }
-            }
-            Shortcut {
-                sequence: "Esc"
-                enabled: root.enabled
-
-                onActivated: {
-                    if (root.arenaSeated) {
-                        Rg.arenaSession.leaveRoom();
-                        return;
-                    }
-                    globalRoot.returnToPreviousScreen();
                 }
             }
             AudioPlayer {

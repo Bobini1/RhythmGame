@@ -6,7 +6,7 @@ import "../common"
 Image {
     id: root
     focus: true
-    required property var chart
+    required property GameplayContext gameplay
     readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.decide || {})[QmlUtils.themeName] || ({})
 
     ThemeFont {
@@ -21,45 +21,21 @@ Image {
         fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
-    readonly property int difficulty: {
-        let diff = chart.chartData?.difficulty;
-        if (diff === undefined) {
-            return 0;
-        }
-        return diff;
-    }
+    readonly property int difficulty: root.gameplay.isCourse ? 0 : root.gameplay.chartData.difficulty
     readonly property string titleString: {
-        let title = chart.chartData?.title;
-        if (title === undefined) {
-            return chart.course.name;
+        if (root.gameplay.isCourse) {
+            return root.gameplay.course.name;
         }
-        if (chart.chartData?.subtitle !== "") {
-            title += " " + chart.chartData.subtitle;
+        let title = root.gameplay.chartData.title;
+        if (root.gameplay.chartData.subtitle !== "") {
+            title += " " + root.gameplay.chartData.subtitle;
         }
         title = title.replace(/\r\n|\n|\r/g, " ");
         return title;
     }
-    readonly property string genreString: {
-        let genre = chart.chartData?.genre;
-        if (genre === undefined) {
-            return "Course";
-        }
-        return genre;
-    }
-    readonly property string artistString: {
-        let artist = chart.chartData?.artist;
-        if (artist === undefined) {
-            return "";
-        }
-        return artist;
-    }
-    readonly property string subartistString: {
-        let subartist = chart.chartData?.subartist;
-        if (subartist === undefined) {
-            return "";
-        }
-        return subartist;
-    }
+    readonly property string genreString: root.gameplay.isCourse ? "Course" : root.gameplay.chartData.genre
+    readonly property string artistString: root.gameplay.isCourse ? "" : root.gameplay.chartData.artist
+    readonly property string subartistString: root.gameplay.isCourse ? "" : root.gameplay.chartData.subartist
     source: "images/bg.png"
 
     readonly property string diffColor: {
@@ -275,7 +251,7 @@ Image {
             duration: 1000
             easing.type: Easing.OutCubic
         }
-        source: chart.chartData?.stageFileSource || ""
+        source: root.gameplay.isCourse ? "" : root.gameplay.chartData.stageFileSource
 
         Rectangle {
             anchors.fill: parent
@@ -292,6 +268,6 @@ Image {
     }
 
     StandardDecideFlow {
-        chart: root.chart
+        gameplay: root.gameplay
     }
 }

@@ -7,7 +7,7 @@ import "SettingsColors.js" as SettingsColors
 
 Page {
     id: settings
-    property int initialTabIndex: 0
+    required property string initialSection
     readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.settings || {})[QmlUtils.themeName] || ({})
 
     ThemeFont {
@@ -28,8 +28,8 @@ Page {
         italic: settingsUiFont.italic
     })
 
-    function applyInitialTabIndex() {
-        tabView.currentIndex = Math.max(0, Math.min(tabView.count - 1, initialTabIndex));
+    function applyInitialSection() {
+        tabView.currentIndex = settings.initialSection === "keys" ? 5 : 0;
     }
 
     function tabTextColor(checked, enabled) {
@@ -129,8 +129,8 @@ Page {
         }
     }
 
-    Component.onCompleted: applyInitialTabIndex()
-    onInitialTabIndexChanged: applyInitialTabIndex()
+    Component.onCompleted: applyInitialSection()
+    onInitialSectionChanged: applyInitialSection()
     
     header: Item {
         implicitHeight: backButton.height

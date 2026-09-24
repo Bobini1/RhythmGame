@@ -126,10 +126,11 @@ class Profile final : public QObject
       qml_components::ReplayImportOperation* scoreImportOperation READ
         getScoreImportOperation NOTIFY scoreImportOperationChanged FINAL)
     db::SqliteCppDb db;
+    db::SqliteCppDb readDb;
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;
     Vars vars;
-    qml_components::ScoreDb scoreDb{ &db };
+    qml_components::ScoreDb scoreDb{ &readDb };
     QString guid;
     QNetworkAccessManager* networkManager;
     QNetworkRequestFactory networkRequestFactory;

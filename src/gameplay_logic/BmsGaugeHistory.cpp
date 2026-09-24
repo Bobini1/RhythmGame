@@ -38,12 +38,26 @@ BmsGaugeHistory::save(db::SqliteCppDb& db) const
     if (guid.isEmpty()) {
         return;
     }
+    save(db, serialize());
+}
+
+auto
+BmsGaugeHistory::serialize() const -> QByteArray
+{
+    return support::compress(gaugeInfo);
+}
+
+void
+BmsGaugeHistory::save(db::SqliteCppDb& db, const QByteArray& serialized) const
+{
+    if (guid.isEmpty()) {
+        return;
+    }
     auto statement = db.createStatement(
       "INSERT OR IGNORE INTO gauge_history (score_guid, gauge_info) "
       "VALUES (?, ?)");
-    auto compressedInfo = support::compress(gaugeInfo);
     statement.bind(1, guid.toStdString());
-    statement.bind(2, compressedInfo.data(), compressedInfo.size());
+    statement.bind(2, serialized.constData(), serialized.size());
     statement.execute();
 }
 auto

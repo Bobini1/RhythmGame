@@ -52,6 +52,7 @@ add_executable(RhythmGame_test
         support/FrameRateLimiter.test.cpp
         support/PendingReply.test.cpp
         qml/GameplaySession.test.cpp
+        qml/ScreenContexts.test.cpp
         lr2_skin/Lr2BarBaseStateResolver.test.cpp
         lr2_skin/Lr2ResolvedTextRegistry.test.cpp
         lr2_skin/Lr2SelectBarModel.test.cpp
@@ -63,6 +64,7 @@ target_link_libraries(
         RhythmGame_test PRIVATE
         RhythmGame_lib
         RhythmGame_qml
+        RhythmGame_qmlplugin
         RhythmGame_lr2_qml
         dds
         tga

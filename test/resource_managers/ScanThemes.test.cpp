@@ -1,5 +1,7 @@
 #include "resource_managers/ScanThemes.h"
+#include "resource_managers/SerializeConfig.h"
 
+#include "support/CreateQmlPropertyMap.h"
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
 
@@ -13,6 +15,7 @@
 #include <QString>
 
 #include <filesystem>
+#include <memory>
 
 namespace {
 
@@ -49,6 +52,32 @@ makeThemesRoot(QTemporaryDir& tempDir) -> std::filesystem::path
 }
 
 } // namespace
+
+TEST_CASE("A chart result theme does not replace the configured course result",
+          "[themes]")
+{
+    QTemporaryDir tempDir;
+    const auto themesRoot = makeThemesRoot(tempDir);
+    writeLr2SkinBytes(themesRoot / "Default" / "Result.qml", "import QtQuick\n");
+    writeLr2SkinBytes(themesRoot / "Default" / "CourseResult.qml", "import QtQuick\n");
+    writeLr2SkinBytes(themesRoot / "Default" / "theme.json", R"({
+        "scripts": { "result": "Result.qml", "courseResult": "CourseResult.qml" }
+    })");
+    writeLr2SkinBytes(themesRoot / "ChartResult" / "Result.qml", "import QtQuick\n");
+    writeLr2SkinBytes(themesRoot / "ChartResult" / "theme.json", R"({
+        "scripts": { "result": "Result.qml" }
+    })");
+    const auto themes = resource_managers::scanThemes(themesRoot);
+    auto config = std::unique_ptr<QQmlPropertyMap>(support::createQmlPropertyMap());
+    resource_managers::fillWithDefaults(*config, themes);
+    const auto configPath = themesRoot / "profile.json";
+    writeLr2SkinBytes(configPath, R"({
+        "result": "ChartResult", "courseResult": "ChartResult"
+    })");
+    resource_managers::readConfig(configPath, *config, themes);
+    CHECK(config->value("result").toString() == "ChartResult");
+    CHECK(config->value("courseResult").toString() == "Default");
+}
 
 TEST_CASE("Theme scanner canonicalizes translation locale tags",
           "[themes][translations]")
@@ -279,4 +308,49 @@ TEST_CASE("LR2 skin scanner keeps custom option and file ids distinct",
           QStringLiteral("sudden_lane_sudden_lane"));
     CHECK(fileItem[QStringLiteral("default")].toString() ==
           QStringLiteral("LR2.png"));
+}
+
+TEST_CASE("LR2 screens select role-specific QML entry points", "[themes][lr2]")
+{
+    QTemporaryDir tempDir;
+    const auto themesRoot = makeThemesRoot(tempDir);
+    const auto skinRoot = themesRoot / "Legacy";
+    struct Role
+    {
+        int type;
+        QString key;
+        QString entry;
+    };
+    const Role roles[] = {
+        { 0, "k7", "Gameplay" },        { 1, "k5", "Gameplay" },
+        { 2, "k14", "Gameplay" },       { 3, "k10", "Gameplay" },
+        { 5, "select", "Select" },      { 6, "decide", "Decide" },
+        { 7, "result", "Result" },      { 12, "k7battle", "Gameplay" },
+        { 13, "k5battle", "Gameplay" }, { 15, "courseResult", "CourseResult" },
+    };
+    for (const auto& role : roles) {
+        writeLr2Skin(skinRoot / support::qStringToPath(role.key + ".lr2skin"),
+                     role.type,
+                     role.key);
+    }
+    const auto themes = resource_managers::scanThemes(themesRoot);
+    for (const auto& role : roles) {
+        INFO(role.key.toStdString());
+        const auto familyName = role.key + " (" + role.key + ".lr2skin)";
+        REQUIRE(themes.contains(familyName));
+        const auto& screens = themes.constFind(familyName).value().getScreens();
+        REQUIRE(screens.contains(role.key));
+        const auto& screen = screens[role.key];
+        CHECK(screen.getScript() == QUrl("qrc:///qt/qml/RhythmGameQml/Lr2/Lr2" +
+                                         role.entry + "Screen.qml"));
+        CHECK(screen.getCsvPath() ==
+              support::pathToQString(std::filesystem::absolute(
+                skinRoot / support::qStringToPath(role.key + ".lr2skin"))));
+        CHECK(QJsonDocument::fromJson(screen.getSettingsData().toUtf8())["type"]
+                .toInt() == role.type);
+        for (const auto& alias : screens.asKeyValueRange()) {
+            CHECK(alias.second.getScript() == screen.getScript());
+            CHECK(alias.second.getCsvPath() == screen.getCsvPath());
+        }
+    }
 }

@@ -10,7 +10,6 @@ FocusScope {
     required property var session
     property Item navigationFocusTarget: null
     property string readyShortcutDescription: ""
-    readonly property bool arenaNativeSelectPresentation: true
     readonly property alias dragHandle: selectHeader
     readonly property bool chatOpen: root.session && root.session.chatOpen === true
     readonly property bool preparingRound: root.session

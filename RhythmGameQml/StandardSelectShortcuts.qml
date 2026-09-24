@@ -3,66 +3,54 @@ import QtQuick
 /*!
     \qmltype StandardSelectShortcuts
     \inqmlmodule RhythmGameQml
-    \brief Provides selection-specific F-key shortcuts.
+    \brief Adds F2, F3, F11 and F12 actions to a selector.
 
-    A \l StandardSelectState provides the built-in F2 and F3 behavior. F11
-    requests skin-owned Internet ranking, and F12 opens settings through the
-    application content frame. Built-in actions can be replaced, and request
-    signals allow custom handling when no standard implementation consumes an
-    operation.
+    Assign \l selectState for the standard reload and open-folder operations.
+    StandardSelectController already includes the shortcuts, so use this component
+    separately only when composing your own selector.
 
     \table
-        \header
-            \li Key
-            \li Precedence
-        \row
-            \li F2
-            \li \l reloadAction, then
-                \l StandardSelectState::reloadCurrentFolderOrTable(), then
-                \l reloadRequested
-        \row
-            \li F3
-            \li \l openSelectedFolderAction, then
-                \l StandardSelectState::openSelectedFolder(), then
-                \l openSelectedFolderRequested
-        \row
-            \li F11
-            \li Always emit \l openInternetRankingRequested
-        \row
-            \li F12
-            \li \l openSettingsAction, otherwise open the standard settings
-                screen
+        \header \li Key \li Action
+        \row \li F2
+             \li Use \l reloadAction if set. Otherwise ask the state to reload,
+                 then emit \l reloadRequested if it cannot handle the request.
+        \row \li F3
+             \li Use \l openSelectedFolderAction if set. Otherwise ask the state
+                 to open the folder, then emit \l openSelectedFolderRequested if unhandled.
+        \row \li F11 \li Emit \l openInternetRankingRequested for the skin's ranking view.
+        \row \li F12 \li Use \l openSettingsAction if set, otherwise open Settings.
     \endtable
 
-    \l selectState is optional. Without it, F2 and F3 fall through to their
-    request signals. Each key can be disabled independently, and disabling the
-    component disables all four shortcuts.
+    Without \l selectState, F2 and F3 emit their request signals unless a
+    replacement action is supplied. A replacement handles the whole operation,
+    and its return value is ignored. Each shortcut can be disabled separately.
+    Disabling the component disables all four.
 */
 Item {
     id: root
 
-    /*! Optional \c reloadAction() replacement for F2. */
+    /*! Calls \c reloadAction() in place of F2. */
     property var reloadAction: null
-    /*! Optional \c openSelectedFolderAction() replacement for F3. */
+    /*! Calls \c openSelectedFolderAction() in place of F3. */
     property var openSelectedFolderAction: null
-    /*! Optional \c openSettingsAction() replacement for F12. */
+    /*! Calls \c openSettingsAction() in place of F12. */
     property var openSettingsAction: null
     /*! Standard selection state used by the built-in F2 and F3 implementations. */
     property StandardSelectState selectState: null
-    /*! Whether the F2 shortcut is active. */
+    /*! Controls whether the F2 shortcut is active. */
     property bool reloadEnabled: true
-    /*! Whether the F3 shortcut is active. */
+    /*! Controls whether the F3 shortcut is active. */
     property bool openSelectedFolderEnabled: true
-    /*! Whether the F11 shortcut is active. */
+    /*! Controls whether the F11 shortcut is active. */
     property bool openInternetRankingEnabled: true
-    /*! Whether the F12 settings shortcut is active. */
+    /*! Controls whether the F12 settings shortcut is active. */
     property bool openSettingsEnabled: true
 
-    /*! Emitted when F2 has no action or state-backed implementation. */
+    /*! Emitted when no replacement handles F2 and the state cannot reload. */
     signal reloadRequested()
-    /*! Emitted when F3 has no action or state-backed implementation. */
+    /*! Emitted when no replacement handles F3 and the state cannot open the folder. */
     signal openSelectedFolderRequested()
-    /*! Emitted when F11 requests skin-owned Internet ranking. */
+    /*! Emitted when F11 requests the skin's ranking view. */
     signal openInternetRankingRequested()
 
     QtObject {

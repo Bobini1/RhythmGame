@@ -12,27 +12,26 @@ Rectangle {
     id: root
 
     property bool customizeMode: false
-    readonly property bool arenaNativeGameplayPresentation: true
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     readonly property Profile mainProfile: Rg.profileList.mainProfile
     readonly property var mainProfileVars: mainProfile.vars.themeVars[screen][themeName]
     property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
-    readonly property ChartData chartData: gameplayInput.chartData
+    readonly property ChartData chartData: root.gameplay.chartData
     readonly property string screen: {
-        let keys = chart.keymode;
-        let battle = chart.player1 && chart.player2;
+        let keys = gameplay.keymode;
+        let battle = root.player1 && root.player2;
         return "k" + keys + (battle ? "battle" : "");
     }
     property var popup: null
     readonly property bool isDp: screen === "k14" || screen === "k10"
     readonly property bool isBattle: screen === "k7battle" || screen === "k5battle"
-    readonly property bool isCourse: chart instanceof CourseRunner
-    property var chart
-    property bool arenaManagedRunner: false
+    readonly property bool isCourse: root.gameplay.isCourse
+    required property GameplayContext gameplay
+    readonly property Player player1: root.gameplay.players[0]
+    readonly property Player player2: root.gameplay.players[1] || null
     readonly property var arenaSession: Rg.arenaSession
-    readonly property bool arenaGameplayOwned: arenaSession.arenaGameplayActive === true
-        && arenaSession.arenaRunner === chart
+    readonly property bool arenaGameplayOwned: root.gameplay.arenaActive
     readonly property bool arenaOpponentTargetAvailable: root.arenaGameplayOwned
         && root.arenaSession.opponentTarget !== undefined
         && root.arenaSession.opponentTarget !== null
@@ -71,43 +70,22 @@ Rectangle {
         }
     }
 
-    function restoreArenaPresentation() {
-        if (!root.arenaGameplayOwned) {
-            return;
-        }
-        Qt.callLater(function() {
-            if (root.arenaGameplayOwned) {
-                arenaGameplayPlacementFrame.restoreChatSelection(
-                            root.arenaSession);
-            }
-        });
-    }
-
-    function rememberArenaChatSelection(chatSelected) {
-        arenaGameplayPlacementFrame.setChatSelected(chatSelected);
-    }
-
-    onArenaGameplayOwnedChanged: {
-        if (root.arenaGameplayOwned) {
-            restoreArenaPresentation();
-        }
-    }
     function isPlayerScratchRightSide(player) {
         return player?.profile?.vars?.themeVars[root.screen][root.themeName]?.scratchOnRightSide;
     }
     property var inputMapping: {
         let left = [0, 1, 2, 3, 4, 5, 6, 7];
         let right = [8, 9, 10, 11, 12, 13, 14, 15];
-        if (chart.player1.score.keymode === 5 && isPlayerScratchRightSide(chart.player1)) {
+        if (root.player1.score.keymode === 5 && isPlayerScratchRightSide(root.player1)) {
             left = [6, 5, 0, 1, 2, 3, 4, 7];
         }
-        if ((chart.player2 && chart.player2.score.keymode === 5 && isPlayerScratchRightSide(chart.player2)) || chart.player1.score.keymode === 10) {
+        if ((root.player2 && root.player2.score.keymode === 5 && isPlayerScratchRightSide(root.player2)) || root.player1.score.keymode === 10) {
             right = [14, 13, 8, 9, 10, 11, 12, 15];
         }
         return left.concat(right);
     }
     onInputMappingChanged: {
-        chart.inputMapping = inputMapping;
+        gameplay.inputMapping = inputMapping;
     }
     readonly property string themeName: QmlUtils.themeName
     property var scores1: []
@@ -115,9 +93,9 @@ Rectangle {
     property var lastScore1: scores1[0]
     readonly property real savedBestPoints1: scoreWithBestPoints1 ? scoreWithBestPoints1.result.points : 0
     readonly property real targetFraction1: {
-        let vars = chart.player1.profile.vars.generalVars;
+        let vars = root.player1.profile.vars.generalVars;
         if (vars.scoreTarget === ScoreTarget.NextRank) {
-            let maxPoints = chart.player1.score.maxPoints || 0;
+            let maxPoints = root.player1.score.maxPoints || 0;
             return maxPoints > 0
                 ? Helpers.getNextRankTargetPoints(savedBestPoints1, maxPoints) / maxPoints
                 : 0;
@@ -125,7 +103,7 @@ Rectangle {
         return vars.targetScoreFraction;
     }
     property var targetScore1: {
-        switch (chart.player1.profile.vars.generalVars.scoreTarget) {
+        switch (root.player1.profile.vars.generalVars.scoreTarget) {
         case ScoreTarget.BestScore:
             return scoreWithBestPoints1;
         case ScoreTarget.LastScore:
@@ -134,7 +112,7 @@ Rectangle {
             return undefined;
         }
     }
-    property real p1MaxPointsNow: chart.player1.score.maxPointsNow
+    property real p1MaxPointsNow: root.player1.score.maxPointsNow
     property real targetPoints1: {
         if (root.arenaGameplayOwned) {
             return root.arenaOpponentTargetAvailable
@@ -142,7 +120,7 @@ Rectangle {
                 : 0;
         }
         if (isBattle) {
-            return chart.player2.score.points;
+            return root.player2.score.points;
         }
         if (targetScore1) {
             if (targetScore1.replayData !== null) {
@@ -153,7 +131,7 @@ Rectangle {
         }
         return p1MaxPointsNow * targetFraction1;
     }
-    property real targetPoints2: chart.player1.score.points
+    property real targetPoints2: root.player1.score.points
     readonly property real targetFinalPoints1: {
         if (root.arenaGameplayOwned) {
             return root.arenaOpponentTargetAvailable
@@ -162,10 +140,10 @@ Rectangle {
         }
         if (isBattle) return 0;
         if (targetScore1) return targetScore1.result.points;
-        if (chart.player1.profile.vars.generalVars.scoreTarget === ScoreTarget.NextRank) {
-            return Helpers.getNextRankTargetPoints(savedBestPoints1, chart.player1.score.maxPoints || 0);
+        if (root.player1.profile.vars.generalVars.scoreTarget === ScoreTarget.NextRank) {
+            return Helpers.getNextRankTargetPoints(savedBestPoints1, root.player1.score.maxPoints || 0);
         }
-        return chart.player1.score.maxPoints * targetFraction1;
+        return root.player1.score.maxPoints * targetFraction1;
     }
     ScoreReplayer {
         id: scoreReplayer1
@@ -212,32 +190,32 @@ Rectangle {
     }
     Connections {
         function onStatusChanged() {
-            if (root.chart.status === ChartRunner.Ready || root.chart.status === ChartRunner.Running) {
+            if (root.gameplay.status === ChartRunner.Ready || root.gameplay.status === ChartRunner.Running) {
                 bga.clearOutput();
-                chart.bga.layers[0].videoSink = bga.baseSink;
-                chart.bga.layers[1].videoSink = bga.layerSink;
-                chart.bga.layers[2].videoSink = bga.layer2Sink;
-                chart.bga.layers[3].videoSink = bga.poorSink;
-            } else if (root.chart.status === ChartRunner.Finished) {
+                gameplay.bga.layers[0].videoSink = bga.baseSink;
+                gameplay.bga.layers[1].videoSink = bga.layerSink;
+                gameplay.bga.layers[2].videoSink = bga.layer2Sink;
+                gameplay.bga.layers[3].videoSink = bga.poorSink;
+            } else if (root.gameplay.status === ChartRunner.Finished) {
                 bga.clearOutput();
                 root.closeActivePopup();
-                chart.bga.layers[0].videoSink = bga.baseSink;
-                chart.bga.layers[1].videoSink = bga.layerSink;
-                chart.bga.layers[2].videoSink = bga.layer2Sink;
-                chart.bga.layers[3].videoSink = bga.poorSink;
+                gameplay.bga.layers[0].videoSink = bga.baseSink;
+                gameplay.bga.layers[1].videoSink = bga.layerSink;
+                gameplay.bga.layers[2].videoSink = bga.layer2Sink;
+                gameplay.bga.layers[3].videoSink = bga.poorSink;
             }
         }
 
-        target: chart
+        target: root.gameplay
     }
     PlayAreaPopup {
         id: playAreaPopup
 
-        readonly property Profile profile: chart.player1.profile
+        readonly property Profile profile: root.player1.profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         generalVars: profile.vars.generalVars
         dp: root.isDp
-        fiveKeys: chart.player1.score.keymode === 5 || chart.player1.score.keymode === 10
+        fiveKeys: root.player1.score.keymode === 5 || root.player1.score.keymode === 10
 
         onClosed: {
             root.popup = null;
@@ -246,11 +224,11 @@ Rectangle {
     PlayAreaPopup {
         id: playAreaPopupP2
 
-        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        readonly property Profile profile: (root.player2 || root.player1).profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         generalVars: profile.vars.generalVars
         dp: root.isDp
-        fiveKeys: (chart.player2 || chart.player1).score.keymode === 5 || (chart.player2 || chart.player1).score.keymode === 10
+        fiveKeys: (root.player2 || root.player1).score.keymode === 5 || (root.player2 || root.player1).score.keymode === 10
 
         onClosed: {
             root.popup = null;
@@ -259,7 +237,7 @@ Rectangle {
     GaugePopup {
         id: gaugePopup
 
-        readonly property Profile profile: chart.player1.profile
+        readonly property Profile profile: root.player1.profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
 
         onClosed: {
@@ -269,7 +247,7 @@ Rectangle {
     GaugePopup {
         id: gaugePopupP2
 
-        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        readonly property Profile profile: (root.player2 || root.player1).profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
 
         onClosed: {
@@ -279,7 +257,7 @@ Rectangle {
     JudgementCountsPopup {
         id: judgementCountsPopup
 
-        readonly property Profile profile: chart.player1.profile
+        readonly property Profile profile: root.player1.profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
 
         onClosed: {
@@ -289,7 +267,7 @@ Rectangle {
     JudgementCountsPopup {
         id: judgementCountsPopupP2
 
-        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        readonly property Profile profile: (root.player2 || root.player1).profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
 
         onClosed: {
@@ -299,7 +277,7 @@ Rectangle {
     JudgementsPopup {
         id: judgementsPopup
 
-        readonly property Profile profile: chart.player1.profile
+        readonly property Profile profile: root.player1.profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
 
         onClosed: {
@@ -309,7 +287,7 @@ Rectangle {
     JudgementsPopup {
         id: judgementsPopupP2
 
-        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        readonly property Profile profile: (root.player2 || root.player1).profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
 
         onClosed: {
@@ -318,7 +296,7 @@ Rectangle {
     }
     ScoreGraphPopup {
         id: scoreGraphPopup
-        readonly property Profile profile: chart.player1.profile
+        readonly property Profile profile: root.player1.profile
         generalVars: profile.vars.generalVars
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         onClosed: {
@@ -327,7 +305,7 @@ Rectangle {
     }
     ScoreGraphPopup {
         id: scoreGraphPopupP2
-        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        readonly property Profile profile: (root.player2 || root.player1).profile
         generalVars: profile.vars.generalVars
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         onClosed: {
@@ -358,7 +336,7 @@ Rectangle {
     GhostScorePopup {
         id: ghostScorePopup
 
-        readonly property Profile profile: chart.player1.profile
+        readonly property Profile profile: root.player1.profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
 
         onClosed: {
@@ -367,7 +345,7 @@ Rectangle {
     }
     GhostScorePopup {
         id: ghostScorePopupP2
-        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        readonly property Profile profile: (root.player2 || root.player1).profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
 
         onClosed: {
@@ -377,7 +355,7 @@ Rectangle {
     FastslowPopup {
         id: fastslowPopup
 
-        readonly property Profile profile: chart.player1.profile
+        readonly property Profile profile: root.player1.profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
 
         onClosed: {
@@ -387,7 +365,7 @@ Rectangle {
     FastslowPopup {
         id: fastslowPopupP2
 
-        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        readonly property Profile profile: (root.player2 || root.player1).profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
 
         onClosed: {
@@ -416,13 +394,13 @@ Rectangle {
 
     HitDistributionPopup {
         id: hitDistributionPopup
-        readonly property Profile profile: chart.player1.profile
+        readonly property Profile profile: root.player1.profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         onClosed: { root.popup = null; }
     }
     HitDistributionPopup {
         id: hitDistributionPopupP2
-        readonly property Profile profile: (chart.player2 || chart.player1).profile
+        readonly property Profile profile: (root.player2 || root.player1).profile
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         onClosed: { root.popup = null; }
     }
@@ -454,7 +432,7 @@ Rectangle {
         BgaRenderer {
             id: bga
 
-            readonly property Profile profile: chart.player2 ? Rg.profileList.mainProfile : chart.player1.profile
+            readonly property Profile profile: root.player2 ? Rg.profileList.mainProfile : root.player1.profile
             readonly property var profileVars: profile.vars.themeVars[root.screen][root.themeName]
 
             height: profileVars.bgaSize
@@ -581,7 +559,7 @@ Rectangle {
             height: root.mainProfileVars.bpmDisplayHeight
             z: root.mainProfileVars.bpmDisplayZ
             contentVisible: root.mainProfileVars.bpmDisplayEnabled
-            currentBpm: chart.player1.bpm
+            currentBpm: root.player1.bpm
             minBpm: root.chartData.minBpm
             maxBpm: root.chartData.maxBpm
             fontFile: root.mainProfileVars.bpmDisplayFont
@@ -632,7 +610,7 @@ Rectangle {
             maxBpm:        root.chartData.maxBpm
             minBpm:        root.chartData.minBpm
             length:        root.chartData.length
-            elapsed:       chart.player1.elapsed
+            elapsed:       root.player1.elapsed
             positionLineOpacity: root.mainProfileVars.densityGraphPositionLineOpacity
 
             onXChanged:      root.mainProfileVars.densityGraphX = x
@@ -662,7 +640,7 @@ Rectangle {
 
         Side {
             anchors.fill: parent
-            player: chart.player1
+            player: root.player1
             dpSuffix: root.isDp ? "1" : ""
             index: 0
             pointTarget: root.targetPoints1
@@ -675,8 +653,8 @@ Rectangle {
                 if (root.isDp) {
                     return [7, 0, 1, 2, 3, 4, 5, 6];
                 } else {
-                    if (root.isPlayerScratchRightSide(chart.player1)) {
-                        return chart.player1.score.keymode === 7 ? [0, 1, 2, 3, 4, 5, 6, 7] : [6, 5, 0, 1, 2, 3, 4, 7];
+                    if (root.isPlayerScratchRightSide(root.player1)) {
+                        return root.player1.score.keymode === 7 ? [0, 1, 2, 3, 4, 5, 6, 7] : [6, 5, 0, 1, 2, 3, 4, 7];
                     } else {
                         return [7, 0, 1, 2, 3, 4, 5, 6];
                     }
@@ -685,11 +663,11 @@ Rectangle {
         }
         Loader {
             id: p2SideLoader
-            active: chart.player2 !== null || root.isDp
+            active: root.player2 !== null || root.isDp
             anchors.fill: parent
             sourceComponent: Side {
                 id: side2
-                player: root.isDp ? chart.player1 : chart.player2
+                player: root.isDp ? root.player1 : root.player2
                 dpSuffix: root.isDp ? "2" : ""
                 mirrored: !root.isDp
                 index: 1
@@ -701,10 +679,10 @@ Rectangle {
                 targetFinalPoints: root.isDp ? root.targetFinalPoints1 : 0
                 columns: {
                     if (root.isDp) {
-                        return chart.player1.score.keymode === 14 ? [8, 9, 10, 11, 12, 13, 14, 15] : [14, 13, 8, 9, 10, 11, 12, 15];
+                        return root.player1.score.keymode === 14 ? [8, 9, 10, 11, 12, 13, 14, 15] : [14, 13, 8, 9, 10, 11, 12, 15];
                     } else {
-                        if (root.isPlayerScratchRightSide(chart.player2)) {
-                            return chart.player2.score.keymode === 7 ? [0, 1, 2, 3, 4, 5, 6, 7] : [6, 5, 0, 1, 2, 3, 4, 7];
+                        if (root.isPlayerScratchRightSide(root.player2)) {
+                            return root.player2.score.keymode === 7 ? [0, 1, 2, 3, 4, 5, 6, 7] : [6, 5, 0, 1, 2, 3, 4, 7];
                         } else {
                             return [7, 0, 1, 2, 3, 4, 5, 6];
                         }
@@ -714,7 +692,7 @@ Rectangle {
         }
     }
     Connections {
-        target: chart.player1.score
+        target: root.player1.score
         function onHit(tap) {
             if (targetScore1) {
                 scoreReplayer1.notifyHit(tap);
@@ -747,7 +725,7 @@ Rectangle {
         backgroundOpacity: root.mainProfileVars.hitDistributionBackgroundOpacity
 
         timingWindows: root.chartData.timingWindows
-        score: chart.player1.score
+        score: root.player1.score
 
         onXChanged: root.mainProfileVars.hitDistributionX = x
         onYChanged: root.mainProfileVars.hitDistributionY = y
@@ -774,56 +752,24 @@ Rectangle {
             }
         }
     }
-    ArenaOverlayPlacementFrame {
-        id: arenaGameplayPlacementFrame
+    StandardArenaGameplayOverlay {
+        id: arenaOverlay
 
-        enabled: arenaGameplayPlacementFrame.visible
-        customizationLabel: qsTr("Arena gameplay panel")
+        gameplay: root.gameplay
         customizeMode: root.customizeMode
-        defaultExpanded: false
-        layoutVariant: root.screen
-        minimumPixelSize: Qt.size(320, 240)
-        moveHandle: arenaGameplayPanel.dragHandle
-        placementKind: "gameplayLeaderboard"
         themeVars: root.mainProfileVars
         viewport: root
-        visible: root.arenaGameplayOwned
-            && (arenaGameplayPlacementFrame.overlayVisible
-                || root.customizeMode)
         z: 2000000
-
-        onOverlayVisibilityCommitted: visible => {
-            if (!visible && root.arenaSession.chatOpen === true) {
-                root.arenaSession.setChatOpen(false);
-            }
-        }
-        onPresentationStateReloaded: root.restoreArenaPresentation()
-
-        ArenaGameplayOverlay {
-            id: arenaGameplayPanel
-
-            anchors.fill: parent
-            expanded: arenaGameplayPlacementFrame.expanded
-            session: root.arenaSession
-
-            onChatSelected: chat => {
-                arenaGameplayPlacementFrame.setChatSelected(chat);
-            }
-            onExpandedChanged: {
-                arenaGameplayPlacementFrame.setExpanded(
-                            arenaGameplayPanel.expanded);
-            }
-        }
     }
     StandardGameplayFlow {
         id: gameplayInput
 
-        chart: root.chart
+        gameplay: root.gameplay
         onStageActivated: {
             root.cancelScoreDbReply();
             scoreReplayer1.resetPoints();
             bestScoreReplayer1.resetPoints();
-            root.trackScoreDbReply(root.chart.player1.profile.scoreDb.getScoresForMd5(root.chartData.md5)).then(scores => {
+            root.trackScoreDbReply(root.player1.profile.scoreDb.getScoresForMd5(root.chartData.md5)).then(scores => {
                 root.scores1 = scores.scores[root.chartData.md5] || [];
             });
         }
@@ -839,8 +785,6 @@ Rectangle {
             root.closeActivePopup();
         }
     }
-
-    Component.onCompleted: restoreArenaPresentation()
 
     TransientInputFocusDismissLayer {}
 }

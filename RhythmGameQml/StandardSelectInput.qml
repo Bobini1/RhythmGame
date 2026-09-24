@@ -4,80 +4,73 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectInput
     \inqmlmodule RhythmGameQml
-    \brief Maps standard keyboard and BMS-controller selection actions.
+    \brief Maps bound selection actions and forwards movement requests.
 
-    The component extends \l StandardSelectNavigation with activation, replay,
-    autoplay, sorting, and back-button mappings. Skins that only want movement
-    policy can instantiate \l StandardSelectNavigation directly.
+    The component extends StandardSelectNavigation with activation, autoplay,
+    replay, sorting, leaving selection and Arena ready input. Use
+    StandardSelectNavigation alone if you
+    only need movement. StandardSelectController already includes both.
 
-    Controller mapping:
-
+    The bound controller keys work on either player side:
     \table
-        \header
-            \li Input
-            \li Operation
-        \row
-            \li 1/3 keys
-            \li Activate the focused item
-        \row
-            \li 5 key
-            \li Autoplay
-        \row
-            \li 7 key
-            \li Replay
-        \row
-            \li 6 key
-            \li Cycle the selected replay
-        \row
-            \li 2/4 keys at the root
-            \li Call \l tryCycleSortModeAction with -1/+1; if it does not
-                consume the input, go back
-        \row
-            \li 2/4 keys below the root
-            \li Go back
-        \row
-            \li Scratch directions
-            \li Emit inherited \l moveRequested signals
+        \header \li Input \li Action
+        \row \li Keys 1 and 3 \li Activate the focused item.
+        \row \li Key 5 \li Start autoplay.
+        \row \li Key 7 \li Request replay through \l tryReplayAction.
+        \row \li Key 6 \li Cycle the selected replay through \l cycleReplayTypeAction.
+        \row \li Keys 2 and 4 at the root
+             \li Call \l tryCycleSortModeAction with -1 or +1, then go back if unhandled.
+        \row \li Keys 2 and 4 below the root \li Go back.
+        \row \li Scratch directions \li Emit \l moveRequested.
+        \row \li Escape \li Leave selection or the current Arena room.
+        \row \li Start twice in Arena \li Toggle ready for the next round.
     \endtable
 
-    Autoplay uses \l StandardSelectState::openPlayable when its pre-handler
-    does not consume the input. Replay requires \l tryReplayAction because the
-    choice of replay score is deliberately outside selection input; without a
-    successful handler, replay input does nothing.
+    Autoplay uses StandardSelectState::openPlayable unless \l tryAutoplayAction
+    handles it first. Replay requires \l tryReplayAction to choose a score.
+    Without a successful replay handler, the replay key does nothing.
 
-    The numeric key descriptions apply to both players. Keyboard Up and Down
-    are not global shortcuts: the focused visual item must forward its
-    pressed/released events through \l handleUpPressed,
-    \l handleDownPressed, and \l handleReleased. Assign \l selectState for the
-    built-in activate/back behavior, or provide \l activateAction,
-    \l goBackAction, and \l atTopLevel for custom state.
+    Keyboard arrows must come from the focused visual item. Forward presses and
+    releases to \l handleUpPressed, \l handleDownPressed and \l handleReleased.
+    Assign \l selectState for standard activation and back behavior. For your
+    own browsing state, supply \l activateAction, \l goBackAction and \l atTopLevel.
+    Assign \l actions to a StandardSelectActions instance for Escape and Arena
+    ready input, or disable these with \l exitEnabled and \l readyEnabled.
 */
 StandardSelectNavigation {
     id: root
 
     /*! Standard selection state that receives activation and history actions. */
     property StandardSelectState selectState: null
-    /*! Optional \c activateAction() replacement for focused-item activation. */
+    /*! Shared selector actions. Defaults to the supplied state's actions. */
+    property StandardSelectActions actions: selectState ? selectState.actions : null
+    /*! Controls the Escape shortcut for leaving selection or its Arena room. */
+    property bool exitEnabled: true
+    /*! Controls the double-Start Arena ready gesture. */
+    property bool readyEnabled: true
+    /*! Calls \c activateAction() in place of focused-item activation. */
     property var activateAction: null
-    /*! Optional \c goBackAction() replacement for leaving the current entry. */
+    /*! Calls \c goBackAction() in place of leaving the current entry. */
     property var goBackAction: null
-    /*! Whether sort-key handling is currently at the top selection level. */
+    /*! Controls whether sort-key handling is currently at the top selection level. */
     property bool atTopLevel: selectState
         ? selectState.historyStack.length <= 1 : false
     /*!
-        Optional \c tryAutoplayAction() pre-handler. True consumes the input;
-        false continues with standard autoplay.
+        Called as \c tryAutoplayAction(). Return true to handle the request, or false to
+        continue with the standard action.
     */
     property var tryAutoplayAction: null
     /*!
-        Optional \c tryReplayAction() handler. Replay input is ignored when it
-        is absent or returns false because selecting a replay requires skin- or
-        application-owned replay state.
+        Called as \c tryReplayAction() to choose and open a replay. Return true when handled.
+        Without a successful handler, replay input does nothing.
     */
     property var tryReplayAction: null
-    /*! Optional \c cycleReplayTypeAction() replacement. */
+    /*! Calls \c cycleReplayTypeAction() when key 6 is pressed. Without a callback, the key does nothing. */
     property var cycleReplayTypeAction: null
-    /*! Optional \c tryCycleSortModeAction(delta) pre-handler. True consumes. */
+    /*!
+        Called as \c tryCycleSortModeAction(delta). Return true to handle the request, or
+        false to continue with the standard action.
+    */
     property var tryCycleSortModeAction: null
     /*! Activates the focused item. */
     function activate() {
@@ -189,6 +182,22 @@ StandardSelectNavigation {
             return tryCycleSortModeAction(1);
         }
         return false;
+    }
+
+    Shortcut {
+        sequence: "Esc"
+        autoRepeat: false
+        enabled: root.enabled && root.exitEnabled && !!root.actions
+        onActivated: root.actions.exit()
+    }
+
+    Input.onStart1Pressed: {
+        if (root.enabled && root.readyEnabled && root.actions)
+            root.actions.handleStartPress(BmsKey.Start1);
+    }
+    Input.onStart2Pressed: {
+        if (root.enabled && root.readyEnabled && root.actions)
+            root.actions.handleStartPress(BmsKey.Start2);
     }
 
     Input.onCol1sDownTicked: (number, type) => root.navigate(number, type, false, BmsKey.Col1sDown)

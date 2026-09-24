@@ -17,12 +17,15 @@ namespace resource_managers {
 BackbeatCatalog::BackbeatCatalog(std::shared_ptr<BackbeatSource> source,
                                  const std::filesystem::path& databasePath,
                                  db::SqliteCppDb* modelDatabase,
+                                 db::SqliteCppDb* writeDatabase,
                                  QObject* parent)
   : QObject(parent)
   , source(std::move(source))
   , databasePath(databasePath)
   , modelDatabase(modelDatabase)
+  , writeDatabase(writeDatabase)
 {
+    threadPool.setMaxThreadCount(1);
     refreshTimer.setInterval(std::chrono::seconds(5));
     connect(&refreshTimer, &QTimer::timeout, this, [this] { refresh(); });
     refreshTimer.start();
@@ -61,8 +64,8 @@ BackbeatCatalog::refresh(bool force)
         return;
     }
     active = true;
-    watcher.setFuture(
-      QtConcurrent::run([this, previous = force ? std::nullopt : revision] {
+    watcher.setFuture(QtConcurrent::run(
+      &threadPool, [this, previous = force ? std::nullopt : revision] {
           try {
               return synchronize(previous);
           } catch (const std::exception& error) {
@@ -85,11 +88,13 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
         return {};
     }
     const QSet<QString> installed(ids.cbegin(), ids.cend());
-    db::SqliteCppDb database(databasePath, std::chrono::seconds(5));
-    database.execute("CREATE TABLE IF NOT EXISTS backbeat_bundles ("
-                     "bundle_id TEXT PRIMARY KEY, path TEXT NOT NULL UNIQUE "
-                     "REFERENCES charts(path) ON DELETE CASCADE)");
-    auto cachedQuery = database.createStatement(
+    writeDatabase->execute(
+      "CREATE TABLE IF NOT EXISTS backbeat_bundles ("
+      "bundle_id TEXT PRIMARY KEY, path TEXT NOT NULL UNIQUE "
+      "REFERENCES charts(path) ON DELETE CASCADE)");
+    auto reader =
+      db::SqliteCppDb::openReadOnly(databasePath, std::chrono::seconds(5));
+    auto cachedQuery = reader.createStatement(
       "SELECT b.bundle_id, c.path, c.md5, c.sha256 FROM backbeat_bundles b "
       "JOIN charts c ON c.path = b.path");
     struct Cached
@@ -110,6 +115,7 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
     {
         QString id;
         std::unique_ptr<gameplay_logic::ChartData> chart;
+        gameplay_logic::ChartData::PreparedData prepared;
         QString preview;
         QString readme;
     };
@@ -134,7 +140,10 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
                 ? factory.loadBmsonChartData(contents, path, -1)
                 : factory.loadChartData(
                     contents, path, [](auto) { return 1; }, -1);
-            Parsed item{ id, std::move(components.chartData), {}, {} };
+            auto prepared = components.chartData->prepareSave();
+            Parsed item{
+                id, std::move(components.chartData), std::move(prepared), {}, {}
+            };
             for (const auto& asset : bundle.assets) {
                 const auto name = QFileInfo(asset).fileName().toLower();
                 const auto suffix = QFileInfo(name).suffix();
@@ -172,6 +181,7 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
     Update update{ .collections = std::move(collections),
                    .revision = currentRevision };
     {
+        auto& database = *writeDatabase;
         auto transaction = database.transaction();
         database.execute(
           "DELETE FROM folder_charts WHERE directory IN "
@@ -199,7 +209,7 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
             ++update.removed;
         }
         for (const auto& item : parsed) {
-            item.chart->save(database, directory);
+            item.chart->save(database, directory, item.prepared);
             auto insert = database.createStatement(
               "INSERT INTO backbeat_bundles (bundle_id, path) VALUES (?, ?)");
             insert.bind(1, item.id.toStdString());

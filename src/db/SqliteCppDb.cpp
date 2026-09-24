@@ -13,15 +13,36 @@
 db::SqliteCppDb::SqliteCppDb(const std::filesystem::path& dbPath,
                              std::chrono::milliseconds busyTimeout,
                              Durability durability)
+  : SqliteCppDb(dbPath, busyTimeout, durability, false)
+{
+}
+
+auto
+db::SqliteCppDb::openReadOnly(const std::filesystem::path& dbPath,
+                              std::chrono::milliseconds busyTimeout)
+  -> SqliteCppDb
+{
+    return SqliteCppDb(dbPath, busyTimeout, Durability::Normal, true);
+}
+
+db::SqliteCppDb::SqliteCppDb(const std::filesystem::path& dbPath,
+                             std::chrono::milliseconds busyTimeout,
+                             Durability durability,
+                             bool readOnly)
   : db(dbPath,
-       SQLite::OPEN_READWRITE | // NOLINT(hicpp-signed-bitwise)
-         SQLite::OPEN_CREATE | SQLite::OPEN_FULLMUTEX)
+       (readOnly ? SQLite::OPEN_READONLY
+                 : SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE) |
+         SQLite::OPEN_FULLMUTEX)
 {
     db.setBusyTimeout(static_cast<int>(busyTimeout.count()));
-    db.exec("PRAGMA journal_mode=WAL;");
-    db.exec(durability == Durability::Full ? "PRAGMA synchronous=FULL;"
-                                           : "PRAGMA synchronous=NORMAL;");
-    db.exec("PRAGMA optimize=0x10002;");
+    if (readOnly) {
+        db.exec("PRAGMA query_only=ON;");
+    } else {
+        db.exec("PRAGMA journal_mode=WAL;");
+        db.exec(durability == Durability::Full ? "PRAGMA synchronous=FULL;"
+                                               : "PRAGMA synchronous=NORMAL;");
+        db.exec("PRAGMA optimize=0x10002;");
+    }
     sqlite3_limit(db.getHandle(),
                   SQLITE_LIMIT_WORKER_THREADS,
                   std::thread::hardware_concurrency());
@@ -50,9 +71,9 @@ db::SqliteCppDb::createStatement(const std::string& query) -> Statement
     return Statement{ SQLite::Statement(db, query), this };
 }
 void
-db::SqliteCppDb::Statement::execute()
+db::SqliteCppDb::Statement::execute(std::stop_token stopToken)
 {
-    StatementExecution execution(&statement, db);
+    StatementExecution execution(&statement, db, stopToken);
     statement.exec();
     execution.finish();
 }
@@ -90,18 +111,47 @@ db::SqliteCppDb::ConnectionLock::unlock()
 
 db::SqliteCppDb::StatementExecution::StatementExecution(
   SQLite::Statement* statement,
-  const SqliteCppDb* database)
-  : lock(&database->db)
+  const SqliteCppDb* owner,
+  std::stop_token stopToken)
+  : lock(&owner->db)
   , statement(statement)
+  , database(&owner->db)
+  , stopToken(stopToken)
 {
-    database->checkTransaction();
+    owner->checkTransaction();
+    checkCancelled();
+    if (stopToken.stop_possible()) {
+        // The connection lock confines this handler to the current execution.
+        sqlite3_progress_handler(
+          database->getHandle(),
+          1000,
+          [](void* context) {
+              return static_cast<StatementExecution*>(context)
+                         ->stopToken.stop_requested()
+                       ? 1
+                       : 0;
+          },
+          this);
+    }
 }
 
 db::SqliteCppDb::StatementExecution::~StatementExecution()
 {
+    if (stopToken.stop_possible()) {
+        sqlite3_progress_handler(database->getHandle(), 0, nullptr, nullptr);
+    }
     if (!finished) {
         // Preserve the original exception while releasing the cursor.
         statement->tryReset();
+    }
+}
+
+void
+db::SqliteCppDb::StatementExecution::checkCancelled() const
+{
+    if (stopToken.stop_requested()) {
+        throw SQLite::Exception("Database operation cancelled",
+                                SQLITE_INTERRUPT);
     }
 }
 

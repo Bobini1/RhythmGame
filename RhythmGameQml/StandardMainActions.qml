@@ -4,30 +4,32 @@ import RhythmGameQml
 /*!
     \qmltype StandardMainActions
     \inqmlmodule RhythmGameQml
-    \brief Provides common main-menu destinations.
+    \brief Opens the standard destinations from a main menu.
 
-    Skins provide their own presentation and can replace any action while
-    retaining the standard controller input.
+    Create buttons in your skin and connect them to \l openSelect, \l openArena,
+    \l openSettings or \l quit. The component draws no menu. Each method uses
+    the corresponding \c globalRoot operation unless you provide a replacement
+    action. A replacement handles the whole operation, and its return value is ignored.
 
-    Instantiating this component also listens for either player's Start button.
-    While \l enabled and \l startOpensSelect are true, Start calls
-    \l openSelect. Set \l startOpensSelect to false when the skin owns that
-    input. The four public methods are suitable for buttons and menus; each
-    calls its matching replacement action when provided, otherwise the
-    application-owned \c globalRoot operation.
+    The component also listens for either player's bound Start button. Start opens
+    song selection while \l enabled and \l startOpensSelect are true. Set
+    \l startOpensSelect to false if your skin handles Start itself.
+
+    See the \l {../skin_tutorial_first_screen.html}{first menu lesson} for an
+    installable example.
 */
 Item {
     id: root
 
-    /*! Optional \c openSelectAction() replacement. */
+    /*! Calls \c openSelectAction() in place of the standard action. */
     property var openSelectAction: null
-    /*! Optional \c openArenaAction() replacement. */
+    /*! Calls \c openArenaAction() in place of the standard action. */
     property var openArenaAction: null
-    /*! Optional \c openSettingsAction() replacement. */
+    /*! Calls \c openSettingsAction() in place of the standard action. */
     property var openSettingsAction: null
-    /*! Optional \c quitAction() replacement. */
+    /*! Calls \c quitAction() in place of the standard action. */
     property var quitAction: null
-    /*! Whether the controller Start button opens song selection. */
+    /*! Controls whether the controller Start button opens song selection. */
     property bool startOpensSelect: true
 
     QtObject {

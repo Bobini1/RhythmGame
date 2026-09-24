@@ -107,7 +107,7 @@ ScanningQueue::scan(RootSongFolder* which) -> bool
         return false;
     }
     if (std::ranges::find(scanItems, shared) != scanItems.end()) {
-        return false;
+        return true;
     }
     beginInsertRows(QModelIndex(), scanItems.size(), scanItems.size());
     scanItems.push_back(std::move(shared));
@@ -254,38 +254,51 @@ ScanningQueue::ScanningQueue(db::SqliteCppDb* db,
   , db(db)
   , scanner(scanner)
 {
-    connect(&scanFutureWatcher, &QFutureWatcher<void>::finished, [this] {
-        // fixme: what if we press stop between scanning is finished and this
-        // line?
-        scanItems.front()->updateStatus(stop
-                                          ? RootSongFolder::Status::NotScanned
-                                          : RootSongFolder::Status::Scanned);
-        updateStatus.reset();
-        updateStatus.bind(":dir", scanItems.front()->getName().toStdString());
-        updateStatus.bind(":status",
-                          static_cast<int>(scanItems.front()->getStatus()));
-        updateStatus.execute();
-        stop = false;
-        beginRemoveRows(QModelIndex(), 0, 0);
-        scanItems.pop_front();
-        endRemoveRows();
-        setCurrentScannedFolder({});
-        if (!scanItems.empty()) {
-            performTask();
-        } else {
-            emit queueDrained();
+    threadPool.setMaxThreadCount(1);
+    progressTimer.setInterval(std::chrono::milliseconds(100));
+    connect(&progressTimer, &QTimer::timeout, this, [this] {
+        QString folder;
+        {
+            const auto lock = std::lock_guard(progressMutex);
+            folder = std::exchange(pendingScannedFolder, {});
+        }
+        if (!folder.isEmpty()) {
+            setCurrentScannedFolder(std::move(folder));
         }
     });
+    connect(&scanFutureWatcher,
+            &QFutureWatcher<RootSongFolder::Status>::finished,
+            this,
+            [this] {
+                auto status = RootSongFolder::Status::NotScanned;
+                try {
+                    status = scanFutureWatcher.result();
+                } catch (const std::exception& error) {
+                    spdlog::error("Song scan failed: {}", error.what());
+                }
+                scanItems.front()->updateStatus(status);
+                stop = false;
+                beginRemoveRows(QModelIndex(), 0, 0);
+                scanItems.pop_front();
+                endRemoveRows();
+                progressTimer.stop();
+                {
+                    const auto lock = std::lock_guard(progressMutex);
+                    pendingScannedFolder.clear();
+                }
+                setCurrentScannedFolder({});
+                if (!scanItems.empty()) {
+                    performTask();
+                } else {
+                    emit queueDrained();
+                }
+            });
 }
 void
 ScanningQueue::performTask()
 {
     const auto& folder = scanItems.front();
     folder->updateStatus(RootSongFolder::Status::InProgress);
-    updateStatus.reset();
-    updateStatus.bind(":dir", folder->getName().toStdString());
-    updateStatus.bind(":status", static_cast<int>(folder->getStatus()));
-    updateStatus.execute();
     scanImpl(folder->getName());
 }
 void
@@ -305,25 +318,34 @@ ScanningQueue::remove(const int index)
 void
 ScanningQueue::scanImpl(const QString& which)
 {
-    scanFuture = QtConcurrent::run([this, which] {
+    progressTimer.start();
+    scanFuture = QtConcurrent::run(&threadPool, [this, which] {
+        saveStatus(which, RootSongFolder::Status::InProgress);
         clear(which);
         scanner.scanDirectory(
           support::qStringToPath(which),
           [this](QString newCurrentScannedFolder) {
-              QMetaObject::invokeMethod(
-                this,
-                [this,
-                 newCurrentScannedFolder = std::move(newCurrentScannedFolder)] {
-                    setCurrentScannedFolder(newCurrentScannedFolder);
-                },
-                Qt::QueuedConnection);
+              const auto lock = std::lock_guard(progressMutex);
+              pendingScannedFolder = std::move(newCurrentScannedFolder);
           },
           &stop);
-        if (stop) {
+        const auto status = stop ? RootSongFolder::Status::NotScanned
+                                 : RootSongFolder::Status::Scanned;
+        if (status == RootSongFolder::Status::NotScanned) {
             clear(which);
         }
+        saveStatus(which, status);
+        return status;
     });
     scanFutureWatcher.setFuture(scanFuture);
+}
+void
+ScanningQueue::saveStatus(const QString& folder, RootSongFolder::Status status)
+{
+    updateStatus.reset();
+    updateStatus.bind(":dir", folder.toStdString());
+    updateStatus.bind(":status", static_cast<int>(status));
+    updateStatus.execute();
 }
 void
 ScanningQueue::setCurrentScannedFolder(QString folder)

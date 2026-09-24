@@ -4,57 +4,55 @@ import RhythmGameQml
 /*!
     \qmltype StandardDecideFlow
     \inqmlmodule RhythmGameQml
-    \brief Provides standard decide-screen lifetime and input behavior.
+    \brief Starts or cancels play from a decide screen.
 
-    The surrounding skin owns every visual. This component owns accepting,
-    cancelling and timeouts, with override actions for
-    skins that need different transitions.
+    Bind \l gameplay to the GameplayContext supplied to the screen. The same
+    property supports a single chart or a course. Your skin draws the title and
+    other details, while the component handles input and the timeout.
 
-    Default input mapping:
-
+    The default controls are:
     \table
-        \header
-            \li Input
-            \li Operation
-        \row
-            \li Return, Enter, left click, or any play key
-            \li \l start
-        \row
-            \li Escape, right click, or Start+Select
-            \li \l cancel
-        \row
-            \li \l timeoutMillis expires
-            \li \l start
+        \header \li Input \li Operation
+        \row \li Return, Enter, left click or any play key \li \l start
+        \row \li Escape, right click or Start+Select \li \l cancel
+        \row \li The \l timeoutMillis delay expires \li \l start
     \endtable
 
-    Only the first start/cancel request is accepted for a chart. The built-in
-    start replaces decide with gameplay. If a built-in transition cannot create
-    or remove a screen, the request is released so the skin can try again. A replacement
-    \l startAction or \l cancelAction owns its complete transition; it is not
-    followed by the built-in action.
+    The pointer area fills the parent. Set \l pointerEnabled to false when your
+    skin has its own buttons, and call \l start or \l cancel from those buttons.
+    Only the first transition request is accepted. If the standard transition
+    fails, the component accepts another attempt.
 
-    The content frame owns runner lifetime: cancelling destroys the runner with
-    decide; starting transfers it to gameplay. This component does not destroy
-    the runner itself, including when a replacement action is supplied.
+    Starting replaces decide with gameplay, passing along the same context.
+    Cancelling returns to the previous screen. The game keeps the play objects
+    alive for the screen that needs them and destroys them when that screen leaves.
+    The skin must not destroy them itself.
+
+    A replacement \l startAction or \l cancelAction handles the whole transition.
+    The standard action does not run afterward. See the
+    \l {../skin_tutorial_decide.html}{decide lesson} for an installable example.
 */
 Item {
     id: root
 
     anchors.fill: parent
 
-    /*! Chart runner being accepted or cancelled. */
-    property var chart: null
-    /*! Optional \c startAction() replacement that owns the start transition. */
+    /*! Supplies the GameplayContext received by the decide screen. */
+    property GameplayContext gameplay: null
+    /*! Calls \c startAction() to handle the whole start transition. */
     property var startAction: null
-    /*! Optional \c cancelAction() replacement that owns the cancel transition. */
+    /*! Calls \c cancelAction() to handle the whole cancel transition. */
     property var cancelAction: null
-    /*! Automatic acceptance timeout in milliseconds; zero disables it. */
+    /*!
+        Sets the delay in milliseconds before starting automatically. Use zero to disable the
+        timeout.
+    */
     property int timeoutMillis: 5000
-    /*! Whether keyboard input is active. */
+    /*! Controls whether keyboard input is active. */
     property bool keyboardEnabled: true
-    /*! Whether BMS-controller input is active. */
+    /*! Controls whether BMS-controller input is active. */
     property bool controllerEnabled: true
-    /*! Whether pointer input is active. */
+    /*! Controls whether pointer input is active. */
     property bool pointerEnabled: true
     QtObject {
         id: flowState
@@ -88,11 +86,11 @@ Item {
 
     /*! Accepts the chart and begins gameplay. */
     function start() {
-        if (!chart) {
+        if (!root.gameplay) {
             return false;
         }
         return flowState.run(startAction,
-                             () => globalRoot.openGameplay(chart));
+                             () => globalRoot.replaceGameplay(root.gameplay));
     }
 
     /*! Cancels the chart and returns to the previous screen. */
@@ -101,7 +99,7 @@ Item {
                              () => globalRoot.returnToPreviousScreen());
     }
 
-    onChartChanged: {
+    onGameplayChanged: {
         flowState.transitionRequested = false;
     }
 

@@ -1,0 +1,208 @@
+/*!
+    \qmltype GameplayContext
+    \inqmlmodule RhythmGameQml
+    \brief Supplies play data to decide and gameplay screens.
+
+    Declare \c {required property GameplayContext gameplay} on the screen root.
+    The game supplies the object when it creates decide and passes the same
+    object to gameplay. Every gameplay skin must support single charts and courses.
+
+    Bind to the current chart and players so the display follows course stages.
+    Don't keep using a Player from an earlier stage. The context only supplies
+    data. Pass it to StandardDecideFlow::gameplay or StandardGameplayFlow::gameplay
+    to use the standard input and transitions.
+*/
+/*!
+    \qmlproperty ChartData GameplayContext::chartData
+    \readonly
+    Describes the current chart. It keeps the last stage after the course finishes.
+*/
+/*!
+    \qmlproperty list<Player> GameplayContext::players
+    \readonly
+    Contains one Player for solo or double play, or two for local battle.
+    Each player supplies a profile, notes, state, live score and timing.
+    There is no null second entry in solo play. The list and chart metadata
+    update together after the next course stage has been installed.
+*/
+/*!
+    \qmlproperty var GameplayContext::course
+    \readonly
+    Contains the course definition when isCourse is true. It is undefined for a single chart.
+*/
+/*!
+    \qmlproperty bool GameplayContext::isCourse
+    \readonly
+    Reports whether the play is a course. Use it when adding course details
+    to the display. The current chart uses the same interface in either case.
+*/
+/*!
+    \qmlproperty bool GameplayContext::isArena
+    \readonly
+    Reports whether the play belongs to Arena. The game handles its startup and lifetime.
+*/
+/*!
+    \qmlproperty list<ChartData> GameplayContext::charts
+    \readonly
+    Contains chart metadata in stage order. A single chart has one entry.
+*/
+/*!
+    \qmlproperty int GameplayContext::stageIndex
+    \readonly
+    Gives the current stage index, starting at zero. It stays at the last stage after completion.
+*/
+/*!
+    \qmlproperty int GameplayContext::stageCount
+    \readonly
+    Gives the number of stages. A single chart has one stage.
+*/
+/*!
+    \qmlproperty list<CoursePlayer> GameplayContext::coursePlayers
+    \readonly
+    Contains combo state for the whole course, in player order. The list is empty for a single chart.
+*/
+/*!
+    \qmlproperty var GameplayContext::bga
+    \readonly
+    Provides the current BGA container. It is initially null while the stage loads.
+*/
+/*!
+    \qmlproperty int GameplayContext::status
+    \readonly
+    Reports the current stage status as ChartRunner.Loading, Ready, Running or Finished.
+*/
+/*!
+    \qmlproperty int GameplayContext::keymode
+    \readonly
+    Gives the keymode used for play, including changes made by play options.
+*/
+/*!
+    \qmlproperty list<int> GameplayContext::inputMapping
+    Maps physical BMS input to the columns used by the skin's lane layout.
+    The game checks the mapping and keeps it between course stages.
+*/
+/*!
+    \qmltype ResultContext
+    \inqmlmodule RhythmGameQml
+    \brief Supplies a completed chart result, including a course stage.
+
+    Declare \c {required property ResultContext result} on a normal result
+    screen. The game supplies the completed chart and scores when it opens the
+    screen. Chart metadata and totals stay fixed after a course advances,
+    although online score submission state can still change.
+
+    Bind the context to StandardResultInput::result for confirmation and
+    supported single-chart retry. Read the result's own metadata when showing
+    the completed stage, since the originating play may have advanced.
+*/
+/*!
+    \qmlproperty ChartData ResultContext::chartData
+    \readonly
+    Describes the completed chart, regardless of the current gameplay stage.
+*/
+/*!
+    \qmlproperty list<ResultPlayer> ResultContext::players
+    \readonly
+    Contains one or two ResultPlayer entries. Each pairs a profile with a completed BmsScore.
+*/
+/*!
+    \qmlproperty GameplayContext ResultContext::gameplay
+    \readonly
+    Refers to the originating play, or null if the result was opened without one.
+    Standard retry uses this reference. The play remains live and may describe
+    the next stage, so use the result's chart and stage fields for the completed stage.
+*/
+/*!
+    \qmlproperty string ResultContext::arenaRoundId
+    \readonly
+    Identifies the Arena round for this result. It is empty for local play and
+    saved-score views. Standard gameplay supplies it before the screen is created,
+    so a result screen doesn't need an initialization callback from the host.
+*/
+/*!
+    \qmlproperty var ResultContext::course
+    \readonly
+    Contains the course definition for a stage result. It is undefined for a single chart.
+*/
+/*!
+    \qmlproperty int ResultContext::stageIndex
+    \readonly
+    Gives the completed stage index, starting at zero. It stays fixed and is zero for a single chart.
+*/
+/*!
+    \qmlproperty int ResultContext::stageCount
+    \readonly
+    Gives the stage count of the originating play. It stays fixed and is one for a single chart.
+*/
+/*!
+    \qmltype ResultPlayer
+    \inqmlmodule RhythmGameQml
+    \brief Profile and score paired within a normal result.
+*/
+/*!
+    \qmlproperty Profile ResultPlayer::profile
+    \readonly
+    Participant's profile.
+*/
+/*!
+    \qmlproperty BmsScore ResultPlayer::score
+    \readonly
+    Completed chart score, including statistics, replay and gauge history.
+*/
+/*!
+    \qmltype CourseResultContext
+    \inqmlmodule RhythmGameQml
+    \brief Completed course summary supplied to the course-result screen.
+
+    Declare \c {required property CourseResultContext result} on a course result
+    screen. The game selects the course result separately from the normal result.
+    A skin can provide either role or both, with a separate contract for each.
+
+    StandardResultInput can close a course summary. Single-chart retry is
+    unavailable because the result describes the whole course.
+*/
+/*!
+    \qmlproperty var CourseResultContext::course
+    \readonly
+    Completed course definition.
+*/
+/*!
+    \qmlproperty list<ChartData> CourseResultContext::charts
+    \readonly
+    Contains the course charts in stage order.
+*/
+/*!
+    \qmlproperty list<CourseResultPlayer> CourseResultContext::players
+    \readonly
+    Contains one or two CourseResultPlayer entries. Each pairs a profile with an aggregate course score.
+*/
+/*!
+    \qmltype CourseResultPlayer
+    \inqmlmodule RhythmGameQml
+    \brief Profile and aggregate score paired within a course summary.
+*/
+/*!
+    \qmlproperty Profile CourseResultPlayer::profile
+    \readonly
+    Participant's profile.
+*/
+/*!
+    \qmlproperty BmsScoreCourse CourseResultPlayer::score
+    \readonly
+    Aggregate course score, including its individual stage scores.
+*/
+
+/*!
+    \qmlproperty bool GameplayContext::arenaActive
+    \readonly
+    Reports whether the Arena session still presents this runner as its active
+    gameplay. Use it for Arena targets and standings. It is independent of the
+    skin's overlays and becomes false when play ends or the session releases the round.
+*/
+/*!
+    \qmlproperty bool ResultContext::arenaActive
+    \readonly
+    Reports whether the Arena session still presents this result's round.
+    Use it for standings and chat input rules, including in skins that draw
+    their own panel. Local results and saved scores return false.
+*/

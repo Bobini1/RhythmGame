@@ -3,4 +3,5 @@
  *
  * The reusable skin components are documented from their QML source with
  * QDoc. Open the <a href="qml/qml-api.html">QML API reference</a>.
+ * For a guided introduction and example screens, see @ref skin_tutorial.
  */

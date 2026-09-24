@@ -62,3 +62,20 @@ execute_process(
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND_ERROR_IS_FATAL ANY
 )
+
+# Publish each tutorial skin as a complete folder and an installable archive.
+set(tutorial_source "${PROJECT_SOURCE_DIR}/docs/examples/skin-tutorial")
+set(tutorial_output "${DOXYGEN_OUTPUT_DIRECTORY}/html/examples/skin-tutorial")
+file(MAKE_DIRECTORY "${tutorial_output}")
+file(GLOB tutorial_manifests "${tutorial_source}/*/theme.json")
+foreach(manifest IN LISTS tutorial_manifests)
+    get_filename_component(skin_directory "${manifest}" DIRECTORY)
+    get_filename_component(skin_name "${skin_directory}" NAME)
+    file(COPY "${skin_directory}" DESTINATION "${tutorial_output}")
+    execute_process(
+        COMMAND "${CMAKE_COMMAND}" -E tar cf "${tutorial_output}/${skin_name}.zip"
+            --format=zip "${skin_name}"
+        WORKING_DIRECTORY "${tutorial_source}"
+        COMMAND_ERROR_IS_FATAL ANY
+    )
+endforeach()

@@ -5,13 +5,12 @@ import QtQml
 /*!
     \qmltype StandardInputKeys
     \inqmlmodule RhythmGameQml
-    \brief Classifies input keys shared by standard skin components.
+    \brief Identifies bound lane keys used by the standard screen controls.
 
-    This singleton centralizes key-range knowledge so individual screens do not
-    duplicate it.
-
-    A play key is Col11 through Col17 or Col21 through Col27, inclusive. Start,
-    Select, scratch-direction, keyboard, and function keys are not included.
+    Call \l isPlayKey when a custom handler needs the same check as decide or
+    result input. The singleton recognizes Col11 through Col17 and Col21 through
+    Col27. It excludes Start, Select, scratch directions and ordinary keyboard
+    or function keys.
 */
 QtObject {
     /*! Returns whether \a key is a standard player-one or player-two play key. */

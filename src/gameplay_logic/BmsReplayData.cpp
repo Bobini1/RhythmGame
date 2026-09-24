@@ -237,12 +237,26 @@ BmsReplayData::save(db::SqliteCppDb& db) const
     if (guid.isEmpty()) {
         return;
     }
+    save(db, serialize());
+}
+
+auto
+BmsReplayData::serialize() const -> QByteArray
+{
+    return serializeReplayData(hitEvents);
+}
+
+void
+BmsReplayData::save(db::SqliteCppDb& db, const QByteArray& serialized) const
+{
+    if (guid.isEmpty()) {
+        return;
+    }
     auto statement =
       db.createStatement("INSERT OR REPLACE INTO replay_data (score_guid, "
                          "replay_data) VALUES (?, ?)");
-    const auto serialized = serializeReplayData(hitEvents);
     statement.bind(1, guid.toStdString());
-    statement.bind(2, serialized.data(), serialized.size());
+    statement.bind(2, serialized.constData(), serialized.size());
     statement.execute();
 }
 auto

@@ -240,7 +240,7 @@ Item {
     }
 
     function reloadPlacement() {
-        if (!canLoadPlacement())
+        if (!viewport)
             return;
         const loaded = placementFromThemeVars();
         sourcePlacement = validStoredPlacement(loaded)

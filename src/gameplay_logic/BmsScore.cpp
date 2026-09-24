@@ -107,16 +107,40 @@ gameplay_logic::BmsScore::getSubmissionState() const -> SubmissionState
 {
     return submissionState;
 }
+auto
+gameplay_logic::BmsScore::prepareSave() const -> PreparedData
+{
+    if (result->getGuid().isEmpty()) {
+        return {};
+    }
+    return { result->serializeRandomSequence(),
+             replayData ? replayData->serialize() : QByteArray{},
+             gaugeHistory ? gaugeHistory->serialize() : QByteArray{} };
+}
+
 void
 gameplay_logic::BmsScore::save(db::SqliteCppDb& db) const
 {
+    save(db, prepareSave());
+}
+
+void
+gameplay_logic::BmsScore::save(db::SqliteCppDb& db,
+                               const PreparedData& prepared) const
+{
+    if (result->getGuid().isEmpty()) {
+        return;
+    }
     auto transaction = db.transaction();
-    result->save(db, static_cast<int>(source), static_cast<int>(longNoteMode));
+    result->save(db,
+                 prepared.randomSequence,
+                 static_cast<int>(source),
+                 static_cast<int>(longNoteMode));
     if (replayData != nullptr) {
-        replayData->save(db);
+        replayData->save(db, prepared.replay);
     }
     if (gaugeHistory != nullptr) {
-        gaugeHistory->save(db);
+        gaugeHistory->save(db, prepared.gauges);
     }
     transaction.commit();
 }

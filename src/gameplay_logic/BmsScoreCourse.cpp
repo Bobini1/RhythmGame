@@ -45,10 +45,15 @@ BmsScoreCourse::getReplayData() const -> BmsReplayData*
 void
 BmsScoreCourse::save(db::SqliteCppDb& db) const
 {
+    QList<BmsScore::PreparedData> prepared;
+    prepared.reserve(scores.size());
+    for (const auto* score : scores) {
+        prepared.push_back(score->prepareSave());
+    }
     auto transaction = db.transaction();
     // they should be saved already but just in case
-    for (const auto* score : scores) {
-        score->save(db);
+    for (qsizetype i = 0; i < scores.size(); ++i) {
+        scores[i]->save(db, prepared[i]);
     }
     result->save(db);
     transaction.commit();

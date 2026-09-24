@@ -260,6 +260,27 @@ TEST_CASE("QML score lists retain their payload independently of replies",
     CHECK(score.isNull());
 }
 
+TEST_CASE("Score browsing does not wait for an uncommitted score import",
+          "[ScoreDb][scheduling]")
+{
+    Scores fixture;
+    fixture.save();
+    auto transaction = fixture.profile->getDb().transaction();
+    fixture.profile->getDb().execute("UPDATE score SET md5 = 'CHANGED'");
+    auto query = std::unique_ptr<support::PendingReply>(
+      fixture.profile->getScoreDb()->getScoresForMd5({ "MD5" }));
+    waitFor(query.get());
+    CHECK(
+      query->value().value<qml_components::ScoreQueryResult>().scores.contains(
+        "MD5"));
+    transaction.commit();
+    query.reset(fixture.profile->getScoreDb()->getScoresForMd5({ "MD5" }));
+    waitFor(query.get());
+    CHECK(query->value()
+            .value<qml_components::ScoreQueryResult>()
+            .scores.isEmpty());
+}
+
 TEST_CASE("Unconsumed score results are reclaimed with the reply", "[ScoreDb]")
 {
     Scores fixture;

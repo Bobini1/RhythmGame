@@ -3,25 +3,25 @@ import QtQuick
 /*!
     \qmltype StandardSelectModelAdapter
     \inqmlmodule RhythmGameQml
-    \brief Repeats logical entries for circular-list presentation.
+    \brief Repeats entries to fill the visible rows of a circular selector.
 
-    This optional adapter supplies enough rows to fill every visible slot while
-    preserving the source as a logical, unique list.
+    Supply a list in \l source and the number of rows needed in \l minimumCount.
+    If the source is already long enough, \l entries contains it unchanged.
+    Otherwise, complete copies of the list are repeated until the minimum is met.
+    An empty source remains empty.
 
-    If \l source already has at least \l minimumCount entries, \l entries is
-    the source unchanged. Otherwise the adapter repeats the complete source, so
-    the result length is the smallest multiple of the source length that is at
-    least \l minimumCount. The repeated values identify the same logical items;
-    this component does not clone them or track visual focus.
+    Repeated entries still refer to the same items. The adapter doesn't clone
+    objects or track focus. A normal list can use StandardSelectState::entries
+    directly without this adapter.
 */
 QtObject {
     id: root
 
-    /*! Logical, unique entries to adapt. */
+    /*! Supplies the source list, with one entry per item. */
     property var source: []
-    /*! Minimum number of entries required by the presentation. */
+    /*! Sets the minimum number of rows needed by the view. */
     property int minimumCount: 0
-    /*! Adapted entries, repeated to a multiple of \l source when necessary. */
+    /*! Contains the source entries, repeated in complete groups when needed. */
     readonly property var entries: {
         if (!source || source.length === 0 || source.length >= minimumCount) {
             return source || [];

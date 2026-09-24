@@ -11,7 +11,10 @@
 #include <qfuture.h>
 #include <QAbstractListModel>
 #include <QFutureWatcher>
+#include <QThreadPool>
+#include <QTimer>
 #include <deque>
+#include <mutex>
 
 namespace qml_components {
 class RootSongFolder final
@@ -80,9 +83,13 @@ class ScanningQueue final : public QAbstractListModel
                  currentScannedFolderChanged)
     QString currentScannedFolder;
     std::deque<QSharedPointer<RootSongFolder>> scanItems;
-    QFuture<void> scanFuture;
-    QFutureWatcher<void> scanFutureWatcher;
+    QThreadPool threadPool;
+    QFuture<RootSongFolder::Status> scanFuture;
+    QFutureWatcher<RootSongFolder::Status> scanFutureWatcher;
     std::atomic_bool stop{ false };
+    std::mutex progressMutex;
+    QString pendingScannedFolder;
+    QTimer progressTimer;
 
     db::SqliteCppDb* db;
     resource_managers::SongDbScanner scanner;
@@ -91,6 +98,7 @@ class ScanningQueue final : public QAbstractListModel
                           ":dir");
 
     void scanImpl(const QString& which);
+    void saveStatus(const QString& folder, RootSongFolder::Status status);
     void setCurrentScannedFolder(QString folder);
 
   public:

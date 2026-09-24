@@ -5,19 +5,20 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectSession
     \inqmlmodule RhythmGameQml
-    \brief Owns the nonvisual lifetime of a selection session.
+    \brief Loads folder contents and stores browsing history and pending replies.
 
-    The component provides raw folder loading, history storage, preview data,
-    and pending score-query cancellation shared by standard and legacy skins.
+    Use this component when implementing browsing behavior that StandardSelectState
+    doesn't provide. It stores folder contents, history, scores and preview paths
+    without sorting them or choosing the focused row.
 
-    This is a low-level storage and acquisition component. The \c resolve...
-    functions return data without changing \l folderContents or
-    \l historyStack. Call \l commitFolderContents explicitly and update history
-    as one transaction. Replies passed to \l trackScoreDbReply are cancelled by
-    \l cancelScoreDbReplies and when the reply group is destroyed.
+    The \c resolve... methods return data without changing \l folderContents or
+    \l historyStack. Call \l commitFolderContents and update the history together
+    when the navigation is ready to take effect.
 
-    \l tableCoursesProvider, when set, is called as
-    \c tableCoursesProvider(tableItem) and must return the table's course list.
+    Pass score replies to \l trackScoreDbReply so the session can cancel them
+    through \l cancelScoreDbReplies or when it is destroyed. To supply custom
+    table courses, set \l tableCoursesProvider to a function that accepts a
+    \c tableItem and returns its course list.
 */
 Item {
     id: root
@@ -30,7 +31,7 @@ Item {
     property var scores: ({})
     /*! Preview-file data loaded for the current contents. */
     property var previewFiles: ({})
-    /*! Optional \c tableCoursesProvider(tableItem) course-list provider. */
+    /*! Called as \c tableCoursesProvider(tableItem) to return a custom list of courses. */
     property var tableCoursesProvider: null
 
     PendingReplyGroup {

@@ -4,21 +4,20 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectNavigation
     \inqmlmodule RhythmGameQml
-    \brief Converts directional input into logical selection movement.
+    \brief Converts directional keys and scratch movement into row movement.
 
-    The component owns analog accumulation and classic-scratch repeat timing,
-    then emits \l moveRequested for a skin to present. It does not own the
-    focused row or any visual list.
+    Handle \l moveRequested to move your list or wheel. Negative \c steps means
+    up, and positive means down. \c repeated is true after the first movement
+    from a held key or classic scratch. \c analog identifies movement accumulated
+    from analog scratch ticks.
 
-    A negative \c steps value moves upward and a positive value moves downward.
-    \c repeated is true after the first classic-scratch or key-repeat movement;
-    \c analog is true only for accumulated analog-scratch movement. The skin
-    decides whether movement wraps, clamps, or animates.
+    The skin keeps the focused row and chooses whether to wrap, stop at an end
+    or animate the movement. The component only tracks held input and repeat timing.
 
-    Use \l StandardSelectInput when the standard input mapping is wanted. Call
-    \l pressDirection, \l navigate, and \l releaseDirection directly only when
-    adapting another input source. Disabling the component calls \l reset and
-    discards held-key and partial analog state.
+    Use StandardSelectInput to add the standard selection actions. Call
+    \l pressDirection, \l navigate and \l releaseDirection directly when adapting
+    another input source. Disabling the component calls \l reset to clear held
+    keys and accumulated scratch ticks.
 */
 Item {
     id: root
@@ -31,8 +30,8 @@ Item {
     property int repeatDelayMillis: 50
 
     /*!
-        Requests relative focus movement by \a steps. \a repeated identifies
-        held input and \a analog identifies analog-scratch input.
+        Requests relative focus movement by \a steps. \a repeated identifies held input and \a
+        analog identifies analog-scratch input.
     */
     signal moveRequested(int steps, bool repeated, bool analog)
 
@@ -76,8 +75,8 @@ Item {
     }
 
     /*!
-        Converts \a tickNumber and \a tickType for directional \a key into a
-        movement request. \a up selects the movement direction.
+        Converts \a tickNumber and \a tickType for directional \a key into a movement request.
+        \a up selects the movement direction.
     */
     function navigate(tickNumber, tickType, up, key) {
         if (!enabled) {

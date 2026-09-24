@@ -249,6 +249,24 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
     if (guid.isEmpty()) {
         return;
     }
+    save(db, serializeRandomSequence(), source, longNoteMode);
+}
+
+auto
+gameplay_logic::BmsResult::serializeRandomSequence() const -> QByteArray
+{
+    return support::compress(randomSequence);
+}
+
+void
+gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
+                                const QByteArray& randomSequenceCompressed,
+                                int source,
+                                int longNoteMode) const
+{
+    if (guid.isEmpty()) {
+        return;
+    }
     auto statement = db.createStatement(
       "INSERT INTO score ("
       "max_points, "
@@ -333,9 +351,9 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
     statement.bind(20, md5.toStdString());
     statement.bind(21, unixTimestamp);
     statement.bind(22, length);
-    auto randomSequenceCompressed = support::compress(randomSequence);
-    statement.bind(
-      23, randomSequenceCompressed.data(), randomSequenceCompressed.size());
+    statement.bind(23,
+                   randomSequenceCompressed.constData(),
+                   randomSequenceCompressed.size());
     statement.bind(24, static_cast<int64_t>(randomSeed));
     statement.bind(25, static_cast<int>(noteOrderAlgorithm));
     statement.bind(26, static_cast<int>(noteOrderAlgorithmP2));

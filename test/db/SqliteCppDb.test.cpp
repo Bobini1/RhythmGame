@@ -7,6 +7,7 @@
 #include <thread>
 #include <future>
 #include <QTemporaryDir>
+#include <sqlite3.h>
 #include "support/QStringToPath.h"
 
 auto
@@ -336,4 +337,86 @@ TEST_CASE("RETURNING reports commit failures before returning an ID",
     CHECK(writer.createStatement("SELECT count(*) FROM entries")
             .executeAndGet<int>() == 2);
     CHECK(insert.executeAndGet<int64_t>() == 3);
+}
+
+TEST_CASE("Read connections see committed data without waiting for writers",
+          "[SqliteCppDb][scheduling]")
+{
+    QTemporaryDir directory;
+    REQUIRE(directory.isValid());
+    const auto path =
+      support::qStringToPath(directory.filePath("readers.sqlite"));
+    db::SqliteCppDb writer(path);
+    writer.execute("CREATE TABLE entries(value INTEGER)");
+    writer.execute("INSERT INTO entries VALUES(1)");
+    auto reader = db::SqliteCppDb::openReadOnly(path);
+    auto read = reader.createStatement("SELECT value FROM entries");
+    auto transaction = writer.transaction();
+    writer.execute("UPDATE entries SET value = 2");
+    CHECK(read.executeAndGet<int>() == 1);
+    transaction.commit();
+    CHECK(read.executeAndGet<int>() == 2);
+    REQUIRE_THROWS_AS(reader.execute("UPDATE entries SET value = 3"),
+                      SQLite::Exception);
+    CHECK(read.executeAndGet<int>() == 2);
+}
+
+TEST_CASE(
+  "Cancelled statements skip execution after waiting for the connection",
+  "[SqliteCppDb][scheduling]")
+{
+    db::SqliteCppDb database(":memory:");
+    database.execute("CREATE TABLE entries(value INTEGER)");
+    auto insert = database.createStatement("INSERT INTO entries VALUES(1)");
+    std::stop_source cancellation;
+    std::promise<void> attempting;
+    auto started = attempting.get_future();
+    auto transaction = database.transaction();
+    auto worker = std::async(std::launch::async, [&] {
+        attempting.set_value();
+        try {
+            insert.execute(cancellation.get_token());
+            return SQLITE_OK;
+        } catch (const SQLite::Exception& error) {
+            return error.getErrorCode();
+        }
+    });
+    started.wait();
+    cancellation.request_stop();
+    transaction.commit();
+    CHECK(worker.get() == SQLITE_INTERRUPT);
+    CHECK(database.createStatement("SELECT count(*) FROM entries")
+            .executeAndGet<int>() == 0);
+    REQUIRE_NOTHROW(insert.execute());
+}
+
+TEST_CASE("Cancelling a running query leaves the connection reusable",
+          "[SqliteCppDb][scheduling]")
+{
+    using namespace std::chrono_literals;
+    db::SqliteCppDb database(":memory:");
+    auto query = database.createStatement(
+      "WITH RECURSIVE numbers(n) AS (VALUES(0) UNION ALL "
+      "SELECT n+1 FROM numbers WHERE n < 100000000) SELECT sum(n) FROM "
+      "numbers");
+    std::stop_source cancellation;
+    std::promise<void> attempting;
+    auto started = attempting.get_future();
+    auto worker = std::async(std::launch::async, [&] {
+        attempting.set_value();
+        try {
+            (void)query.executeAndGet<int64_t>(cancellation.get_token());
+            return SQLITE_OK;
+        } catch (const SQLite::Exception& error) {
+            return error.getErrorCode();
+        }
+    });
+    started.wait();
+    const auto wasRunning =
+      worker.wait_for(20ms) == std::future_status::timeout;
+    cancellation.request_stop();
+    CHECK(wasRunning);
+    CHECK(worker.wait_for(2s) == std::future_status::ready);
+    CHECK(worker.get() == SQLITE_INTERRUPT);
+    CHECK(database.createStatement("SELECT 42").executeAndGet<int>() == 42);
 }

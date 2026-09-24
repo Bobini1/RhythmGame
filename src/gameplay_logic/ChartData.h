@@ -7,6 +7,7 @@
 
 #include <QQmlEngine>
 #include <QJsonObject>
+#include <QByteArray>
 #include "db/SqliteCppDb.h"
 #include "gameplay_logic/Judgement.h"
 #include <QHash>
@@ -379,8 +380,19 @@ class ChartData : public QObject
         std::string histogramData;
     };
 
+    struct PreparedData
+    {
+        QByteArray randomSequence;
+        QByteArray histogramData;
+        QByteArray bpmChanges;
+    };
+
+    auto prepareSave() const -> PreparedData;
     auto save(db::SqliteCppDb& db) const -> void;
     auto save(db::SqliteCppDb& db, int64_t directory) const -> void;
+    void save(db::SqliteCppDb& db,
+              int64_t directory,
+              const PreparedData& prepared) const;
     static auto load(const DTO& chartDataDto) -> std::unique_ptr<ChartData>;
     auto toJson() const -> QJsonObject;
 

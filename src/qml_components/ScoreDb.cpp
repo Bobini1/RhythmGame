@@ -213,7 +213,7 @@ runScoreQuery(qml_components::ScoreDb* owner,
 
         try {
             auto delivery = std::make_unique<ScoreQueryDelivery<Result>>();
-            delivery->result = query(delivery->objects);
+            delivery->result = query(delivery->objects, stopToken);
             if (stopToken.stop_requested())
                 return;
 
@@ -248,6 +248,8 @@ runScoreQuery(qml_components::ScoreDb* owner,
                               operation);
             }
         } catch (const std::exception& exception) {
+            if (stopToken.stop_requested())
+                return;
             auto error = std::string(exception.what());
             auto* application = QCoreApplication::instance();
             const auto queued =
@@ -492,17 +494,22 @@ class ScoreSummaryAccumulator
 
 auto
 ScoreDb::getScoresForMd5Impl(QList<QString> md5s,
-                             ScoreObjectOwner& objects) const
+                             ScoreObjectOwner& objects,
+                             std::stop_token stopToken) const
   -> ScoreQueryResult
 {
     auto uniqueMd5s = QSet<QString>{};
     for (const auto& md5 : md5s) {
+        if (stopToken.stop_requested())
+            return {};
         uniqueMd5s.insert(md5.toUpper());
     }
     const auto md5sToFetch = uniqueMd5s.values();
     std::vector<StoredScoreRow> allResults;
 
     for (int i = 0; i < md5sToFetch.size(); i += maxVariables) {
+        if (stopToken.stop_requested())
+            return {};
         auto chunk = md5sToFetch.mid(i, maxVariables);
         auto statement = scoreDb->createStatement(
           std::string("SELECT ") + storedScoreColumns +
@@ -517,12 +524,15 @@ ScoreDb::getScoresForMd5Impl(QList<QString> md5s,
             statement.bind(j + 1, chunk[j].toStdString());
         }
 
-        const auto result = statement.executeAndGetAll<StoredScoreRow>();
+        const auto result =
+          statement.executeAndGetAll<StoredScoreRow>(stopToken);
         allResults.insert(allResults.end(), result.begin(), result.end());
     }
 
     QMap<QString, QVariantList> groupedScores;
     for (const auto& row : allResults) {
+        if (stopToken.stop_requested())
+            return {};
         auto md5 = QString::fromStdString(row.result.md5);
         auto score = loadStoredScore(row);
         auto* ownedScore = objects.adopt(std::move(score));
@@ -547,11 +557,14 @@ ScoreDb::getScoresForMd5Impl(QList<QString> md5s,
 
 auto
 ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds,
-                                  ScoreObjectOwner& objects) const
+                                  ScoreObjectOwner& objects,
+                                  std::stop_token stopToken) const
   -> ScoreQueryResult
 {
     auto allCourseResults = std::vector<gameplay_logic::BmsResultCourse::DTO>{};
     for (int i = 0; i < courseIds.size(); i += maxVariables) {
+        if (stopToken.stop_requested())
+            return {};
         auto chunk = courseIds.mid(i, maxVariables);
         auto statement = scoreDb->createStatement(
           "SELECT * "
@@ -565,13 +578,16 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds,
         }
 
         const auto result =
-          statement.executeAndGetAll<gameplay_logic::BmsResultCourse::DTO>();
+          statement.executeAndGetAll<gameplay_logic::BmsResultCourse::DTO>(
+            stopToken);
         allCourseResults.insert(
           allCourseResults.end(), result.begin(), result.end());
     }
 
     auto scoreGuids = QList<QString>{};
     for (const auto& course : allCourseResults) {
+        if (stopToken.stop_requested())
+            return {};
         const auto& guidsForCourse = course.scoreGuids;
         auto guids =
           QString::fromStdString(guidsForCourse).split(' ', Qt::SkipEmptyParts);
@@ -581,6 +597,8 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds,
     std::vector<StoredScoreRow> allResults;
 
     for (int i = 0; i < scoreGuids.size(); i += maxVariables) {
+        if (stopToken.stop_requested())
+            return {};
         auto chunk = scoreGuids.mid(i, maxVariables);
         auto statement = scoreDb->createStatement(
           std::string("SELECT ") + storedScoreColumns +
@@ -595,22 +613,29 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds,
             statement.bind(j + 1, chunk[j].toStdString());
         }
 
-        const auto result = statement.executeAndGetAll<StoredScoreRow>();
+        const auto result =
+          statement.executeAndGetAll<StoredScoreRow>(stopToken);
         allResults.insert(allResults.end(), result.begin(), result.end());
     }
     auto scoreRows = QHash<QString, qsizetype>{};
     for (auto index = std::size_t{}; index < allResults.size(); ++index) {
+        if (stopToken.stop_requested())
+            return {};
         scoreRows[QString::fromStdString(allResults[index].result.guid)] =
           static_cast<qsizetype>(index);
     }
 
     auto courseScores = QMap<QString, QVariantList>{};
     for (const auto& courseScore : allCourseResults) {
+        if (stopToken.stop_requested())
+            return {};
         auto courseScoreGuids = QString::fromStdString(courseScore.scoreGuids)
                                   .split(' ', Qt::SkipEmptyParts);
         auto constructionOwner = QObject{};
         auto scoresForCourse = QList<gameplay_logic::BmsScore*>{};
         for (const auto& guid : courseScoreGuids) {
+            if (stopToken.stop_requested())
+                return {};
             const auto row = scoreRows.constFind(guid);
             if (row == scoreRows.cend())
                 continue;
@@ -644,12 +669,15 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds,
 }
 
 auto
-ScoreDb::getScoreSummaryForMd5Impl(const QList<QString>& md5s) const
+ScoreDb::getScoreSummaryForMd5Impl(const QList<QString>& md5s,
+                                   std::stop_token stopToken) const
   -> QVariantMap
 {
     ScoreSummaryAccumulator summary;
     QSet<QString> uniqueMd5s;
     for (const QString& md5 : md5s) {
+        if (stopToken.stop_requested())
+            return {};
         const QString normalized = md5.trimmed().toUpper();
         if (normalized.isEmpty() || uniqueMd5s.contains(normalized)) {
             continue;
@@ -660,6 +688,8 @@ ScoreDb::getScoreSummaryForMd5Impl(const QList<QString>& md5s) const
 
     const auto md5sToFetch = uniqueMd5s.values();
     for (int i = 0; i < md5sToFetch.size(); i += maxVariables) {
+        if (stopToken.stop_requested())
+            return {};
         auto chunk = md5sToFetch.mid(i, maxVariables);
         auto statement = scoreDb->createStatement(
           "SELECT score.md5, score.clear_type, score.points, score.max_points "
@@ -671,8 +701,11 @@ ScoreDb::getScoreSummaryForMd5Impl(const QList<QString>& md5s) const
             statement.bind(j + 1, chunk[j].toStdString());
         }
 
-        const auto rows = statement.executeAndGetAll<ScoreSummaryRow>();
+        const auto rows =
+          statement.executeAndGetAll<ScoreSummaryRow>(stopToken);
         for (const auto& row : rows) {
+            if (stopToken.stop_requested())
+                return {};
             summary.addScore(QString::fromStdString(row.md5),
                              QString::fromStdString(row.clearType),
                              row.points,
@@ -684,7 +717,9 @@ ScoreDb::getScoreSummaryForMd5Impl(const QList<QString>& md5s) const
 }
 
 auto
-ScoreDb::getFolderScoreSummaryImpl(const QString& folder) const -> QVariantMap
+ScoreDb::getFolderScoreSummaryImpl(const QString& folder,
+                                   std::stop_token stopToken) const
+  -> QVariantMap
 {
     ScoreSummaryAccumulator summary;
     auto query = scoreDb->createStatement(
@@ -700,8 +735,10 @@ ScoreDb::getFolderScoreSummaryImpl(const QString& folder) const -> QVariantMap
       "WHERE instr(dir, ?1) = 1))");
 
     query.bind(1, folder.toStdString());
-    const auto rows = query.executeAndGetAll<ScoreSummaryRow>();
+    const auto rows = query.executeAndGetAll<ScoreSummaryRow>(stopToken);
     for (const auto& row : rows) {
+        if (stopToken.stop_requested())
+            return {};
         const auto md5 = QString::fromStdString(row.md5);
         summary.addChart(md5);
         if (!row.clearType.empty()) {
@@ -717,6 +754,7 @@ ScoreDb::getFolderScoreSummaryImpl(const QString& folder) const -> QVariantMap
 ScoreDb::ScoreDb(db::SqliteCppDb* scoreDb)
   : scoreDb(scoreDb)
 {
+    threadPool.setMaxThreadCount(1);
 }
 
 ScoreDb::~ScoreDb()
@@ -763,8 +801,8 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s) -> support::PendingReply*
       this,
       threadPool,
       "Error in getScoresForMd5",
-      [this, md5s](ScoreObjectOwner& objects) {
-          return getScoresForMd5Impl(md5s, objects);
+      [this, md5s](ScoreObjectOwner& objects, std::stop_token stopToken) {
+          return getScoresForMd5Impl(md5s, objects, stopToken);
       });
 }
 auto
@@ -782,8 +820,8 @@ ScoreDb::getScoresForCourseId(const QList<QString>& courseIds)
       this,
       threadPool,
       "Error in getScoresForCourseId",
-      [this, courseIds](ScoreObjectOwner& objects) {
-          return getScoresForCourseIdImpl(courseIds, objects);
+      [this, courseIds](ScoreObjectOwner& objects, std::stop_token stopToken) {
+          return getScoresForCourseIdImpl(courseIds, objects, stopToken);
       });
 }
 
@@ -796,7 +834,7 @@ ScoreDb::getScores(const QString& folder) -> support::PendingReply*
       this,
       threadPool,
       "Error in getScores",
-      [this, folder](ScoreObjectOwner& objects) {
+      [this, folder](ScoreObjectOwner& objects, std::stop_token stopToken) {
           auto countQuery = scoreDb->createStatement(
             "SELECT COUNT(*) "
             "FROM song_db.charts "
@@ -809,7 +847,7 @@ ScoreDb::getScores(const QString& folder) -> support::PendingReply*
             ")");
           countQuery.bind(1, folder.toStdString());
           const auto unplayedCount =
-            countQuery.executeAndGet<int>().value_or(0);
+            countQuery.executeAndGet<int>(stopToken).value_or(0);
 
           auto query = scoreDb->createStatement(
             std::string("SELECT ") + storedScoreColumns +
@@ -823,9 +861,11 @@ ScoreDb::getScores(const QString& folder) -> support::PendingReply*
             "WHERE instr(dir, ?1) = 1))");
           query.bind(1, folder.toStdString());
 
-          const auto rows = query.executeAndGetAll<StoredScoreRow>();
+          const auto rows = query.executeAndGetAll<StoredScoreRow>(stopToken);
           QMap<QString, QVariantList> groupedScores;
           for (const auto& row : rows) {
+              if (stopToken.stop_requested())
+                  return ScoreQueryResult{};
               const auto md5 = QString::fromStdString(row.result.md5);
               auto score = loadStoredScore(row);
               auto* ownedScore = objects.adopt(std::move(score));
@@ -857,7 +897,7 @@ ScoreDb::getScores(const resource_managers::Table& table)
       this,
       threadPool,
       "Error in getScores(table)",
-      [this, table](ScoreObjectOwner& objects) {
+      [this, table](ScoreObjectOwner& objects, std::stop_token stopToken) {
           auto md5s = QStringList{};
           for (const auto& level : table.levels) {
               for (const auto& entry : level.entries)
@@ -868,8 +908,9 @@ ScoreDb::getScores(const resource_managers::Table& table)
               for (const auto& course : courseList)
                   courseIds.append(course.getIdentifier());
           }
-          auto scores = getScoresForMd5Impl(md5s, objects);
-          auto courseScores = getScoresForCourseIdImpl(courseIds, objects);
+          auto scores = getScoresForMd5Impl(md5s, objects, stopToken);
+          auto courseScores =
+            getScoresForCourseIdImpl(courseIds, objects, stopToken);
           return TableQueryResult{
               .courseScores = std::move(courseScores),
               .scores = std::move(scores),
@@ -894,13 +935,13 @@ ScoreDb::getScoreSummary(const QString& folder) -> support::PendingReply*
 {
     if (stopping)
         return makeStoppedReply();
-    return runScoreQuery<QVariantMap>(this,
-                                      threadPool,
-                                      "Error in getScoreSummary",
-                                      [this, folder](ScoreObjectOwner&) {
-                                          return getFolderScoreSummaryImpl(
-                                            folder);
-                                      });
+    return runScoreQuery<QVariantMap>(
+      this,
+      threadPool,
+      "Error in getScoreSummary",
+      [this, folder](ScoreObjectOwner&, std::stop_token stopToken) {
+          return getFolderScoreSummaryImpl(folder, stopToken);
+      });
 }
 
 auto
@@ -914,13 +955,13 @@ ScoreDb::getScoreSummary(const resource_managers::Table& table)
         for (const auto& entry : level.entries)
             md5s.append(entry.md5);
     }
-    return runScoreQuery<QVariantMap>(this,
-                                      threadPool,
-                                      "Error in getScoreSummary(table)",
-                                      [this, md5s](ScoreObjectOwner&) {
-                                          return getScoreSummaryForMd5Impl(
-                                            md5s);
-                                      });
+    return runScoreQuery<QVariantMap>(
+      this,
+      threadPool,
+      "Error in getScoreSummary(table)",
+      [this, md5s](ScoreObjectOwner&, std::stop_token stopToken) {
+          return getScoreSummaryForMd5Impl(md5s, stopToken);
+      });
 }
 
 auto
@@ -932,13 +973,13 @@ ScoreDb::getScoreSummary(const resource_managers::Level& level)
     auto md5s = QStringList{};
     for (const auto& entry : level.entries)
         md5s.append(entry.md5);
-    return runScoreQuery<QVariantMap>(this,
-                                      threadPool,
-                                      "Error in getScoreSummary(level)",
-                                      [this, md5s](ScoreObjectOwner&) {
-                                          return getScoreSummaryForMd5Impl(
-                                            md5s);
-                                      });
+    return runScoreQuery<QVariantMap>(
+      this,
+      threadPool,
+      "Error in getScoreSummary(level)",
+      [this, md5s](ScoreObjectOwner&, std::stop_token stopToken) {
+          return getScoreSummaryForMd5Impl(md5s, stopToken);
+      });
 }
 
 auto
@@ -947,7 +988,10 @@ ScoreDb::getTotalStats() -> support::PendingReply*
     if (stopping)
         return makeStoppedReply();
     return runScoreQuery<ScoreStatsResult>(
-      this, threadPool, "Error in getTotalStats", [this](ScoreObjectOwner&) {
+      this,
+      threadPool,
+      "Error in getTotalStats",
+      [this](ScoreObjectOwner&, std::stop_token stopToken) {
           auto statement = scoreDb->createStatement(
             "SELECT "
             "COUNT(*), "
@@ -963,7 +1007,8 @@ ScoreDb::getTotalStats() -> support::PendingReply*
             "COALESCE(MAX(max_combo), 0) "
             "FROM score WHERE source = 0");
           const auto row =
-            statement.executeAndGet<ScoreStatsRow>().value_or(ScoreStatsRow{});
+            statement.executeAndGet<ScoreStatsRow>(stopToken).value_or(
+              ScoreStatsRow{});
           return ScoreStatsResult{
               .playCount = row.playCount,
               .clearCount = row.clearCount,

@@ -11,6 +11,12 @@
 
 #include <QCoreApplication>
 #include <QTemporaryDir>
+#include <QElapsedTimer>
+#include <QFile>
+#include <QScopeGuard>
+#include <QThread>
+#include <QThreadPool>
+#include <future>
 #include <catch2/catch_test_macros.hpp>
 
 namespace {
@@ -158,4 +164,64 @@ TEST_CASE("Folder names decode URLs and preserve literal filesystem names",
     CHECK(support::folderName("C:\\songs\\name\\") == "name");
     CHECK(support::folderName("catalog:/packs/Pack%2F100%25/") == "Pack/100%");
     CHECK(support::folderName("file:///C:/songs/100%25%20%231/") == "100% #1");
+}
+
+TEST_CASE("Song scanning leaves UI reads and the global pool independent",
+          "[Database][scheduling]")
+{
+    Catalog catalog;
+    const auto path = catalog.directory.filePath("songs.sqlite");
+    db::SqliteCppDb writer(support::qStringToPath(path));
+    resource_managers::SongAssetStore assets;
+    qml_components::ScanningQueue queue(
+      &writer, resource_managers::SongDbScanner(&writer, &assets));
+    const auto rootPath = catalog.directory.path() + '/';
+    auto folder = QSharedPointer<qml_components::RootSongFolder>::create(
+      rootPath, qml_components::RootSongFolder::NotScanned);
+    auto root = writer.createStatement("INSERT INTO root_dir(path) VALUES(?)");
+    root.bind(1, rootPath.toStdString());
+    root.execute();
+    QFile chart(catalog.directory.filePath("chart.bms"));
+    REQUIRE(chart.open(QIODevice::WriteOnly));
+    REQUIRE(chart.write(
+              "#PLAYER 1\n#TITLE Test\n#ARTIST Test\n#BPM 120\n#00111:0100\n") >
+            0);
+    chart.close();
+
+    auto* pool = QThreadPool::globalInstance();
+    const auto previousLimit = pool->maxThreadCount();
+    pool->setMaxThreadCount(1);
+    std::promise<void> release;
+    auto released = release.get_future().share();
+    std::promise<void> started;
+    auto occupied = started.get_future();
+    pool->start([&] {
+        started.set_value();
+        released.wait();
+    });
+    const auto restore = qScopeGuard([&] {
+        release.set_value();
+        pool->waitForDone();
+        pool->setMaxThreadCount(previousLimit);
+    });
+    occupied.wait();
+    auto transaction = writer.transaction();
+    REQUIRE(queue.scan(folder.get()));
+    CHECK(queue.scan(folder.get()));
+    CHECK(queue.rowCount() == 1);
+    CHECK(catalog.database.createStatement("SELECT count(*) FROM charts")
+            .executeAndGet<int>() == 0);
+    transaction.commit();
+    QElapsedTimer timer;
+    timer.start();
+    while (queue.rowCount() != 0 && timer.elapsed() < 5000) {
+        QCoreApplication::processEvents();
+        QThread::msleep(1);
+    }
+    CHECK(queue.rowCount() == 0);
+    CHECK(folder->getStatus() == qml_components::RootSongFolder::Scanned);
+    CHECK(catalog.database.createStatement("SELECT count(*) FROM charts")
+            .executeAndGet<int>() == 1);
+    CHECK(catalog.database.createStatement("SELECT status FROM root_dir")
+            .executeAndGet<int>() == qml_components::RootSongFolder::Scanned);
 }

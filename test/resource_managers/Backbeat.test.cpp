@@ -26,8 +26,11 @@
 #include <QNetworkAccessManager>
 #include <QThread>
 #include <QTemporaryDir>
+#include <QScopeGuard>
+#include <QThreadPool>
 #include <catch2/catch_test_macros.hpp>
 #include <functional>
+#include <future>
 
 namespace {
 
@@ -354,7 +357,7 @@ TEST_CASE(
           "(SELECT directory FROM charts WHERE directory IS NOT NULL)");
     };
     resource_managers::BackbeatCatalog catalog(
-      source, library.path, &library.database);
+      source, library.path, &library.database, &library.database);
     REQUIRE(catalog.synchronize().added == 1);
     CHECK(library.database
             .createStatement("SELECT count(*) FROM charts c "
@@ -374,7 +377,7 @@ TEST_CASE("Backbeat polls revisions without a QML engine or selection screen",
     Library library;
     auto source = std::make_shared<Store>();
     resource_managers::BackbeatCatalog catalog(
-      source, library.path, &library.database);
+      source, library.path, &library.database, &library.database);
     int updates = 0;
     int completed = 0;
     QObject::connect(&catalog,
@@ -394,12 +397,101 @@ TEST_CASE("Backbeat polls revisions without a QML engine or selection screen",
     REQUIRE(source->searches == 2);
 }
 
+TEST_CASE("Published collections retain the application database connection",
+          "[backbeat]")
+{
+    class CollectionsStore : public Store
+    {
+      public:
+        auto collections(db::SqliteCppDb* database,
+                         const QHash<QString, IndexedBundle>& indexed) const
+          -> QList<resource_managers::Table> override
+        {
+            const auto& chart = indexed.constBegin().value();
+            resource_managers::Entry entry;
+            entry.md5 = chart.md5;
+            entry.path = chart.path;
+            entry.exactPath = true;
+            resource_managers::Course course{ database };
+            course.md5s = { chart.md5 };
+            resource_managers::Table table;
+            table.levels = { { database, "Level", { entry } } };
+            table.courses = { { course } };
+            return { table };
+        }
+    };
+    Library library;
+    auto source = std::make_shared<CollectionsStore>();
+    source->installed.insert(QString(64, 'a'), { "chart.bms", chartBytes, {} });
+    resource_managers::BackbeatCatalog::Update update;
+    {
+        db::SqliteCppDb writer(library.path);
+        resource_managers::BackbeatCatalog catalog(
+          source, library.path, &library.database, &writer);
+        update = catalog.synchronize();
+        REQUIRE(update.added == 1);
+    }
+    REQUIRE(update.collections.size() == 1);
+    const auto& table = update.collections.front();
+    const auto& level = table.levels.front();
+    const auto& course = table.courses.front().front();
+    REQUIRE(level.db == &library.database);
+    REQUIRE(course.db == &library.database);
+    const auto charts = level.loadCharts();
+    const auto courseCharts = course.loadCharts();
+    const auto cleanup = qScopeGuard([&] {
+        deleteCharts(charts);
+        deleteCharts(courseCharts);
+    });
+    REQUIRE(charts.size() == 1);
+    REQUIRE(courseCharts.size() == 1);
+    const auto* chart = charts.front().value<gameplay_logic::ChartData*>();
+    const auto* courseChart =
+      courseCharts.front().value<gameplay_logic::ChartData*>();
+    REQUIRE(chart != nullptr);
+    REQUIRE(courseChart != nullptr);
+    CHECK(chart->getMd5() == courseChart->getMd5());
+    CHECK(course.chartPath(0) == chart->getPath());
+}
+
 TEST_CASE("Backbeat and the application use the same SQLite", "[backbeat]")
 {
     REQUIRE(bkb_sqlite_version_number() == sqlite3_libversion_number());
     REQUIRE(sqlite3_libversion_number() >= BKB_SQLITE_MIN_VERSION_NUMBER);
     REQUIRE(sqlite3_threadsafe() != 0);
     REQUIRE(sqlite3_compileoption_used("ENABLE_FTS5"));
+}
+
+TEST_CASE("Catalog refresh is independent of the global asset-loading pool",
+          "[backbeat][scheduling]")
+{
+    Library library;
+    auto source = std::make_shared<Store>();
+    resource_managers::BackbeatCatalog catalog(
+      source, library.path, &library.database, &library.database);
+    auto* pool = QThreadPool::globalInstance();
+    const auto previousLimit = pool->maxThreadCount();
+    pool->setMaxThreadCount(1);
+    std::promise<void> release;
+    auto released = release.get_future().share();
+    std::promise<void> started;
+    auto occupied = started.get_future();
+    pool->start([&] {
+        started.set_value();
+        released.wait();
+    });
+    const auto restore = qScopeGuard([&] {
+        release.set_value();
+        pool->waitForDone();
+        pool->setMaxThreadCount(previousLimit);
+    });
+    occupied.wait();
+    bool updated = false;
+    QObject::connect(&catalog,
+                     &resource_managers::BackbeatCatalog::updated,
+                     [&](const auto&) { updated = true; });
+    catalog.refresh();
+    CHECK(waitUntil([&] { return updated; }));
 }
 
 TEST_CASE(
@@ -413,7 +505,7 @@ TEST_CASE(
     source->installed.insert(
       id, { "chart.bms", chartBytes, { "preview.ogg", "readme.txt" } });
     resource_managers::BackbeatCatalog catalog(
-      source, library.path, &library.database);
+      source, library.path, &library.database, &library.database);
     const auto first = catalog.synchronize();
     REQUIRE(first.added == 1);
     REQUIRE(first.error.isEmpty());
@@ -458,7 +550,7 @@ TEST_CASE("Backbeat refresh failures and concurrent imports do not discard "
     auto source = std::make_shared<Store>();
     source->installed.insert(QString(64, 'a'), { "one.bms", chartBytes, {} });
     resource_managers::BackbeatCatalog catalog(
-      source, library.path, &library.database);
+      source, library.path, &library.database, &library.database);
     REQUIRE(catalog.synchronize().added == 1);
     source->unavailable = true;
     REQUIRE_THROWS(catalog.synchronize());
@@ -497,7 +589,7 @@ TEST_CASE("Backbeat packs are ordinary folders with independent membership",
         { "https://example.test/empty", "Empty pack", { missingId } }
     };
     resource_managers::BackbeatCatalog catalog(
-      source, library.path, &library.database);
+      source, library.path, &library.database, &library.database);
     const auto first = catalog.synchronize();
     REQUIRE(first.added == 3);
     REQUIRE(first.collections.isEmpty());

@@ -1,5 +1,10 @@
 # Theme Development
 
+Start with the [skin tutorial](docs/pages/theme-tutorial/index.md) for a sequence
+of installable examples, from a main menu to gameplay and results. Use this
+page to look up the theme contract and the
+[architecture notes](docs/pages/skin-architecture.md) to understand the design.
+
 If you want to edit a theme, you only need a text editor.
 Edit the scripts and relaunch the game to see your changes.
 
@@ -23,10 +28,10 @@ Here is an example of a minimal `theme.json` file:
 }
 ```
 
-A theme does not need to implement all screens, it can just implement the ones you want.
-You can think of it as a package that can contain replacements for any number of the game's screens.
+A theme can replace any subset of the game's screens. Players choose a theme
+for each role, so you can share just a result screen or a whole set of screens.
 
-### Persisent settings
+### Persistent settings
 
 To provide configurable theme settings that will be stored separately for each user profile,
 you can define a `settings` field in `theme.json`.
@@ -51,12 +56,13 @@ For persistent global settings affecting all profiles, you can use the
 [Settings QML type](https://doc.qt.io/qt-6/qml-qt-labs-settings-settings.html).
 But you probably won't need it. I only ever used it once, for storing screen resolution.
 
-There are 7 different types of properties you can use in a settings file:
+There are 8 different types of properties you can use in a settings file:
 
 - boolean
 - range
 - string
 - file
+- font
 - choice
 - color
 - hidden
@@ -141,10 +147,9 @@ subtags. See [DEV_LANG.md](DEV_LANG.md) for matching and compatibility details.
 
 ## Theme loading
 
-Themes are loaded and validated when the game starts.
-If there are any critical errors in configuration files,
-the game will fail to start. Don't share broken themes!
-Look at log.txt in the data folder to find out what went wrong.
+The game loads and validates themes at startup. A critical configuration
+error can prevent startup, so check `log.txt` in the data folder for the file
+and error. Restart after changing a manifest or QML file.
 
 The part of the game that manages the theme most directly is
 [RhythmGameQml/ContentFrame.qml](https://github.com/Bobini1/RhythmGame/blob/master/RhythmGameQml/ContentFrame.qml).
@@ -161,21 +166,24 @@ theme independent of the details of screen lifetime, retry, and Arena flow.
 Custom flows can use these navigation operations:
 
 - `currentScreen` is the currently presented screen.
-- `previousScreen(screen)` returns the retained screen immediately before it,
-  or `null`. Omitting `screen` uses the current screen.
-- `openGameplay(runner)` replaces the current decide screen with gameplay.
-- `replaceGameplay(runner, screen)` replaces that screen and anything above it
+- `openGameplay(gameplay)` pushes gameplay above the current screen.
+- `replaceGameplay(gameplay, screen)` replaces that screen and anything above it
   with local gameplay. Omitting `screen` replaces the current screen. It returns
   the new screen, or `null` if creation fails or the target is unavailable.
   The replacement is created before removing the old screens, so a broken
   gameplay skin leaves the current screen intact.
 
+Decide uses `replaceGameplay(gameplay)` to hand off to play. Arena uses
+`openGameplay(gameplay)` to retain the screen underneath. The operation chooses
+the stack change; it does not depend on the play mode.
+
 Runner lifetime follows the local screen: decide owns it until gameplay takes
 over; gameplay retains it while results are shown, and destroys it when removed
 or replaced. `ContentFrame` handles this even when a skin omits the standard
-input components. Skins must not destroy these runners themselves. Arena uses
-`openGameplay(runner, true)` to push gameplay without transferring its externally
-owned runner. `ContentFrame` has no retry-specific input or session state.
+input components. Skins must not destroy these runners themselves. When
+`gameplay.isArena` is true, runner ownership stays with Arena.
+`StandardMultiplayerFlow` releases its prepared runner when gameplay leaves
+the stack. `ContentFrame` does not manage retry input or clean up prepared rounds.
 
 ---
 **NOTE**
@@ -194,9 +202,16 @@ state:
 ```qml
 function openChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2)
 function openCourse(course, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2)
-function openResult(scores, profiles, chartData)
+function openResult(scores, profiles, chartData, gameplay = null, arenaRoundId = "")
 function openCourseResult(scores, profiles, chartDatas, course)
+function openSettings(section = "")
 ```
+
+These operations return the opened screen, or a falsy value if creation fails.
+Standard gameplay retains saved scores when result creation fails. Pass the
+originating `gameplay` explicitly when opening a result after play. Omit it
+when viewing a saved score from selection. The host does not infer the origin
+from whichever screen happens to be current.
 
 Since gameplay screens and result screens need to be pushed with some initial property state,
 those helper methods set them based on the parameters passed to them.
@@ -208,38 +223,86 @@ Call them on `globalRoot`, for example `globalRoot.openChart(...)`.
 
 Keep the following in mind when writing screens with initial state:
 
-Screens `k7`, `k14` and `k7battle` are expected to have single `var` property called `chart`. The assigned `chart` will
-be either a [ChartRunner](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ChartRunner.html) or
-[CourseRunner](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1CourseRunner.html)
-object, depending on whether the player is playing a single chart or a course.
+Each data-bearing screen declares one typed input:
 
-Screen `result` is expected to have the following properties:
+| Screen role       | Required declaration                           |
+|-------------------|------------------------------------------------|
+| `settings`        | `required property string initialSection`     |
+| `decide`          | `required property GameplayContext gameplay`   |
+| All gameplay keys | `required property GameplayContext gameplay`   |
+| `result`          | `required property ResultContext result`       |
+| `courseResult`    | `required property CourseResultContext result` |
 
-```qml
-property list<BmsScore> scores
-property list<Profile> profiles
-property ChartData chartData
-```
+Settings receives a section name. An empty name opens the skin's usual first
+page, and `"keys"` requests input configuration. Each settings skin maps these
+names to its own layout and uses its first page for unknown names. For example,
+selection can call `globalRoot.openSettings("keys")` without knowing a tab number.
+Calling `openSettings()` while settings is already current keeps its current page.
 
-The lists will have 1 or 2 elements, depending on whether the game was played solo or in battle mode.
+Every gameplay skin supports courses. Decide and gameplay receive the same
+context, which survives their handoff. A course stage uses the same live data
+shape as a single chart; the skin does not receive different runner types.
 
-Screen `courseResult` is expected to have the following properties:
+`GameplayContext` provides:
 
-```qml
-property list<BmsScoreCourse> scores
-property list<Profile> profiles
-property list<ChartData> chartDatas
-property course course
-```
+- `chartData`: metadata for the current chart, including the last stage after
+  course completion.
+- `players`: one `Player` for solo or double play, two for local battle. Each
+  supplies `profile`, live `score`, `notes`, `state`, timing and position.
+- `bga`, `status`, `keymode`, and writable `inputMapping` for presentation.
+- `isCourse`, `course` (undefined for a single chart), `charts`, zero-based `stageIndex`, and
+  `stageCount`. Single charts have one stage. `coursePlayers` supplies the
+  course-wide combo state in participant order and is empty for single charts.
+- `isArena`: whether this play belongs to Arena. Runner ownership remains internal.
+- `arenaActive`: whether the session still presents this gameplay round. Use it
+  to choose Arena targets or standings, independently of any overlay.
 
-You can always use `var` instead of the exact type if you want to be flexible.
+Bind through `gameplay.players` and `gameplay.chartData`; they change together
+when a course installs its next stage. Do not retain an old stage's `Player`.
+Pass the context to `StandardDecideFlow.gameplay` or `StandardGameplayFlow.gameplay`.
+
+`ResultContext` always describes one chart, including a completed course stage.
+It provides `chartData`, `players` (typed `ResultPlayer` entries, each pairing
+`profile` with a `BmsScore`), and fixed `course`, `stageIndex`, and `stageCount`
+metadata. Its `gameplay` identifies the originating play for standard retry;
+that context remains live, so use the result's own metadata to describe the
+completed stage.
+
+`CourseResultContext` describes the aggregate course summary. It provides
+`course`, `charts`, and `players` (typed `CourseResultPlayer` entries, each
+pairing `profile` with a `BmsScoreCourse`). It has no single-chart retry.
+Normal results and course summaries are independently selected screen roles.
+There is no fallback from `courseResult` to a skin's normal `result`.
+The profile selects each role separately, with Default providing unconfigured
+roles. Default shares its private presentation through separate typed entry points.
+
+`ResultContext.arenaRoundId` identifies an Arena result and is empty for local
+play or saved-score views. Standard gameplay submits the Arena score before
+opening the result and ends its presentation when the screen is destroyed.
+`result.arenaActive` reports whether the session still presents the same round.
+Use it for standings and chat input rules, even if your skin draws its own panel.
+If screen creation fails, it keeps the submitted round for a later retry.
+`ContentFrame` passes the result data without calling methods on the skin.
+
+Both result participant lists have one or two entries without null padding.
+Pass either result context to `StandardResultInput.result`. Completed metadata
+and score totals are fixed; existing live score-submission notifications remain
+available. The host retains the required play objects while results are shown.
+Skins must not destroy injected contexts or their data.
+
+This replaces the old root `chart`/`arenaManagedRunner` and parallel
+`scores`/`profiles` properties for public QML skins. Migrate the root declaration
+and behavior binding together. LR2 retains internal entry files for select,
+decide, gameplay, result and course result. They receive these same contexts.
+The shared LR2 renderer loads its own CSV path, metadata and saved settings,
+and derives its legacy score fields from the result context. ContentFrame
+does not pass LR2 configuration or legacy result properties.
 
 ## Input
 
-It would be best if your theme supported mouse, keyboard and controller navigation.
-For example, for scrolling a list of songs, it would be best to allow using the mouse wheel, arrow keys and scratch.
-In the default theme, the `settings` screen was designed with mouse and keyboard in mind,
-without support for controller navigation.
+Support mouse, keyboard and bound controller input where the screen needs it.
+For example, a song list can accept the mouse wheel, arrow keys and scratch.
+Default settings currently use mouse and keyboard controls.
 
 For mouse input, use [MouseArea](https://doc.qt.io/qt-6/qml-qtquick-mousearea.html) or
 [TapHandler](https://doc.qt.io/qt-6/qml-qtquick-taphandler.html).
@@ -257,15 +320,25 @@ Song preview should not play during gameplay. You can use the
 to detect when a screen is not active.
 This property propagates to all child components.
 
-Gameplay screens should not use `Input` directly. Instead, use
+For note and lane feedback during gameplay, use
 [columnState.pressed](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ColumnState.html#a116fbd7d8aec0c9ebad00828b7564ab6).
-This will play nicely with autoplay and replays.
-`Input` is reserved for actual input, not injected key presses.
+The gameplay state includes autoplay and replay presses. Use `Input` for
+physical input actions such as opening a popup, rather than for note feedback.
 
 ### Reusable selection components
 
+The public skin API serves ordinary QML skins. Types under
+`RhythmGameQml/Lr2` are internal. LR2 can reuse Standard components or use its
+own implementation, without changing what the public API promises.
+
 Themes can import `RhythmGameQml` and opt into the standard selection behavior
 without using the Default theme's presentation:
+
+Use one high-level entry point or its chosen lower-level pieces, not both.
+`StandardSelectController` already creates its input, shortcuts, state, session,
+activation and presentation adapter. The
+[selector tutorial](docs/pages/theme-tutorial/05-select.md) includes a finite-list
+example with keyboard activation and focus wiring.
 
 For a complete standard selector, instantiate `StandardSelectController`. It
 extends `StandardSelectState` with presentation adaptation, folder enter/leave
@@ -284,8 +357,10 @@ Browsing and activation:
   score-query lifetime, scores and preview paths. Its `resolve...` methods only
   acquire data; `commitFolderContents()` is the explicit state change. A custom
   `tableCoursesProvider` can return the courses for a table.
-- `StandardSelectActivation` implements the standard chart, course and Arena
-  activation rules.
+- `StandardSelectActions` opens charts, courses and saved results. Its `exit()`
+  leaves selection or its Arena room, and `handleStartPress(key)` handles the
+  double-Start ready gesture. Custom selectors can use it without the standard
+  browsing state.
 - `StandardSelectState` combines the session and activation behavior with
   sorting, filtering and focus. Its `entries` contain one logical copy of each
   filtered item. Score, preview-file and folder-stat enrichment can be disabled
@@ -313,6 +388,13 @@ Interaction policies:
   standard state declines F2 or F3, the corresponding request signal is also
   emitted for the skin.
 
+`StandardSelectReload` supplies table/root-folder reload policy for custom
+selectors. `reload(focusedItem, history, folderPath)` returns true when it requests
+a reload/scan; otherwise the caller can refresh its current folder model.
+`StandardSelectState` (and therefore `StandardSelectController`) includes it.
+The old `globalRoot.reloadTableForItem()` and `scanRootSongFolderForPath()` helpers
+have moved out of the host; custom callers should use this component.
+
 Shared asynchronous lifetime:
 
 - `PendingReplyGroup` owns any set of asynchronous replies with one cancellation
@@ -329,60 +411,154 @@ Application-owned F1 and F4 behavior is internal to `ContentFrame`. F12 belongs
 to `StandardSelectShortcuts`, so it is only available on selection screens that
 opt into the standard selection shortcuts.
 
+### Arena panels belong to the screen
+
+Add `StandardArenaSelectOverlay` to a selector that supports Arena. Bind its
+`navigationFocusTarget` to the song list so closing chat restores keyboard
+focus. The panel shows the room, ready controls and chat while the player is
+seated in a room. The selection controller still handles chart proposals and
+the ready gesture. Bind `readyShortcutDescription` to the controller's property
+of the same name. The overlay leaves the description empty by default, since
+it does not install a ready gesture itself.
+
+`StandardSelectController.exit()` leaves local selection or an Arena room.
+Escape calls it by default. Use `goBack()` only for folder history. Set
+`exitEnabled` or `readyEnabled` to false to replace the corresponding input,
+or set `exitAction` to replace the exit action.
+
+Add `StandardArenaGameplayOverlay` beside `StandardGameplayFlow`, and bind
+both components to the same `gameplay` context. Add `StandardArenaResultOverlay`
+to a normal result screen and bind its `result`. Local play and saved-score
+views do not show these panels. Course summaries do not need an Arena overlay.
+
+The overlays share `StandardArenaOverlay` for placement, saved preferences
+and chat input. Set `defaultPixelRectHint` to choose an initial position,
+`customizeMode` to show editing controls, and `z` to set the stacking order.
+Place the overlay directly inside the screen root. If you use another parent,
+set `viewport` to the item whose coordinates the overlay uses. `themeVars`
+defaults to the active profile's settings for the overlay's screen role.
+
+Gameplay and result panels use F8 to toggle chat. The selector's chat shortcut
+is disabled by default because a selector may already use F8. Change
+`chatShortcut` or disable `chatShortcutEnabled` to supply different input.
+Hidden and disabled screens do not restore chat state or handle the shortcut.
+On a result screen, disable confirmation while its Arena chat is open.
+
+Replace `panelComponent` to keep the standard placement and input with your
+own visuals. Default's result screen uses its own `ArenaResultPanel` this way.
+The [complete tutorial skin](docs/pages/theme-tutorial/10-shipping.md) shows
+the standard overlays in installable select, gameplay and result screens.
+
+`ContentFrame` does not create these panels. Screens no longer declare
+`arenaNativeSelectPresentation`, `arenaNativeGameplayPresentation` or
+`arenaNativeResultPresentation`, and they need no `rememberArenaChatSelection`
+method. LR2 creates its overlays and customization editor inside its internal
+screen wrapper. The host only handles screen operations and play object lifetime.
+
+### Arena browser and screen lifetime
+
+A multiplayer skin uses `StandardMultiplayerFlow` and reads its `session`.
+Create and join buttons call `session.createRoom()` and `session.joinRoom()`.
+The connection retry button calls `session.retry()`, and Back calls the flow's
+`close()`. The skin no longer declares request signals for ContentFrame.
+
+The browser, room selector, gameplay and result are ordinary screens on one
+stack. `currentScreen` always identifies the actual skin. The browser remains
+under selection, and removing the browser disconnects from Arena. The standard
+selector returns to it when the room is left or lost. If Settings or a result
+covers selection, that return waits until selection becomes active again.
+
+The multiplayer flow opens scheduled gameplay directly, without decide. If a
+round starts while Settings is open, gameplay returns to Settings afterward.
+Neither Arena navigation nor its panels require a nested stack or shell.
+
 ### Reusable behavior for other screens
 
-Other screens expose smaller components around their own natural seams rather
-than copying the selection component structure:
+Choose the component for the screen you are writing. The
+[tutorial](docs/pages/theme-tutorial/index.md) contains an installable example
+for each role.
 
-- `StandardMainActions` provides the standard song-select, Arena, settings and
-  quit destinations, including START opening song selection.
-- `StandardDecideFlow` owns decide timeout, accept/cancel input and transition
-  guarding. It fills its parent by default; the skin owns the decide visuals.
-  A replacement start/cancel action owns its full transition. Starting replaces
-  decide with gameplay; there is no retained decide screen to close afterward.
-- `StandardResultInput` owns delayed result dismissal and retry input. A skin
-  can supply `tryHandleButtonAction` for presentation-specific actions such as
-  cycling a displayed gauge before the standard retry/dismissal handling runs.
-  Skin pointer handlers can call `confirm()` to share the standard confirmation
-  gate. Keys 5 and 7 retry with fresh randomization and the same pattern,
-  respectively. It uses `StandardChartRetry` internally and obtains the runner
-  from the preceding gameplay screen.
-- `StandardGameplayInput` combines Escape, the optional START+SELECT hold gesture
-  and normal result dispatch. Supply `chart` and `chartData`.
-  `retryHoldDurationMillis` defaults to 1000. During `retryChoosing`,
-  releasing START retries the same pattern, releasing SELECT uses fresh
-  randomization, and releasing both cancels. The gameplay screen stays visible.
-  Standard exit and result completion wait for the choice to end; skins only
-  need to gate their own controls with `!retryChoosing`. Keep this component
-  enabled to observe releases. `retryEnabled` and `exitEnabled` independently
-  disable those actions. `retryAction(samePattern)` replaces restarting;
-  `retry(samePattern)` and `cancelRetry()` are available for custom controls.
-  Untouched charts return immediately on Escape; attempted plays finish and
-  open results. Presentation cleanup, exit, feedback and result opening remain
-  replaceable. `completionEnabled: false` allows a skin such as LR2 to own its
-  finish timing. Otherwise completion detected while inactive or choosing retry
-  is retained until it can be presented.
-- `StandardChartRetry` provides `available` and `retry(samePattern)` without
-  input mappings or completion handling. Set `fromResult: true` to infer the
-  runner from gameplay under the current result; otherwise supply `chart`.
-  It replaces gameplay directly, including the result above it when present.
-  The standard implementation excludes courses, autoplay, replay, battle and
-  Arena. An unfinished retry does not finish/save the old play; result retry
-  preserves the already saved result. A supported request is consumed even if
-  loading fails, leaving the current screen intact.
-- `StandardGameplayAttemptState` tracks whether a chart has received a scoring
-  hit. It is available separately for custom gameplay transitions.
+| Component              | What it handles                                             | How to use it                                                                    |
+|------------------------|-------------------------------------------------------------|----------------------------------------------------------------------------------|
+| `StandardMainActions`  | Song selection, Arena, Settings and quit                    | Call its methods from buttons. Bound START opens selection by default.           |
+| `StandardMultiplayerFlow` | Arena connection, room selection and scheduled gameplay | Place it inside the multiplayer screen and use its `session`. |
+| `StandardDecideFlow`   | Timeout, accept, cancel and duplicate requests              | Bind `gameplay`. Set `pointerEnabled: false` if your screen has its own buttons. |
+| `StandardGameplayFlow` | Startup, exit, retry, stage results and course continuation | Bind `gameplay` and put the component directly inside the screen root.           |
+| `StandardResultInput`  | Delayed result confirmation and supported retry             | Bind `result` and call `confirm()` from your Continue button.                    |
 
-`StandardInputKeys.isPlayKey(key)` is available when a custom component needs
-the same lane-key classification used by the standard decide and result input.
+Decide starts by replacing itself with gameplay. Its replacement `startAction`
+or `cancelAction` handles the whole transition, and the standard action does
+not run afterward. The game controls play object lifetime in either case.
 
-All action properties are optional. Without an override these components call
-the semantic operations exposed by the application content frame. An `Action`
-property is a complete replacement and does not need to return a value. A
-`try...Action` is a pre-handler: return `true` when it consumed the request, or
-return `false`/`undefined` to continue with the standard behavior. Skins should
-use `globalRoot.returnToPreviousScreen()` instead of accessing `sceneStack`
-directly.
+The gameplay flow uses its parent as the owning screen. Set `screen` if you
+nest it inside another item. `stageActivated` is emitted before each stage
+starts, so it is a suitable place to reset visuals or request score targets.
+`closing` lets the skin clean up before leaving.
+
+Bind `startReady` to delay the ready sequence for an intro. Start an outro
+in `finishRequested` and bind `finishReady` to its completion. The flow still
+saves scores and opens results. `readySoundSource` selects ready audio, and
+`startDelayMillis` controls the following delay. The default delay is zero
+when ready audio is available and 1000 milliseconds otherwise.
+
+`dismissOverlayAction()` can close a popup and return true to consume Escape.
+If a result fails to load, `presentationFailed` is emitted and the saved
+scores are kept. `retryTransition()` tries to open the result again. Arena
+controls its own startup, and the host releases its play object when the
+screen is removed. Don't add `StandardGameplayInput` beside the complete flow
+or duplicate runner start, finish or proceed calls.
+
+The result component accepts both result context types. A
+`tryHandleButtonAction(key)` can handle a display action, such as cycling
+gauges, before retry or dismissal. Keys 5 and 7 request fresh randomization
+and the same pattern respectively, using the originating play in the context.
+
+### Components for custom gameplay flows
+
+`StandardGameplayInput` maps Escape and the START+SELECT retry gesture.
+Bind `gameplay` and handle `exitRequested` in your flow. The component does
+not save scores or open results. A custom flow owns startup, completion,
+course continuation and the return to selection.
+
+Hold START+SELECT for `retryHoldDurationMillis`, which defaults to 1000.
+During `retryChoosing`, releasing START retries the same pattern, releasing
+SELECT uses fresh randomization, and releasing both cancels. Gameplay stays
+visible while exit waits for the choice. Delay completion and gate your
+other controls with `!retryChoosing`, but keep this component enabled so it
+receives releases. `StandardGameplayFlow` already handles these gates.
+
+`retryEnabled` and `exitEnabled` disable those actions separately.
+`retryAction(samePattern)` replaces restarting, while `retry(samePattern)` and
+`cancelRetry()` can be called from custom controls. `exit()` emits
+`exitRequested` when exit is allowed. The handler decides whether to close
+an overlay, abandon untouched play, or finish the stage with a result.
+
+`StandardChartRetry` supplies `available` and `retry(samePattern)` without
+input or completion handling. Supply `gameplay` during play, or supply
+`result` on a normal result. It replaces gameplay
+and any result above it. Courses, autoplay, replay, battle and Arena are
+excluded. An unfinished attempt is discarded, while an already saved result
+is kept. A supported request is handled even if loading fails, leaving the
+current screen available.
+
+`StandardGameplayAttemptState` reports whether either player has made a
+scoring hit. Bind `gameplay` when using it in a custom flow.
+`StandardInputKeys.isPlayKey(key)` identifies the lane keys used by the
+standard decide and result controls.
+
+### Action callbacks
+
+Action properties are optional. Without an override, the component uses its
+standard operation. A property documented as a replacement handles the whole
+operation, and its return value is ignored. A `try...Action` runs first and
+returns true when it handled the request. Returning false or undefined lets
+the standard action continue.
+
+Signals can let the skin respond without replacing an operation. For example,
+`StandardGameplayFlow.closing` lets gameplay clean up its visuals before
+leaving. Check the property reference before replacing an action. Use named
+navigation operations such as `globalRoot.returnToPreviousScreen()` instead
+of accessing `sceneStack` directly.
 
 ## Scaling
 
@@ -395,7 +571,6 @@ There are two ways you can achieve that.
   item to fit the size of the window.
 
 In the default theme, you can see the first approach in the `settings` screen. All other screens use scaling.
-In general, scaling is easier to use.
 
 Please try resizing the window of the game when testing your theme edits.
 
@@ -403,4 +578,6 @@ Please try resizing the window of the game when testing your theme edits.
 
 The [Rg](https://bobini1.github.io/RhythmGame/classRg.html) singleton is globally accessible upon importing
 `RhythmGameQml`. It contains various API objects with methods and properties useful for themes.
-You will probably use it a lot! Start reading the docs there.
+Start with `Rg.profileList.mainProfile` for profile data. The
+[profile lesson](docs/pages/theme-tutorial/03-profile.md) shows a greeting and a
+saved setting, and the generated `Rg` reference lists the other services.
