@@ -11,7 +11,7 @@ import RhythmGameQml
     from a held key or classic scratch. \c analog identifies movement accumulated
     from analog scratch ticks.
 
-    The skin keeps the focused row and chooses whether to wrap, stop at an end
+    The theme keeps the focused row and chooses whether to wrap, stop at an end
     or animate the movement. The component only tracks held input and repeat timing.
 
     Use StandardSelectInput to add the standard selection actions. Call

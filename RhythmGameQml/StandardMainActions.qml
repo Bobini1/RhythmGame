@@ -6,16 +6,16 @@ import RhythmGameQml
     \inqmlmodule RhythmGameQml
     \brief Opens the standard destinations from a main menu.
 
-    Create buttons in your skin and connect them to \l openSelect, \l openArena,
+    Create buttons in your theme and connect them to \l openSelect, \l openArena,
     \l openSettings or \l quit. The component draws no menu. Each method uses
     the corresponding \c globalRoot operation unless you provide a replacement
     action. A replacement handles the whole operation, and its return value is ignored.
 
     The component also listens for either player's bound Start button. Start opens
     song selection while \l enabled and \l startOpensSelect are true. Set
-    \l startOpensSelect to false if your skin handles Start itself.
+    \l startOpensSelect to false if your theme handles Start itself.
 
-    See the \l {../skin_tutorial_first_screen.html}{first menu lesson} for an
+    See the \l {../theme_tutorial_first_screen.html}{first menu lesson} for an
     installable example.
 */
 Item {

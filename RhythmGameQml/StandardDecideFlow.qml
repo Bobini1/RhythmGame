@@ -7,7 +7,7 @@ import RhythmGameQml
     \brief Starts or cancels play from a decide screen.
 
     Bind \l gameplay to the GameplayContext supplied to the screen. The same
-    property supports a single chart or a course. Your skin draws the title and
+    property supports a single chart or a course. Your theme draws the title and
     other details, while the component handles input and the timeout.
 
     The default controls are:
@@ -19,18 +19,18 @@ import RhythmGameQml
     \endtable
 
     The pointer area fills the parent. Set \l pointerEnabled to false when your
-    skin has its own buttons, and call \l start or \l cancel from those buttons.
+    theme has its own buttons, and call \l start or \l cancel from those buttons.
     Only the first transition request is accepted. If the standard transition
     fails, the component accepts another attempt.
 
     Starting replaces decide with gameplay, passing along the same context.
     Cancelling returns to the previous screen. The game keeps the play objects
     alive for the screen that needs them and destroys them when that screen leaves.
-    The skin must not destroy them itself.
+    The theme must not destroy them itself.
 
     A replacement \l startAction or \l cancelAction handles the whole transition.
     The standard action does not run afterward. See the
-    \l {../skin_tutorial_decide.html}{decide lesson} for an installable example.
+    \l {../theme_tutorial_decide.html}{decide lesson} for an installable example.
 */
 Item {
     id: root

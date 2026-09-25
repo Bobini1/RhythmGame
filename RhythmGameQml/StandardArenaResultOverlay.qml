@@ -14,7 +14,7 @@ import RhythmGameQml
     scores have no round ID and do not show the panel. Course summaries use
     CourseResultContext and do not need this component.
 
-    F8 switches between standings and chat. A skin can replace \c panelComponent
+    F8 switches between standings and chat. A theme can replace \c panelComponent
     while keeping placement and chat behavior, as Default does for its result
     design. Disable result confirmation while the matching round's chat is open
     so typing a message does not close the result screen.

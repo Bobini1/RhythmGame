@@ -1,9 +1,9 @@
 # Theme Development
 
-Start with the [skin tutorial](docs/pages/theme-tutorial/index.md) for a sequence
+Start with the [theme tutorial](docs/pages/theme-tutorial/index.md) for a sequence
 of installable examples, from a main menu to gameplay and results. Use this
 page to look up the theme contract and the
-[architecture notes](docs/pages/skin-architecture.md) to understand the design.
+[architecture notes](docs/pages/theme-architecture.md) to understand the design.
 
 If you want to edit a theme, you only need a text editor.
 Edit the scripts and relaunch the game to see your changes.
@@ -171,7 +171,7 @@ Custom flows can use these navigation operations:
   with local gameplay. Omitting `screen` replaces the current screen. It returns
   the new screen, or `null` if creation fails or the target is unavailable.
   The replacement is created before removing the old screens, so a broken
-  gameplay skin leaves the current screen intact.
+  gameplay theme leaves the current screen intact.
 
 Decide uses `replaceGameplay(gameplay)` to hand off to play. Arena uses
 `openGameplay(gameplay)` to retain the screen underneath. The operation chooses
@@ -179,8 +179,8 @@ the stack change; it does not depend on the play mode.
 
 Runner lifetime follows the local screen: decide owns it until gameplay takes
 over; gameplay retains it while results are shown, and destroys it when removed
-or replaced. `ContentFrame` handles this even when a skin omits the standard
-input components. Skins must not destroy these runners themselves. When
+or replaced. `ContentFrame` handles this even when a theme omits the standard
+input components. Themes must not destroy these runners themselves. When
 `gameplay.isArena` is true, runner ownership stays with Arena.
 `StandardMultiplayerFlow` releases its prepared runner when gameplay leaves
 the stack. `ContentFrame` does not manage retry input or clean up prepared rounds.
@@ -233,15 +233,15 @@ Each data-bearing screen declares one typed input:
 | `result`          | `required property ResultContext result`       |
 | `courseResult`    | `required property CourseResultContext result` |
 
-Settings receives a section name. An empty name opens the skin's usual first
-page, and `"keys"` requests input configuration. Each settings skin maps these
+Settings receives a section name. An empty name opens the theme's usual first
+page, and `"keys"` requests input configuration. Each settings theme maps these
 names to its own layout and uses its first page for unknown names. For example,
 selection can call `globalRoot.openSettings("keys")` without knowing a tab number.
 Calling `openSettings()` while settings is already current keeps its current page.
 
-Every gameplay skin supports courses. Decide and gameplay receive the same
+Every gameplay theme supports courses. Decide and gameplay receive the same
 context, which survives their handoff. A course stage uses the same live data
-shape as a single chart; the skin does not receive different runner types.
+shape as a single chart; the theme does not receive different runner types.
 
 `GameplayContext` provides:
 
@@ -272,7 +272,7 @@ completed stage.
 `course`, `charts`, and `players` (typed `CourseResultPlayer` entries, each
 pairing `profile` with a `BmsScoreCourse`). It has no single-chart retry.
 Normal results and course summaries are independently selected screen roles.
-There is no fallback from `courseResult` to a skin's normal `result`.
+There is no fallback from `courseResult` to a theme's normal `result`.
 The profile selects each role separately, with Default providing unconfigured
 roles. Default shares its private presentation through separate typed entry points.
 
@@ -280,18 +280,18 @@ roles. Default shares its private presentation through separate typed entry poin
 play or saved-score views. Standard gameplay submits the Arena score before
 opening the result and ends its presentation when the screen is destroyed.
 `result.arenaActive` reports whether the session still presents the same round.
-Use it for standings and chat input rules, even if your skin draws its own panel.
+Use it for standings and chat input rules, even if your theme draws its own panel.
 If screen creation fails, it keeps the submitted round for a later retry.
-`ContentFrame` passes the result data without calling methods on the skin.
+`ContentFrame` passes the result data without calling methods on the theme.
 
 Both result participant lists have one or two entries without null padding.
 Pass either result context to `StandardResultInput.result`. Completed metadata
 and score totals are fixed; existing live score-submission notifications remain
 available. The host retains the required play objects while results are shown.
-Skins must not destroy injected contexts or their data.
+Themes must not destroy injected contexts or their data.
 
 This replaces the old root `chart`/`arenaManagedRunner` and parallel
-`scores`/`profiles` properties for public QML skins. Migrate the root declaration
+`scores`/`profiles` properties for public QML themes. Migrate the root declaration
 and behavior binding together. LR2 retains internal entry files for select,
 decide, gameplay, result and course result. They receive these same contexts.
 The shared LR2 renderer loads its own CSV path, metadata and saved settings,
@@ -327,7 +327,7 @@ physical input actions such as opening a popup, rather than for note feedback.
 
 ### Reusable selection components
 
-The public skin API serves ordinary QML skins. Types under
+The public theme API serves ordinary QML themes. Types under
 `RhythmGameQml/Lr2` are internal. LR2 can reuse Standard components or use its
 own implementation, without changing what the public API promises.
 
@@ -346,8 +346,8 @@ feedback, input, navigation and selection shortcuts. Its inherited `entries`
 contain one logical copy of each filtered item; `presentationEntries` repeats
 them to `minimumEntryCount` for circular selectors. Handle
 `focusRequested(index)` and `moveRequested(steps, repeated, analog)` to update
-the skin's presentation. Set `autoInitialize` to false and call `initialize()`
-when a skin needs to control startup timing.
+the theme's presentation. Set `autoInitialize` to false and call `initialize()`
+when a theme needs to control startup timing.
 
 For a different composition, use only the lower-level pieces required.
 
@@ -365,28 +365,28 @@ Browsing and activation:
   sorting, filtering and focus. Its `entries` contain one logical copy of each
   filtered item. Score, preview-file and folder-stat enrichment can be disabled
   independently, and all sorting/filtering policies have profile-backed
-  defaults that a skin can override.
+  defaults that a theme can override.
 - `StandardSelectModelAdapter` can repeat a logical model to a requested
-  minimum size for circular visual selectors. Skins with a finite list do not
+  minimum size for circular visual selectors. Themes with a finite list do not
   need to instantiate it.
 
 Interaction policies:
 
 - `StandardSelectNavigation` converts directional key and scratch input into
-  semantic `moveRequested(steps, repeated, analog)` signals. The skin remains
+  semantic `moveRequested(steps, repeated, analog)` signals. The theme remains
   responsible for positioning and animating its list or wheel.
 - `StandardSelectInput` adds the standard activation, replay, autoplay,
   sorting and back-button mappings by extending `StandardSelectNavigation`. A
   custom state can supply semantic `activateAction`, `goBackAction` and
   `atTopLevel` values instead of pretending to be `StandardSelectState`.
   Autoplay has a state-backed implementation. Replay needs
-  `tryReplayAction`, since choosing a replay score remains skin-owned.
+  `tryReplayAction`, since choosing a replay score remains theme-owned.
 - `StandardSelectShortcuts` provides F2 reload, F3 open-folder, F11
   internet-ranking and F12 settings shortcuts. F2 and F3 use a supplied
   `selectState` by default. F2, F3 and F12 defaults can be replaced or
   individually disabled. F11 emits `openInternetRankingRequested`; if the
   standard state declines F2 or F3, the corresponding request signal is also
-  emitted for the skin.
+  emitted for the theme.
 
 `StandardSelectReload` supplies table/root-folder reload policy for custom
 selectors. `reload(focusedItem, history, folderPath)` returns true when it requests
@@ -398,7 +398,7 @@ have moved out of the host; custom callers should use this component.
 Shared asynchronous lifetime:
 
 - `PendingReplyGroup` owns any set of asynchronous replies with one cancellation
-  lifetime. It can be reused by custom selection enrichment or other skin
+  lifetime. It can be reused by custom selection enrichment or other theme
   state that starts cancellable operations.
 
 The controller has no required list interface. Keyboard `Keys` handlers stay on
@@ -446,7 +446,7 @@ On a result screen, disable confirmation while its Arena chat is open.
 
 Replace `panelComponent` to keep the standard placement and input with your
 own visuals. Default's result screen uses its own `ArenaResultPanel` this way.
-The [complete tutorial skin](docs/pages/theme-tutorial/10-shipping.md) shows
+The [complete tutorial theme](docs/pages/theme-tutorial/10-shipping.md) shows
 the standard overlays in installable select, gameplay and result screens.
 
 `ContentFrame` does not create these panels. Screens no longer declare
@@ -457,13 +457,13 @@ screen wrapper. The host only handles screen operations and play object lifetime
 
 ### Arena browser and screen lifetime
 
-A multiplayer skin uses `StandardMultiplayerFlow` and reads its `session`.
+A multiplayer theme uses `StandardMultiplayerFlow` and reads its `session`.
 Create and join buttons call `session.createRoom()` and `session.joinRoom()`.
 The connection retry button calls `session.retry()`, and Back calls the flow's
-`close()`. The skin no longer declares request signals for ContentFrame.
+`close()`. The theme no longer declares request signals for ContentFrame.
 
 The browser, room selector, gameplay and result are ordinary screens on one
-stack. `currentScreen` always identifies the actual skin. The browser remains
+stack. `currentScreen` always identifies the actual theme. The browser remains
 under selection, and removing the browser disconnects from Arena. The standard
 selector returns to it when the room is left or lost. If Settings or a result
 covers selection, that return waits until selection becomes active again.
@@ -493,7 +493,7 @@ not run afterward. The game controls play object lifetime in either case.
 The gameplay flow uses its parent as the owning screen. Set `screen` if you
 nest it inside another item. `stageActivated` is emitted before each stage
 starts, so it is a suitable place to reset visuals or request score targets.
-`closing` lets the skin clean up before leaving.
+`closing` lets the theme clean up before leaving.
 
 Bind `startReady` to delay the ready sequence for an intro. Start an outro
 in `finishRequested` and bind `finishReady` to its completion. The flow still
@@ -554,7 +554,7 @@ operation, and its return value is ignored. A `try...Action` runs first and
 returns true when it handled the request. Returning false or undefined lets
 the standard action continue.
 
-Signals can let the skin respond without replacing an operation. For example,
+Signals can let the theme respond without replacing an operation. For example,
 `StandardGameplayFlow.closing` lets gameplay clean up its visuals before
 leaving. Check the property reference before replacing an action. Use named
 navigation operations such as `globalRoot.returnToPreviousScreen()` instead

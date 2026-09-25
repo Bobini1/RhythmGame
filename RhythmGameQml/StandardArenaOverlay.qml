@@ -26,7 +26,7 @@ import RhythmGameQml
 
     Each screen owns its overlay. Hidden or disabled screens cannot restore chat
     state or handle the chat shortcut. The game does not install an overlay
-    automatically, inspect the screen's properties or call methods on the skin.
+    automatically, inspect the screen's properties or call methods on the theme.
 */
 ArenaOverlayPlacementFrame {
     id: root

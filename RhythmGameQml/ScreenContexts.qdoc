@@ -5,7 +5,7 @@
 
     Declare \c {required property GameplayContext gameplay} on the screen root.
     The game supplies the object when it creates decide and passes the same
-    object to gameplay. Every gameplay skin must support single charts and courses.
+    object to gameplay. Every gameplay theme must support single charts and courses.
 
     Bind to the current chart and players so the display follows course stages.
     Don't keep using a Player from an earlier stage. The context only supplies
@@ -78,7 +78,7 @@
 */
 /*!
     \qmlproperty list<int> GameplayContext::inputMapping
-    Maps physical BMS input to the columns used by the skin's lane layout.
+    Maps physical BMS input to the columns used by the theme's lane layout.
     The game checks the mapping and keeps it between course stages.
 */
 /*!
@@ -156,7 +156,7 @@
 
     Declare \c {required property CourseResultContext result} on a course result
     screen. The game selects the course result separately from the normal result.
-    A skin can provide either role or both, with a separate contract for each.
+    A theme can provide either role or both, with a separate contract for each.
 
     StandardResultInput can close a course summary. Single-chart retry is
     unavailable because the result describes the whole course.
@@ -197,12 +197,12 @@
     \readonly
     Reports whether the Arena session still presents this runner as its active
     gameplay. Use it for Arena targets and standings. It is independent of the
-    skin's overlays and becomes false when play ends or the session releases the round.
+    theme's overlays and becomes false when play ends or the session releases the round.
 */
 /*!
     \qmlproperty bool ResultContext::arenaActive
     \readonly
     Reports whether the Arena session still presents this result's round.
-    Use it for standings and chat input rules, including in skins that draw
+    Use it for standings and chat input rules, including in themes that draw
     their own panel. Local results and saved scores return false.
 */

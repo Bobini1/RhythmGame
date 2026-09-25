@@ -8,7 +8,7 @@ import RhythmGameQml
     \brief Opens playable selections and handles leaving selection and Arena ready input.
 
     StandardSelectState already includes this component. Use it separately if
-    your skin implements its own browsing state. \l openPlayable uses the current
+    your theme implements its own browsing state. \l openPlayable uses the current
     solo or battle profiles outside Arena. In an Arena room it submits the chart
     choice to the session, and it handles a course choice without opening it.
 

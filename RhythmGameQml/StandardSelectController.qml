@@ -7,7 +7,7 @@ import RhythmGameQml
     \brief Supplies browsing, input and shortcuts for a song selector.
 
     The controller includes StandardSelectState plus navigation, shortcuts and
-    folder feedback. Your skin draws the list or wheel and moves its focus.
+    folder feedback. Your theme draws the list or wheel and moves its focus.
     Don't add the included components separately to the same screen.
 
     Use inherited \l entries for a list with one row per item. For a circular
@@ -17,14 +17,14 @@ import RhythmGameQml
 
     The focused visual item must forward its keyboard events to \l handleUpPressed,
     \l handleDownPressed and \l handleReleased. The
-    \l {../skin_tutorial_select.html}{selection lesson} contains an installable
+    \l {../theme_tutorial_select.html}{selection lesson} contains an installable
     list with the focus and keyboard handling in place.
 
     Browsing initializes when the component is completed. To choose the timing,
     set \l autoInitialize to false and call \l initialize after the view is ready.
 
     F2 reloads the current folder or table, F3 opens the selected folder, and F12
-    opens Settings. F11 emits \l openInternetRankingRequested so the skin can show
+    opens Settings. F11 emits \l openInternetRankingRequested so the theme can show
     its own ranking view. Autoplay has a standard action. Replay requires
     \l tryReplayAction to choose a saved replay. Escape leaves selection or
     its Arena room. In Arena, pressing Start twice on the same player side
@@ -104,7 +104,7 @@ StandardSelectState {
     signal reloadRequested()
     /*! Emitted when F3 was not handled by the standard folder behavior. */
     signal openSelectedFolderRequested()
-    /*! Emitted when F11 requests the skin's ranking view. */
+    /*! Emitted when F11 requests the theme's ranking view. */
     signal openInternetRankingRequested()
     /*!
         Requests relative focus movement by \a steps. \a repeated identifies held input and \a
@@ -194,17 +194,17 @@ StandardSelectState {
             root.openInternetRankingRequested()
     }
 
-    /*! Handles an Up key \a event from the skin's visual focus item. */
+    /*! Handles an Up key \a event from the theme's visual focus item. */
     function handleUpPressed(event) {
         return input.handleUpPressed(event);
     }
 
-    /*! Handles a Down key \a event from the skin's visual focus item. */
+    /*! Handles a Down key \a event from the theme's visual focus item. */
     function handleDownPressed(event) {
         return input.handleDownPressed(event);
     }
 
-    /*! Handles a keyboard direction-release \a event from the skin. */
+    /*! Handles a keyboard direction-release \a event from the theme. */
     function handleReleased(event) {
         return input.handleReleased(event);
     }

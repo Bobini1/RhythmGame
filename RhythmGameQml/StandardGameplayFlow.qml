@@ -24,7 +24,7 @@ import RhythmGameQml
     \l exit skips the wait for a natural-finish animation.
 
     \l stageActivated is emitted once for each stage before startup. Use it to
-    reset visuals or request score data. \l closing lets the skin clean up its
+    reset visuals or request score data. \l closing lets the theme clean up its
     presentation before leaving. It can repeat if result creation fails, so the
     handler must tolerate another call and must not navigate away itself.
 
@@ -34,7 +34,7 @@ import RhythmGameQml
     \l presentationFailed is emitted and the saved scores are kept. Call \l retryTransition to try
     opening the result again without saving it twice.
 
-    See the \l {../skin_tutorial_gameplay.html}{gameplay lesson} for a complete
+    See the \l {../theme_tutorial_gameplay.html}{gameplay lesson} for a complete
     example with notes and course support.
 */
 Item {
@@ -93,7 +93,7 @@ Item {
     */
     signal finishRequested()
     /*!
-        Emitted before leaving so the skin can clean up. It can repeat if result creation
+        Emitted before leaving so the theme can clean up. It can repeat if result creation
         fails.
     */
     signal closing()

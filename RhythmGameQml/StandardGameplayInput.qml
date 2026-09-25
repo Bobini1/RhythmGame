@@ -7,7 +7,7 @@ import RhythmGameQml
     \brief Maps Escape and the Start+Select retry gesture for gameplay.
 
     Use StandardGameplayFlow for a complete gameplay screen. It already includes
-    this component. Use StandardGameplayInput separately only when your skin
+    this component. Use StandardGameplayInput separately only when your theme
     supplies its own gameplay flow. Handle \l exitRequested to leave gameplay
     or finish the stage. This component does not save scores or open results.
 

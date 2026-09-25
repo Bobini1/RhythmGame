@@ -8,7 +8,7 @@ import RhythmGameQml
     \brief Loads and tracks the entries shown by a song selector.
 
     The state keeps the current folder, history and focused entry. It also handles
-    sorting, filtering, activation and optional score and preview loading. The skin
+    sorting, filtering, activation and optional score and preview loading. The theme
     draws the list. Use StandardSelectController to include standard input and
     shortcuts, or combine this state with your own controls.
 
@@ -107,7 +107,7 @@ Item {
     property bool unscoredItemsLast: true
     /*! Index of \l focusedItem in \l entries. */
     readonly property int focusedIndex: selectionState.focusedIndex
-    /*! Logical item currently focused by the skin. */
+    /*! Logical item currently focused by the theme. */
     readonly property var focusedItem: selectionState.focusedItem
     QtObject {
         id: selectionState
@@ -314,7 +314,7 @@ Item {
         }
     }
 
-    /*! Requests that the skin focus \a index in \l entries. */
+    /*! Requests that the theme focus \a index in \l entries. */
     signal focusRequested(int index)
     /*! Emitted after a folder or table has been opened. */
     signal openedFolder()
@@ -373,7 +373,7 @@ Item {
         }
     }
 
-    /*! Updates the logical focused \a item after the skin moves focus. */
+    /*! Updates the logical focused \a item after the theme moves focus. */
     function setFocused(item) {
         let logicalIndex = selectionState.indexOfEntry(entries, item);
         selectionState.focusedIndex = logicalIndex;

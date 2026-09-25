@@ -17,7 +17,7 @@ import QtQuick
         \row \li F3
              \li Use \l openSelectedFolderAction if set. Otherwise ask the state
                  to open the folder, then emit \l openSelectedFolderRequested if unhandled.
-        \row \li F11 \li Emit \l openInternetRankingRequested for the skin's ranking view.
+        \row \li F11 \li Emit \l openInternetRankingRequested for the theme's ranking view.
         \row \li F12 \li Use \l openSettingsAction if set, otherwise open Settings.
     \endtable
 
@@ -50,7 +50,7 @@ Item {
     signal reloadRequested()
     /*! Emitted when no replacement handles F3 and the state cannot open the folder. */
     signal openSelectedFolderRequested()
-    /*! Emitted when F11 requests the skin's ranking view. */
+    /*! Emitted when F11 requests the theme's ranking view. */
     signal openInternetRankingRequested()
 
     QtObject {

@@ -31,9 +31,9 @@ Contact me if you're interested, I can help you get started!
 You can use the [default theme](https://github.com/Bobini1/RhythmGame/tree/master/share/RhythmGame/themes/Default) as a
 reference.
 See the [DEV_THEME.md](DEV_THEME.md) document for more information.
-The [skin tutorial](docs/pages/theme-tutorial/index.md) starts with a small main
+The [theme tutorial](docs/pages/theme-tutorial/index.md) starts with a small main
 menu and adds profiles, translations, selection, gameplay and results. Each
-lesson includes a complete skin you can install.
+lesson includes a complete theme you can install.
 
 The game also supports CSV-based Lunatic Rave 2 and Beatoraja skins.
 

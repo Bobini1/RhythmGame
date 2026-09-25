@@ -7,7 +7,7 @@ import RhythmGameQml
     \brief Handles confirmation and retry on a result screen.
 
     Bind \l result to the ResultContext or CourseResultContext supplied to the
-    screen. The skin draws the result and any buttons. Call \l confirm from a
+    screen. The theme draws the result and any buttons. Call \l confirm from a
     Continue button to use the same delay as keyboard confirmation.
 
     Actions wait until \l acceptsInput is true. Escape then closes the result
@@ -25,7 +25,7 @@ import RhythmGameQml
     side. The originating play comes from \l result. Course summaries can be
     closed but cannot use single-chart retry.
 
-    See the \l {../skin_tutorial_results.html}{result lesson} for separate chart
+    See the \l {../theme_tutorial_results.html}{result lesson} for separate chart
     and course result examples.
 */
 Item {
@@ -83,7 +83,7 @@ Item {
         return true;
     }
 
-    /*! Confirms and closes from keyboard or skin-provided pointer input. */
+    /*! Confirms and closes from keyboard or theme-provided pointer input. */
     function confirm() {
         return confirmEnabled && close();
     }

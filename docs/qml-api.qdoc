@@ -1,9 +1,9 @@
 /*!
     \qmlmodule RhythmGameQml
     \title RhythmGame QML types
-    \brief Provides game data and optional behavior for skins.
+    \brief Provides game data and optional behavior for themes.
 
-    Import RhythmGameQml to use the game's types. A skin chooses the Standard
+    Import RhythmGameQml to use the game's types. A theme chooses the Standard
     components it needs for each screen and supplies its own appearance.
     Start with a complete component such as StandardSelectController or
     StandardGameplayFlow, then use smaller components when you need custom behavior.
@@ -13,14 +13,14 @@
     \page qml-api.html
     \title QML API reference
 
-    Use the \l {../skin_tutorial.html}{skin tutorial} for a sequence of
+    Use the \l {../theme_tutorial.html}{theme tutorial} for a sequence of
     installable examples. The type pages describe the properties and methods
     available when you want to change those examples.
 
     \section1 Choose a starting component
 
     \table
-        \header \li Screen \li Component \li What the skin draws
+        \header \li Screen \li Component \li What the theme draws
         \row \li Main menu \li \l StandardMainActions \li Buttons, labels and images
         \row \li Multiplayer \li \l StandardMultiplayerFlow \li Room list and room controls
         \row \li Song selection \li \l StandardSelectController \li List or wheel and focus movement
@@ -36,13 +36,13 @@
 
     Decide and gameplay declare \c {required property GameplayContext gameplay}
     on their root object. Bind the supplied value to the standard flow's
-    \c gameplay property. Every gameplay skin must support courses, and the
+    \c gameplay property. Every gameplay theme must support courses, and the
     context supplies the same current-chart interface for a single chart or course.
 
     Normal results declare \c {required property ResultContext result}.
     Course summaries declare \c {required property CourseResultContext result}.
     Both can pass the value to StandardResultInput::result. The roles remain
-    separate, even when a skin shares some display components between them.
+    separate, even when a theme shares some display components between them.
 
     The game owns the contexts and their data. See \l GameplayContext,
     \l ResultContext and \l CourseResultContext for their properties and player types.
@@ -54,8 +54,8 @@
     A \c try...Action callback runs before the standard action. Return true
     when it handled the request, or false or undefined to continue.
 
-    Signals such as StandardGameplayFlow::closing let the skin respond without
-    replacing an operation. Request signals ask the skin to provide UI or handle
+    Signals such as StandardGameplayFlow::closing let the theme respond without
+    replacing an operation. Request signals ask the theme to provide UI or handle
     an action. They do not report success.
 
     \section1 Build a custom selector
@@ -83,7 +83,7 @@
     Its presentation timing properties let an animation delay startup or
     results without replacing score saving or navigation.
 
-    \l StandardGameplayInput is available when a skin implements the rest of
+    \l StandardGameplayInput is available when a theme implements the rest of
     the flow itself. It maps Escape to StandardGameplayInput::exitRequested
     and handles the Start+Select retry gesture. The custom flow owns startup,
     score saving, results and course progression. Don't combine it with
