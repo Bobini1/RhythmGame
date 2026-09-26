@@ -66,15 +66,13 @@ ArenaOverlayPlacementFrame {
 
     /*! \internal */
     function restorePresentation() {
-        Qt.callLater(function() {
-            if (root.presentationActive) {
-                root.restoreChatSelection(root.session);
-            }
-        });
+        if (root.presentationActive) {
+            root.restoreChatSelection(root.session);
+        }
     }
 
-    onPresentationActiveChanged: root.restorePresentation()
-    onPresentationStateReloaded: root.restorePresentation()
+    onPresentationActiveChanged: Qt.callLater(root.restorePresentation)
+    onPresentationStateReloaded: Qt.callLater(root.restorePresentation)
     onOverlayVisibilityCommitted: visible => {
         if (!visible && root.active && root.enabled && root.session) {
             root.session.setChatOpen(false);

@@ -18,10 +18,6 @@ Item {
     readonly property ChartData chartData: resultData instanceof ResultContext ? resultData.chartData : null
     readonly property var scores: resultData.players.map(player => player.score)
     readonly property list<Profile> profiles: resultData.players.map(player => player.profile)
-    readonly property string arenaRoundId: root.resultData instanceof ResultContext
-        ? root.resultData.arenaRoundId : ""
-
-    readonly property var arenaResult: Rg.arenaSession.presentedResult
     readonly property bool arenaResultMatches: root.resultData instanceof ResultContext && root.resultData.arenaActive
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
@@ -230,7 +226,6 @@ Item {
                 width: parent.width
                 anchors.top: chartInfoRow.bottom
                 chartKeymode: root.chartKeymode
-                arenaRoundId: root.arenaRoundId
                 arenaResultActive: root.arenaResultMatches
             }
 
@@ -246,7 +241,6 @@ Item {
                     profile: root.profile2
                     mirrored: true
                     chartKeymode: root.chartKeymode
-                    arenaRoundId: root.arenaRoundId
                     arenaResultActive: root.arenaResultMatches
                 }
             }

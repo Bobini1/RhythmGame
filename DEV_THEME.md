@@ -475,8 +475,8 @@ Neither Arena navigation nor its panels require a nested stack or shell.
 ### Reusable behavior for other screens
 
 Choose the component for the screen you are writing. The
-[tutorial](docs/pages/theme-tutorial/index.md) contains an installable example
-for each role.
+[tutorial](docs/pages/theme-tutorial/index.md) contains installable examples
+for the main menu, selection, decide, gameplay and both result roles.
 
 | Component              | What it handles                                             | How to use it                                                                    |
 |------------------------|-------------------------------------------------------------|----------------------------------------------------------------------------------|
@@ -504,9 +504,10 @@ when ready audio is available and 1000 milliseconds otherwise.
 `dismissOverlayAction()` can close a popup and return true to consume Escape.
 If a result fails to load, `presentationFailed` is emitted and the saved
 scores are kept. `retryTransition()` tries to open the result again. Arena
-controls its own startup, and the host releases its play object when the
-screen is removed. Don't add `StandardGameplayInput` beside the complete flow
-or duplicate runner start, finish or proceed calls.
+controls its own startup and runner ownership. `StandardMultiplayerFlow`
+releases the prepared runner when its gameplay screen leaves the stack.
+Don't add `StandardGameplayInput` beside the complete flow or duplicate
+runner start, finish or proceed calls.
 
 The result component accepts both result context types. A
 `tryHandleButtonAction(key)` can handle a display action, such as cycling

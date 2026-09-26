@@ -204,5 +204,7 @@
     \readonly
     Reports whether the Arena session still presents this result's round.
     Use it for standings and chat input rules, including in themes that draw
-    their own panel. Local results and saved scores return false.
+    their own panel. The context checks the round ID and session state, so the
+    theme doesn't need to repeat those checks. Local results and saved scores
+    return false.
 */

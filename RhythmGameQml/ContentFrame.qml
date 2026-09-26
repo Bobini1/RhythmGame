@@ -87,6 +87,7 @@ ApplicationWindow {
                 if (!component || sceneStack.busy) {
                     return null;
                 }
+                // Create before pushing so creation failures leave the stack unchanged.
                 const item = component.createObject(sceneStack,
                     Object.assign({}, properties, { "enabled": false, "visible": false }));
                 // An incompatible QObject can leave a typed property null even
@@ -109,11 +110,9 @@ ApplicationWindow {
                 if (!item) {
                     return null;
                 }
-                // pushItem(component, properties) can return the old current
-                // item on creation failure. Compare against a prepared item.
+                // Destroy the prepared screen if the stack rejects the push.
                 if (sceneStack.busy || sceneStack.pushItem(item) !== item) {
                     item.destroy();
-                    sceneStack.updateEnabledStates();
                     return null;
                 }
                 sceneStack.updateEnabledStates();
@@ -128,6 +127,19 @@ ApplicationWindow {
                 const screenKey = "k" + gameplay.keymode + (battle ? "battle" : "");
                 return frameImplementation.createScreen(
                     frameImplementation.componentFor(screenKey), { "gameplay": gameplay });
+            }
+
+            function openDecide(runner) {
+                const gameplay = ScreenContexts.createGameplay(runner);
+                const item = frameImplementation.createScreen(
+                    frameState.decideComponent, { "gameplay": gameplay });
+                if (!item) {
+                    runner.destroy();
+                    return null;
+                }
+                item.QmlUtils.adopt(runner);
+                gameplay._screen = item;
+                return frameImplementation.pushScreen(item);
             }
         }
 
@@ -210,16 +222,7 @@ ApplicationWindow {
                 console.error("Failed to load chart");
                 return;
             }
-            const gameplay = ScreenContexts.createGameplay(chart);
-            const item = frameImplementation.createScreen(
-                frameState.decideComponent, { "gameplay": gameplay });
-            if (!item) {
-                chart.destroy();
-                return null;
-            }
-            item.QmlUtils.adopt(chart);
-            gameplay._screen = item;
-            return frameImplementation.pushScreen(item);
+            return frameImplementation.openDecide(chart);
         }
 
         function openCourse(course: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var): var {
@@ -231,16 +234,7 @@ ApplicationWindow {
                 console.error("Failed to load course");
                 return;
             }
-            const gameplay = ScreenContexts.createGameplay(runner);
-            const item = frameImplementation.createScreen(
-                frameState.decideComponent, { "gameplay": gameplay });
-            if (!item) {
-                runner.destroy();
-                return null;
-            }
-            item.QmlUtils.adopt(runner);
-            gameplay._screen = item;
-            return frameImplementation.pushScreen(item);
+            return frameImplementation.openDecide(runner);
         }
 
         function openGameplay(gameplay: GameplayContext): var {
@@ -341,42 +335,12 @@ ApplicationWindow {
             anchors.fill: parent
             initialItem: frameState.mainComponent
 
-            popEnter: Transition {
-                PropertyAnimation {
-                    duration: 0
-                    properties: "opacity"
-                }
-            }
-            popExit: Transition {
-                PropertyAnimation {
-                    duration: 0
-                    properties: "opacity"
-                }
-            }
-            pushEnter: Transition {
-                PropertyAnimation {
-                    duration: 0
-                    properties: "opacity"
-                }
-            }
-            pushExit: Transition {
-                PropertyAnimation {
-                    duration: 0
-                    properties: "opacity"
-                }
-            }
-            replaceEnter: Transition {
-                PropertyAnimation {
-                    duration: 0
-                    properties: "opacity"
-                }
-            }
-            replaceExit: Transition {
-                PropertyAnimation {
-                    duration: 0
-                    properties: "opacity"
-                }
-            }
+            popEnter: null
+            popExit: null
+            pushEnter: null
+            pushExit: null
+            replaceEnter: null
+            replaceExit: null
         }
         Binding {
             target: Rg.programSettings

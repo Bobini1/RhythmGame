@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="450" viewBox="0 0 1040 450" role="img" aria-labelledby="title desc">
+  <title id="title">Theme behavior responsibilities</title>
+  <desc id="desc">Theme presentation calls optional Standard behavior, which calls named navigation operations on the application host. Rg provides data to behavior and presentation. The host keeps screens and local play data alive until they are no longer needed. Arena manages its own runners.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#526779"/></marker>
+  </defs>
+  <rect width="1040" height="450" fill="#f6f8fa"/>
+  <g font-family="sans-serif" fill="#162c40">
+    <text x="32" y="40" font-size="24" font-weight="bold">A theme chooses behavior per screen</text>
+    <g stroke="#abbac7" fill="#fff">
+      <rect x="32" y="95" width="288" height="200" rx="8"/>
+      <rect x="376" y="95" width="288" height="200" rx="8"/>
+      <rect x="720" y="95" width="288" height="200" rx="8"/>
+    </g>
+    <g font-size="20" font-weight="bold">
+      <text x="52" y="132">Theme presentation</text>
+      <text x="396" y="132">Standard components</text>
+      <text x="740" y="132">Application host</text>
+    </g>
+    <g font-size="17">
+      <text x="52" y="173">Layout, images, text</text>
+      <text x="52" y="204">List / wheel and animations</text>
+      <text x="52" y="235">Buttons and extra controls</text>
+      <text x="52" y="272" fill="#526779">One screen at a time</text>
+      <text x="396" y="173">Browsing and input</text>
+      <text x="396" y="204">Standard actions and flow</text>
+      <text x="396" y="235">Options and action callbacks</text>
+      <text x="396" y="272" fill="#526779">Added by the theme</text>
+      <text x="740" y="173">ContentFrame / globalRoot</text>
+      <text x="740" y="204">Opens and closes screens</text>
+      <text x="740" y="235">Local play object lifetime</text>
+      <text x="740" y="272" fill="#526779">Named navigation methods</text>
+    </g>
+    <g stroke="#526779" stroke-width="2" marker-end="url(#arrow)">
+      <path d="M321 192H372"/><path d="M665 192H716"/>
+    </g>
+    <rect x="32" y="345" width="976" height="70" rx="8" fill="#e2edf4"/>
+    <text x="52" y="373" font-size="20" font-weight="bold">Rg: game objects and data</text>
+    <text x="52" y="398" font-size="17">Profiles, settings, songs, scores, assets, input and Arena</text>
+    <g stroke="#526779" stroke-width="2" marker-end="url(#arrow)">
+      <path d="M175 344V301"/><path d="M520 344V301"/>
+    </g>
+  </g>
+</svg>

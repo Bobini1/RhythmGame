@@ -81,7 +81,10 @@ Item {
         return true;
     }
 
-    /*! Toggles ready when the Arena session permits it. Returns whether it changed. */
+    /*!
+        Requests a ready-state change. Returns true after forwarding the request to the
+        session. Read \c Rg.arenaSession.ready for the confirmed state.
+    */
     function toggleReady() {
         const session = Rg.arenaSession;
         if (!root.enabled || !root.arenaSeated || !session.roundsAvailable
@@ -131,49 +134,35 @@ Item {
                     item, autoplay, replay, replayScore)) {
             return true;
         }
-        if (item instanceof ChartData) {
-            if (arenaSeated) {
-                if (!autoplay && !replay && !replayScore) {
-                    Rg.arenaSession.selectChart(item);
-                }
-                return true;
-            }
-            let useReplay = !!replay && !!replayScore;
-            if (Rg.profileList.battleActive) {
-                globalRoot.openChart(
-                    item.path, Rg.profileList.battleProfiles.player1Profile,
-                    !!autoplay, useReplay, replayScore || null,
-                    Rg.profileList.battleProfiles.player2Profile,
-                    !!autoplay, false, null);
-            } else {
-                globalRoot.openChart(
-                    item.path, Rg.profileList.mainProfile, !!autoplay,
-                    useReplay, replayScore || null, null, false, false, null);
+        const isChart = item instanceof ChartData;
+        if (!isChart && !(item instanceof course)) {
+            return false;
+        }
+        if (!isChart && item.unavailableReason) {
+            console.warn(item.unavailableReason);
+            return true;
+        }
+        if (root.arenaSeated) {
+            if (isChart && !autoplay && !replay && !replayScore) {
+                Rg.arenaSession.selectChart(item);
             }
             return true;
         }
-        if (item instanceof course) {
-            if (item.unavailableReason) {
-                console.warn(item.unavailableReason);
-                return true;
-            }
-            if (arenaSeated) {
-                return true;
-            }
-            let useReplay = !!replay && !!replayScore;
-            if (Rg.profileList.battleActive) {
-                globalRoot.openCourse(
-                    item, Rg.profileList.battleProfiles.player1Profile,
-                    !!autoplay, useReplay, replayScore || null,
-                    Rg.profileList.battleProfiles.player2Profile,
-                    !!autoplay, false, null);
-            } else {
-                globalRoot.openCourse(
-                    item, Rg.profileList.mainProfile, !!autoplay,
-                    useReplay, replayScore || null, null, false, false, null);
-            }
-            return true;
+
+        const profiles = Rg.profileList;
+        const player1 = profiles.battleActive
+            ? profiles.battleProfiles.player1Profile : profiles.mainProfile;
+        const player2 = profiles.battleActive
+            ? profiles.battleProfiles.player2Profile : null;
+        const useReplay = !!replay && !!replayScore;
+        const autoplay2 = profiles.battleActive && !!autoplay;
+        if (isChart) {
+            globalRoot.openChart(item.path, player1, !!autoplay, useReplay,
+                                 replayScore || null, player2, autoplay2, false, null);
+        } else {
+            globalRoot.openCourse(item, player1, !!autoplay, useReplay,
+                                  replayScore || null, player2, autoplay2, false, null);
         }
-        return false;
+        return true;
     }
 }

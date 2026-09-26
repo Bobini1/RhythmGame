@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/master/schemas/theme.json",
+  "scripts": {
+    "result": "Result.qml",
+    "courseResult": "CourseResult.qml"
+  }
+}

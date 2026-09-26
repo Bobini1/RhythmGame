@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="450" viewBox="0 0 1040 450" role="img" aria-labelledby="title desc">
+  <title id="title">Local single-chart screen lifetime</title>
+  <desc id="desc">Selection stays in memory during play. Starting replaces decide with gameplay. A result opens above gameplay. Closing the result lets the standard gameplay flow return to selection.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#526779"/></marker>
+  </defs>
+  <rect width="1040" height="450" fill="#f6f8fa"/>
+  <g font-family="sans-serif" fill="#162c40">
+    <text x="32" y="40" font-size="24" font-weight="bold">Playing one chart</text>
+    <g fill="#fff" stroke="#abbac7">
+      <rect x="32" y="100" width="196" height="150" rx="8"/>
+      <rect x="292" y="100" width="196" height="150" rx="8"/>
+      <rect x="552" y="100" width="196" height="150" rx="8"/>
+      <rect x="812" y="100" width="196" height="150" rx="8"/>
+    </g>
+    <g font-size="22" font-weight="bold">
+      <text x="52" y="136">Select</text><text x="312" y="136">Decide</text>
+      <text x="572" y="136">Gameplay</text><text x="832" y="136">Result</text>
+    </g>
+    <g font-size="16">
+      <text x="52" y="176">Kept while you play</text><text x="52" y="204">Browsing state kept</text>
+      <text x="312" y="176">Keeps the play objects</text><text x="312" y="204">Replaced on accept</text>
+      <text x="572" y="176">Keeps the play objects</text><text x="572" y="204">Kept behind the result</text>
+      <text x="832" y="176">Receives result data</text><text x="832" y="204">Closes on confirm</text>
+    </g>
+    <g stroke="#526779" stroke-width="2" fill="none" marker-end="url(#arrow)">
+      <path d="M229 170H287"/><path d="M489 170H547"/><path d="M749 170H807"/>
+      <path d="M910 255V300H655V255"/>
+      <path d="M650 255V371H130V255"/>
+    </g>
+    <text x="734" y="326" font-size="17">Closing the result resumes gameplay</text>
+    <text x="202" y="399" font-size="17">The flow returns to selection and releases the local play</text>
+    <text x="32" y="435" font-size="15" fill="#526779">Courses continue after each stage result and end with a course summary.</text>
+  </g>
+</svg>

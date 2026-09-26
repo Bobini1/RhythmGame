@@ -9,16 +9,9 @@ Column {
     required property Profile profile
     required property bool isBattle
     required property var chartKeymode
-    property string arenaRoundId: ""
     property bool arenaResultActive: false
     property bool mirrored: false
     readonly property var presentedResult: Rg.arenaSession.presentedResult
-    readonly property bool arenaResultMatches: side.arenaResultActive
-        && side.arenaRoundId.length > 0
-        && Rg.arenaSession.resultPresentationActive === true
-        && side.presentedResult && side.presentedResult.valid === true
-        && side.arenaRoundId
-            === String(side.presentedResult.roundId || "")
     readonly property var earlyLate: Helpers.getEarlyLate(score.replayData)
     readonly property var stddevAndMean: Helpers.getStddevAndMean(score.replayData)
     readonly property var stddev: stddevAndMean.stddev
@@ -120,7 +113,7 @@ Column {
             anchors.left: side.isBattle ? scoreColumn.right : undefined
             scale: side.isBattle ? 350 / implicitWidth : 1
             transformOrigin: Item.TopLeft
-            visible: !side.arenaResultMatches && side.score.gaugeHistory !== null
+            visible: !side.arenaResultActive && side.score.gaugeHistory !== null
             anchors.rightMargin: 90
             anchors.top: side.isBattle ? meanSd.bottom : scoreColumn.top
             transform: Scale {
@@ -177,7 +170,7 @@ Column {
             }
 
             readonly property var generalVars: side.profile.vars.generalVars
-            readonly property bool arenaMode: side.arenaResultMatches
+            readonly property bool arenaMode: side.arenaResultActive
             readonly property bool arenaSourceSelected: arenaMode
                 && effectiveResultSource === "arena"
             readonly property int effectiveRankingProvider:
@@ -220,11 +213,11 @@ Column {
             function setEffectiveResultSource(source) {
                 const accepted = ["arena", "rhythmGame", "tachi", "lr2ir"];
                 if (accepted.indexOf(source) < 0
-                        || (!side.arenaResultMatches && source === "arena")) {
+                        || (!side.arenaResultActive && source === "arena")) {
                     return;
                 }
                 scoreColumn.effectiveResultSource = source;
-                if (!side.arenaResultMatches) {
+                if (!side.arenaResultActive) {
                     if (scoreColumn.generalVars) {
                         scoreColumn.generalVars.rankingProvider =
                             providerForSource(source);
