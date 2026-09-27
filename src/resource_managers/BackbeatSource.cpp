@@ -129,7 +129,7 @@ BackbeatSource::chartPath(const QString& id, const QString& filename)
   -> std::filesystem::path
 {
     static const QRegularExpression bundleId{ QStringLiteral(
-      "^[0-9a-f]{64}$") };
+      "^b-[0-9a-f]{64}$") };
     if (!bundleId.match(id).hasMatch() || filename.isEmpty() ||
         filename == "." || filename == ".." || filename.contains('/') ||
         filename.contains('\\') || filename.contains(':')) {
@@ -292,11 +292,9 @@ BackbeatSource::collections(db::SqliteCppDb* db,
         }
         return entry;
     };
-    const auto base = [](const bkb_collection_metadata& meta,
-                         const QString& kind) {
+    const auto base = [](const bkb_collection_metadata& meta) {
         Table table;
-        table.name =
-          QObject::tr("Backbeat %1: %2").arg(kind, string(meta.name));
+        table.name = string(meta.name);
         table.url = QUrl(string(meta.url));
         table.status = Table::Loaded;
         table.managedExternally = true;
@@ -308,7 +306,7 @@ BackbeatSource::collections(db::SqliteCppDb* db,
         bkb_store_list_tables, impl->get(), gamemodes, std::size(gamemodes));
     for (const auto& meta :
          std::span(installedTables->items, installedTables->items_len)) {
-        auto table = base(meta, QObject::tr("table"));
+        auto table = base(meta);
         const auto contents = result<bkb_table, bkb_table_free>(
           bkb_store_get_table,
           impl->get(),

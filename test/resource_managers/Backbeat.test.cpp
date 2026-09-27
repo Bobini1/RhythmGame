@@ -350,7 +350,8 @@ TEST_CASE(
 {
     Library library;
     auto source = std::make_shared<Store>();
-    source->installed.insert(QString(64, 'a'), { "chart.bms", chartBytes, {} });
+    source->installed.insert("b-" + QString(64, 'a'),
+                             { "chart.bms", chartBytes, {} });
     source->onBundleRead = [&] {
         library.database.execute(
           "DELETE FROM parent_dir WHERE id NOT IN "
@@ -422,7 +423,8 @@ TEST_CASE("Published collections retain the application database connection",
     };
     Library library;
     auto source = std::make_shared<CollectionsStore>();
-    source->installed.insert(QString(64, 'a'), { "chart.bms", chartBytes, {} });
+    source->installed.insert("b-" + QString(64, 'a'),
+                             { "chart.bms", chartBytes, {} });
     resource_managers::BackbeatCatalog::Update update;
     {
         db::SqliteCppDb writer(library.path);
@@ -460,6 +462,32 @@ TEST_CASE("Backbeat and the application use the same SQLite", "[backbeat]")
     REQUIRE(sqlite3_libversion_number() >= BKB_SQLITE_MIN_VERSION_NUMBER);
     REQUIRE(sqlite3_threadsafe() != 0);
     REQUIRE(sqlite3_compileoption_used("ENABLE_FTS5"));
+}
+
+TEST_CASE("Backbeat chart paths preserve bundle IDs produced by the SDK",
+          "[backbeat][paths]")
+{
+    const QByteArray json = R"({
+        "filename": "chart.bms",
+        "assets": {},
+        "desc": "Backbeat fixture",
+        "chart": "H4sIAAAAAAACCg3MwQqDMAwA0Hu+IpB7SXbcrUI3Cg7EBsVjt3UyBiprnft8fR/wqKnt4FoUIPVaO6zi43NPseDr/S/rNwHZVn1Q1JQLUNXcUE4M1NuOBfO8Tk+zxR9QUHt1F38UucQxmWUagZhF5MzCDDswtQ3OagAAAA=="
+    })";
+    bkb_bb* bb = nullptr;
+    REQUIRE(bkb_bb_from_json(
+              reinterpret_cast<const uint8_t*>(json.constData()),
+              static_cast<size_t>(json.size()),
+              &bb) == BKB_OK);
+    const auto freeBundle = qScopeGuard([&] { bkb_bb_free(bb); });
+    bkb_string bundleId{};
+    REQUIRE(bkb_bb_bundle_id(bb, &bundleId) == BKB_OK);
+    const auto freeId = qScopeGuard([&] { bkb_string_free(bundleId); });
+    const auto id = QString::fromUtf8(bundleId.ptr,
+                                     static_cast<qsizetype>(bundleId.len));
+    const auto path =
+      resource_managers::BackbeatSource::chartPath(id, "chart.bms");
+    CHECK(support::pathToQString(path) ==
+          resource_managers::BackbeatSource::rootPath() + id + "/chart.bms");
 }
 
 TEST_CASE("Catalog refresh is independent of the global asset-loading pool",
@@ -501,7 +529,7 @@ TEST_CASE(
     Library library;
     auto native = library.save(library.temporary.filePath("native.bms"));
     auto source = std::make_shared<Store>();
-    const auto id = QString(64, 'a');
+    const auto id = "b-" + QString(64, 'a');
     source->installed.insert(
       id, { "chart.bms", chartBytes, { "preview.ogg", "readme.txt" } });
     resource_managers::BackbeatCatalog catalog(
@@ -548,7 +576,8 @@ TEST_CASE("Backbeat refresh failures and concurrent imports do not discard "
 {
     Library library;
     auto source = std::make_shared<Store>();
-    source->installed.insert(QString(64, 'a'), { "one.bms", chartBytes, {} });
+    source->installed.insert("b-" + QString(64, 'a'),
+                             { "one.bms", chartBytes, {} });
     resource_managers::BackbeatCatalog catalog(
       source, library.path, &library.database, &library.database);
     REQUIRE(catalog.synchronize().added == 1);
@@ -557,7 +586,8 @@ TEST_CASE("Backbeat refresh failures and concurrent imports do not discard "
     REQUIRE(library.count() == 1);
     source->unavailable = false;
     source->installed.clear();
-    source->installed.insert(QString(64, 'b'), { "two.bms", chartBytes, {} });
+    source->installed.insert("b-" + QString(64, 'b'),
+                             { "two.bms", chartBytes, {} });
     source->reads = 0;
     source->changesDuringRead = true;
     REQUIRE_FALSE(catalog.synchronize().revision);
@@ -574,11 +604,12 @@ TEST_CASE("Backbeat skips empty charts without creating bundle records",
 {
     Library library;
     auto source = std::make_shared<Store>();
-    source->installed.insert(QString(64, 'a'),
+    source->installed.insert("b-" + QString(64, 'a'),
                              { "empty.bms",
                                "#TITLE Empty\n#BPM 120\n#00101:01\n",
                                { "preview.ogg" } });
-    source->installed.insert(QString(64, 'b'), { "chart.bms", chartBytes, {} });
+    source->installed.insert("b-" + QString(64, 'b'),
+                             { "chart.bms", chartBytes, {} });
     resource_managers::BackbeatCatalog catalog(
       source, library.path, &library.database, &library.database);
     const auto update = catalog.synchronize();
@@ -596,12 +627,17 @@ TEST_CASE("Backbeat packs are ordinary folders with independent membership",
           "[backbeat][folders]")
 {
     Library library;
-    const auto native = library.save(library.temporary.filePath("native.bms"));
+    const auto nativeRoot = library.temporary.filePath("native") + '/';
+    const auto native = library.save(nativeRoot + "native.bms");
+    auto insertRoot = library.database.createStatement(
+      "INSERT INTO parent_dir (dir) VALUES (?) RETURNING id");
+    insertRoot.bind(1, nativeRoot.toStdString());
+    native->save(library.database, insertRoot.executeAndGet<qint64>().value());
     auto source = std::make_shared<Store>();
-    const auto firstId = QString(64, 'a');
-    const auto secondId = QString(64, 'b');
-    const auto looseId = QString(64, 'c');
-    const auto missingId = QString(64, 'd');
+    const auto firstId = "b-" + QString(64, 'a');
+    const auto secondId = "b-" + QString(64, 'b');
+    const auto looseId = "b-" + QString(64, 'c');
+    const auto missingId = "b-" + QString(64, 'd');
     for (const auto& id : { firstId, secondId, looseId }) {
         source->installed.insert(id, { "chart.bms", chartBytes, {} });
     }
@@ -619,12 +655,19 @@ TEST_CASE("Backbeat packs are ordinary folders with independent membership",
 
     qml_components::SongFolderFactory folders(&library.database);
     const auto root = resource_managers::BackbeatSource::rootPath();
+    const auto rootFolders = folders.open("");
+    CHECK(rootFolders.size() == 4);
+    CHECK(rootFolders.contains(QVariant(root)));
+    CHECK(rootFolders.contains(QVariant(nativeRoot)));
+    CHECK(folders.parentFolder(root).isEmpty());
+    CHECK(support::folderName(root) == "Backbeat");
+    deleteCharts(rootFolders);
     const auto packFolders = [&] {
         QStringList paths;
         const auto items = folders.open("");
         for (const auto& item : items) {
             if (item.typeId() == QMetaType::QString &&
-                item.toString() != root) {
+                item.toString() != root && item.toString() != nativeRoot) {
                 paths.append(item.toString());
             }
         }
@@ -714,7 +757,7 @@ TEST_CASE("Backbeat assets use memory or existing files and round-trip through "
     QTemporaryDir temporary;
     auto source = std::make_shared<Store>();
     const auto path = resource_managers::BackbeatSource::chartPath(
-      QString(64, 'c'), "chart.bms");
+      "b-" + QString(64, 'c'), "chart.bms");
     const auto image =
       path.parent_path() /
       support::qStringToPath(QStringLiteral("日本語 # image.png"));
@@ -768,7 +811,7 @@ TEST_CASE("Arena verifies Backbeat chart bytes without a filesystem chart",
     Library library;
     auto source = std::make_shared<Store>();
     const auto path = resource_managers::BackbeatSource::chartPath(
-      QString(64, 'd'), "chart.bms");
+      "b-" + QString(64, 'd'), "chart.bms");
     const auto chart = library.save(support::pathToQString(path));
     source->assets.insert(support::pathToQString(path), chartBytes);
     resource_managers::SongAssetStore assets;
