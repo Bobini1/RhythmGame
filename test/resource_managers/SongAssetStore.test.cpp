@@ -81,8 +81,7 @@ openZipWriter(const std::filesystem::path& target) -> ZipWriter
 void
 writeZip(const std::filesystem::path& target,
          const std::vector<std::pair<std::string, QByteArray>>& files,
-         const zip_flags_t nameFlags = ZIP_FL_ENC_UTF_8,
-         const bool storeNestedArchives = true)
+         const zip_flags_t nameFlags = ZIP_FL_ENC_UTF_8)
 {
     if (files.empty()) {
         auto file = QFile{ support::pathToQString(target) };
@@ -107,14 +106,10 @@ writeZip(const std::filesystem::path& target,
         }
         INFO(zip_strerror(writer.get()));
         REQUIRE(index >= 0);
-        const auto nestedZip =
-          path.size() >= 4 && QString::fromStdString(path).endsWith(
-                                QStringLiteral(".zip"), Qt::CaseInsensitive);
-        const auto method =
-          storeNestedArchives && nestedZip ? ZIP_CM_STORE : ZIP_CM_DEFLATE;
-        REQUIRE(zip_set_file_compression(
-                  writer.get(), static_cast<zip_uint64_t>(index), method, 0) ==
-                0);
+        REQUIRE(zip_set_file_compression(writer.get(),
+                                         static_cast<zip_uint64_t>(index),
+                                         ZIP_CM_DEFLATE,
+                                         0) == 0);
     }
     auto* archive = writer.release();
     const auto result = zip_close(archive);
@@ -220,24 +215,22 @@ ensureGuiApplication()
 
 } // namespace
 
-TEST_CASE("SongAssetStore traverses and resolves nested song archives")
+TEST_CASE("SongAssetStore walks and resolves ZIP song assets")
 {
     auto temporaryDirectory = QTemporaryDir{};
     REQUIRE(temporaryDirectory.isValid());
     const auto root = support::qStringToPath(temporaryDirectory.path());
-    const auto inner = root / "song1.zip";
     const auto outer = root / "collection1.zip";
     const auto chart =
-      QByteArray{ "#TITLE Nested archive\n#BPM 120\n#WAV01 keys/sound.ogg\n" };
+      QByteArray{ "#TITLE Archive\n#BPM 120\n#WAV01 keys/sound.ogg\n" };
     const auto sound = QByteArray{ "sound bytes" };
     const auto banner = QByteArray{ "image bytes" };
 
-    writeZip(inner,
+    writeZip(outer,
              { { "song/song1.bms", chart },
                { "song/keys/SOUND.WAV", sound },
                { "song/BANNER.PNG", banner },
                { "song/readme.txt", QByteArray{ "readme" } } });
-    writeZip(outer, { { "set/song1.zip", readFile(inner) } });
 
     auto store = resource_managers::SongAssetStore{};
     auto discovered =
@@ -249,8 +242,7 @@ TEST_CASE("SongAssetStore traverses and resolves nested song archives")
       },
       [&discovered](auto entry) { discovered.push_back(std::move(entry)); });
 
-    const auto virtualChart =
-      outer / "set" / "song1.zip" / "song" / "song1.bms";
+    const auto virtualChart = outer / "song" / "song1.bms";
     REQUIRE(discovered.size() == 4);
     const auto chartEntry =
       std::ranges::find_if(discovered, [](const auto& entry) {
@@ -402,70 +394,6 @@ TEST_CASE("AudioPlayer loads an archived preview without a disk copy")
     sounds::AudioPlayer::engine = nullptr;
 }
 
-TEST_CASE("SongAssetStore rejects compressed nested ZIP entries")
-{
-    auto temporaryDirectory = QTemporaryDir{};
-    REQUIRE(temporaryDirectory.isValid());
-    const auto root = support::qStringToPath(temporaryDirectory.path());
-    const auto inner = root / "song.zip";
-    const auto outer = root / "collection.zip";
-    const auto chart = QByteArray{ "#TITLE Compressed nested ZIP\n" };
-    writeZip(inner, { { "song/chart.bms", chart } });
-    const auto innerBytes = readFile(inner);
-    writeZip(
-      outer, { { "packs/song.zip", innerBytes } }, ZIP_FL_ENC_UTF_8, false);
-
-    auto store = resource_managers::SongAssetStore{};
-    CHECK_THROWS_AS(
-      store.read(outer / "packs" / "song.zip" / "song" / "chart.bms"),
-      std::runtime_error);
-}
-
-TEST_CASE(
-  "SongAssetStore skips compressed nested ZIPs without temporary extraction")
-{
-    auto temporaryDirectory = QTemporaryDir{};
-    REQUIRE(temporaryDirectory.isValid());
-    const auto root = support::qStringToPath(temporaryDirectory.path());
-    const auto inner = root / "song.zip";
-    const auto outer = root / "collection.zip";
-    writeZip(inner,
-             { { "song/nested.bms",
-                 QByteArray{ "#TITLE Compressed nested ZIP\n" } } });
-    writeZip(outer,
-             { { "packs/song.zip", readFile(inner) },
-               { "direct.bms", QByteArray{ "#TITLE Direct\n" } },
-               { "marker.mp4", QByteArray{ "marker" } } },
-             ZIP_FL_ENC_UTF_8,
-             false);
-
-    auto store = resource_managers::SongAssetStore{};
-    const auto marker = store.materialize(outer / "marker.mp4");
-    const auto countTemporaryZips = [&marker] {
-        auto count = size_t{};
-        for (const auto& entry :
-             std::filesystem::directory_iterator(marker.parent_path())) {
-            if (entry.is_regular_file() && entry.path().extension() == ".zip") {
-                ++count;
-            }
-        }
-        return count;
-    };
-    auto charts = std::vector<std::filesystem::path>{};
-    store.walkArchive(
-      outer,
-      [](const auto& path) { return path.extension() == ".bms"; },
-      [&charts](auto entry) {
-          if (entry.contents) {
-              charts.push_back(std::move(entry.virtualPath));
-          }
-      });
-
-    REQUIRE(charts.size() == 1);
-    CHECK(charts.front() == outer / "direct.bms");
-    CHECK(countTemporaryZips() == 0);
-}
-
 TEST_CASE("SongAssetStore decodes legacy CP932 ZIP entry names")
 {
     auto temporaryDirectory = QTemporaryDir{};
@@ -511,60 +439,6 @@ TEST_CASE("SongAssetStore uses the ZIP UTF-8 flag to disambiguate entry names")
     writeStoredZipWithRawName(utf8Archive, rawPath, chart, 0x0800);
     const auto utf8Directory = support::qStringToPath(QStringLiteral("¡"));
     CHECK(store.read(utf8Archive / utf8Directory / "chart.bms") == chart);
-}
-
-TEST_CASE("SongAssetStore keeps a large stored nested pack directly browsable")
-{
-    auto temporaryDirectory = QTemporaryDir{};
-    REQUIRE(temporaryDirectory.isValid());
-    const auto root = support::qStringToPath(temporaryDirectory.path());
-    const auto outer = root / "collection.zip";
-    const auto stage = makePng();
-    auto nestedPacks = std::vector<std::pair<std::string, QByteArray>>{};
-    constexpr auto packCount = 64;
-    nestedPacks.reserve(packCount);
-    for (auto index = 0; index < packCount; ++index) {
-        const auto name = QStringLiteral("pack-%1").arg(index, 3, 10, u'0');
-        const auto inner = root / support::qStringToPath(name + ".zip");
-        writeZip(inner,
-                 { { "song/chart.bms", QByteArray{ "#TITLE Pack\n" } },
-                   { "song/stage.png", stage },
-                   { "song/preview.ogg", QByteArray{ "preview" } },
-                   { "song/readme.txt", QByteArray{ "readme" } } });
-        nestedPacks.emplace_back(
-          (QStringLiteral("packs/") + name + QStringLiteral(".zip"))
-            .toStdString(),
-          readFile(inner));
-    }
-    writeZip(outer, nestedPacks);
-
-    auto store = resource_managers::SongAssetStore{};
-    auto chartCount = 0;
-    store.walkArchive(
-      outer,
-      [](const auto& path) { return path.extension() == ".bms"; },
-      [&chartCount](auto entry) {
-          if (entry.contents) {
-              ++chartCount;
-          }
-      });
-    REQUIRE(chartCount == packCount);
-
-    const auto selectedDirectory =
-      outer / "packs" / "pack-063.zip" / "song" / "";
-    const auto requestedStage = std::filesystem::path{ "stage" };
-    const auto requestedPreview = std::filesystem::path{ "preview.ogg" };
-    const auto assets = store.materializeRelative(
-      selectedDirectory, { requestedStage, requestedPreview });
-    REQUIRE(assets.contains(requestedStage));
-    REQUIRE(assets.contains(requestedPreview));
-    CHECK(readFile(assets.at(requestedStage)) == stage);
-    CHECK(readFile(assets.at(requestedPreview)) == QByteArray{ "preview" });
-
-    for (const auto& entry : std::filesystem::directory_iterator(
-           assets.at(requestedStage).parent_path())) {
-        CHECK(entry.path().extension() != ".zip");
-    }
 }
 
 TEST_CASE("SongAssetStore recognizes split archive names")
@@ -626,32 +500,6 @@ TEST_CASE("SongAssetStore rejects non-ZIP data disguised as ZIP")
         CHECK_NOTHROW(store.walkArchive(
           archivePath, [](const auto&) { return true; }, [](auto) {}));
     }
-}
-
-TEST_CASE("SongAssetStore skips nested non-ZIP archives")
-{
-    auto temporaryDirectory = QTemporaryDir{};
-    REQUIRE(temporaryDirectory.isValid());
-    const auto root = support::qStringToPath(temporaryDirectory.path());
-    const auto inner = root / "song.7z";
-    const auto outer = root / "collection.zip";
-    writeZip(inner,
-             { { "song/chart.bms", QByteArray{ "#TITLE Unsupported\n" } } });
-    writeZip(outer, { { "set/song.7z", readFile(inner) } });
-
-    auto store = resource_managers::SongAssetStore{};
-    auto charts = std::vector<std::filesystem::path>{};
-    CHECK_NOTHROW(store.walkArchive(
-      outer,
-      [](const std::filesystem::path& path) {
-          return path.extension() == ".bms";
-      },
-      [&charts](auto entry) {
-          if (entry.contents) {
-              charts.push_back(std::move(entry.virtualPath));
-          }
-      }));
-    CHECK(charts.empty());
 }
 
 TEST_CASE("SongAssetStore resolves a uniquely named shared archive asset")
@@ -772,54 +620,14 @@ TEST_CASE("SongAssetStore shares concurrent materialization")
     }
 }
 
-TEST_CASE("SongAssetStore does not impose an arbitrary nesting depth")
+TEST_CASE("SongDbScanner indexes charts and directory assets in ZIP archives")
 {
     auto temporaryDirectory = QTemporaryDir{};
     REQUIRE(temporaryDirectory.isValid());
     const auto root = support::qStringToPath(temporaryDirectory.path());
-    auto current = root / "level6.zip";
-    writeZip(current, { { "chart.bms", QByteArray{ "#TITLE Deep\n" } } });
-
-    for (auto level = 5; level >= 0; --level) {
-        const auto parent = root / ("level" + std::to_string(level) + ".zip");
-        writeZip(parent,
-                 { { support::pathToQString(current.filename()).toStdString(),
-                     readFile(current) } });
-        current = parent;
-    }
-
-    auto store = resource_managers::SongAssetStore{};
-    auto charts = std::vector<std::filesystem::path>{};
-    store.walkArchive(
-      current,
-      [](const std::filesystem::path& path) {
-          return path.extension() == ".bms";
-      },
-      [&charts](auto entry) {
-          if (entry.contents) {
-              charts.push_back(std::move(entry.virtualPath));
-          }
-      });
-
-    REQUIRE(charts.size() == 1);
-    auto expected = current;
-    for (auto level = 1; level <= 6; ++level) {
-        expected /= "level" + std::to_string(level) + ".zip";
-    }
-    expected /= "chart.bms";
-    CHECK(charts.front() == expected);
-}
-
-TEST_CASE(
-  "SongDbScanner indexes charts and directory assets in nested archives")
-{
-    auto temporaryDirectory = QTemporaryDir{};
-    REQUIRE(temporaryDirectory.isValid());
-    const auto root = support::qStringToPath(temporaryDirectory.path());
-    const auto inner = root / "song1.zip";
     const auto outer = root / L"東方音弾遊戯7.zip";
     const auto chart = QByteArray{ "#PLAYER 1\n"
-                                   "#TITLE Nested scanner chart\n"
+                                   "#TITLE Archive scanner chart\n"
                                    "#ARTIST Test\n"
                                    "#BPM 120\n"
                                    "#PLAYLEVEL 1\n"
@@ -832,7 +640,7 @@ TEST_CASE(
                                    "#00111:01\n" };
     const auto stageFile = makePng();
     writeZip(
-      inner,
+      outer,
       { { "song/Magus Logos/song1.bms", chart },
         { "song/Magus Logos/backup/duplicate.bms", chart },
         { "song/Magus Logos/_title.png", stageFile },
@@ -841,8 +649,6 @@ TEST_CASE(
         { "song/Magus Logos/readme.txt", QByteArray{ "readme" } },
         { "song/Magus Logos/unused.wav", QByteArray{ "unused" } },
         { "extras/preview.ogg", QByteArray{ "unrelated" } } });
-    writeZip(outer, { { "set/song1.zip", readFile(inner) } });
-    REQUIRE(std::filesystem::remove(inner));
 
     auto database = db::SqliteCppDb{ root / "songs.sqlite" };
     resource_managers::defineDb(database);
@@ -857,19 +663,15 @@ TEST_CASE(
         .executeAndGetAll<std::tuple<std::string, std::string, std::string>>();
     REQUIRE(charts.size() == 1);
     const auto expectedDirectory =
-      support::pathToQString(outer / "set" / "song1.zip" / "song" /
-                             "Magus Logos" / "")
-        .toStdString();
+      support::pathToQString(outer / "song" / "Magus Logos" / "").toStdString();
     CHECK(std::get<0>(charts.front()) ==
-          support::pathToQString(outer / "set" / "song1.zip" / "song" /
-                                 "Magus Logos" / "song1.bms")
+          support::pathToQString(outer / "song" / "Magus Logos" / "song1.bms")
             .toStdString());
     CHECK(std::get<1>(charts.front()) == expectedDirectory);
-    CHECK(std::get<2>(charts.front()) == "Nested scanner chart");
+    CHECK(std::get<2>(charts.front()) == "Archive scanner chart");
 
     const auto expectedListingDirectory =
-      support::pathToQString(outer / "set" / "song1.zip" / "song" / "")
-        .toStdString();
+      support::pathToQString(outer / "song" / "").toStdString();
     auto listedIn =
       database
         .createStatement("SELECT pd.dir "
@@ -999,6 +801,34 @@ TEST_CASE("SongDbScanner accepts an archive as a root song source")
                     .executeAndGet<std::string>();
     REQUIRE(readme);
     CHECK(readme->ends_with("readme.txt"));
+}
+
+TEST_CASE("SongDbScanner ignores ZIP files inside a ZIP archive")
+{
+    QTemporaryDir temporaryDirectory;
+    REQUIRE(temporaryDirectory.isValid());
+    const auto root = support::qStringToPath(temporaryDirectory.path());
+    const auto inner = root / "inner.zip";
+    const auto outer = root / "outer.zip";
+    writeZip(
+      inner,
+      { { "direct.bms", QByteArray("#TITLE Inner\n#BPM 120\n#00111:01\n") } });
+    writeZip(
+      outer,
+      { { "direct.bms", QByteArray("#TITLE Direct\n#BPM 120\n#00111:01\n") },
+        { "broken.zip", QByteArray("broken ZIP") },
+        { "inner.zip", readFile(inner) } });
+    db::SqliteCppDb database(root / "songs.sqlite");
+    resource_managers::defineDb(database);
+    std::atomic_bool stop{ false };
+    resource_managers::SongAssetStore store;
+    resource_managers::SongDbScanner scanner(&database, &store);
+    scanner.scanDirectory(outer, [](const QString&) {}, &stop);
+    CHECK(database.createStatement("SELECT title FROM charts")
+            .executeAndGetAll<std::string>() ==
+          std::vector<std::string>{ "Direct" });
+    CHECK_THROWS_AS(store.read(outer / "inner.zip" / "direct.bms"),
+                    std::runtime_error);
 }
 
 TEST_CASE("RootSongFolders accepts an archive URL from settings")

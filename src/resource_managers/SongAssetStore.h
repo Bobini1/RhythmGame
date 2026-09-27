@@ -20,14 +20,9 @@ class BackbeatSource;
 #endif
 
 /**
- * Resolves song-library virtual paths across ordinary directories and nested
- * archives. A path such as C:/songs/collection.zip/song.zip/chart.bms is kept
- * as the public identity; archive boundaries are discovered and handled inside
- * this module.
- *
- * Nested ZIP entries must be stored without compression so they remain
- * directly seekable; non-seekable nested archives are skipped instead of being
- * extracted.
+ * Resolves song-library virtual paths across ordinary directories and ZIP
+ * archives. A path such as C:/songs/collection.zip/song/chart.bms is kept as
+ * the public identity; the archive boundary is handled inside this module.
  */
 class SongAssetStore : public QObject
 {
