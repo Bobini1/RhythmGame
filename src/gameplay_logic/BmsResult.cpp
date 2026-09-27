@@ -253,6 +253,36 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
 }
 
 auto
+gameplay_logic::BmsResult::clone() const -> std::unique_ptr<BmsResult>
+{
+    return std::make_unique<BmsResult>(maxPoints,
+                                       maxHits,
+                                       normalNoteCount,
+                                       scratchCount,
+                                       lnCount,
+                                       bssCount,
+                                       mineCount,
+                                       clearType,
+                                       judgementCounts,
+                                       mineHits,
+                                       points,
+                                       maxCombo,
+                                       unixTimestamp,
+                                       length,
+                                       randomSequence,
+                                       randomSeed,
+                                       noteOrderAlgorithm,
+                                       noteOrderAlgorithmP2,
+                                       dpOptions,
+                                       keymode,
+                                       guid,
+                                       sha256,
+                                       md5,
+                                       gameVersion,
+                                       owner);
+}
+
+auto
 gameplay_logic::BmsResult::serializeRandomSequence() const -> QByteArray
 {
     return support::compress(randomSequence);

@@ -39,6 +39,9 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace {
 
@@ -501,6 +504,53 @@ TEST_CASE("SongAssetStore rejects non-ZIP data disguised as ZIP")
         CHECK_NOTHROW(store.walkArchive(
           archivePath, [](const auto&) { return true; }, [](auto) {}));
     }
+}
+
+TEST_CASE("SongAssetStore bounds cached archives without invalidating readers",
+          "[SongAssetStore]")
+{
+    QTemporaryDir directory;
+    REQUIRE(directory.isValid());
+    const auto root = support::qStringToPath(directory.path());
+    std::vector<std::filesystem::path> archives;
+    for (int i = 0; i < 80; ++i) {
+        const auto path = root / (std::to_string(i) + ".zip");
+        writeZip(path,
+                 { { "first.txt", "first" }, { "second.txt", "second" } });
+        archives.push_back(path);
+    }
+    auto openHandles = []() -> int {
+#ifdef _WIN32
+        DWORD count{};
+        REQUIRE(GetProcessHandleCount(GetCurrentProcess(), &count));
+        return static_cast<int>(count);
+#elif defined(__linux__)
+        return QDir("/proc/self/fd")
+          .entryList(QDir::AllEntries | QDir::NoDotAndDotDot)
+          .size();
+#else
+        return 0;
+#endif
+    };
+    const auto before = openHandles();
+    resource_managers::SongAssetStore store;
+    int visited = 0;
+    store.walkArchive(
+      archives.front(),
+      [](const auto&) { return true; },
+      [&](auto entry) {
+          REQUIRE(entry.contents);
+          CHECK(
+            *entry.contents ==
+            (entry.virtualPath.filename() == "first.txt" ? "first" : "second"));
+          if (++visited == 1) {
+              for (const auto& path : archives)
+                  REQUIRE(store.read(path / "first.txt") == "first");
+          }
+      });
+    CHECK(visited == 2);
+    CHECK(openHandles() - before < 48);
+    CHECK(store.read(archives.front() / "second.txt") == "second");
 }
 
 TEST_CASE("SongAssetStore resolves a uniquely named shared archive asset")

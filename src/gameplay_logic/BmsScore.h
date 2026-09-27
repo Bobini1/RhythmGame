@@ -110,6 +110,9 @@ class BmsScore final : public QObject
     auto isImported() const -> bool;
     void setSubmissionState(SubmissionState newState);
     auto getSubmissionState() const -> SubmissionState;
+    /** Owns a copy of the score and its attachments, independent of QML lists.
+     */
+    auto clone(QObject* parent = nullptr) const -> std::unique_ptr<BmsScore>;
     struct PreparedData
     {
         QByteArray randomSequence;

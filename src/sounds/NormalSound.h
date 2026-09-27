@@ -6,24 +6,16 @@
 #define RHYTHMGAME_NORMALSOUND_H
 
 #include "Sound.h"
-#include <QObject>
 
 namespace sounds {
 class AudioEngine;
 class SoundBuffer;
-class NormalSound
-  : public QObject
-  , public Sound
+class NormalSound : public Sound
 {
-    Q_OBJECT
-
-    AudioEngine* engine;
     std::shared_ptr<const SoundBuffer> buffer;
     std::unique_ptr<ma_audio_buffer> audioBuffer =
       std::make_unique<ma_audio_buffer>();
     std::unique_ptr<ma_sound> sound = std::make_unique<ma_sound>();
-
-    void onDeviceChanged();
 
   public:
     NormalSound(AudioEngine* engine, std::shared_ptr<const SoundBuffer> buffer);

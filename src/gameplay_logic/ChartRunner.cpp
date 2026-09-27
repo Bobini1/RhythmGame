@@ -308,7 +308,13 @@ ChartRunner::setup()
         status != Loading) {
         return;
     }
+    if (bgaFuture.isCanceled()) {
+        return;
+    }
     bga = bgaFuture.takeResult().release();
+    if (!bga) {
+        return;
+    }
     bga->setParent(this);
     emit bgaLoaded();
     setStatus(Ready);
@@ -739,8 +745,8 @@ RePlayer::RePlayer(BmsNotes* notes,
            chartLength,
            initialBpm,
            parent)
-  , replayedScore(replayedScore)
-  , events(replayedScore->getReplayData()->getHitEvents())
+  , replayedScore(replayedScore->clone(this).release())
+  , events(this->replayedScore->getReplayData()->getHitEvents())
 {
 }
 void

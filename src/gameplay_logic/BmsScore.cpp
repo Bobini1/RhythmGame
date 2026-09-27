@@ -125,6 +125,25 @@ gameplay_logic::BmsScore::getResult() const -> BmsResult*
 {
     return result;
 }
+
+auto
+gameplay_logic::BmsScore::clone(QObject* parent) const
+  -> std::unique_ptr<BmsScore>
+{
+    auto copy = std::make_unique<BmsScore>(
+      result->clone(),
+      replayData ? std::make_unique<BmsReplayData>(replayData->getHitEvents(),
+                                                   replayData->getGuid())
+                 : nullptr,
+      gaugeHistory ? std::make_unique<BmsGaugeHistory>(
+                       gaugeHistory->getGaugeInfo(), gaugeHistory->getGuid())
+                   : nullptr,
+      parent,
+      source,
+      longNoteMode);
+    copy->submissionState = submissionState;
+    return copy;
+}
 auto
 gameplay_logic::BmsScore::getReplayData() const -> BmsReplayData*
 {

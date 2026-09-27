@@ -605,9 +605,23 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
       constrainNoteOrderAlgorithm(p1NoteOrderAlgorithmP2, mirror);
     p2NoteOrderAlgorithm =
       constrainNoteOrderAlgorithm(p2NoteOrderAlgorithm, mirror);
+    // Later stages can start after the original QML score has been collected.
+    auto snapshotReplays = [](const gameplay_logic::BmsScoreCourse* score,
+                              bool replay) {
+        auto snapshots = QList<std::shared_ptr<gameplay_logic::BmsScore>>{};
+        if (replay && score) {
+            for (const auto* stage : score->getScores()) {
+                snapshots.append(
+                  std::shared_ptr<gameplay_logic::BmsScore>(stage->clone()));
+            }
+        }
+        return snapshots;
+    };
     auto loadCourseChartPartial =
       [=,
        this,
+       replays1 = snapshotReplays(score1, player1Replay),
+       replays2 = snapshotReplays(score2, player2Replay),
        player1 = QPointer(player1),
        player2 = QPointer(player2),
        previous1 = QList<gameplay_logic::rules::BmsGauge*>{},
@@ -632,24 +646,21 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
             }
             gauges2 = gaugeFactoryCourse(player2, previous2Vals);
         }
-        auto course = loadCourseChart(
-          chartComponents[index],
-          player1,
-          player1AutoPlay,
-          (player1Replay && score1) ? score1->getScores().value(index, nullptr)
-                                    : nullptr,
-          player2,
-          player2AutoPlay,
-          (player2Replay && score2) ? score2->getScores().value(index, nullptr)
-                                    : nullptr,
-          gauges1,
-          gauges2,
-          p1NoteOrderAlgorithm,
-          p1NoteOrderAlgorithmP2,
-          p1DpOptions,
-          p2NoteOrderAlgorithm,
-          p1Pre130,
-          p2Pre130);
+        auto course = loadCourseChart(chartComponents[index],
+                                      player1,
+                                      player1AutoPlay,
+                                      replays1.value(index).get(),
+                                      player2,
+                                      player2AutoPlay,
+                                      replays2.value(index).get(),
+                                      gauges1,
+                                      gauges2,
+                                      p1NoteOrderAlgorithm,
+                                      p1NoteOrderAlgorithmP2,
+                                      p1DpOptions,
+                                      p2NoteOrderAlgorithm,
+                                      p1Pre130,
+                                      p2Pre130);
         previous1 = std::move(gauges1);
         previous2 = std::move(gauges2);
         index++;

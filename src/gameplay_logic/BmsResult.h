@@ -306,6 +306,7 @@ class BmsResult final : public QObject
     auto getPermutation() const -> const QList<int>&;
     auto getGameVersion() const -> uint64_t;
     auto getOwner() const -> const QString&;
+    auto clone() const -> std::unique_ptr<BmsResult>;
 
     void save(db::SqliteCppDb& db, int source = 0, int longNoteMode = 0) const;
     auto serializeRandomSequence() const -> QByteArray;

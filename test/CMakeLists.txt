@@ -41,6 +41,7 @@ qt_add_executable(RhythmGame_test
         charts/BmsChart.test.cpp
         resource_managers/loadBmsSounds.test.cpp
         resource_managers/ChartPlayConfig.test.cpp
+        resource_managers/ChartLoading.test.cpp
         resource_managers/Lr2FontCache.test.cpp
         resource_managers/Languages.test.cpp
         resource_managers/ScanThemes.test.cpp
@@ -48,8 +49,10 @@ qt_add_executable(RhythmGame_test
         resource_managers/Backbeat.test.cpp
         resource_managers/Database.test.cpp
         resource_managers/OnlineOperations.test.cpp
+        resource_managers/Tables.test.cpp
         input/InputTranslator.test.cpp
         support/GeneratePermutation.test.cpp
+        support/Dxa.test.cpp
         support/FrameRateLimiter.test.cpp
         support/PendingReply.test.cpp
         qml/GameplaySession.test.cpp

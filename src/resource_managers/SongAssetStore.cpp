@@ -1,4 +1,5 @@
 #include "SongAssetStore.h"
+#include <QCache>
 #ifdef RHYTHMGAME_USE_BACKBEAT
 #include "BackbeatSource.h"
 #endif
@@ -931,8 +932,8 @@ class SongAssetStore::Impl
         const auto identity = normalizedPhysicalPath(path);
         {
             auto lock = std::scoped_lock{ cacheMutex };
-            if (const auto found = physicalArchives.constFind(identity);
-                found != physicalArchives.cend() && found->key == key) {
+            if (const auto* found = physicalArchives.object(identity);
+                found && found->key == key) {
                 return found->archive;
             }
         }
@@ -940,11 +941,18 @@ class SongAssetStore::Impl
         auto opened =
           std::make_shared<IndexedZipArchive>(openPhysicalZip(path));
         auto lock = std::scoped_lock{ cacheMutex };
-        if (const auto found = physicalArchives.constFind(identity);
-            found != physicalArchives.cend() && found->key == key) {
+        if (const auto* found = physicalArchives.object(identity);
+            found && found->key == key) {
             return found->archive;
         }
-        physicalArchives.insert(identity, { key, opened });
+        // Charge at least one slot per archive as well as its entry index.
+        // An oversized archive occupies the whole cache, so successive asset
+        // reads still reuse its index. Active readers survive cache eviction.
+        const auto cost =
+          std::min<size_t>(physicalArchives.maxCost(),
+                           std::max<size_t>(4096, opened->allEntries().size()));
+        physicalArchives.insert(
+          identity, new RetainedArchive{ key, opened }, static_cast<int>(cost));
         return opened;
     }
 
@@ -1100,7 +1108,7 @@ class SongAssetStore::Impl
 
     std::filesystem::path materializationDirectory;
     mutable std::mutex cacheMutex;
-    mutable QHash<QString, RetainedArchive> physicalArchives;
+    mutable QCache<QString, RetainedArchive> physicalArchives{ 32 * 4096 };
 };
 
 SongAssetStore::SongAssetStore(QObject* parent)

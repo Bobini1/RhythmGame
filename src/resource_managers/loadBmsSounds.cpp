@@ -12,6 +12,7 @@
 #include "resource_managers/SongAssetStore.h"
 #include "support/PathToQString.h"
 #include "support/PathToUtfString.h"
+#include "support/UtfStringToPath.h"
 
 #include <QDir>
 #include <QHash>
@@ -79,23 +80,23 @@ auto
 getActualPathWindows(std::filesystem::path filePath)
   -> std::optional<std::filesystem::path>
 {
-    if (exists(filePath)) {
+    if (is_regular_file(filePath)) {
         return filePath;
     }
     filePath.replace_extension(".wav");
-    if (exists(filePath)) {
+    if (is_regular_file(filePath)) {
         return filePath;
     }
     filePath.replace_extension(".flac");
-    if (exists(filePath)) {
+    if (is_regular_file(filePath)) {
         return filePath;
     }
     filePath.replace_extension(".ogg");
-    if (exists(filePath)) {
+    if (is_regular_file(filePath)) {
         return filePath;
     }
     filePath.replace_extension(".mp3");
-    if (exists(filePath)) {
+    if (is_regular_file(filePath)) {
         return filePath;
     }
     return std::nullopt;
@@ -103,33 +104,33 @@ getActualPathWindows(std::filesystem::path filePath)
 #endif
 
 auto
-getActualPath(
-  std::unordered_map<std::string, std::filesystem::path>& lowerCaseFilesMap,
-  std::string filePath) -> std::optional<std::filesystem::path>
+soundPathKey(const std::filesystem::path& path) -> std::string
 {
-    if (auto it = lowerCaseFilesMap.find(filePath);
-        it != lowerCaseFilesMap.end()) {
-        return std::filesystem::path{ it->second };
+    auto value = support::pathToQString(path);
+    value.replace('\\', '/');
+    return QDir::cleanPath(value).toCaseFolded().toStdString();
+}
+
+auto
+getActualPath(const std::unordered_map<std::string, std::filesystem::path>&
+                lowerCaseFilesMap,
+              const std::filesystem::path& filePath)
+  -> std::optional<std::filesystem::path>
+{
+    const auto key = soundPathKey(filePath);
+    if (key.empty() || key == ".") {
+        return std::nullopt;
     }
-    filePath.replace(filePath.end() - 3, filePath.end(), "wav");
-    if (auto it = lowerCaseFilesMap.find(filePath);
-        it != lowerCaseFilesMap.end()) {
-        return std::filesystem::path{ it->second };
+    if (auto it = lowerCaseFilesMap.find(key); it != lowerCaseFilesMap.end()) {
+        return it->second;
     }
-    filePath.replace(filePath.end() - 3, filePath.end(), "flac");
-    if (auto it = lowerCaseFilesMap.find(filePath);
-        it != lowerCaseFilesMap.end()) {
-        return std::filesystem::path{ it->second };
-    }
-    filePath.replace(filePath.end() - 4, filePath.end(), "ogg");
-    if (auto it = lowerCaseFilesMap.find(filePath);
-        it != lowerCaseFilesMap.end()) {
-        return std::filesystem::path{ it->second };
-    }
-    filePath.replace(filePath.end() - 3, filePath.end(), "mp3");
-    if (auto it = lowerCaseFilesMap.find(filePath);
-        it != lowerCaseFilesMap.end()) {
-        return std::filesystem::path{ it->second };
+    auto candidate = support::utfStringToPath(key);
+    for (const auto* extension : { ".wav", ".flac", ".ogg", ".mp3" }) {
+        candidate.replace_extension(extension);
+        if (const auto it = lowerCaseFilesMap.find(soundPathKey(candidate));
+            it != lowerCaseFilesMap.end()) {
+            return it->second;
+        }
     }
     return std::nullopt;
 }
@@ -144,12 +145,8 @@ createLowerCaseFilesMap(std::filesystem::path dirToSearch)
          std::filesystem::recursive_directory_iterator(dirToSearch)) {
         if (entry.is_regular_file()) {
             auto path = entry.path();
-            auto pathString = support::pathToUtfString(path.filename());
-            std::ranges::transform(
-              pathString, pathString.begin(), [](unsigned char c) {
-                  return std::tolower(c);
-              });
-            lowerCaseFilesMap.emplace(pathString, path);
+            lowerCaseFilesMap.emplace(
+              soundPathKey(path.lexically_relative(dirToSearch)), path);
         }
     }
     return lowerCaseFilesMap;
@@ -296,14 +293,8 @@ loadBmsSounds(sounds::AudioEngine* engine,
             auto filePath = path / value;
             auto actualPath = getActualPathWindows(filePath);
 #else
-            auto valueLower = support::pathToUtfString(value);
-            std::ranges::transform(
-              valueLower, valueLower.begin(), [](unsigned char c) {
-                  return std::tolower(c);
-              });
-
             auto filePath = path / value;
-            auto actualPath = getActualPath(lowerCaseFilesMap, valueLower);
+            auto actualPath = getActualPath(lowerCaseFilesMap, value);
 #endif
             if (!actualPath) {
                 spdlog::warn("File {} not found.",
@@ -434,11 +425,7 @@ loadBmsonSounds(
 #ifdef _WIN32
         auto actualPath = getActualPathWindows(basePath / relPath);
 #else
-        auto valueLower = support::pathToUtfString(relPath);
-        std::ranges::transform(valueLower,
-                               valueLower.begin(),
-                               [](unsigned char c) { return std::tolower(c); });
-        auto actualPath = getActualPath(lowerCaseFilesMap, valueLower);
+        auto actualPath = getActualPath(lowerCaseFilesMap, relPath);
 #endif
         if (!actualPath) {
             spdlog::warn("Bmson sound not found: {}",

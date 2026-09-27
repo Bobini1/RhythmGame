@@ -1,6 +1,6 @@
 {
   "name": "backbeat",
-  "version-string": "0.5.0-beta",
+  "version-string": "0.5.1",
   "port-version": 1,
   "description": "Backbeat C SDK for reading installed rhythm-game charts and collections",
   "homepage": "https://github.com/zkldi/backbeat",

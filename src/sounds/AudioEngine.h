@@ -21,8 +21,6 @@ class AudioEngine : public QObject
     };
     AudioEngine();
     ~AudioEngine() override;
-    void setDeviceImpl(const QString& deviceName);
-    void setBackendImpl(const QString& backendName);
 
     Q_PROPERTY(
       QString backend READ getBackend WRITE setBackend NOTIFY backendChanged)
@@ -56,6 +54,8 @@ class AudioEngine : public QObject
     auto getDeviceNames() const -> QStringList;
 
   private:
+    void setDeviceImpl(const QString& deviceName);
+    void setBackendImpl(const QString& backendName);
     QSettings settings;
     QString currentBackend;
     QString currentDevice;
@@ -75,7 +75,6 @@ class AudioEngine : public QObject
   signals:
     void backendChanged();
     void deviceChanged();
-    void changeDeviceRequested();
     void backendNamesChanged();
     void deviceNamesChanged();
 };

@@ -19,9 +19,7 @@
 #include <QGuiApplication>
 #include <cstddef>
 #include <cstdint>
-#include <latch>
 #include <optional>
-#include <semaphore>
 
 namespace resource_managers {
 
@@ -89,280 +87,171 @@ loadBmp(const QByteArrayView encoded) -> QImage
 }
 
 auto
-loadBmpVideo(const std::filesystem::path& path) -> std::unique_ptr<QMediaPlayer>
+loadBmpVideo(const std::filesystem::path& path, std::stop_token stop)
+  -> std::unique_ptr<QMediaPlayer>
 {
+    if (stop.stop_requested()) {
+        return nullptr;
+    }
     auto player = std::make_unique<QMediaPlayer>();
     QObject::connect(player.get(),
                      &QMediaPlayer::errorOccurred,
                      player.get(),
-                     [](QMediaPlayer::Error error, const QString& errorString) {
-                         spdlog::error("Error loading video: ({}) {}",
-                                       (int)error,
-                                       errorString.toStdString());
+                     [](QMediaPlayer::Error error, const QString& message) {
+                         spdlog::warn("Error loading video: ({}) {}",
+                                      static_cast<int>(error),
+                                      message.toStdString());
                      });
-    const auto pathQString = support::pathToQString(path);
-    player->setSource(QUrl::fromLocalFile(pathQString));
-    if (player->mediaStatus() == QMediaPlayer::InvalidMedia) {
-        return nullptr;
-    }
     QEventLoop loop;
     QObject::connect(player.get(),
                      &QMediaPlayer::mediaStatusChanged,
                      &loop,
                      &QEventLoop::quit);
-    if (player->mediaStatus() == QMediaPlayer::LoadingMedia) {
+    std::stop_callback cancelled(stop, [&loop] {
+        QMetaObject::invokeMethod(
+          &loop, &QEventLoop::quit, Qt::QueuedConnection);
+    });
+    player->setSource(QUrl::fromLocalFile(support::pathToQString(path)));
+    if (!stop.stop_requested() &&
+        player->mediaStatus() == QMediaPlayer::LoadingMedia) {
         loop.exec();
+    }
+    if (stop.stop_requested() ||
+        player->mediaStatus() == QMediaPlayer::InvalidMedia ||
+        player->mediaStatus() == QMediaPlayer::LoadingMedia) {
+        return nullptr;
     }
     player->pause();
     return player;
 }
 
+struct BgaResources
+{
+    using Track = std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>>;
+    struct Frame
+    {
+        uint64_t id;
+        QVideoFrame image;
+        std::filesystem::path videoPath;
+    };
+    std::array<Track, 4> tracks;
+    QList<Frame> frames;
+};
+
 auto
-loadBga(std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaBase,
-        std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaPoor,
-        std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaLayer,
-        std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>> bgaLayer2,
-        std::unordered_map<uint64_t, std::filesystem::path> bmps,
-        QThread* thread,
-        std::filesystem::path path,
-        SongAssetStore* assetStore)
+prepareBga(std::array<BgaResources::Track, 4> tracks,
+           std::unordered_map<uint64_t, std::filesystem::path> bmps,
+           const std::filesystem::path& path,
+           SongAssetStore* assetStore,
+           std::stop_token stop) -> BgaResources
+{
+    if (stop.stop_requested()) {
+        return {};
+    }
+    auto cancelled = std::atomic_bool{ stop.stop_requested() };
+    std::stop_callback onStop(stop, [&] { cancelled.store(true); });
+    auto requested = std::unordered_map<uint64_t, std::filesystem::path>{};
+    for (const auto& track : tracks) {
+        for (const auto& [time, id] : track) {
+            if (const auto found = bmps.find(id); found != bmps.end()) {
+                requested.emplace(id, found->second);
+            }
+        }
+    }
+    auto frames = QtConcurrent::blockingMapped<QList<BgaResources::Frame>>(
+      requested, [&, path, assetStore](const auto& bmp) -> BgaResources::Frame {
+          auto result = BgaResources::Frame{ bmp.first, {}, {} };
+          if (cancelled.load()) {
+              return result;
+          }
+          const auto filePath = path / bmp.second;
+          try {
+              const auto archived =
+                assetStore && assetStore->isVirtual(filePath);
+              auto image = archived
+                             ? loadBmp(assetStore->read(filePath, &cancelled))
+                             : loadBmp(filePath);
+              if (cancelled.load()) {
+                  return result;
+              }
+              if (!image.isNull()) {
+                  result.image = *convertImageToFrame(image);
+              } else {
+                  result.videoPath =
+                    archived ? assetStore->materialize(filePath, &cancelled)
+                             : filePath;
+              }
+          } catch (const std::exception& error) {
+              if (!cancelled.load()) {
+                  spdlog::warn("Could not load BGA {}: {}",
+                               support::pathToUtfString(filePath),
+                               error.what());
+              }
+          }
+          return result;
+      });
+    return { std::move(tracks), std::move(frames) };
+}
+
+auto
+finishBga(BgaResources resources, std::stop_token stop)
   -> std::unique_ptr<qml_components::BgaContainer>
 {
-    try {
-        auto start = std::chrono::high_resolution_clock::now();
-        struct Request
-        {
-            std::filesystem::path path;
-            bool requested;
-        };
-
-        auto requested = std::unordered_map<uint64_t, Request>{};
-        for (auto& bmp : bmps) {
-            requested.emplace(bmp.first, Request(std::move(bmp.second), false));
+    // Only this GUI-thread continuation constructs video players and QObjects.
+    // Workers never wait for the GUI, including during shutdown.
+    auto frames = std::vector<std::unique_ptr<QVideoFrame>>{};
+    auto videos = std::vector<std::unique_ptr<QMediaPlayer>>{};
+    auto frameById = std::unordered_map<uint64_t, QVideoFrame*>{};
+    auto videoById = std::unordered_map<uint64_t, QMediaPlayer*>{};
+    for (auto& resource : resources.frames) {
+        if (stop.stop_requested()) {
+            return nullptr;
         }
-
-        for (const auto& bga : bgaBase) {
-            if (auto entry = requested.find(bga.second);
-                entry != requested.end()) {
-                entry->second.requested = true;
+        if (resource.image.isValid()) {
+            auto frame =
+              std::make_unique<QVideoFrame>(std::move(resource.image));
+            frameById.emplace(resource.id, frame.get());
+            frames.push_back(std::move(frame));
+        } else if (!resource.videoPath.empty()) {
+            if (auto video = loadBmpVideo(resource.videoPath, stop)) {
+                videoById.emplace(resource.id, video.get());
+                videos.push_back(std::move(video));
             }
         }
-        for (const auto& bga : bgaLayer) {
-            if (auto entry = requested.find(bga.second);
-                entry != requested.end()) {
-                entry->second.requested = true;
-            }
-        }
-        for (const auto& bga : bgaLayer2) {
-            if (auto entry = requested.find(bga.second);
-                entry != requested.end()) {
-                entry->second.requested = true;
-            }
-        }
-        for (const auto& bga : bgaPoor) {
-            if (auto entry = requested.find(bga.second);
-                entry != requested.end()) {
-                entry->second.requested = true;
-            }
-        }
-
-        struct FrameLoadingResult
-        {
-            uint64_t id;
-            std::filesystem::path path;
-            bool requested;
-            QVideoFrame* frame;
-        };
-
-        // load all images first
-        auto loadedBgaFrames =
-          QtConcurrent::blockingMapped<QList<FrameLoadingResult>>(
-            requested, [path, assetStore](auto bmp) -> FrameLoadingResult {
-                auto filePath = path / bmp.second.path;
-                auto ret = FrameLoadingResult{
-                    bmp.first, filePath, bmp.second.requested, {}
-                };
-                if (!bmp.second.requested) {
-                    return ret;
-                }
-                auto image = QImage{};
-                if (assetStore && assetStore->isVirtual(filePath)) {
-                    try {
-                        image = loadBmp(assetStore->read(filePath));
-                    } catch (const std::exception& error) {
-                        spdlog::warn("Could not read archived BGA {}: {}",
-                                     support::pathToUtfString(filePath),
-                                     error.what());
-                    }
-                } else {
-                    image = loadBmp(filePath);
-                }
-                if (image.isNull()) {
-                    return ret;
-                }
-                ret.frame = convertImageToFrame(image).release();
-                return ret;
-            });
-        // create unordered_maps
-        auto frames =
-          std::unordered_map<uint64_t, std::unique_ptr<QVideoFrame>>{};
-        auto videos = std::unordered_map<uint64_t, QMediaPlayer*>{};
-        auto nullFrames =
-          std::ranges::count_if(loadedBgaFrames, [](const auto& frame) {
-              return frame.requested && frame.frame == nullptr;
-          });
-        std::latch videoLatch{ nullFrames };
-        auto currentThread = QThread::currentThread();
-        for (auto& frame : loadedBgaFrames) {
-            if (!frame.requested) {
-                continue;
-            }
-            if (frame.frame) {
-                frames.emplace(frame.id,
-                               std::unique_ptr<QVideoFrame>(frame.frame));
-            } else {
-                const auto id = frame.id;
-                const auto path = frame.path;
-                QMetaObject::invokeMethod(
-                  QGuiApplication::instance(),
-                  [&, assetStore, id, path] {
-                      auto videoPath = path;
-                      if (assetStore && assetStore->isVirtual(videoPath)) {
-                          try {
-                              videoPath = assetStore->materialize(videoPath);
-                          } catch (const std::exception& error) {
-                              spdlog::warn(
-                                "Could not materialize archived BGA video {}: "
-                                "{}",
-                                support::pathToUtfString(path),
-                                error.what());
-                              videoLatch.count_down();
-                              return;
-                          }
-                      }
-                      if (auto video = loadBmpVideo(videoPath)) {
-                          video->moveToThread(currentThread);
-                          videos.emplace(id, video.release());
-                      }
-                      videoLatch.count_down();
-                  },
-                  Qt::QueuedConnection);
-            }
-        }
-        videoLatch.wait();
-
-        auto baseFrames =
-          std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
-        auto baseVideos =
-          std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>{};
-        for (const auto& bga : bgaBase) {
-            if (auto entry = frames.find(bga.second); entry != frames.end()) {
-                baseFrames.emplace_back(bga.first.timestamp,
-                                        entry->second.get());
-            } else if (auto videoEntry = videos.find(bga.second);
-                       videoEntry != videos.end()) {
-                baseVideos.emplace_back(bga.first.timestamp,
-                                        videoEntry->second);
-            } else {
-                baseFrames.emplace_back(bga.first.timestamp, nullptr);
-            }
-        }
-
-        auto poorFrames =
-          std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
-        auto poorVideos =
-          std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>{};
-        for (const auto& bga : bgaPoor) {
-            if (auto entry = frames.find(bga.second); entry != frames.end()) {
-                poorFrames.emplace_back(bga.first.timestamp,
-                                        entry->second.get());
-            } else if (auto entry = videos.find(bga.second);
-                       entry != videos.end()) {
-                poorVideos.emplace_back(bga.first.timestamp, entry->second);
-            } else {
-                poorFrames.emplace_back(bga.first.timestamp, nullptr);
-            }
-        }
-
-        auto layerFrames =
-          std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
-        auto layerVideos =
-          std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>{};
-        for (const auto& bga : bgaLayer) {
-            if (auto entry = frames.find(bga.second); entry != frames.end()) {
-                layerFrames.emplace_back(bga.first.timestamp,
-                                         entry->second.get());
-            } else if (auto entry = videos.find(bga.second);
-                       entry != videos.end()) {
-                layerVideos.emplace_back(bga.first.timestamp, entry->second);
-            } else {
-                layerFrames.emplace_back(bga.first.timestamp, nullptr);
-            }
-        }
-        auto layer2Frames =
-          std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
-        auto layer2Videos =
-          std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>{};
-        for (const auto& bga : bgaLayer2) {
-            if (auto entry = frames.find(bga.second); entry != frames.end()) {
-                layer2Frames.emplace_back(bga.first.timestamp,
-                                          entry->second.get());
-            } else if (auto entry = videos.find(bga.second);
-                       entry != videos.end()) {
-                layer2Videos.emplace_back(bga.first.timestamp, entry->second);
-            } else {
-                layer2Frames.emplace_back(bga.first.timestamp, nullptr);
-            }
-        }
-
-        auto bgas = QList<qml_components::Bga*>{};
-        bgas.emplace_back(new qml_components::Bga(std::move(baseVideos),
-                                                  std::move(baseFrames)));
-        bgas.emplace_back(new qml_components::Bga(std::move(layerVideos),
-                                                  std::move(layerFrames)));
-        bgas.emplace_back(new qml_components::Bga(std::move(layer2Videos),
-                                                  std::move(layer2Frames)));
-        bgas.emplace_back(new qml_components::Bga(std::move(poorVideos),
-                                                  std::move(poorFrames)));
-
-        // move resources to vectors
-        auto videosVector = std::vector<QMediaPlayer*>{};
-        videosVector.reserve(videos.size());
-        for (auto& video : videos) {
-            videosVector.emplace_back(video.second);
-        }
-        auto framesVector = std::vector<std::unique_ptr<QVideoFrame>>{};
-        for (auto& frame : frames) {
-            if (frame.second) {
-                framesVector.emplace_back(std::move(frame.second));
-            }
-        }
-        auto bgaContainer = std::make_unique<qml_components::BgaContainer>(
-          std::move(bgas), std::move(videosVector), std::move(framesVector));
-        bgaContainer->moveToThread(thread);
-
-        auto end = std::chrono::high_resolution_clock::now();
-        spdlog::info(
-          "Loading {} images and {} videos took {} ms",
-          frames.size(),
-          videos.size(),
-          std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
-            .count());
-        return bgaContainer;
-    } catch (const std::exception& e) {
-        spdlog::error("Error loading BGA: {}", e.what());
-        auto bgas = QList<qml_components::Bga*>{};
-        bgas.emplace_back(new qml_components::Bga({}, {}));
-        bgas.emplace_back(new qml_components::Bga({}, {}));
-        bgas.emplace_back(new qml_components::Bga({}, {}));
-        bgas.emplace_back(new qml_components::Bga({}, {}));
-        auto emptyBga = std::make_unique<qml_components::BgaContainer>(
-          bgas,
-          std::vector<QMediaPlayer*>{},
-          std::vector<std::unique_ptr<QVideoFrame>>{});
-        emptyBga->moveToThread(thread);
-        return emptyBga;
     }
+    if (stop.stop_requested()) {
+        return nullptr;
+    }
+    auto layers = QList<qml_components::Bga*>{};
+    for (const auto& track : resources.tracks) {
+        auto images =
+          std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>>{};
+        auto movies =
+          std::vector<std::pair<std::chrono::nanoseconds, QMediaPlayer*>>{};
+        for (const auto& [time, id] : track) {
+            if (const auto frame = frameById.find(id);
+                frame != frameById.end()) {
+                images.emplace_back(time.timestamp, frame->second);
+            } else if (const auto video = videoById.find(id);
+                       video != videoById.end()) {
+                movies.emplace_back(time.timestamp, video->second);
+            } else {
+                images.emplace_back(time.timestamp, nullptr);
+            }
+        }
+        layers.append(
+          new qml_components::Bga(std::move(movies), std::move(images)));
+    }
+    auto videoPointers = std::vector<QMediaPlayer*>{};
+    for (const auto& video : videos) {
+        videoPointers.push_back(video.get());
+    }
+    auto container = std::make_unique<qml_components::BgaContainer>(
+      std::move(layers), std::move(videoPointers), std::move(frames));
+    for (auto& video : videos) {
+        video.release(); // Parented to the container.
+    }
+    return container;
 }
 
 struct RandomizedData
@@ -687,10 +576,10 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
 {
     auto& [chartData, notesData, wavs, bmps] = chartComponents;
     auto path = support::qStringToPath(chartData->getChartDirectory());
-    const auto archived = assetStore->isVirtual(path);
-    auto encodedWavs = archived
-                         ? charts::loadArchivedSoundData(assetStore, path, wavs)
-                         : charts::EncodedSounds{};
+    pendingLoads.removeIf([](const auto& load) { return load.expired(); });
+    auto cancellation = std::make_shared<std::stop_source>();
+    pendingLoads.append(cancellation);
+    const auto stop = cancellation->get_token();
     auto components1 = getComponentsForPlayer(player1,
                                               notesData,
                                               *chartData,
@@ -714,47 +603,46 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
         }
     }
 
-    auto* soundTask = [&]() -> SoundTask* {
-        if (archived) {
-            if (!notesData.bmsonSlices.empty()) {
-                return new SoundTask(engine,
-                                     std::move(encodedWavs),
-                                     std::move(notesData.bmsonSlices),
-                                     std::move(notesData.bmsonFusions));
-            }
-            return new SoundTask(engine, std::move(encodedWavs));
-        }
-        if (!notesData.bmsonSlices.empty()) {
-            return new SoundTask(engine,
-                                 path,
-                                 std::move(wavs),
-                                 std::move(notesData.bmsonSlices),
-                                 std::move(notesData.bmsonFusions));
-        }
-        return new SoundTask(engine, path, std::move(wavs));
-    }();
+    auto soundTask =
+      std::make_unique<SoundTask>(engine,
+                                  assetStore,
+                                  path,
+                                  std::move(wavs),
+                                  std::move(notesData.bmsonSlices),
+                                  std::move(notesData.bmsonFusions),
+                                  stop);
     soundTask->moveToThread(nullptr);
     auto bgaTask = [bgaBase = std::move(notesData.bgaBase),
                     bgaPoor = std::move(notesData.bgaPoor),
                     bgaLayer = std::move(notesData.bgaLayer),
                     bgaLayer2 = std::move(notesData.bgaLayer2),
                     bmps = std::move(bmps),
-                    thread = QGuiApplication::instance()->thread(),
                     path,
+                    stop,
                     assetStore = assetStore]() mutable {
-        return loadBga(std::move(bgaBase),
-                       std::move(bgaPoor),
-                       std::move(bgaLayer),
-                       std::move(bgaLayer2),
-                       std::move(bmps),
-                       thread,
-                       std::move(path),
-                       assetStore);
+        try {
+            return prepareBga({ std::move(bgaBase),
+                                std::move(bgaLayer),
+                                std::move(bgaLayer2),
+                                std::move(bgaPoor) },
+                              std::move(bmps),
+                              path,
+                              assetStore,
+                              stop);
+        } catch (const std::exception& error) {
+            if (!stop.stop_requested()) {
+                spdlog::warn("Could not load chart BGA: {}", error.what());
+            }
+            return BgaResources{};
+        }
     };
-    auto bga = QtConcurrent::run(std::move(bgaTask));
+    auto bga = QtConcurrent::run(&loadingPool, std::move(bgaTask))
+                 .then(this, [stop](BgaResources resources) {
+                     return finishBga(std::move(resources), stop);
+                 });
     auto* player1Object = [&]() -> gameplay_logic::Player* {
         auto soundFuture =
-          QtFuture::connect(soundTask, &SoundTask::soundsLoaded);
+          QtFuture::connect(soundTask.get(), &SoundTask::soundsLoaded);
         auto refereeFuture = soundFuture.then(
           [rawNotes = std::move(components1.rawNotes),
            hitRules = std::move(player1.hitRules),
@@ -801,7 +689,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
     auto player2Object =
       components2.transform([&](auto& player) -> gameplay_logic::Player* {
           auto soundFuture =
-            QtFuture::connect(soundTask, &SoundTask::soundsLoaded);
+            QtFuture::connect(soundTask.get(), &SoundTask::soundsLoaded);
           auto refereeFuture = soundFuture.then(
             [rawNotes = std::move(player.rawNotes),
              hitRules = std::move(player2->hitRules),
@@ -845,10 +733,9 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
               notesData.bpmChanges[0].bpm
           };
       });
-    QThreadPool::globalInstance()->start([soundTask] {
-        soundTask->moveToThread(QThread::currentThread());
-        soundTask->run();
-        soundTask->deleteLater();
+    loadingPool.start([task = std::move(soundTask)] {
+        task->moveToThread(QThread::currentThread());
+        task->run();
     });
     auto chart = std::make_unique<gameplay_logic::ChartRunner>(
       chartData.release(),
@@ -856,6 +743,18 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
       keymode,
       player1Object,
       player2Object.value_or(nullptr));
+    QObject::connect(chart.get(), &QObject::destroyed, [cancellation] {
+        cancellation->request_stop();
+    });
+    QObject::connect(chart.get(),
+                     &gameplay_logic::ChartRunner::statusChanged,
+                     chart.get(),
+                     [cancellation, runner = chart.get()] {
+                         if (runner->getStatus() ==
+                             gameplay_logic::ChartRunner::Finished) {
+                             cancellation->request_stop();
+                         }
+                     });
     QObject::connect(
       inputTranslator,
       &input::InputTranslator::buttonPressed,
@@ -874,70 +773,64 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
       });
     return chart;
 }
-SoundTask::SoundTask(sounds::AudioEngine* engine,
-                     std::filesystem::path path,
-                     std::unordered_map<uint64_t, std::filesystem::path> wavs)
-  : path(std::move(path))
-  , wavs(std::move(wavs))
-  , engine(engine)
-{
-}
-SoundTask::SoundTask(sounds::AudioEngine* engine, charts::EncodedSounds wavs)
-  : encodedWavs(std::move(wavs))
-  , memoryBacked(true)
-  , engine(engine)
-{
-}
 SoundTask::SoundTask(
   sounds::AudioEngine* engine,
+  SongAssetStore* assetStore,
   std::filesystem::path path,
   std::unordered_map<uint64_t, std::filesystem::path> channelPaths,
   std::vector<charts::BmsNotesData::BmsonSliceInfo> slices,
-  std::unordered_map<uint64_t, std::vector<uint64_t>> fusions)
+  std::unordered_map<uint64_t, std::vector<uint64_t>> fusions,
+  std::stop_token stop)
   : path(std::move(path))
   , wavs(std::move(channelPaths))
   , engine(engine)
+  , assetStore(assetStore)
+  , stop(stop)
   , bmsonSlices(std::move(slices))
   , bmsonFusions(std::move(fusions))
-  , isBmson(true)
 {
 }
-SoundTask::SoundTask(
-  sounds::AudioEngine* engine,
-  charts::EncodedSounds channels,
-  std::vector<charts::BmsNotesData::BmsonSliceInfo> slices,
-  std::unordered_map<uint64_t, std::vector<uint64_t>> fusions)
-  : encodedWavs(std::move(channels))
-  , memoryBacked(true)
-  , engine(engine)
-  , bmsonSlices(std::move(slices))
-  , bmsonFusions(std::move(fusions))
-  , isBmson(true)
-{
-}
+
 void
 SoundTask::run()
 {
-    if (memoryBacked) {
-        auto sounds =
-          std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>{};
-        if (isBmson) {
-            sounds = charts::loadBmsonSounds(
-              engine, encodedWavs, bmsonSlices, bmsonFusions);
-        } else {
-            sounds = charts::loadBmsSounds(engine, encodedWavs);
+    auto cancelled = std::atomic_bool{ stop.stop_requested() };
+    std::stop_callback onStop(stop, [&] { cancelled.store(true); });
+    auto sounds =
+      std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>{};
+    try {
+        if (!cancelled.load()) {
+            if (assetStore->isVirtual(path)) {
+                const auto encoded = charts::loadArchivedSoundData(
+                  assetStore, path, wavs, &cancelled);
+                sounds =
+                  bmsonSlices.empty()
+                    ? charts::loadBmsSounds(engine, encoded, &cancelled)
+                    : charts::loadBmsonSounds(
+                        engine, encoded, bmsonSlices, bmsonFusions, &cancelled);
+            } else {
+                sounds =
+                  bmsonSlices.empty()
+                    ? charts::loadBmsSounds(engine, wavs, path, &cancelled)
+                    : charts::loadBmsonSounds(engine,
+                                              wavs,
+                                              bmsonSlices,
+                                              bmsonFusions,
+                                              path,
+                                              &cancelled);
+            }
         }
-        encodedWavs.clear();
-        emit soundsLoaded(std::move(sounds));
-        return;
+    } catch (const std::exception& error) {
+        if (!cancelled.load()) {
+            spdlog::warn("Could not load chart sounds: {}", error.what());
+        }
     }
-    if (isBmson) {
-        emit soundsLoaded(charts::loadBmsonSounds(
-          engine, wavs, bmsonSlices, bmsonFusions, path));
-    } else {
-        emit soundsLoaded(charts::loadBmsSounds(engine, wavs, path));
+    if (cancelled.load()) {
+        sounds.clear();
     }
+    emit soundsLoaded(std::move(sounds));
 }
+
 ChartFactory::ChartFactory(sounds::AudioEngine* engine,
                            input::InputTranslator* inputTranslator,
                            SongAssetStore* assetStore)
@@ -945,5 +838,25 @@ ChartFactory::ChartFactory(sounds::AudioEngine* engine,
   , inputTranslator(inputTranslator)
   , assetStore(assetStore)
 {
+    connect(QCoreApplication::instance(),
+            &QCoreApplication::aboutToQuit,
+            this,
+            &ChartFactory::cancelLoading);
+}
+
+ChartFactory::~ChartFactory()
+{
+    cancelLoading();
+    loadingPool.waitForDone();
+}
+
+void
+ChartFactory::cancelLoading()
+{
+    for (const auto& pending : pendingLoads) {
+        if (const auto stop = pending.lock()) {
+            stop->request_stop();
+        }
+    }
 }
 } // namespace resource_managers

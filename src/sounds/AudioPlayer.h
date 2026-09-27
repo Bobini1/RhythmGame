@@ -62,7 +62,6 @@ class AudioPlayer : public QObject
     QTimer overlappingCleanupTimer;
     quint64 sourceGeneration = 0;
     std::shared_ptr<std::atomic_bool> sourceCancellation;
-    void onDeviceChanged();
     void onPlayingFinishedTimerTriggered();
     void cleanupOverlappingSounds();
     void stopOverlappingSounds();

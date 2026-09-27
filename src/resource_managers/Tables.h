@@ -8,7 +8,9 @@
 #include <QAbstractListModel>
 #include <QDir>
 #include <QNetworkReply>
+#include <QPointer>
 #include <qthreadpool.h>
+#include <functional>
 namespace db {
 class SqliteCppDb;
 } // namespace db
@@ -167,12 +169,19 @@ class Tables final : public QAbstractListModel
     QList<Table> tables;
     QList<Table> externalTables;
     QThreadPool fileOperationThreadPool;
+    QHash<QUrl, QPointer<QNetworkReply>> requests;
 
+    void request(const QUrl& tableUrl,
+                 const QUrl& requestUrl,
+                 std::function<void(QNetworkReply*)> finished);
+    void cancelRequest(const QUrl& url);
     void handleInitialReply(QNetworkReply* reply, const QUrl& url);
     void setErrorFlag(const QUrl& url);
-    void handleHeader(const QUrl& url, const QJsonObject& header);
-    void handleData(const QUrl& url, const QJsonArray& data);
-    void handleHeaderReply(const QUrl& url, const QByteArray& reply);
+    void readHeader(Table& table, const QJsonObject& header) const;
+    void readData(Table& table, const QJsonArray& data) const;
+    void handleHeaderReply(const QUrl& url,
+                           const QUrl& headerUrl,
+                           const QByteArray& reply);
     auto findTable(const Table& table) const -> const Table*;
 
   public:
@@ -180,6 +189,7 @@ class Tables final : public QAbstractListModel
                     const QDir& tableLocation,
                     db::SqliteCppDb* db,
                     QObject* parent = nullptr);
+    ~Tables() override;
     auto rowCount(const QModelIndex& parent) const -> int override;
     auto data(const QModelIndex& index, int role) const -> QVariant override;
     /**

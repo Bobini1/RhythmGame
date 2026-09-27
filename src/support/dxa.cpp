@@ -1,8 +1,10 @@
 #include "dxa.h"
 
 #include "PathToUtfString.h"
+#include "UtfStringToPath.h"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -12,6 +14,11 @@
 #include <fstream>
 #include <ios>
 #include <memory>
+#include <limits>
+#include <optional>
+#include <span>
+#include <stdexcept>
+#include <unordered_set>
 #include <vector>
 #include <spdlog/spdlog.h>
 
@@ -23,7 +30,6 @@
 
 namespace dxa {
 
-#define MAX_PATH 260
 #define FILE_ATTRIBUTE_DIRECTORY 0x00000010
 
 using u8 = uint8_t;
@@ -33,10 +39,8 @@ using u64 = uint64_t;
 
 const u32 MIN_COMPRESS_VER5 = 4;
 
-const u16 DXA_HEAD_VER5 = *reinterpret_cast<const u16*>("DX"); // ヘッダ
-const u16 DXA_VER_VER5 = (0x0005);                             // バージョン
-const u32 DXA_BUFFERSIZE_VER5 =
-  (0x1000000); // アーカイブ作成時に使用するバッファのサイズ
+const u16 DXA_HEAD_VER5 = 0x5844;        // "DX"
+const u16 DXA_VER_VER5 = (0x0005);       // バージョン
 const u32 DXA_KEYSTR_LENGTH_VER5 = (12); // 鍵文字列の長さ
 
 #pragma pack(push)
@@ -156,16 +160,6 @@ using DARC_DIRECTORY_VER5 = struct tagDARC_DIRECTORY_VER5
 
 #pragma pack(pop)
 
-// ファイル名データから元のファイル名の文字列を取得する
-const static char*
-GetOriginalFileName(u8* FileNameTable)
-{
-    return reinterpret_cast<char*>(FileNameTable) +
-           static_cast<ptrdiff_t>(*(reinterpret_cast<u16*>(&FileNameTable[0])) *
-                                  4) +
-           4;
-}
-
 // 鍵文字列を作成
 static void
 KeyCreate(const char* Source, unsigned char* Key)
@@ -206,545 +200,244 @@ KeyCreate(const char* Source, unsigned char* Key)
 // 鍵文字列を使用して Xor 演算( Key は必ず DXA_KEYSTR_LENGTH_VER5
 // の長さがなければならない )
 static void
-KeyConv(void* Data, int Size, int Position, unsigned char* Key)
+require(bool valid)
 {
-    Position %= DXA_KEYSTR_LENGTH_VER5;
-
-    int i, j;
-
-    j = Position;
-    for (i = 0; i < Size; i++) {
-        (static_cast<u8*>(Data))[i] ^= Key[j];
-
-        j++;
-        if (j == DXA_KEYSTR_LENGTH_VER5)
-            j = 0;
+    if (!valid) {
+        throw std::runtime_error("Invalid or truncated DXA archive");
     }
 }
 
-// ファイルから読み込んだデータを鍵文字列を使用して Xor 演算する関数( Key は必ず
-// DXA_KEYSTR_LENGTH_VER5 の長さがなければならない )
+template<typename T>
+auto
+record(std::span<const u8> bytes, size_t offset) -> T
+{
+    require(offset <= bytes.size() && sizeof(T) <= bytes.size() - offset);
+    T result;
+    std::memcpy(&result, bytes.data() + offset, sizeof(T));
+    return result;
+}
+
 static void
-KeyConvFileRead(void* Data,
-                int Size,
-                std::ifstream& fp,
-                unsigned char* Key,
-                int Position = -1)
+KeyConvFileRead(void* data,
+                size_t size,
+                std::ifstream& file,
+                const unsigned char* key,
+                std::optional<uint64_t> position = {})
 {
-    int pos;
-
-    // ファイルの位置を取得しておく
-    if (Position == -1)
-        pos = fp.tellg();
-    else
-        pos = Position;
-
-    // 読み込む
-    fp.read(static_cast<char*>(Data), Size);
-
-    // データを鍵文字列を使って Xor 演算
-    KeyConv(Data, Size, pos, Key);
+    const auto start = file.tellg();
+    require(start >= 0 &&
+            size <= static_cast<uint64_t>(
+                      std::numeric_limits<std::streamsize>::max()));
+    if (size != 0) {
+        file.read(static_cast<char*>(data), static_cast<std::streamsize>(size));
+        require(file.good() && static_cast<size_t>(file.gcount()) == size);
+    }
+    auto keyIndex =
+      position.value_or(static_cast<uint64_t>(start)) % DXA_KEYSTR_LENGTH_VER5;
+    auto* bytes = static_cast<u8*>(data);
+    for (size_t i = 0; i < size; ++i) {
+        bytes[i] ^= key[keyIndex];
+        keyIndex = (keyIndex + 1) % DXA_KEYSTR_LENGTH_VER5;
+    }
 }
 
-// デコード( 戻り値:解凍後のサイズ  -1 はエラー  Dest に NULL を入れることも可能
-// )
-static int
-Decompress(void* Src, void* Dest)
+// An empty destination validates the stream before allocating its output.
+static void
+Decompress(std::span<const u8> source,
+           std::span<u8> destination,
+           size_t expectedSize)
 {
-    u32 srcsize, destsize, code, indexsize, keycode, conbo, index;
-    u8 *srcp, *destp, *dp, *sp;
-
-    destp = static_cast<u8*>(Dest);
-    srcp = static_cast<u8*>(Src);
-
-    // 解凍後のデータサイズを得る
-    destsize = *(reinterpret_cast<u32*>(&srcp[0]));
-
-    // 圧縮データのサイズを得る
-    srcsize = *(reinterpret_cast<u32*>(&srcp[4])) - 9;
-
-    // キーコード
-    keycode = srcp[8];
-
-    // 出力先がない場合はサイズだけ返す
-    if (Dest == nullptr)
-        return destsize;
-
-    // 展開開始
-    sp = srcp + 9;
-    dp = destp;
-    while (srcsize) {
-        // キーコードか同かで処理を分岐
-        if (sp[0] != keycode) {
-            // 非圧縮コードの場合はそのまま出力
-            *dp = *sp;
-            dp++;
-            sp++;
-            srcsize--;
+    require(source.size() >= 9);
+    require(record<u32>(source, 0) == expectedSize);
+    const auto encodedSize = record<u32>(source, 4);
+    require(encodedSize >= 9 && encodedSize <= source.size());
+    require(destination.empty() || destination.size() == expectedSize);
+    const auto key = source[8];
+    auto input = size_t{ 9 };
+    auto output = size_t{};
+    auto next = [&]() -> u8 {
+        require(input < encodedSize);
+        return source[input++];
+    };
+    auto literal = [&](u8 value) {
+        require(output < expectedSize);
+        if (!destination.empty())
+            destination[output] = value;
+        ++output;
+    };
+    while (input < encodedSize) {
+        const auto value = next();
+        if (value != key) {
+            literal(value);
             continue;
         }
-
-        // キーコードが連続していた場合はキーコード自体を出力
-        if (sp[1] == keycode) {
-            *dp = static_cast<u8>(keycode);
-            dp++;
-            sp += 2;
-            srcsize -= 2;
-
+        auto code = next();
+        if (code == key) {
+            literal(key);
             continue;
         }
-
-        // 第一バイトを得る
-        code = sp[1];
-
-        // もしキーコードよりも大きな値だった場合はキーコード
-        // とのバッティング防止の為に＋１しているので－１する
-        if (code > keycode)
-            code--;
-
-        sp += 2;
-        srcsize -= 2;
-
-        // 連続長を取得する
-        conbo = code >> 3;
-        if (code & (0x1 << 2)) {
-            conbo |= *sp << 5;
-            sp++;
-            srcsize--;
+        if (code > key)
+            --code;
+        auto count = size_t(code >> 3);
+        if (code & 4)
+            count |= size_t(next()) << 5;
+        count += MIN_COMPRESS_VER5;
+        const auto indexSize = code & 3;
+        require(indexSize < 3);
+        auto distance = size_t{};
+        for (int i = 0; i <= indexSize; ++i) {
+            distance |= size_t(next()) << (8 * i);
         }
-        conbo += MIN_COMPRESS_VER5; // 保存時に減算した最小圧縮バイト数を足す
-
-        // 参照相対アドレスを取得する
-        indexsize = code & 0x3;
-        switch (indexsize) {
-            case 0:
-                index = *sp;
-                sp++;
-                srcsize--;
-                break;
-
-            case 1:
-                index = sp[0] | (sp[1] << 8);
-                sp += 2;
-                srcsize -= 2;
-                break;
-
-            case 2:
-                index = sp[0] | (sp[1] << 8) | (sp[2] << 16);
-                sp += 3;
-                srcsize -= 3;
-                break;
-
-            default:
-                spdlog::error("[dxa] Invalid indexsize {}", indexsize);
-                return 0;
-        }
-        index++; // 保存時に－１しているので＋１する
-
-        // 展開
-        if (index < conbo) {
-            u32 num;
-
-            num = index;
-            while (conbo > num) {
-                memcpy(dp, dp - num, num);
-                dp += num;
-                conbo -= num;
-                num += num;
+        ++distance;
+        require(distance <= output && count <= expectedSize - output);
+        if (!destination.empty()) {
+            for (size_t i = 0; i < count; ++i) {
+                destination[output + i] = destination[output + i - distance];
             }
-            if (conbo != 0) {
-                memcpy(dp, dp - num, conbo);
-                dp += conbo;
-            }
-        } else {
-            memcpy(dp, dp - index, conbo);
-            dp += conbo;
         }
+        output += count;
     }
-
-    // 解凍後のサイズを返す
-    return static_cast<int>(destsize);
+    require(output == expectedSize);
 }
 
-// 指定のディレクトリデータにあるファイルを展開する
-static int
-DirectoryDecode(u8* NameP,
-                u8* DirP,
-                u8* FileP,
-                DARC_HEAD_VER5* Head,
-                DARC_DIRECTORY_VER5* Dir,
-                std::ifstream& ArcP,
-                unsigned char* Key,
-                std::filesystem::path DirPath,
-                support::DXArchive& output)
+static auto
+DecodeArchive(const std::filesystem::path& path) -> support::DXArchive
 {
-    // ディレクトリ情報がある場合は、まず展開用のディレクトリを作成する
-    if (Dir->DirectoryAddress != 0xffffffff &&
-        Dir->ParentDirectoryAddress != 0xffffffff) {
-        DARC_FILEHEAD_VER5* DirFile;
-
-        // DARC_FILEHEAD_VER5 のアドレスを取得
-        DirFile =
-          reinterpret_cast<DARC_FILEHEAD_VER5*>(FileP + Dir->DirectoryAddress);
-
-        DirPath /= GetOriginalFileName(NameP + DirFile->NameAddress);
+    std::ifstream file(path, std::ios::binary | std::ios::ate);
+    require(file.is_open() && file.tellg() >= 0);
+    const auto fileSize = static_cast<uint64_t>(file.tellg());
+    auto range = [&](uint64_t offset, uint64_t size) {
+        require(offset <= fileSize && size <= fileSize - offset);
+    };
+    range(0, sizeof(DARC_HEAD_VER3));
+    auto key = std::array<u8, DXA_KEYSTR_LENGTH_VER5>{};
+    KeyCreate(nullptr, key.data());
+    auto header = DARC_HEAD_VER5{};
+    file.seekg(0);
+    KeyConvFileRead(&header, sizeof(DARC_HEAD_VER3), file, key.data(), 0);
+    if (header.Head != DXA_HEAD_VER5) {
+        key.fill(0xff);
+        file.seekg(0);
+        KeyConvFileRead(&header, sizeof(DARC_HEAD_VER3), file, key.data(), 0);
     }
-
-    // 展開処理開始
+    require(header.Head == DXA_HEAD_VER5 && header.Version >= 1 &&
+            header.Version <= DXA_VER_VER5);
+    const auto headerSize =
+      header.Version <= 3 ? sizeof(DARC_HEAD_VER3) : sizeof(DARC_HEAD_VER5);
+    range(0, headerSize);
+    require(header.DataStartAddress >= headerSize);
+    require(header.FileNameTableStartAddress >= headerSize);
+    range(header.FileNameTableStartAddress, header.HeadSize);
+    require(header.FileTableStartAddress <= header.DirectoryTableStartAddress &&
+            header.DirectoryTableStartAddress <= header.HeadSize);
+    auto tables = std::vector<u8>(header.HeadSize);
+    file.seekg(header.FileNameTableStartAddress);
+    KeyConvFileRead(tables.data(),
+                    tables.size(),
+                    file,
+                    key.data(),
+                    header.Version >= 5 ? std::optional<uint64_t>{ 0 }
+                                        : std::nullopt);
+    const auto bytes = std::span<const u8>(tables);
+    const auto names = bytes.first(header.FileTableStartAddress);
+    const auto files = bytes.subspan(header.FileTableStartAddress,
+                                     header.DirectoryTableStartAddress -
+                                       header.FileTableStartAddress);
+    const auto directories = bytes.subspan(header.DirectoryTableStartAddress);
+    const auto fileRecordSize = header.Version >= 2
+                                  ? sizeof(DARC_FILEHEAD_VER5)
+                                  : sizeof(DARC_FILEHEAD_VER1);
+    auto fileRecord = [&](size_t offset) {
+        require(offset <= files.size() &&
+                fileRecordSize <= files.size() - offset);
+        auto result = DARC_FILEHEAD_VER5{};
+        result.CompressedDataSize = 0xffffffff;
+        std::memcpy(&result, files.data() + offset, fileRecordSize);
+        return result;
+    };
+    auto filename = [&](size_t offset) {
+        const auto original =
+          offset + 4 + size_t(record<u16>(names, offset)) * 4;
+        require(original < names.size());
+        const auto end = std::find(names.begin() + original, names.end(), u8{});
+        require(end != names.end());
+        auto result =
+          std::string(reinterpret_cast<const char*>(names.data() + original),
+                      static_cast<size_t>(end - (names.begin() + original)));
+        require(!result.empty() && result != "." && result != ".." &&
+                result.find_first_of("/\\:") == std::string::npos);
+        return result;
+    };
+    struct Directory
     {
-        u32 i, FileHeadSize;
-        DARC_FILEHEAD_VER5* File;
-
-        // 格納されているファイルの数だけ繰り返す
-        FileHeadSize = Head->Version >= 0x0002 ? sizeof(DARC_FILEHEAD_VER5)
-                                               : sizeof(DARC_FILEHEAD_VER1);
-        File =
-          reinterpret_cast<DARC_FILEHEAD_VER5*>(FileP + Dir->FileHeadAddress);
-        for (i = 0; i < Dir->FileHeadNum; i++,
-            File = reinterpret_cast<DARC_FILEHEAD_VER5*>(
-              reinterpret_cast<u8*>(File) + FileHeadSize)) {
-            // ディレクトリかどうかで処理を分岐
-            if (File->Attributes & FILE_ATTRIBUTE_DIRECTORY) {
-                // ディレクトリの場合は再帰をかける
-                DirectoryDecode(NameP,
-                                DirP,
-                                FileP,
-                                Head,
-                                reinterpret_cast<DARC_DIRECTORY_VER5*>(
-                                  DirP + File->DataAddress),
-                                ArcP,
-                                Key,
-                                DirPath,
-                                output);
-            } else {
-                support::DXArchiveSegment DestP;
-                // DestP.path = (DirPath /
-                // GetOriginalFileName(NameP + File->NameAddress)).u8string();
-                // DestP.size = DXA_BUFFERSIZE_VER5;
-                // DestP.data.assign(DestP.size, 0);
-
-                // データがある場合のみ転送
-                if (File->DataSize != 0) {
-                    // 初期位置をセットする
-                    if (ArcP.tellg() !=
-                        (Head->DataStartAddress + File->DataAddress))
-                        ArcP.seekg(Head->DataStartAddress + File->DataAddress);
-
-                    // データが圧縮されているかどうかで処理を分岐
-                    if (Head->Version >= 0x0002 &&
-                        File->CompressedDataSize != 0xffffffff) {
-                        void* temp;
-
-                        // 圧縮されている場合
-
-                        // 圧縮データが収まるメモリ領域の確保
-                        temp = malloc(File->CompressedDataSize);
-
-                        // 圧縮データの読み込み
-                        if (Head->Version >= 0x0005) {
-                            KeyConvFileRead(temp,
-                                            File->CompressedDataSize,
-                                            ArcP,
-                                            Key,
-                                            File->DataSize);
-                        } else {
-                            KeyConvFileRead(
-                              temp, File->CompressedDataSize, ArcP, Key);
-                        }
-
-                        // 解凍
-                        DestP.size = File->DataSize;
-                        DestP.data =
-                          std::shared_ptr<uint8_t[]>(new uint8_t[DestP.size]);
-                        Decompress(temp, DestP.data.get());
-
-                        // メモリの解放
-                        free(temp);
-                    } else {
-                        // 圧縮されていない場合
-
-                        // 転送処理開始
-                        {
-                            u32 MoveSize, WriteSize;
-
-                            WriteSize = 0;
-                            DestP.size = File->DataSize;
-                            DestP.data = std::shared_ptr<uint8_t[]>(
-                              new uint8_t[DestP.size]);
-                            while (WriteSize < File->DataSize) {
-                                MoveSize = File->DataSize - WriteSize >
-                                               DXA_BUFFERSIZE_VER5
-                                             ? DXA_BUFFERSIZE_VER5
-                                             : File->DataSize - WriteSize;
-
-                                // ファイルの反転読み込み
-                                if (Head->Version >= 0x0005) {
-                                    KeyConvFileRead(DestP.data.get() +
-                                                      WriteSize,
-                                                    MoveSize,
-                                                    ArcP,
-                                                    Key,
-                                                    File->DataSize + WriteSize);
-                                } else {
-                                    KeyConvFileRead(DestP.data.get() +
-                                                      WriteSize,
-                                                    MoveSize,
-                                                    ArcP,
-                                                    Key);
-                                }
-
-                                WriteSize += MoveSize;
-                            }
-                        }
-                    }
-                }
-
-                output[support::normalizeDxaPath(
-                  DirPath / GetOriginalFileName(NameP + File->NameAddress))] =
-                  DestP;
-            }
+        size_t offset;
+        std::filesystem::path path;
+    };
+    auto pending = std::vector<Directory>{ { 0, {} } };
+    auto visited = std::unordered_set<size_t>{};
+    auto output = support::DXArchive{};
+    while (!pending.empty()) {
+        auto current = std::move(pending.back());
+        pending.pop_back();
+        require(visited.insert(current.offset).second);
+        const auto directory =
+          record<DARC_DIRECTORY_VER5>(directories, current.offset);
+        if (directory.DirectoryAddress != 0xffffffff &&
+            directory.ParentDirectoryAddress != 0xffffffff) {
+            const auto entry = fileRecord(directory.DirectoryAddress);
+            current.path /= filename(entry.NameAddress);
         }
-    }
-
-    // 終了
-    return 0;
-}
-
-// 指定のディレクトリデータにあるファイルを展開する
-static int
-DirectoryDecode(u8* NameP,
-                u8* DirP,
-                u8* FileP,
-                DARC_HEAD_VER5* Head,
-                DARC_DIRECTORY_VER5* Dir,
-                std::ifstream& ArcP,
-                unsigned char* Key,
-                std::filesystem::path DirPath)
-{
-    if (!std::filesystem::exists(DirPath))
-        std::filesystem::create_directories(DirPath);
-
-    // ディレクトリ情報がある場合は、まず展開用のディレクトリを作成する
-    if (Dir->DirectoryAddress != 0xffffffff &&
-        Dir->ParentDirectoryAddress != 0xffffffff) {
-        DARC_FILEHEAD_VER5* DirFile;
-
-        // DARC_FILEHEAD_VER5 のアドレスを取得
-        DirFile =
-          reinterpret_cast<DARC_FILEHEAD_VER5*>(FileP + Dir->DirectoryAddress);
-
-        DirPath /= GetOriginalFileName(NameP + DirFile->NameAddress);
-
-        if (!std::filesystem::exists(DirPath))
-            std::filesystem::create_directories(DirPath);
-    }
-
-    // 展開処理開始
-    {
-        u32 i, FileHeadSize;
-        DARC_FILEHEAD_VER5* File;
-
-        // 格納されているファイルの数だけ繰り返す
-        FileHeadSize = Head->Version >= 0x0002 ? sizeof(DARC_FILEHEAD_VER5)
-                                               : sizeof(DARC_FILEHEAD_VER1);
-        File =
-          reinterpret_cast<DARC_FILEHEAD_VER5*>(FileP + Dir->FileHeadAddress);
-        for (i = 0; i < Dir->FileHeadNum; i++,
-            File = reinterpret_cast<DARC_FILEHEAD_VER5*>(
-              reinterpret_cast<u8*>(File) + FileHeadSize)) {
-            // ディレクトリかどうかで処理を分岐
-            if (File->Attributes & FILE_ATTRIBUTE_DIRECTORY) {
-                // ディレクトリの場合は再帰をかける
-                DirectoryDecode(NameP,
-                                DirP,
-                                FileP,
-                                Head,
-                                reinterpret_cast<DARC_DIRECTORY_VER5*>(
-                                  DirP + File->DataAddress),
-                                ArcP,
-                                Key,
-                                DirPath);
-            } else {
-                // Do not override existing files
-                const std::filesystem::path filePath(
-                  (DirPath / GetOriginalFileName(NameP + File->NameAddress)));
-                if (std::filesystem::exists(filePath) &&
-                    std::filesystem::is_regular_file(filePath))
-                    continue;
-
-                // データがある場合のみ転送
-                if (File->DataSize != 0) {
-                    // 初期位置をセットする
-                    if (ArcP.tellg() !=
-                        (Head->DataStartAddress + File->DataAddress))
-                        ArcP.seekg(Head->DataStartAddress + File->DataAddress);
-
-                    // データが圧縮されているかどうかで処理を分岐
-                    if (Head->Version >= 0x0002 &&
-                        File->CompressedDataSize != 0xffffffff) {
-                        void* temp;
-
-                        // 圧縮されている場合
-
-                        // 圧縮データが収まるメモリ領域の確保
-                        temp = malloc(File->CompressedDataSize);
-
-                        // 圧縮データの読み込み
-                        if (Head->Version >= 0x0005) {
-                            KeyConvFileRead(temp,
-                                            File->CompressedDataSize,
-                                            ArcP,
-                                            Key,
-                                            File->DataSize);
-                        } else {
-                            KeyConvFileRead(
-                              temp, File->CompressedDataSize, ArcP, Key);
-                        }
-
-                        // 解凍
-                        auto buffer = std::shared_ptr<uint8_t[]>(
-                          new uint8_t[File->DataSize]);
-                        Decompress(temp, buffer.get());
-
-                        // メモリの解放
-                        free(temp);
-
-                        std::ofstream ofs(
-                          (DirPath /
-                           GetOriginalFileName(NameP + File->NameAddress)),
-                          std::ios_base::binary);
-                        ofs.write(reinterpret_cast<const char*>(buffer.get()),
-                                  File->DataSize);
-                    } else {
-                        // 圧縮されていない場合
-
-                        // 転送処理開始
-                        {
-                            u32 MoveSize, WriteSize;
-
-                            WriteSize = 0;
-
-                            auto buffer = std::shared_ptr<uint8_t[]>(
-                              new uint8_t[DXA_BUFFERSIZE_VER5]);
-
-                            while (WriteSize < File->DataSize) {
-                                MoveSize = File->DataSize - WriteSize >
-                                               DXA_BUFFERSIZE_VER5
-                                             ? DXA_BUFFERSIZE_VER5
-                                             : File->DataSize - WriteSize;
-
-                                // ファイルの反転読み込み
-                                if (Head->Version >= 0x0005) {
-                                    KeyConvFileRead(buffer.get() + WriteSize,
-                                                    MoveSize,
-                                                    ArcP,
-                                                    Key,
-                                                    File->DataSize + WriteSize);
-                                } else {
-                                    KeyConvFileRead(buffer.get() + WriteSize,
-                                                    MoveSize,
-                                                    ArcP,
-                                                    Key);
-                                }
-
-                                WriteSize += MoveSize;
-                            }
-
-                            std::ofstream ofs(
-                              (DirPath /
-                               GetOriginalFileName(NameP + File->NameAddress)),
-                              std::ios_base::binary);
-                            ofs.write(
-                              reinterpret_cast<const char*>(buffer.get()),
-                              File->DataSize);
-                        }
-                    }
+        require(directory.FileHeadAddress <= files.size());
+        require(directory.FileHeadNum <=
+                (files.size() - directory.FileHeadAddress) / fileRecordSize);
+        for (size_t i = 0; i < directory.FileHeadNum; ++i) {
+            const auto entry =
+              fileRecord(directory.FileHeadAddress + i * fileRecordSize);
+            if (entry.Attributes & FILE_ATTRIBUTE_DIRECTORY) {
+                pending.push_back({ entry.DataAddress, current.path });
+                continue;
+            }
+            const auto entryPath = current.path / filename(entry.NameAddress);
+            auto segment = support::DXArchiveSegment{ entry.DataSize, {} };
+            if (entry.DataSize != 0) {
+                const auto offset =
+                  uint64_t(header.DataStartAddress) + entry.DataAddress;
+                const auto compressed =
+                  header.Version >= 2 && entry.CompressedDataSize != 0xffffffff;
+                range(offset,
+                      compressed ? entry.CompressedDataSize : entry.DataSize);
+                file.seekg(static_cast<std::streamoff>(offset));
+                const auto keyPosition =
+                  header.Version >= 5
+                    ? std::optional<uint64_t>{ entry.DataSize }
+                    : std::nullopt;
+                if (compressed) {
+                    auto encoded = std::vector<u8>(entry.CompressedDataSize);
+                    KeyConvFileRead(encoded.data(),
+                                    encoded.size(),
+                                    file,
+                                    key.data(),
+                                    keyPosition);
+                    Decompress(encoded, {}, entry.DataSize);
+                    segment.data =
+                      std::shared_ptr<u8[]>(new u8[entry.DataSize]);
+                    Decompress(encoded,
+                               { segment.data.get(), segment.size },
+                               entry.DataSize);
+                } else {
+                    segment.data =
+                      std::shared_ptr<u8[]>(new u8[entry.DataSize]);
+                    KeyConvFileRead(segment.data.get(),
+                                    segment.size,
+                                    file,
+                                    key.data(),
+                                    keyPosition);
                 }
             }
+            output[support::normalizeDxaPath(entryPath)] = std::move(segment);
         }
     }
-
-    // 終了
-    return 0;
-}
-
-static int
-DecodeArchive(const std::filesystem::path& path,
-              support::DXArchive* output = nullptr)
-{
-    DARC_HEAD_VER5 Head;
-    u8 Key[DXA_KEYSTR_LENGTH_VER5];
-
-    // 鍵文字列の作成
-    KeyCreate(nullptr, Key);
-
-    // アーカイブファイルを開く
-    std::ifstream ArcP(path, std::ios_base::binary);
-    if (!ArcP.is_open())
-        return {};
-
-    // ヘッダを解析する
-    {
-        KeyConvFileRead(&Head, sizeof(DARC_HEAD_VER5), ArcP, Key, 0);
-
-        // ＩＤの検査
-        if (Head.Head != DXA_HEAD_VER5) {
-            // バージョン２以前か調べる
-            memset(Key, 0xffffffff, DXA_KEYSTR_LENGTH_VER5);
-
-            ArcP.seekg(0);
-            KeyConvFileRead(&Head, sizeof(DARC_HEAD_VER5), ArcP, Key, 0);
-
-            // バージョン２以前でもない場合はエラー
-            if (Head.Head != DXA_HEAD_VER5)
-                return -1;
-        }
-
-        // バージョン検査
-        if (Head.Version > DXA_VER_VER5)
-            return -1;
-
-        // ヘッダのサイズ分のメモリを確保する
-        std::vector<dxa::u8> HeadBuffer(Head.HeadSize);
-
-        // ヘッダパックをメモリに読み込む
-        ArcP.seekg(Head.FileNameTableStartAddress);
-        if (Head.Version >= 0x0005) {
-            KeyConvFileRead(HeadBuffer.data(), Head.HeadSize, ArcP, Key, 0);
-        } else {
-            KeyConvFileRead(HeadBuffer.data(), Head.HeadSize, ArcP, Key);
-        }
-
-        // 各アドレスをセットする
-        u8 *FileP, *NameP, *DirP;
-        NameP = HeadBuffer.data();
-        FileP = NameP + Head.FileTableStartAddress;
-        DirP = NameP + Head.DirectoryTableStartAddress;
-
-        // アーカイブの展開を開始する
-        if (output != nullptr)
-            DirectoryDecode(NameP,
-                            DirP,
-                            FileP,
-                            &Head,
-                            reinterpret_cast<DARC_DIRECTORY_VER5*>(DirP),
-                            ArcP,
-                            Key,
-                            ".",
-                            *output);
-        else
-            DirectoryDecode(NameP,
-                            DirP,
-                            FileP,
-                            &Head,
-                            reinterpret_cast<DARC_DIRECTORY_VER5*>(DirP),
-                            ArcP,
-                            Key,
-                            path.parent_path() / path.stem());
-    }
-
-    // 終了
-    return 0;
+    return output;
 }
 
 } // namespace dxa
@@ -771,23 +464,47 @@ normalizeDxaPath(const std::filesystem::path& path) -> std::string
 DXArchive
 extractDxaToMem(const std::filesystem::path& path)
 {
-    if (!std::filesystem::is_regular_file(path))
+    try {
+        if (!std::filesystem::is_regular_file(path)) {
+            return {};
+        }
+        return dxa::DecodeArchive(path);
+    } catch (const std::exception& error) {
+        spdlog::warn("Could not read DXA {}: {}",
+                     support::pathToUtfString(path),
+                     error.what());
         return {};
-
-    DXArchive a;
-    dxa::DecodeArchive(path, &a);
-
-    return a;
+    }
 }
 
 int
 extractDxaToFile(const std::filesystem::path& path)
 {
-    if (!std::filesystem::is_regular_file(path))
+    try {
+        const auto archive = dxa::DecodeArchive(path);
+        const auto directory = path.parent_path() / path.stem();
+        std::filesystem::create_directories(directory);
+        for (const auto& [name, contents] : archive) {
+            const auto target = directory / support::utfStringToPath(name);
+            if (std::filesystem::is_regular_file(target)) {
+                continue;
+            }
+            std::filesystem::create_directories(target.parent_path());
+            std::ofstream file(target, std::ios::binary);
+            if (contents.size) {
+                file.write(reinterpret_cast<const char*>(contents.data.get()),
+                           static_cast<std::streamsize>(contents.size));
+            }
+            if (!file) {
+                throw std::runtime_error("Could not write extracted DXA file");
+            }
+        }
+        return 0;
+    } catch (const std::exception& error) {
+        spdlog::warn("Could not extract DXA {}: {}",
+                     support::pathToUtfString(path),
+                     error.what());
         return -1;
-
-    const DXArchive a;
-    dxa::DecodeArchive(path);
-    return 0;
+    }
 }
 } // namespace support
