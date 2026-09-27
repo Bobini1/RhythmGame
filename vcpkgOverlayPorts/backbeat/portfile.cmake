@@ -1,12 +1,11 @@
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
-# Use the fork until its CMake package fixes are merged upstream.
-set(backbeat_revision dfae2307c473cf45ca73b31819c65dd63383f167)
+set(backbeat_revision 3ed0c353d912cfcb671920c6d88f5281ce85a49f)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO Bobini1/backbeat
+    REPO zkldi/backbeat
     REF "${backbeat_revision}"
-    SHA512 7e44ca1793afe7e59741d151bada8f248d9b29c64d686030e8ae86708a98b08b6e8d6f84d71b7d1cf99c118ac1259df25ea9a2f3c4f6cc64b5829c5a8f4aaaef
+    SHA512 cffccedf457575efbbc5680d8761e05ffe3f14f4df67cff6d78e752b9a38f58268186492ffee68609d0721a027bfe0d9b9923170435634690aea4f13a3563217
     PATCHES cargo-native-dependencies.patch
 )
 
@@ -55,19 +54,6 @@ if(NOT rust_host STREQUAL rust_target)
     message(FATAL_ERROR "The Backbeat overlay requires a native build: Rust host '${rust_host}' does not match SDK target '${rust_target}'.")
 endif()
 
-# SQLx checks queries during compilation. Install its CLI privately, using
-# its own lockfile and bundled host SQLite, before configuring target libraries.
-set(host_tools "${CURRENT_BUILDTREES_DIR}/host-tools")
-vcpkg_execute_required_process(
-    COMMAND "${CMAKE_COMMAND}" -E env
-        "CARGO_TARGET_DIR=${CURRENT_BUILDTREES_DIR}/sqlx-target"
-        "${RUSTUP}" run 1.96.0 cargo install sqlx-cli --version 0.9.0 --locked
-        --no-default-features --features sqlite --root "${host_tools}"
-        --jobs "${VCPKG_CONCURRENCY}"
-    WORKING_DIRECTORY "${SOURCE_PATH}"
-    LOGNAME sqlx-install-${HOST_TRIPLET}
-)
-vcpkg_add_to_path("${host_tools}/bin")
 get_filename_component(rustup_bin "${RUSTUP}" DIRECTORY)
 vcpkg_add_to_path("${rustup_bin}")
 vcpkg_find_acquire_program(PKGCONFIG)
@@ -93,5 +79,5 @@ vcpkg_cmake_configure(
 vcpkg_cmake_install()
 vcpkg_cmake_config_fixup(PACKAGE_NAME Backbeat CONFIG_PATH lib/cmake/Backbeat)
 vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE.md"
-    COMMENT "This static library includes Rust dependencies. Their versions and sources are recorded in Cargo.lock at https://github.com/Bobini1/backbeat/tree/${backbeat_revision}; consult each crate's license and copyright notices as well.")
+    COMMENT "This static library includes Rust dependencies. Their versions and sources are recorded in Cargo.lock at https://github.com/zkldi/backbeat/tree/${backbeat_revision}; consult each crate's license and copyright notices as well.")
 file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
