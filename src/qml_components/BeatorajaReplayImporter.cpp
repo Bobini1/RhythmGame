@@ -789,17 +789,8 @@ createScoreFromReplay(resource_managers::Profile& profile,
           }
           return charts::ParsedBmsChart::RandomRange{ 1 };
       };
-    auto chartComponents = [&] {
-        if (!songAssetStore.isVirtual(*chartPath)) {
-            return chartDataFactory.loadChartData(*chartPath, randomGenerator);
-        }
-        const auto contents = songAssetStore.read(*chartPath);
-        const auto view =
-          std::string_view{ contents.constData(),
-                            static_cast<size_t>(contents.size()) };
-        return chartDataFactory.loadChartData(
-          view, *chartPath, randomGenerator);
-    }();
+    auto chartComponents = chartDataFactory.loadChartData(
+      songAssetStore, *chartPath, std::move(randomGenerator));
     auto& chartData = chartComponents.chartData;
     if (replay.source == ReplaySource::Beatoraja && chartData->getIsRandom() &&
         chartData->getRandomSequence().size() != replay.randomSequence.size()) {
@@ -1078,7 +1069,6 @@ startBeatorajaReplayImport(resource_managers::Profile* profile,
             });
         }
     }
-
 }
 
 } // namespace qml_components

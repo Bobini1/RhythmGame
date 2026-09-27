@@ -3,6 +3,77 @@
 //
 
 #include "BmsScore.h"
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <magic_enum/magic_enum.hpp>
+#include <stdexcept>
+
+auto
+gameplay_logic::BmsScore::fromRemoteJson(const QByteArray& data,
+                                         const QString& expectedGuid)
+  -> std::unique_ptr<BmsScore>
+{
+    QJsonParseError error;
+    const auto document = QJsonDocument::fromJson(data, &error);
+    if (error.error != QJsonParseError::NoError || !document.isObject()) {
+        throw std::runtime_error("Score response is not a JSON object");
+    }
+    auto object = document.object();
+    const auto guid = object["guid"].toString();
+    if (guid.isEmpty() || guid != expectedGuid) {
+        throw std::runtime_error(
+          "Score response has a missing or mismatched GUID");
+    }
+    for (const auto* key : { "sha256", "md5", "clearType" }) {
+        if (object[key].toString().isEmpty()) {
+            throw std::runtime_error(std::string("Score response is missing ") +
+                                     key);
+        }
+    }
+    for (const auto* key : { "points", "maxPoints", "maxHits" }) {
+        if (!object[key].isDouble() || object[key].toDouble() < 0) {
+            throw std::runtime_error(std::string("Invalid score field: ") +
+                                     key);
+        }
+    }
+    auto counts = object["judgementCounts"].toArray();
+    constexpr auto count = magic_enum::enum_count<Judgement>();
+    // Older responses may contain only the six scoring judgements.
+    if (counts.size() < 6 || counts.size() > count) {
+        throw std::runtime_error("Invalid score judgement counts");
+    }
+    for (const auto& value : counts) {
+        if (!value.isDouble() || value.toInt(-1) < 0 ||
+            value.toDouble() != value.toInt(-1)) {
+            throw std::runtime_error("Invalid score judgement count");
+        }
+    }
+    while (counts.size() < count) {
+        counts.append(0);
+    }
+    object["judgementCounts"] = counts;
+    for (const auto* key : { "replayData", "gaugeHistory" }) {
+        if (!object[key].isArray()) {
+            throw std::runtime_error(std::string("Invalid score field: ") +
+                                     key);
+        }
+        for (const auto& value : object[key].toArray()) {
+            if (!value.isObject()) {
+                throw std::runtime_error(std::string("Invalid entry in ") +
+                                         key);
+            }
+        }
+    }
+    auto result = BmsResult::fromJson(object);
+    auto replay = std::make_unique<BmsReplayData>(
+      BmsReplayData::fromJsonArray(object["replayData"].toArray()), guid);
+    auto gauges = std::make_unique<BmsGaugeHistory>(
+      BmsGaugeHistory::fromJsonArray(object["gaugeHistory"].toArray()), guid);
+    return std::make_unique<BmsScore>(
+      std::move(result), std::move(replay), std::move(gauges));
+}
+
 gameplay_logic::BmsScore::BmsScore(
   std::unique_ptr<BmsResult> result,
   std::unique_ptr<BmsReplayData> replayData,

@@ -162,6 +162,13 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db) const -> void
 }
 
 auto
+gameplay_logic::ChartData::hasNotes() const -> bool
+{
+    return normalNoteCount > 0 || scratchCount > 0 || lnCount > 0 ||
+           bssCount > 0 || mineCount > 0;
+}
+
+auto
 gameplay_logic::ChartData::prepareSave() const -> PreparedData
 {
     return { support::compress(randomSequence),
@@ -181,6 +188,9 @@ gameplay_logic::ChartData::save(db::SqliteCppDb& db,
                                 int64_t directory,
                                 const PreparedData& prepared) const
 {
+    if (!hasNotes()) {
+        return;
+    }
     auto query = db.createStatement(
       "INSERT OR REPLACE INTO charts (title, artist, subtitle, subartist, "
       "genre, stage_file, banner, back_bmp, rank, total, play_level, "

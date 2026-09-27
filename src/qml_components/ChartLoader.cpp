@@ -21,35 +21,6 @@
 #include <spdlog/spdlog.h>
 
 namespace qml_components {
-namespace {
-
-auto
-loadChartComponents(
-  resource_managers::ChartDataFactory* chartDataFactory,
-  resource_managers::SongAssetStore* assetStore,
-  const std::filesystem::path& path,
-  resource_managers::ChartDataFactory::RandomGenerator randomGenerator)
-  -> resource_managers::ChartDataFactory::ChartComponents
-{
-    auto extension = support::pathToQString(path.extension()).toLower();
-    if (!assetStore->isVirtual(path)) {
-        return extension == QStringLiteral(".bmson")
-                 ? chartDataFactory->loadBmsonChartData(path)
-                 : chartDataFactory->loadChartData(path,
-                                                   std::move(randomGenerator));
-    }
-
-    const auto contents = assetStore->read(path);
-    const auto view = std::string_view{ contents.constData(),
-                                        static_cast<size_t>(contents.size()) };
-    return extension == QStringLiteral(".bmson")
-             ? chartDataFactory->loadBmsonChartData(view, path)
-             : chartDataFactory->loadChartData(
-                 view, path, std::move(randomGenerator));
-}
-
-} // namespace
-
 auto
 ChartLoader::createChart(
   resource_managers::Profile* player1,
@@ -356,8 +327,8 @@ ChartLoader::loadChart(const QString& filename,
             spdlog::error("Failed to find chart path to load replay");
             return nullptr;
         }
-        auto chartComponents = loadChartComponents(
-          chartDataFactory, assetStore, *file, std::move(randomGenerator));
+        auto chartComponents = chartDataFactory->loadChartData(
+          *assetStore, *file, std::move(randomGenerator));
         return createChart(player1,
                            player1AutoPlay,
                            player1Replay,
@@ -399,8 +370,8 @@ ChartLoader::loadChartWithConfig(
               return static_cast<charts::ParsedBmsChart::RandomRange>(
                 exactRandom.next(static_cast<qint64>(range)));
           };
-        auto chartComponents = loadChartComponents(
-          chartDataFactory, assetStore, file, std::move(randomGenerator));
+        auto chartComponents = chartDataFactory->loadChartData(
+          *assetStore, file, std::move(randomGenerator));
         if (!exactRandom.complete()) {
             return nullptr;
         }
@@ -532,10 +503,8 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
                       charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
                   }(randomEngine);
               };
-            auto components = loadChartComponents(chartDataFactory,
-                                                  assetStore,
-                                                  support::qStringToPath(path),
-                                                  randomGenerator);
+            auto components = chartDataFactory->loadChartData(
+              *assetStore, support::qStringToPath(path), randomGenerator);
             chartComponents.append(std::move(components));
         } catch (const std::exception& e) {
             spdlog::error("Failed to load chart: {}", e.what());
@@ -749,8 +718,8 @@ ChartLoader::loadChartData(const QString& filename,
                   charts::ParsedBmsChart::RandomRange{ 1 }, randomRange
               }(randomEngine);
           };
-        auto components = loadChartComponents(
-          chartDataFactory, assetStore, *path, randomGenerator);
+        auto components =
+          chartDataFactory->loadChartData(*assetStore, *path, randomGenerator);
         return components.chartData.release();
     } catch (const std::exception& e) {
         spdlog::error("Failed to load chart: {}", e.what());

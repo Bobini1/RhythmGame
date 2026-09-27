@@ -569,6 +569,29 @@ TEST_CASE("Backbeat refresh failures and concurrent imports do not discard "
     REQUIRE(library.count() == 1);
 }
 
+TEST_CASE("Backbeat skips empty charts without creating bundle records",
+          "[backbeat]")
+{
+    Library library;
+    auto source = std::make_shared<Store>();
+    source->installed.insert(QString(64, 'a'),
+                             { "empty.bms",
+                               "#TITLE Empty\n#BPM 120\n#00101:01\n",
+                               { "preview.ogg" } });
+    source->installed.insert(QString(64, 'b'), { "chart.bms", chartBytes, {} });
+    resource_managers::BackbeatCatalog catalog(
+      source, library.path, &library.database, &library.database);
+    const auto update = catalog.synchronize();
+    CHECK(update.error.isEmpty());
+    CHECK(update.added == 1);
+    CHECK(library.count() == 1);
+    CHECK(
+      library.database.createStatement("SELECT count(*) FROM backbeat_bundles")
+        .executeAndGet<int>() == 1);
+    CHECK(library.database.createStatement("SELECT count(*) FROM preview_files")
+            .executeAndGet<int>() == 0);
+}
+
 TEST_CASE("Backbeat packs are ordinary folders with independent membership",
           "[backbeat][folders]")
 {

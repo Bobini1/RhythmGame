@@ -145,6 +145,11 @@ class Profile final : public QObject
     LoginState tachiLoginState{ LoginState::NotLoggedIn };
     std::optional<OnlineUserData> userData;
     std::optional<TachiData> tachiData;
+    friend struct ProfileTestAccess;
+    quint64 sessionGeneration{};
+    QSet<QNetworkReply*> accountReplies;
+    void invalidateSession();
+    void ownAccountReply(QNetworkReply* reply);
     void loadBearerToken();
     void fetchOnlineData();
     void setLoginState(LoginState state);
@@ -158,14 +163,15 @@ class Profile final : public QObject
         QJsonObject json;
     };
 
-    auto buildUploadPayloads(const QList<QString>& guids) -> QList<Payload>;
-    void dispatchUploads(qml_components::ScoreSyncOperation* op,
-                         QList<Payload> payloads);
+    auto buildUploadPayload(const QString& guid) -> std::optional<Payload>;
+    void dispatchUpload(qml_components::ScoreSyncOperation* op,
+                        const QString& guid);
     void dispatchDownload(qml_components::ScoreSyncOperation* op,
                           const QString& guid);
 
   public:
     static inline const QString keychainService = "RhythmGame";
+    static auto credentialKey(const QString& guid) -> QString;
     /**
      * @brief Creates a profile object living in the given database.
      * @details If the profile doesn't exist, it will be created.
@@ -184,6 +190,7 @@ class Profile final : public QObject
       QNetworkAccessManager* networkManager,
       SongAssetStore* songAssetStore,
       QObject* parent = nullptr);
+    ~Profile() override;
 
     auto getPath() const -> std::filesystem::path;
     auto getPathQString() const -> QString;
@@ -233,7 +240,8 @@ class Profile final : public QObject
 
     /**
      * @brief Create and publish a new import operation.
-     * @details Must only be called on the main thread, before starting the worker.
+     * @details Must only be called on the main thread, before starting the
+     * worker.
      */
     auto beginImportOp() -> qml_components::ReplayImportOperation*;
     auto beginScoreImportOp() -> qml_components::ReplayImportOperation*;

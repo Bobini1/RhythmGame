@@ -9,7 +9,7 @@ project(RhythmGameTests LANGUAGES CXX)
 find_package(Catch2 3 REQUIRED)
 # ---- Tests ----
 
-add_executable(RhythmGame_test
+qt_add_executable(RhythmGame_test
         arena/ArenaBinaryProtocol.test.cpp
         arena/ArenaAvailabilityIndex.test.cpp
         arena/ArenaInventorySource.test.cpp
@@ -47,6 +47,7 @@ add_executable(RhythmGame_test
         resource_managers/SongAssetStore.test.cpp
         resource_managers/Backbeat.test.cpp
         resource_managers/Database.test.cpp
+        resource_managers/OnlineOperations.test.cpp
         input/InputTranslator.test.cpp
         support/GeneratePermutation.test.cpp
         support/FrameRateLimiter.test.cpp

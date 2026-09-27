@@ -222,10 +222,10 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
               spdlog::error("Failed to remove profile: {}", ec.message());
           }
 
-          QKeychain::DeletePasswordJob job(
+          auto* job = new QKeychain::DeletePasswordJob(
             resource_managers::Profile::keychainService, this);
-          job.setKey(QString("profile/%1/token").arg(guid));
-          job.start();
+          job->setKey(resource_managers::Profile::credentialKey(guid));
+          job->start();
       });
     emit profilesChanged();
 }

@@ -3,6 +3,7 @@
 //
 
 #include <memory>
+#include <utility>
 #include <spdlog/spdlog.h>
 #include <QtConcurrent>
 #include <QSet>
@@ -973,7 +974,7 @@ resource_managers::GeneralVars::resetTableListUrl()
 }
 namespace {
 void
-writeGeneralVars(QThreadPool& writePool,
+writeGeneralVars(resource_managers::ConfigWriter& writer,
                  const resource_managers::GeneralVars& generalVars,
                  const std::filesystem::path& profileFolder)
 {
@@ -990,34 +991,16 @@ writeGeneralVars(QThreadPool& writePool,
                              : property.read(&generalVars).toJsonValue();
         json[property.name()] = value;
     }
-    writePool.start([json, profileFolder] {
-        auto jsonDocument = QJsonDocument();
-        jsonDocument.setObject(json);
-        auto file = QFile{ profileFolder / "generalVars.json" };
-        if (!file.open(QIODevice::WriteOnly)) {
-            spdlog::error("Failed to open config for writing: {}: {}",
-                          profileFolder.string(),
-                          file.errorString().toStdString());
-            return;
-        }
-        file.write(jsonDocument.toJson());
-    });
+    writer.write(profileFolder / "generalVars.json", std::move(json));
 }
 
 void
 writeThemeVarsForTheme(
+  resource_managers::ConfigWriter& writer,
   const QHash<QString, QHash<QString, QVariant>>& themeVars,
   const std::filesystem::path& path)
 {
-    auto file = QFile{ path };
-    if (!file.open(QIODevice::ReadWrite)) {
-        spdlog::error("Failed to open config for reading + writing: {}, {}",
-                      path.string(),
-                      file.errorString().toStdString());
-        return;
-    }
-    auto jsonDocument = QJsonDocument::fromJson(file.readAll());
-    auto json = jsonDocument.object();
+    auto json = QJsonObject{};
     for (const auto& [screen, vars] : themeVars.asKeyValueRange()) {
         auto screenObject = QJsonObject();
         for (const auto& [key, value] : vars.asKeyValueRange()) {
@@ -1025,13 +1008,12 @@ writeThemeVarsForTheme(
         }
         json[screen] = screenObject;
     }
-    jsonDocument.setObject(json);
-    file.resize(0);
-    file.write(jsonDocument.toJson());
+    writer.write(path, std::move(json), true);
 }
 
 void
 writeThemeVars(
+  resource_managers::ConfigWriter& writer,
   const QHash<QString, QHash<QString, QHash<QString, QVariant>>>& themeVars,
   const std::filesystem::path& profileFolder)
 {
@@ -1044,39 +1026,11 @@ writeThemeVars(
     }
     for (const auto& [name, vars] : themes.asKeyValueRange()) {
         writeThemeVarsForTheme(
+          writer,
           vars,
           profileFolder /
             support::qStringToPath(name + QStringLiteral("-vars.json")));
     }
-}
-
-void
-writeSingleThemeVar(QThreadPool& writePool,
-                    const QString& screen,
-                    const QString& key,
-                    const QVariant& value,
-                    const std::filesystem::path& path)
-{
-    writePool.start([screen, key, value, path]() {
-        auto file = QFile{ path };
-        if (!file.open(QIODevice::ReadWrite)) {
-            spdlog::error(
-              "Failed to open config for reading + writing: {}: {}. The "
-              "var {} will not be written.",
-              path.string(),
-              file.errorString().toStdString(),
-              key.toStdString());
-            return;
-        }
-        auto jsonDocument = QJsonDocument::fromJson(file.readAll());
-        auto json = jsonDocument.object();
-        auto object = json[screen].toObject();
-        object[key] = QJsonValue::fromVariant(value);
-        json[screen] = object;
-        jsonDocument.setObject(json);
-        file.resize(0);
-        file.write(jsonDocument.toJson());
-    });
 }
 
 auto
@@ -1664,23 +1618,13 @@ populateScreenVars(const std::filesystem::path& themePath,
 }
 
 void
-readGeneralVars(QThreadPool& writePool,
-                resource_managers::GeneralVars& generalVars,
+readGeneralVars(resource_managers::GeneralVars& generalVars,
                 const std::filesystem::path& profileFolder)
 {
-    auto file = QFile{ profileFolder / "generalVars.json" };
-    if (!file.exists()) {
-        writeGeneralVars(writePool, generalVars, profileFolder);
-    }
-    if (!file.open(QIODevice::ReadOnly)) {
-        spdlog::info("Failed to open config for reading: {}: {}",
-                     profileFolder.string(),
-                     file.errorString().toStdString());
-        return;
-    }
     try {
         const auto contents =
-          QJsonDocument::fromJson(file.readAll()).object().toVariantHash();
+          resource_managers::readJsonConfig(profileFolder / "generalVars.json")
+            .toVariantHash();
         for (auto i = generalVars.metaObject()->propertyOffset();
              i < generalVars.metaObject()->propertyCount();
              ++i) {
@@ -1750,7 +1694,15 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
                       file.errorString().toStdString());
         return result;
     }
-    auto contents = QJsonDocument::fromJson(file.readAll()).object();
+    QJsonParseError parseError;
+    const auto document = QJsonDocument::fromJson(file.readAll(), &parseError);
+    if (!document.isObject()) {
+        spdlog::error("Invalid theme configuration {}: {}",
+                      themeVarsPath.string(),
+                      parseError.errorString().toStdString());
+        return result;
+    }
+    auto contents = document.object();
     for (const auto& screen : themeFamily.getScreens().keys()) {
         if (themeFamily.getScreens()[screen].isAliased()) {
             continue;
@@ -1953,8 +1905,7 @@ equalWithinUlps(T x, T y, std::size_t n)
 void
 resource_managers::Vars::populateThemePropertyMap(
   QQmlPropertyMap& themeVars,
-  QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
-  const std::filesystem::path& themeVarsPath)
+  QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData)
 {
     for (const auto& [screenName, themes] : themeVarsData.asKeyValueRange()) {
         auto screenPropertyMap = std::unique_ptr<QQmlPropertyMap>(
@@ -1968,11 +1919,8 @@ resource_managers::Vars::populateThemePropertyMap(
               propertyMap.get(),
               &QQmlPropertyMap::valueChanged,
               this,
-              [this,
-               themeVarsPath,
-               screen = screenName,
-               themeFamily = themeName](const QString& key,
-                                        const QVariant& value) {
+              [this, screen = screenName, themeFamily = themeName](
+                const QString& key, const QVariant& value) {
                   auto& ref = loadedThemeVars[screen][themeFamily][key];
                   // Skip write if assigning number to number and they are
                   // very close (ULP-based)
@@ -1994,14 +1942,8 @@ resource_managers::Vars::populateThemePropertyMap(
                   }
                   // Update cached value before writing
                   ref = value;
-                  writeSingleThemeVar(
-                    writePool,
-                    screen,
-                    key,
-                    value,
-                    themeVarsPath /
-                      support::qStringToPath(themeFamily +
-                                             QStringLiteral("-vars.json")));
+                  dirtyThemes.insert(themeFamily);
+                  saveTimer.start();
               });
             screenPropertyMap->insert(
               themeName, QVariant::fromValue(propertyMap.release()));
@@ -2056,8 +1998,35 @@ resource_managers::Vars::populateThemePropertyMap(
 void
 resource_managers::Vars::writeGeneralVars()
 {
-    ::writeGeneralVars(
-      writePool, generalVars, profile->getPath().parent_path());
+    generalDirty = true;
+    saveTimer.start();
+}
+
+void
+resource_managers::Vars::flushWrites()
+{
+    saveTimer.stop();
+    const auto folder = profile->getPath().parent_path();
+    if (generalDirty) {
+        ::writeGeneralVars(writer, generalVars, folder);
+        generalDirty = false;
+    }
+    for (const auto& name : std::exchange(dirtyThemes, {})) {
+        QHash<QString, QHash<QString, QVariant>> values;
+        for (auto it = loadedThemeVars.cbegin(); it != loadedThemeVars.cend();
+             ++it) {
+            if (it.value().contains(name)) {
+                values.insert(it.key(), it.value().value(name));
+            }
+        }
+        writeThemeVarsForTheme(
+          writer, values, folder / support::qStringToPath(name + "-vars.json"));
+    }
+}
+
+resource_managers::Vars::~Vars()
+{
+    flushWrites();
 }
 
 resource_managers::Vars::Vars(
@@ -2073,12 +2042,13 @@ resource_managers::Vars::Vars(
                                   this->availableThemeFamilies))
 {
     generalVars.setParent(this);
-    writePool.setMaxThreadCount(1);
+    saveTimer.setSingleShot(true);
+    saveTimer.setInterval(200);
+    connect(&saveTimer, &QTimer::timeout, this, &Vars::flushWrites);
     ensureArenaOverlayThemeVars(loadedThemeVars, this->availableThemeFamilies);
-    writeThemeVars(loadedThemeVars, profile->getPath().parent_path());
-    populateThemePropertyMap(
-      *themeVars, loadedThemeVars, profile->getPath().parent_path());
-    readGeneralVars(writePool, generalVars, profile->getPath().parent_path());
+    writeThemeVars(writer, loadedThemeVars, profile->getPath().parent_path());
+    populateThemePropertyMap(*themeVars, loadedThemeVars);
+    readGeneralVars(generalVars, profile->getPath().parent_path());
     writeGeneralVars();
     for (auto i = generalVars.metaObject()->propertyOffset();
          i < generalVars.metaObject()->propertyCount();

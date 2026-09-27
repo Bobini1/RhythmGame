@@ -136,10 +136,10 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
                                static_cast<size_t>(bundle.chart.size()));
             const ChartDataFactory factory;
             auto components =
-              bundle.filename.endsWith(".bmson", Qt::CaseInsensitive)
-                ? factory.loadBmsonChartData(contents, path, -1)
-                : factory.loadChartData(
-                    contents, path, [](auto) { return 1; }, -1);
+              factory.loadChartData(contents, path, [](auto) { return 1; }, -1);
+            if (!components.chartData->hasNotes()) {
+                continue;
+            }
             auto prepared = components.chartData->prepareSave();
             Parsed item{
                 id, std::move(components.chartData), std::move(prepared), {}, {}

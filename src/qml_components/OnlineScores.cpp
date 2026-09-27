@@ -225,7 +225,7 @@ OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
       networkReply,
       &QNetworkReply::finished,
       this,
-      [this, networkReply, source]() mutable {
+      [this, networkReply, source, guid]() mutable {
           if (networkReply->error() == QNetworkReply::OperationCanceledError &&
               source.stopToken().stop_requested()) {
               networkReply->deleteLater();
@@ -247,6 +247,7 @@ OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
           // Parse and construct BmsScore objects on the thread pool to
           // avoid blocking the main thread.
           threadPool.start([source,
+                            guid,
                             data = std::move(data),
                             parserDeliveryQueuedHook =
                               std::move(parserDeliveryQueuedHook)]() mutable {
@@ -255,39 +256,10 @@ OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
                   return;
 
               try {
-                  auto doc = QJsonDocument::fromJson(data);
-                  if (!doc.isObject()) {
-                      auto* application = QCoreApplication::instance();
-                      (void)(application && QMetaObject::invokeMethod(
-                                              application,
-                                              [source] { (void)source.fail(); },
-                                              Qt::QueuedConnection));
-                      return;
-                  }
+                  auto score =
+                    gameplay_logic::BmsScore::fromRemoteJson(data, guid);
                   if (stopToken.stop_requested())
                       return;
-
-                  auto scoreObj = doc.object();
-                  auto res = gameplay_logic::BmsResult::fromJson(scoreObj);
-                  auto replayDataList =
-                    gameplay_logic::BmsReplayData::fromJsonArray(
-                      scoreObj["replayData"].toArray());
-                  auto replayData =
-                    std::make_unique<gameplay_logic::BmsReplayData>(
-                      std::move(replayDataList), res->getGuid());
-                  auto gaugeHistoryList =
-                    gameplay_logic::BmsGaugeHistory::fromJsonArray(
-                      scoreObj["gaugeHistory"].toArray());
-                  auto gaugeHistory =
-                    std::make_unique<gameplay_logic::BmsGaugeHistory>(
-                      std::move(gaugeHistoryList), res->getGuid());
-                  if (stopToken.stop_requested())
-                      return;
-
-                  auto score = std::make_unique<gameplay_logic::BmsScore>(
-                    std::move(res),
-                    std::move(replayData),
-                    std::move(gaugeHistory));
                   score->setSubmissionState(
                     gameplay_logic::BmsScore::SubmissionState::Submitted);
                   auto delivery =

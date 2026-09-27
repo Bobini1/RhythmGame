@@ -4,6 +4,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <wil/resource.h>
 #include <winternl.h>
 #include <ntstatus.h>
 #else
@@ -21,6 +22,7 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 
 #include <algorithm>
 #include <cctype>
+#include <system_error>
 #include <QHash>
 #include <QSet>
 #include <qthreadpool.h>
@@ -101,20 +103,10 @@ loadChart(QThreadPool& threadPool,
                   }(randomEngine);
               };
 
-            const auto chartComponents = [&] {
-                thread_local constexpr ChartDataFactory chartDataFactory;
-                if (path.extension() == ".bmson") {
-                    return chartDataFactory.loadBmsonChartData(path, directory);
-                }
-                return chartDataFactory.loadChartData(
-                  path, randomGenerator, directory);
-            }();
-            chartComponents.chartData->save(db);
-            // ChartDataFactory::makeNotes(chartComponents.notesData.notes,
-            //                             chartComponents.notesData.bpmChanges,
-            //                             chartComponents.notesData.barLines)
-            //   ->save(db,
-            //   chartComponents.chartData->getSha256().toStdString());
+            const ChartDataFactory factory;
+            const auto components =
+              factory.loadChartData(path, randomGenerator, directory);
+            components.chartData->save(db);
         } catch (const std::exception& e) {
             try {
                 spdlog::error("Failed to load chart data for {}: {}",
@@ -164,15 +156,9 @@ loadArchivedChart(QThreadPool& threadPool,
               std::string_view{ contents.constData(),
                                 static_cast<size_t>(contents.size()) };
             thread_local constexpr ChartDataFactory chartDataFactory;
-            const auto extension =
-              support::pathToQString(virtualPath.extension()).toLower();
-            const auto chartComponents =
-              extension == QStringLiteral(".bmson")
-                ? chartDataFactory.loadBmsonChartData(
-                    view, virtualPath, directory)
-                : chartDataFactory.loadChartData(
-                    view, virtualPath, randomGenerator, directory);
-            chartComponents.chartData->save(db);
+            const auto components = chartDataFactory.loadChartData(
+              view, virtualPath, randomGenerator, directory);
+            components.chartData->save(db);
         } catch (const std::exception& error) {
             spdlog::error("Failed to load archived chart data for {}: {}",
                           support::pathToUtfString(virtualPath),
@@ -255,9 +241,7 @@ isReadmeCandidate(const std::filesystem::path& path) -> bool
 auto
 isChartCandidate(const std::filesystem::path& path) -> bool
 {
-    const auto extension = lowercaseExtension(path);
-    return extension == ".bms" || extension == ".bme" || extension == ".bml" ||
-           extension == ".pms" || extension == ".bmson";
+    return ChartDataFactory::isChartFile(path);
 }
 
 auto
@@ -420,13 +404,17 @@ scanFolder(std::filesystem::path directory,
     isb.Status = -1;
     static constexpr auto max_bytes = 65536;
     char buffer[65536];
-    HANDLE hDirectory = CreateFileW(directory.c_str(),
-                                    FILE_LIST_DIRECTORY,
-                                    FILE_SHARE_READ,
-                                    NULL,
-                                    OPEN_EXISTING,
-                                    FILE_FLAG_BACKUP_SEMANTICS,
-                                    NULL);
+    wil::unique_handle hDirectory{ CreateFileW(directory.c_str(),
+                                               FILE_LIST_DIRECTORY,
+                                               FILE_SHARE_READ,
+                                               NULL,
+                                               OPEN_EXISTING,
+                                               FILE_FLAG_BACKUP_SEMANTICS,
+                                               NULL) };
+    if (!hDirectory) {
+        throw std::system_error(
+          GetLastError(), std::system_category(), "Opening song directory");
+    }
 
     auto directoriesToScan = std::vector<std::filesystem::path>{};
     auto archivesToScan = std::vector<std::filesystem::path>{};
@@ -442,7 +430,7 @@ scanFolder(std::filesystem::path directory,
     auto dirId = int64_t{ 0 };
 
     while (true) {
-        auto status = NtQueryDirectoryFile(hDirectory,
+        auto status = NtQueryDirectoryFile(hDirectory.get(),
                                            NULL,
                                            NULL,
                                            NULL,
@@ -459,9 +447,8 @@ scanFolder(std::filesystem::path directory,
         }
 
         if (status != STATUS_SUCCESS && status != STATUS_BUFFER_OVERFLOW) {
-            spdlog::error("NtQueryDirectoryFile failed. NTSTATUS: {:#x}\n",
-                          status);
-            break;
+            throw std::runtime_error(fmt::format(
+              "Reading song directory failed. NTSTATUS: {:#x}", status));
         }
 
         if (*stop) {
@@ -479,19 +466,14 @@ scanFolder(std::filesystem::path directory,
                 if (!isSongDirectory) {
                     directoriesToScan.emplace_back(path);
                 }
-            } else if (auto extension = std::filesystem::path(path).extension();
-                       extension.compare(".bms") == 0 ||
-                       extension.compare(".bme") == 0 ||
-                       extension.compare(".bml") == 0 ||
-                       extension.compare(".pms") == 0 ||
-                       extension.compare(".bmson") == 0) {
+            } else if (isChartCandidate(std::filesystem::path(path))) {
                 const auto chartPath = (directory / path).lexically_normal();
                 if (!isSongDirectory) {
                     dirId = addDirToParentDirs(db, root, parentDirQString);
                     isSongDirectory = true;
                 }
                 directoriesToScan.clear();
-                if (extension.compare(".pms") != 0) {
+                if (lowercaseExtension(std::filesystem::path(path)) != ".pms") {
                     loadChart(threadPool,
                               db,
                               dirId,
@@ -504,11 +486,7 @@ scanFolder(std::filesystem::path directory,
                        SongAssetStore::isSplitArchivePath(
                          std::filesystem::path(path))) {
                 archivesToScan.push_back(directory / path);
-            } else if (path.starts_with(L"preview") &&
-                       (extension.compare(".mp3") == 0 ||
-                        extension.compare(".ogg") == 0 ||
-                        extension.compare(".wav") == 0 ||
-                        extension.compare(".flac") == 0)) {
+            } else if (isPreviewCandidate(std::filesystem::path(path))) {
                 previewPath = directory / path;
             } else if (readmePath.empty() &&
                        isReadmeCandidate(std::filesystem::path(path))) {
@@ -623,16 +601,14 @@ scanFolder(const std::filesystem::path& directory,
         if (entry.stat.st_type == llfio::filesystem::file_type::directory &&
             !isSongDirectory) {
             directoriesToScan.push_back(directory / path);
-        } else if (const auto extension = path.extension();
-                   extension == ".bms" || extension == ".bme" ||
-                   extension == ".bml" || extension == ".pms") {
+        } else if (isChartCandidate(path)) {
             const auto chartPath = directory / path;
             if (!isSongDirectory) {
                 dirId = addDirToParentDirs(db, root, parentDirQString);
                 isSongDirectory = true;
             }
             directoriesToScan.clear();
-            if (extension.compare(".pms") != 0) {
+            if (lowercaseExtension(std::filesystem::path(path)) != ".pms") {
                 loadChart(threadPool,
                           db,
                           dirId,
@@ -643,9 +619,7 @@ scanFolder(const std::filesystem::path& directory,
         } else if (SongAssetStore::isArchivePath(path) ||
                    SongAssetStore::isSplitArchivePath(path)) {
             archivesToScan.push_back(directory / path);
-        } else if (path.string().starts_with("preview") &&
-                   (extension == ".mp3" || extension == ".ogg" ||
-                    extension == ".wav" || extension == ".flac")) {
+        } else if (isPreviewCandidate(path)) {
             previewPath = directory / path;
         } else if (readmePath.empty() && isReadmeCandidate(path)) {
             readmePath = directory / path;

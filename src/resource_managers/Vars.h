@@ -4,13 +4,15 @@
 
 #ifndef RHYTHMGAME_VARS_H
 #define RHYTHMGAME_VARS_H
+#include "SerializeConfig.h"
+#include <QTimer>
 
 #include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ThemeFamily.h"
 #include "support/CreateQmlPropertyMap.h"
 
 #include <QObject>
-#include <QThreadPool>
+#include <QSet>
 #include <QQmlPropertyMap>
 #include <filesystem>
 #include <QLocale>
@@ -137,7 +139,7 @@ using namespace select_keymode_filter;
  * @details
  * GeneralVars are saved to generalVars.json in the profile directory.
  * All
- * modifications to the variables cause the file to be rewritten.
+ * changes are saved after a short delay and flushed when the profile closes.
  */
 class GeneralVars final : public QObject
 {
@@ -664,10 +666,13 @@ class Vars final : public QObject
 
     void populateThemePropertyMap(
       QQmlPropertyMap& themeVars,
-      QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
-      const std::filesystem::path& themeVarsPath);
+      QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData);
     Q_SLOT void writeGeneralVars();
-    QThreadPool writePool;
+    QTimer saveTimer;
+    bool generalDirty{};
+    QSet<QString> dirtyThemes;
+    ConfigWriter writer;
+    void flushWrites();
 
   public:
     explicit Vars(
@@ -675,6 +680,7 @@ class Vars final : public QObject
       QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
       QList<QString> assetsPaths,
       QObject* parent = nullptr);
+    ~Vars() override;
     auto getGeneralVars() -> GeneralVars*;
     auto getThemeVars() const -> QQmlPropertyMap*;
 

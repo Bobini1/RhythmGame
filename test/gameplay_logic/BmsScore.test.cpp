@@ -8,6 +8,9 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <QTemporaryDir>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 #include <magic_enum/magic_enum.hpp>
 
@@ -285,5 +288,64 @@ TEST_CASE("A failed score inside a batch leaves no partial replay",
                                  table + " ORDER BY " + key)
                 .executeAndGetAll<std::string>() ==
               std::vector<std::string>{ "first", "last" });
+    }
+}
+
+TEST_CASE("Remote scores reject invalid documents and mismatched identity",
+          "[BmsScore][remote]")
+{
+    using gameplay_logic::BmsScore;
+    auto object = makeResult("requested-score")->toJson();
+    object["replayData"] = QJsonArray{};
+    object["gaugeHistory"] = QJsonArray{};
+    const auto decode = [&] {
+        return BmsScore::fromRemoteJson(QJsonDocument(object).toJson(),
+                                        "requested-score");
+    };
+    REQUIRE_NOTHROW(decode());
+    SECTION("malformed JSON")
+    {
+        CHECK_THROWS(BmsScore::fromRemoteJson("{", "requested-score"));
+    }
+    SECTION("empty object")
+    {
+        CHECK_THROWS(BmsScore::fromRemoteJson("{}", "requested-score"));
+    }
+    SECTION("other score")
+    {
+        object["guid"] = "another-score";
+        CHECK_THROWS(decode());
+    }
+    SECTION("short judgement array")
+    {
+        object["judgementCounts"] = QJsonArray{ 1 };
+        // The old decoder retained this short list; save() indexed six entries.
+        CHECK(gameplay_logic::BmsResult::fromJson(object)
+                ->getJudgementCounts()
+                .size() == 1);
+        CHECK_THROWS(decode());
+    }
+    SECTION("invalid judgement count")
+    {
+        auto counts = object["judgementCounts"].toArray();
+        counts[0] = -1;
+        object["judgementCounts"] = counts;
+        CHECK_THROWS(decode());
+    }
+    SECTION("wrong replay shape")
+    {
+        object["replayData"] = QJsonObject{};
+        CHECK_THROWS(decode());
+    }
+    SECTION("missing replay")
+    {
+        object.remove("replayData");
+        CHECK_THROWS(decode());
+    }
+    SECTION("legacy six judgements")
+    {
+        object["judgementCounts"] = QJsonArray{ 0, 0, 0, 0, 0, 0 };
+        CHECK(decode()->getResult()->getJudgementCounts().size() ==
+              magic_enum::enum_count<gameplay_logic::Judgement>());
     }
 }

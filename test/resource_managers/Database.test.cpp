@@ -17,6 +17,7 @@
 #include <QThread>
 #include <QThreadPool>
 #include <future>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 namespace {
@@ -56,6 +57,110 @@ deleteCharts(const QVariantList& charts)
         if (chart.canConvert<gameplay_logic::ChartData*>())
             delete chart.value<gameplay_logic::ChartData*>();
     }
+}
+
+TEST_CASE("Catalog skips charts without normal long or mine notes",
+          "[Database][charts]")
+{
+    Catalog catalog;
+    const auto [notes, included] =
+      GENERATE(std::pair{ "", false },
+               std::pair{ "#00101:01\n", false },
+               std::pair{ "#00131:01\n", false },
+               std::pair{ "#00111:01\n", true },
+               std::pair{ "#00116:01\n", true },
+               std::pair{ "#LNTYPE 1\n#00151:0101\n", true },
+               std::pair{ "#LNTYPE 1\n#00156:0101\n", true },
+               std::pair{ "#001D1:01\n", true });
+    const auto text = std::string("#PLAYER 1\n#TITLE Test\n#BPM 120\n") + notes;
+    const resource_managers::ChartDataFactory factory;
+    auto chart =
+      factory.loadChartData(text, "test.bms", [](auto) { return 1; }, -1);
+    CHECK(chart.chartData->hasNotes() == included);
+    chart.chartData->save(catalog.database);
+    CHECK(catalog.database.createStatement("SELECT count(*) FROM charts")
+            .executeAndGet<int>() == static_cast<int>(included));
+    CHECK(
+      catalog.database.createStatement("SELECT count(*) FROM histogram_data")
+        .executeAndGet<int>() == static_cast<int>(included));
+}
+
+TEST_CASE("BMSON discovery and parsing accept mixed case filenames",
+          "[Database][charts]")
+{
+    Catalog catalog;
+    const auto filename = GENERATE("chart.bmson", "chart.BMSON", "chart.BmSoN");
+    QFile file(catalog.directory.filePath(filename));
+    REQUIRE(file.open(QIODevice::WriteOnly));
+    file.write(
+      R"({"version":"1.0.0","info":{"title":"BMSON fixture","mode_hint":"beat-7k","init_bpm":120,"resolution":240},"sound_channels":[{"name":"sound.wav","notes":[{"x":1,"y":240,"l":0,"c":false}]}]})");
+    file.close();
+    resource_managers::SongAssetStore assets;
+    resource_managers::SongDbScanner scanner(&catalog.database, &assets);
+    std::atomic_bool stop{ false };
+    scanner.scanDirectory(
+      support::qStringToPath(catalog.directory.path()),
+      [](const QString&) {},
+      &stop);
+    CHECK(catalog.database.createStatement("SELECT title FROM charts")
+            .executeAndGet<std::string>() == "BMSON fixture");
+    const resource_managers::ChartDataFactory factory;
+    auto chart = factory.loadChartData(
+      assets, support::qStringToPath(file.fileName()), [](auto) { return 1; });
+    CHECK(chart.chartData->getNormalNoteCount() == 1);
+}
+
+TEST_CASE("Scanned charts are available before the scan finishes",
+          "[Database][scanning]")
+{
+    Catalog catalog;
+    db::SqliteCppDb writer(
+      support::qStringToPath(catalog.directory.filePath("songs.sqlite")));
+    resource_managers::SongAssetStore assets;
+    resource_managers::SongDbScanner scanner(&writer, &assets);
+    qml_components::SongFolderFactory folders(&catalog.database);
+    std::atomic_bool stop{ false };
+    for (const auto* name : { "one.bms", "two.bms" }) {
+        QFile file(catalog.directory.filePath(name));
+        REQUIRE(file.open(QIODevice::WriteOnly));
+        REQUIRE(file.write("#TITLE Test\n#BPM 120\n#00111:01\n") > 0);
+    }
+    std::atomic_int started{};
+    std::promise<void> secondStarted;
+    auto paused = secondStarted.get_future();
+    std::promise<void> releaseSecond;
+    auto released = releaseSecond.get_future().share();
+    auto scan = std::async(std::launch::async, [&] {
+        scanner.scanDirectory(
+          support::qStringToPath(catalog.directory.path()),
+          [&](const QString& path) {
+              if (!path.isEmpty() && started.fetch_add(1) == 1) {
+                  secondStarted.set_value();
+                  released.wait();
+              }
+          },
+          &stop);
+    });
+    {
+        const auto unblock = qScopeGuard([&] { releaseSecond.set_value(); });
+        REQUIRE(paused.wait_for(std::chrono::seconds(5)) ==
+                std::future_status::ready);
+        QElapsedTimer timer;
+        timer.start();
+        while (folders.folderSize("") == 0 && timer.elapsed() < 5000) {
+            QThread::msleep(1);
+        }
+        CHECK(scan.wait_for(std::chrono::seconds(0)) ==
+              std::future_status::timeout);
+        const auto charts = folders.open("");
+        CHECK(charts.size() == 1);
+        deleteCharts(charts);
+        CHECK(catalog.database
+                .createStatement("SELECT count(*) FROM histogram_data")
+                .executeAndGet<int>() == 1);
+    }
+    scan.get();
+    CHECK(folders.folderSize("") == 2);
 }
 }
 
@@ -176,8 +281,9 @@ TEST_CASE("Song scanning leaves UI reads and the global pool independent",
     qml_components::ScanningQueue queue(
       &writer, resource_managers::SongDbScanner(&writer, &assets));
     const auto rootPath = catalog.directory.path() + '/';
+    catalog.save(rootPath + "removed.bms", -1);
     auto folder = QSharedPointer<qml_components::RootSongFolder>::create(
-      rootPath, qml_components::RootSongFolder::NotScanned);
+      rootPath, qml_components::RootSongFolder::Scanned);
     auto root = writer.createStatement("INSERT INTO root_dir(path) VALUES(?)");
     root.bind(1, rootPath.toStdString());
     root.execute();
@@ -210,7 +316,7 @@ TEST_CASE("Song scanning leaves UI reads and the global pool independent",
     CHECK(queue.scan(folder.get()));
     CHECK(queue.rowCount() == 1);
     CHECK(catalog.database.createStatement("SELECT count(*) FROM charts")
-            .executeAndGet<int>() == 0);
+            .executeAndGet<int>() == 1);
     transaction.commit();
     QElapsedTimer timer;
     timer.start();
@@ -220,8 +326,54 @@ TEST_CASE("Song scanning leaves UI reads and the global pool independent",
     }
     CHECK(queue.rowCount() == 0);
     CHECK(folder->getStatus() == qml_components::RootSongFolder::Scanned);
-    CHECK(catalog.database.createStatement("SELECT count(*) FROM charts")
-            .executeAndGet<int>() == 1);
+    CHECK(catalog.database.createStatement("SELECT path FROM charts")
+            .executeAndGetAll<std::string>() ==
+          std::vector<std::string>{ chart.fileName().toStdString() });
     CHECK(catalog.database.createStatement("SELECT status FROM root_dir")
             .executeAndGet<int>() == qml_components::RootSongFolder::Scanned);
+}
+
+TEST_CASE(
+  "An unreadable chart does not prevent other charts from being scanned",
+  "[Database][scanning]")
+{
+    Catalog catalog;
+    const auto path = catalog.directory.filePath("chart.bms");
+    QFile file(path);
+    REQUIRE(file.open(QIODevice::WriteOnly));
+    file.write("#TITLE Test\n#BPM 120\n#00111:01\n");
+    file.close();
+    QFile readable(catalog.directory.filePath("readable.bms"));
+    REQUIRE(readable.open(QIODevice::WriteOnly));
+    REQUIRE(readable.write("#TITLE Readable\n#BPM 120\n#00111:01\n") > 0);
+    readable.close();
+    resource_managers::SongAssetStore assets;
+    resource_managers::SongDbScanner scanner(&catalog.database, &assets);
+    std::atomic_bool stop{ false };
+    scanner.scanDirectory(
+      support::qStringToPath(catalog.directory.path()),
+      [&](const QString& scanned) {
+          if (scanned == path)
+              QFile::remove(path);
+      },
+      &stop);
+    CHECK(catalog.database.createStatement("SELECT title FROM charts")
+            .executeAndGetAll<std::string>() ==
+          std::vector<std::string>{ "Readable" });
+}
+
+TEST_CASE("BMSON with only background audio is not cataloged",
+          "[Database][charts]")
+{
+    Catalog catalog;
+    const resource_managers::ChartDataFactory factory;
+    const auto content = GENERATE(
+      R"({"version":"1.0.0","info":{"mode_hint":"beat-7k","init_bpm":120,"resolution":240},"sound_channels":[]})",
+      R"({"version":"1.0.0","info":{"mode_hint":"beat-7k","init_bpm":120,"resolution":240},"sound_channels":[{"name":"bgm.wav","notes":[{"x":0,"y":240,"l":0,"c":false}]}]})");
+    auto chart =
+      factory.loadChartData(content, "empty.BMSON", [](auto) { return 1; }, -1);
+    CHECK_FALSE(chart.chartData->hasNotes());
+    chart.chartData->save(catalog.database);
+    CHECK(catalog.database.createStatement("SELECT count(*) FROM charts")
+            .executeAndGet<int>() == 0);
 }

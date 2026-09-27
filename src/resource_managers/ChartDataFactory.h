@@ -8,6 +8,7 @@
 #include "gameplay_logic/ChartData.h"
 #include "charts/BmsNotesData.h"
 #include "gameplay_logic/BmsNotes.h"
+#include <atomic>
 
 /**
  * @brief Classes and functions related to loading and managing resources such
@@ -15,6 +16,8 @@
  * @details Some of them are exposed to QML, some are not.
  */
 namespace resource_managers {
+
+class SongAssetStore;
 
 class ChartDataFactory
 {
@@ -24,6 +27,7 @@ class ChartDataFactory
       -> QVector<gameplay_logic::Note>;
 
   public:
+    static auto isChartFile(const std::filesystem::path& path) -> bool;
     using RandomGenerator = std::function<charts::ParsedBmsChart::RandomRange(
       charts::ParsedBmsChart::RandomRange)>;
     struct ChartComponents
@@ -52,6 +56,11 @@ class ChartDataFactory
     auto loadChartData(const std::filesystem::path& chartPath,
                        RandomGenerator randomGenerator,
                        int64_t directory = 0) const -> ChartComponents;
+    auto loadChartData(SongAssetStore& assets,
+                       const std::filesystem::path& chartPath,
+                       RandomGenerator randomGenerator,
+                       std::atomic_bool* stop = nullptr) const
+      -> ChartComponents;
     auto loadChartData(std::string_view chart,
                        const std::filesystem::path& virtualChartPath,
                        RandomGenerator randomGenerator,

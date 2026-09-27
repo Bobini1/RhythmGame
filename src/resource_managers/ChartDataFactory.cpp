@@ -13,6 +13,7 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 #endif
 
 #include "ChartDataFactory.h"
+#include "SongAssetStore.h"
 
 #include "charts/ReadBmsFile.h"
 
@@ -26,6 +27,36 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 #include <QJsonArray>
 
 namespace resource_managers {
+auto
+ChartDataFactory::isChartFile(const std::filesystem::path& path) -> bool
+{
+    const auto extension = support::pathToQString(path.extension()).toLower();
+    return extension == ".bms" || extension == ".bme" || extension == ".bml" ||
+           extension == ".pms" || extension == ".bmson";
+}
+
+auto
+ChartDataFactory::loadChartData(SongAssetStore& assets,
+                                const std::filesystem::path& path,
+                                RandomGenerator randomGenerator,
+                                std::atomic_bool* stop) const -> ChartComponents
+{
+    if (stop && *stop) {
+        throw std::runtime_error("Chart loading cancelled");
+    }
+    if (!assets.isVirtual(path)) {
+        return loadChartData(path, std::move(randomGenerator));
+    }
+    const auto contents = assets.read(path, stop);
+    if (stop && *stop) {
+        throw std::runtime_error("Chart loading cancelled");
+    }
+    return loadChartData(std::string_view(contents.constData(),
+                                          static_cast<size_t>(contents.size())),
+                         path,
+                         std::move(randomGenerator));
+}
+
 ChartDataFactory::ChartComponents::ChartComponents(
   std::unique_ptr<gameplay_logic::ChartData> chartData,
   charts::BmsNotesData notesData,
@@ -148,24 +179,39 @@ withMappedFile(const std::filesystem::path& path, Func&& func)
                                                      FILE_ATTRIBUTE_NORMAL,
                                                      nullptr));
     if (fileHandle.get() == INVALID_HANDLE_VALUE) {
-        throw std::runtime_error("Could not open file");
+        throw std::filesystem::filesystem_error(
+          "Could not open chart",
+          path,
+          std::error_code(GetLastError(), std::system_category()));
+    }
+    LARGE_INTEGER fileSize{};
+    if (!GetFileSizeEx(fileHandle.get(), &fileSize)) {
+        throw std::filesystem::filesystem_error(
+          "Could not get chart size",
+          path,
+          std::error_code(GetLastError(), std::system_category()));
+    }
+    if (fileSize.QuadPart == 0) {
+        return func(std::string_view{});
     }
     auto fileMapping = wil::unique_handle(CreateFileMappingW(
       fileHandle.get(), nullptr, PAGE_READONLY, 0, 0, nullptr));
     if (fileMapping == nullptr) {
-        throw std::runtime_error("Could not create file mapping");
+        throw std::filesystem::filesystem_error(
+          "Could not create chart mapping",
+          path,
+          std::error_code(GetLastError(), std::system_category()));
     }
     auto mapView = wil::unique_mapview_ptr<void>{ MapViewOfFile(
       fileMapping.get(), FILE_MAP_READ, 0, 0, 0) };
     if (mapView == nullptr) {
-        throw std::runtime_error("Could not map view of file");
-    }
-    auto fileSize = GetFileSize(fileHandle.get(), nullptr);
-    if (fileSize == INVALID_FILE_SIZE) {
-        throw std::runtime_error("Could not get file size");
+        throw std::filesystem::filesystem_error(
+          "Could not map chart",
+          path,
+          std::error_code(GetLastError(), std::system_category()));
     }
     auto content = std::string_view{ reinterpret_cast<char*>(mapView.get()),
-                                     static_cast<unsigned long>(fileSize) };
+                                     static_cast<size_t>(fileSize.QuadPart) };
     return func(content);
 #endif
 }
@@ -356,6 +402,10 @@ ChartDataFactory::loadChartData(std::string_view chart,
                                 RandomGenerator randomGenerator,
                                 int64_t directory) const -> ChartComponents
 {
+    if (support::pathToQString(virtualChartPath.extension())
+          .compare(".bmson", Qt::CaseInsensitive) == 0) {
+        return loadBmsonChartData(chart, virtualChartPath, directory);
+    }
     auto [parsedChart, randomValues, sha256, md5] =
       readAndParse(chart, std::move(randomGenerator));
 
@@ -713,8 +763,6 @@ ChartDataFactory::buildChartComponents(
                                                   histogramForDisplay,
                                                   bpmChangesQ,
                                                   support::currentVersion);
-    auto noteData =
-      makeNotes(calculatedNotesData.notes, calculatedNotesData.barLines);
     return { std::move(chartData),
              std::move(calculatedNotesData),
              std::move(wavs),

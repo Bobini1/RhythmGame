@@ -109,21 +109,8 @@ loadChartComponents(resource_managers::SongAssetStore* assetStore,
         }(randomEngine);
     };
     auto factory = resource_managers::ChartDataFactory{};
-    const auto extension = support::pathToQString(path.extension()).toLower();
-    if (!assetStore->isVirtual(path)) {
-        return extension == QStringLiteral(".bmson")
-                 ? factory.loadBmsonChartData(path)
-                 : factory.loadChartData(path, std::move(randomGenerator));
-    }
-
-    const auto contents = assetStore->read(path, cancellation.get());
-    throwIfCancelled(cancellation);
-    const auto view =
-      std::string_view{ contents.constData(),
-                        static_cast<std::size_t>(contents.size()) };
-    return extension == QStringLiteral(".bmson")
-             ? factory.loadBmsonChartData(view, path)
-             : factory.loadChartData(view, path, std::move(randomGenerator));
+    return factory.loadChartData(
+      *assetStore, path, std::move(randomGenerator), cancellation.get());
 }
 
 auto

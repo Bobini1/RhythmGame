@@ -2,6 +2,7 @@
 #include "qml_components/RootSongFoldersConfig.h"
 #include "qml_components/SongFolderFactory.h"
 #include "resource_managers/DefineDb.h"
+#include "resource_managers/ChartDataFactory.h"
 #include "resource_managers/SongAssetImageProvider.h"
 #include "resource_managers/SongAssetStore.h"
 #include "resource_managers/SongDbScanner.h"
@@ -801,6 +802,33 @@ TEST_CASE("SongDbScanner accepts an archive as a root song source")
                     .executeAndGet<std::string>();
     REQUIRE(readme);
     CHECK(readme->ends_with("readme.txt"));
+}
+
+TEST_CASE("Archived BMSON uses the same parser for scanning and loading",
+          "[Database][charts]")
+{
+    QTemporaryDir temporaryDirectory;
+    REQUIRE(temporaryDirectory.isValid());
+    const auto root = support::qStringToPath(temporaryDirectory.path());
+    const auto archivePath = root / "songs.zip";
+    writeZip(
+      archivePath,
+      { { "song/chart.BmSoN",
+          QByteArray(
+            R"({"version":"1.0.0","info":{"title":"Archived BMSON","mode_hint":"beat-7k","init_bpm":120,"resolution":240},"sound_channels":[{"name":"sound.wav","notes":[{"x":1,"y":240,"l":0,"c":false}]}]})") } });
+    db::SqliteCppDb database(root / "songs.sqlite");
+    resource_managers::defineDb(database);
+    resource_managers::SongAssetStore store;
+    resource_managers::SongDbScanner scanner(&database, &store);
+    std::atomic_bool stop{ false };
+    scanner.scanDirectory(archivePath, [](const QString&) {}, &stop);
+    CHECK(database.createStatement("SELECT title FROM charts")
+            .executeAndGet<std::string>() == "Archived BMSON");
+    const resource_managers::ChartDataFactory factory;
+    auto chart = factory.loadChartData(
+      store, archivePath / "song" / "chart.BmSoN", [](auto) { return 1; });
+    CHECK(chart.chartData->getTitle() == "Archived BMSON");
+    CHECK(chart.chartData->getNormalNoteCount() == 1);
 }
 
 TEST_CASE("SongDbScanner ignores ZIP files inside a ZIP archive")

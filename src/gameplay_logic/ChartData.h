@@ -387,6 +387,7 @@ class ChartData : public QObject
         QByteArray bpmChanges;
     };
 
+    auto hasNotes() const -> bool;
     auto prepareSave() const -> PreparedData;
     auto save(db::SqliteCppDb& db) const -> void;
     auto save(db::SqliteCppDb& db, int64_t directory) const -> void;

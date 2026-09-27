@@ -59,7 +59,6 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
     config->freeze();
     return config;
 }
-constexpr int maxSqlVariables = 999;
 
 // Fetches all local score GUIDs from the DB on a background thread,
 // then calls onResult on the main thread.
@@ -105,20 +104,25 @@ void
 fetchServerGuids(QNetworkAccessManager* networkManager,
                  QNetworkRequestFactory& factory,
                  int userId,
-                 QObject* context,
+                 qml_components::ScoreSyncOperation* op,
                  std::function<void(QSet<QString>)> onResult,
                  std::function<void(QString)> onError)
 {
     auto request = factory.createRequest(
       QStringLiteral("scores?fields=guid&user=%1").arg(userId));
+    request.setTransferTimeout(30000);
     auto* reply = networkManager->get(request);
+    op->ownReply(reply);
 
     QObject::connect(
       reply,
       &QNetworkReply::finished,
-      context,
-      [reply, onResult, onError]() mutable {
+      op,
+      [reply, op, onResult, onError]() mutable {
           reply->deleteLater();
+          if (op->isFinished()) {
+              return;
+          }
           if (reply->error() != QNetworkReply::NoError) {
               onError(reply->errorString());
               return;
@@ -291,11 +295,12 @@ ArenaTicketOperation::fail(Error error)
 void
 Profile::loadBearerToken()
 {
+    const auto generation = sessionGeneration;
     auto* job = new QKeychain::ReadPasswordJob(keychainService, this);
-    job->setKey(QStringLiteral("RhythmGame/profiles/%1/token").arg(guid));
-    connect(job, &QKeychain::Job::finished, this, [this, job]() {
+    job->setKey(credentialKey(guid));
+    connect(job, &QKeychain::Job::finished, this, [this, job, generation]() {
         job->deleteLater();
-        if (job->error()) {
+        if (generation != sessionGeneration || job->error()) {
             return;
         }
         const auto token = job->binaryData();
@@ -309,11 +314,16 @@ Profile::loadBearerToken()
 void
 Profile::fetchOnlineData()
 {
+    const auto generation = sessionGeneration;
     setLoginState(LoginState::LoggingIn);
     const auto request = networkRequestFactory.createRequest("users/me");
     auto* reply = networkManager->get(request);
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    ownAccountReply(reply);
+    connect(reply, &QNetworkReply::finished, this, [this, reply, generation]() {
         reply->deleteLater();
+        if (generation != sessionGeneration) {
+            return;
+        }
         if (reply->error() != QNetworkReply::NoError) {
             spdlog::error("Error fetching online data for user {}: {}",
                           vars.getGeneralVars()->getName().toStdString(),
@@ -321,15 +331,26 @@ Profile::fetchOnlineData()
             setLoginState(LoginState::LoginFailed);
             return;
         }
-        const auto data = reply->readAll();
-        auto json = QJsonDocument::fromJson(data).object();
+        const auto document = QJsonDocument::fromJson(reply->readAll());
+        const auto json = document.object();
+        if (!document.isObject() || json["name"].toString().isEmpty() ||
+            json["id"].toVariant().toLongLong() <= 0) {
+            setLoginState(LoginState::LoginFailed);
+            return;
+        }
         auto onlineData = OnlineUserData{};
         onlineData.username = json["name"].toString();
-        onlineData.userId = json["id"].toInt();
+        onlineData.userId = json["id"].toVariant().toLongLong();
         onlineData.image = json["image"].toString();
 
-        setLoginState(LoginState::LoggedIn);
         setOnlineUserData(onlineData);
+        if (generation != sessionGeneration) {
+            return;
+        }
+        setLoginState(LoginState::LoggedIn);
+        if (generation != sessionGeneration) {
+            return;
+        }
         if (!json["tachiId"].isNull()) {
             fetchTachiData(json["tachiId"].toInt());
         }
@@ -412,9 +433,9 @@ Profile::Profile(
     networkRequestFactory.setBaseUrl(vars.getGeneralVars()->getWebApiUrl());
     connect(
       vars.getGeneralVars(), &GeneralVars::websiteBaseUrlChanged, this, [this] {
+          logout();
           networkRequestFactory.setBaseUrl(
             vars.getGeneralVars()->getWebApiUrl());
-          fetchOnlineData();
       });
     auto headers = networkRequestFactory.commonHeaders();
     headers.append(QHttpHeaders::WellKnownHeader::ContentType,
@@ -608,50 +629,63 @@ Profile::getGuid() const -> QString
 void
 Profile::fetchTachiData(int tachiId)
 {
+    const auto generation = sessionGeneration;
     const auto request = QNetworkRequest("https://boku.tachi.ac/api/v1/users/" +
                                          QString::number(tachiId));
     auto* reply = networkManager->get(request);
+    ownAccountReply(reply);
     setTachiLoginState(LoginState::LoggingIn);
-    connect(reply, &QNetworkReply::finished, this, [this, reply, tachiId]() {
-        reply->deleteLater();
-        if (reply->error() != QNetworkReply::NoError) {
-            spdlog::error("Error fetching tachi data for user {}: {}",
-                          vars.getGeneralVars()->getName().toStdString(),
-                          reply->errorString().toStdString());
-            setTachiLoginState(LoginState::LoginFailed);
-            return;
-        }
-        QJsonParseError parseError;
-        auto doc = QJsonDocument::fromJson(reply->readAll(), &parseError);
-        if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
-            spdlog::error("Error parsing tachi data for user {}: {}",
-                          vars.getGeneralVars()->getName().toStdString(),
-                          parseError.errorString().toStdString());
-            setTachiLoginState(LoginState::LoginFailed);
-            return;
-        }
+    connect(
+      reply,
+      &QNetworkReply::finished,
+      this,
+      [this, reply, tachiId, generation]() {
+          reply->deleteLater();
+          if (generation != sessionGeneration) {
+              return;
+          }
+          if (reply->error() != QNetworkReply::NoError) {
+              spdlog::error("Error fetching tachi data for user {}: {}",
+                            vars.getGeneralVars()->getName().toStdString(),
+                            reply->errorString().toStdString());
+              setTachiLoginState(LoginState::LoginFailed);
+              return;
+          }
+          QJsonParseError parseError;
+          auto doc = QJsonDocument::fromJson(reply->readAll(), &parseError);
+          if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+              spdlog::error("Error parsing tachi data for user {}: {}",
+                            vars.getGeneralVars()->getName().toStdString(),
+                            parseError.errorString().toStdString());
+              setTachiLoginState(LoginState::LoginFailed);
+              return;
+          }
 
-        auto json = doc.object();
-        if (json["success"].toBool() != true) {
-            spdlog::error("Tachi data response unsuccessful for user {}: {}",
-                          vars.getGeneralVars()->getName().toStdString(),
-                          json["description"].toString().toStdString());
-            setTachiLoginState(LoginState::LoginFailed);
-        } else {
-            auto body = json["body"].toObject();
-            auto tachiData = TachiData{};
-            tachiData.username = body["username"].toString();
-            tachiData.image = "https://boku.tachi.ac/api/v1/users/" +
-                              QString::number(tachiId) + "/pfp";
-            tachiData.userId = tachiId;
-            setTachiLoginState(LoginState::LoggedIn);
-            setTachiData(std::move(tachiData));
-        }
-    });
+          auto json = doc.object();
+          if (json["success"].toBool() != true) {
+              spdlog::error("Tachi data response unsuccessful for user {}: {}",
+                            vars.getGeneralVars()->getName().toStdString(),
+                            json["description"].toString().toStdString());
+              setTachiLoginState(LoginState::LoginFailed);
+          } else {
+              auto body = json["body"].toObject();
+              auto tachiData = TachiData{};
+              tachiData.username = body["username"].toString();
+              tachiData.image = "https://boku.tachi.ac/api/v1/users/" +
+                                QString::number(tachiId) + "/pfp";
+              tachiData.userId = tachiId;
+              setTachiData(std::move(tachiData));
+              if (generation == sessionGeneration) {
+                  setTachiLoginState(LoginState::LoggedIn);
+              }
+          }
+      });
 }
 void
 Profile::login(const QString& email, const QString& password)
 {
+    invalidateSession();
+    const auto generation = sessionGeneration;
     auto request = networkRequestFactory.createRequest("auth/sign-in/email");
 
     QJsonObject json;
@@ -663,10 +697,14 @@ Profile::login(const QString& email, const QString& password)
     const QByteArray loginBody =
       QJsonDocument(json).toJson(QJsonDocument::Compact);
     QNetworkReply* reply = networkManager->post(request, loginBody);
+    ownAccountReply(reply);
 
     setLoginState(LoginState::LoggingIn);
 
-    connect(reply, &QNetworkReply::finished, [reply, this]() mutable {
+    connect(reply, &QNetworkReply::finished, this, [reply, this, generation]() {
+        if (generation != sessionGeneration) {
+            return;
+        }
         if (reply->error() == QNetworkReply::NoError) {
             auto data = reply->readAll();
             auto doc = QJsonDocument::fromJson(data);
@@ -675,8 +713,7 @@ Profile::login(const QString& email, const QString& password)
             if (!token.isEmpty()) {
                 auto* job =
                   new QKeychain::WritePasswordJob(keychainService, this);
-                job->setKey(
-                  QStringLiteral("RhythmGame/profiles/%1/token").arg(guid));
+                job->setKey(credentialKey(guid));
                 job->setBinaryData(token.toLatin1());
                 connect(job, &QKeychain::Job::finished, [job] {
                     if (job->error()) {
@@ -688,12 +725,6 @@ Profile::login(const QString& email, const QString& password)
                 });
                 job->start();
                 networkRequestFactory.setBearerToken(token.toLatin1());
-                auto onlineData = OnlineUserData{};
-                auto user = obj["user"].toObject();
-                onlineData.username = user["name"].toString();
-                onlineData.userId = user["id"].toString().toInt();
-                onlineData.image = user["image"].toString();
-                setOnlineUserData(onlineData);
                 fetchOnlineData();
             } else {
                 spdlog::error("Login response did not contain a token");
@@ -719,7 +750,7 @@ Profile::logout()
     auto* reply = networkManager->post(request, logoutBody);
     connect(
       reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
-    job->setKey(QStringLiteral("RhythmGame/profiles/%1/token").arg(guid));
+    job->setKey(credentialKey(guid));
     connect(job, &QKeychain::Job::finished, [job] {
         if (job->error()) {
             spdlog::error("Failed to delete token from keychain: {} - {}",
@@ -729,11 +760,52 @@ Profile::logout()
         job->deleteLater();
     });
     job->start();
+    invalidateSession();
+}
+
+auto
+Profile::credentialKey(const QString& guid) -> QString
+{
+    return QStringLiteral("RhythmGame/profiles/%1/token").arg(guid);
+}
+
+void
+Profile::ownAccountReply(QNetworkReply* reply)
+{
+    reply->setParent(this);
+    accountReplies.insert(reply);
+    connect(reply, &QNetworkReply::finished, this, [this, reply] {
+        accountReplies.remove(reply);
+        reply->deleteLater();
+    });
+}
+
+void
+Profile::invalidateSession()
+{
+    ++sessionGeneration;
+    for (auto* op : findChildren<qml_components::ScoreSyncOperation*>(
+           QString{}, Qt::FindDirectChildrenOnly)) {
+        op->cancel();
+    }
+    const auto replies = std::exchange(accountReplies, {});
+    for (auto* reply : replies) {
+        reply->disconnect(this);
+        reply->abort();
+        reply->deleteLater();
+    }
     networkRequestFactory.clearBearerToken();
     setLoginState(LoginState::NotLoggedIn);
     setTachiLoginState(LoginState::NotLoggedIn);
     setOnlineUserData({});
     setTachiData({});
+}
+
+Profile::~Profile()
+{
+    invalidateSession();
+    threadPool.waitForDone();
+    importPool.waitForDone();
 }
 auto
 Profile::getLoginState() const -> LoginState
@@ -824,37 +896,19 @@ Profile::uploadScores() -> qml_components::ScoreSyncOperation*
       threadPool,
       this,
       [this, op, userId](QSet<QString> localGuids) {
+          if (op->isFinished()) {
+              return;
+          }
           fetchServerGuids(
             networkManager,
             networkRequestFactory,
             userId,
-            this,
+            op,
             [this, op, localGuids](QSet<QString> serverGuids) {
-                const auto toUpload = (localGuids - serverGuids).values();
-                if (toUpload.isEmpty()) {
-                    op->setFinished(true);
-                    return;
-                }
-
-                threadPool.start([this, op, toUpload]() mutable {
-                    try {
-                        auto payloads = buildUploadPayloads(toUpload);
-                        QMetaObject::invokeMethod(
-                          this,
-                          [this, op, payloads]() mutable {
-                              dispatchUploads(op, std::move(payloads));
-                          },
-                          Qt::QueuedConnection);
-                    } catch (const std::exception& e) {
-                        QMetaObject::invokeMethod(
-                          this,
-                          [op, msg = std::string(e.what())]() mutable {
-                              op->reportError(QString::fromStdString(msg));
-                              op->setFinished(true);
-                          },
-                          Qt::QueuedConnection);
-                    }
-                });
+                op->start((localGuids - serverGuids).values(),
+                          [this, op](const QString& guid) {
+                              dispatchUpload(op, guid);
+                          });
             },
             [op](const QString& err) {
                 spdlog::error("scores guid fetch failed: {}",
@@ -888,20 +942,19 @@ Profile::downloadScores() -> qml_components::ScoreSyncOperation*
       threadPool,
       this,
       [this, op, userId](QSet<QString> localGuids) {
+          if (op->isFinished()) {
+              return;
+          }
           fetchServerGuids(
             networkManager,
             networkRequestFactory,
             userId,
-            this,
+            op,
             [this, op, localGuids](QSet<QString> serverGuids) {
-                const auto toDownload = (serverGuids - localGuids).values();
-                if (toDownload.isEmpty()) {
-                    op->setFinished(true);
-                    return;
-                }
-                op->setTotal(toDownload.size());
-                for (const auto& guid : toDownload)
-                    dispatchDownload(op, guid);
+                op->start((serverGuids - localGuids).values(),
+                          [this, op](const QString& guid) {
+                              dispatchDownload(op, guid);
+                          });
             },
             [op](const QString& err) {
                 spdlog::error("scores guid fetch failed: {}",
@@ -937,12 +990,18 @@ Profile::importBokutachiScores() -> qml_components::ScoreSyncOperation*
                               "pbs/all")
                  .arg(tachiData->userId)
                  .arg(QString::fromLatin1(game)));
-        auto* reply = networkManager->get(QNetworkRequest(url));
+        auto request = QNetworkRequest(url);
+        request.setTransferTimeout(30000);
+        auto* reply = networkManager->get(request);
+        op->ownReply(reply);
         connect(
           reply,
           &QNetworkReply::finished,
-          this,
+          op,
           [this, reply, op, gameName = QString::fromLatin1(game)] {
+              if (op->isFinished()) {
+                  return;
+              }
               const auto error = reply->error();
               const auto errorText = reply->errorString();
               const auto response = reply->readAll();
@@ -956,6 +1015,9 @@ Profile::importBokutachiScores() -> qml_components::ScoreSyncOperation*
               }
 
               threadPool.start([this, op, response, gameName] {
+                  if (op->isCancelled()) {
+                      return;
+                  }
                   try {
                       const auto imported =
                         qml_components::importBokutachiPersonalBests(db,
@@ -984,10 +1046,9 @@ Profile::importBokutachiScores() -> qml_components::ScoreSyncOperation*
     return op;
 }
 
-// Called on a background thread. Builds JSON payloads for a list of GUIDs,
-// chunking the SQL query to stay under the SQLite variable limit.
+// Called on a worker for one of the bounded in-flight scores.
 auto
-Profile::buildUploadPayloads(const QList<QString>& guids) -> QList<Payload>
+Profile::buildUploadPayload(const QString& guid) -> std::optional<Payload>
 {
     constexpr auto columns =
       "score.max_points, score.max_hits, score.normal_note_count, "
@@ -1004,131 +1065,115 @@ Profile::buildUploadPayloads(const QList<QString>& guids) -> QList<Payload>
                            gameplay_logic::BmsReplayData::DTO,
                            gameplay_logic::BmsGaugeHistory::DTO>;
 
-    QList<Row> rows;
-    for (int i = 0; i < guids.size(); i += maxSqlVariables) {
-        const auto chunk = guids.mid(i, maxSqlVariables);
-        auto stmtStr =
-          std::string("SELECT ") + columns +
-          "FROM score "
-          "JOIN replay_data ON score.guid = replay_data.score_guid "
-          "JOIN gauge_history ON score.guid = gauge_history.score_guid "
-          "WHERE score.guid IN (" +
-          QString("?, ").repeated(chunk.size()).chopped(2).toStdString() +
-          ") ORDER BY score.unix_timestamp DESC";
+    auto statement = db.createStatement(
+      std::string("SELECT ") + columns +
+      "FROM score JOIN replay_data ON score.guid = replay_data.score_guid "
+      "JOIN gauge_history ON score.guid = gauge_history.score_guid "
+      "WHERE score.guid = ?");
+    statement.bind(1, guid.toStdString());
+    auto row = statement.executeAndGet<Row>();
+    if (!row) {
+        return {};
+    }
+    auto& resultDto = std::get<0>(*row);
+    auto chartStmt = db.createStatement(
+      "SELECT charts.id, charts.title, charts.artist, charts.subtitle, "
+      "charts.subartist, charts.genre, charts.stage_file, charts.banner, "
+      "charts.back_bmp, charts.rank, charts.total, charts.play_level, "
+      "charts.difficulty, charts.is_random, charts.random_sequence, "
+      "charts.normal_note_count, charts.scratch_count, charts.ln_count, "
+      "charts.bss_count, charts.mine_count, charts.length, "
+      "charts.initial_bpm, charts.max_bpm, charts.min_bpm, "
+      "charts.main_bpm, "
+      "charts.avg_bpm, charts.peak_density, charts.avg_density, "
+      "charts.end_density, charts.path, charts.directory, charts.sha256, "
+      "charts.md5, charts.keymode, charts.game_version, "
+      "h.bpms, h.histogram_data "
+      "FROM song_db.charts LEFT JOIN song_db.histogram_data h "
+      "ON h.chart_id = charts.id "
+      "WHERE charts.md5 = ? LIMIT 1");
+    chartStmt.bind(1, resultDto.md5);
+    const auto chartResults =
+      chartStmt.executeAndGetAll<gameplay_logic::ChartData::DTO>();
+    if (chartResults.empty())
+        return {};
 
-        auto statement = db.createStatement(stmtStr);
-        for (int j = 0; j < chunk.size(); ++j)
-            statement.bind(j + 1, chunk[j].toStdString());
+    auto chart = gameplay_logic::ChartData::load(chartResults.front());
 
-        auto chunkRows = statement.executeAndGetAll<Row>();
-        rows.append(QList<Row>(chunkRows.begin(), chunkRows.end()));
+    if (resultDto.keymode == 0) {
+        const auto chartKeymode = chart->getKeymode();
+        resultDto.keymode =
+          (resultDto.dpOptions == static_cast<int>(DpOptions::Battle))
+            ? static_cast<int>(chartKeymode) * 2
+            : static_cast<int>(chartKeymode);
     }
 
-    QList<Payload> payloads;
-    payloads.reserve(rows.size());
+    auto result = gameplay_logic::BmsResult::load(std::get<0>(*row));
+    auto replay = gameplay_logic::BmsReplayData::load(std::get<1>(*row));
+    auto gauge = gameplay_logic::BmsGaugeHistory::load(std::get<2>(*row));
 
-    for (auto& row : rows) {
-        auto& resultDto = std::get<0>(row);
+    auto scoreData = result->toJson();
+    scoreData["replayData"] = replay->toJsonArray();
+    scoreData["gaugeHistory"] = gauge->toJsonArray();
 
-        auto chartStmt = db.createStatement(
-          "SELECT charts.id, charts.title, charts.artist, charts.subtitle, "
-          "charts.subartist, charts.genre, charts.stage_file, charts.banner, "
-          "charts.back_bmp, charts.rank, charts.total, charts.play_level, "
-          "charts.difficulty, charts.is_random, charts.random_sequence, "
-          "charts.normal_note_count, charts.scratch_count, charts.ln_count, "
-          "charts.bss_count, charts.mine_count, charts.length, "
-          "charts.initial_bpm, charts.max_bpm, charts.min_bpm, "
-          "charts.main_bpm, "
-          "charts.avg_bpm, charts.peak_density, charts.avg_density, "
-          "charts.end_density, charts.path, charts.directory, charts.sha256, "
-          "charts.md5, charts.keymode, charts.game_version, "
-          "h.bpms, h.histogram_data "
-          "FROM song_db.charts LEFT JOIN song_db.histogram_data h "
-          "ON h.chart_id = charts.id "
-          "WHERE charts.md5 = ? LIMIT 1");
-        chartStmt.bind(1, resultDto.md5);
-        const auto chartResults =
-          chartStmt.executeAndGetAll<gameplay_logic::ChartData::DTO>();
-        if (chartResults.empty())
-            continue;
-
-        auto chart = gameplay_logic::ChartData::load(chartResults.front());
-
-        if (resultDto.keymode == 0) {
-            const auto chartKeymode = chart->getKeymode();
-            resultDto.keymode =
-              (resultDto.dpOptions == static_cast<int>(DpOptions::Battle))
-                ? static_cast<int>(chartKeymode) * 2
-                : static_cast<int>(chartKeymode);
-        }
-
-        auto result = gameplay_logic::BmsResult::load(std::get<0>(row));
-        auto replay = gameplay_logic::BmsReplayData::load(std::get<1>(row));
-        auto gauge = gameplay_logic::BmsGaugeHistory::load(std::get<2>(row));
-
-        auto scoreData = result->toJson();
-        scoreData["replayData"] = replay->toJsonArray();
-        scoreData["gaugeHistory"] = gauge->toJsonArray();
-
-        QJsonObject obj;
-        obj["scoreData"] = std::move(scoreData);
-        obj["chartData"] = chart->toJson();
-        payloads.append({ result->getGuid(), std::move(obj) });
-    }
-
-    return payloads;
+    QJsonObject obj;
+    obj["scoreData"] = std::move(scoreData);
+    obj["chartData"] = chart->toJson();
+    return Payload{ result->getGuid(), std::move(obj) };
 }
 
-// Called on the main thread. Fires one POST per payload.
 void
-Profile::dispatchUploads(qml_components::ScoreSyncOperation* op,
-                         QList<Payload> payloads)
+Profile::dispatchUpload(qml_components::ScoreSyncOperation* op,
+                        const QString& guid)
 {
-    op->setTotal(payloads.size());
-    if (payloads.isEmpty()) {
-        op->setFinished(true);
-        return;
-    }
-    for (auto& p : payloads) {
-        auto request = networkRequestFactory.createRequest("scores");
-        // Ensure the Content-Type header is explicitly set for the POST
-        request.setHeader(QNetworkRequest::ContentTypeHeader,
-                          "application/json; charset=utf-8");
-        const QByteArray body =
-          QJsonDocument(p.json).toJson(QJsonDocument::Compact);
-        auto* reply = networkManager->post(request, body);
-        const auto guid = p.guid;
-        connect(
-          reply, &QNetworkReply::finished, this, [reply, op, guid, body]() {
-              // Capture and log additional information when an error occurs to
-              // aid debugging
-              const auto qtError = reply->error();
-              const auto httpStatus =
-                reply->attribute(QNetworkRequest::HttpStatusCodeAttribute)
-                  .toInt();
-              const auto contentTypeHeader =
-                reply->header(QNetworkRequest::ContentTypeHeader).toString();
-              const QByteArray respBody = reply->readAll();
-              reply->deleteLater();
-
-              if (qtError != QNetworkReply::NoError) {
-                  spdlog::error(
-                    "Score upload failed for {}: qtError={} httpStatus={} "
-                    "qtErrorStr={} contentType={} respBody={} requestBody={} ",
-                    guid.toStdString(),
-                    static_cast<int>(qtError),
-                    httpStatus,
-                    reply->errorString().toStdString(),
-                    contentTypeHeader.toStdString(),
-                    std::string(respBody.constData(), respBody.size()),
-                    std::string(body.constData(), body.size()));
-
-                  op->reportError(QStringLiteral("Upload failed for %1: %2")
-                                    .arg(guid, reply->errorString()));
+    threadPool.start([this, op, guid] {
+        if (op->isCancelled()) {
+            return;
+        }
+        std::optional<Payload> payload;
+        QString error;
+        try {
+            payload = buildUploadPayload(guid);
+            if (!payload) {
+                error =
+                  QStringLiteral("Score %1 has no local chart or replay data")
+                    .arg(guid);
+            }
+        } catch (const std::exception& exception) {
+            error = QString::fromUtf8(exception.what());
+        }
+        QMetaObject::invokeMethod(
+          this,
+          [this, op, guid, payload = std::move(payload), error] {
+              if (op->isFinished()) {
+                  return;
               }
-              op->increment();
-          });
-    }
+              if (!error.isEmpty()) {
+                  op->reportError(error);
+                  op->increment();
+                  return;
+              }
+              auto request = networkRequestFactory.createRequest("scores");
+              request.setTransferTimeout(30000);
+              request.setHeader(QNetworkRequest::ContentTypeHeader,
+                                "application/json; charset=utf-8");
+              auto* reply = networkManager->post(
+                request,
+                QJsonDocument(payload->json).toJson(QJsonDocument::Compact));
+              op->ownReply(reply);
+              connect(reply, &QNetworkReply::finished, op, [reply, op, guid] {
+                  if (op->isFinished()) {
+                      return;
+                  }
+                  if (reply->error() != QNetworkReply::NoError) {
+                      op->reportError(QStringLiteral("Upload failed for %1: %2")
+                                        .arg(guid, reply->errorString()));
+                  }
+                  op->increment();
+              });
+          },
+          Qt::QueuedConnection);
+    });
 }
 
 // Called on the main thread. Fires one GET and saves the result.
@@ -1138,11 +1183,16 @@ Profile::dispatchDownload(qml_components::ScoreSyncOperation* op,
 {
     auto request = networkRequestFactory.createRequest(
       QStringLiteral("scores/%1").arg(guid));
+    request.setTransferTimeout(30000);
     auto* reply = networkManager->get(request);
+    op->ownReply(reply);
 
     connect(
-      reply, &QNetworkReply::finished, this, [this, reply, op, guid]() mutable {
+      reply, &QNetworkReply::finished, op, [this, reply, op, guid]() mutable {
           reply->deleteLater();
+          if (op->isFinished()) {
+              return;
+          }
           if (reply->error() != QNetworkReply::NoError) {
               spdlog::error("Score download failed for {}: {}",
                             guid.toStdString(),
@@ -1154,24 +1204,13 @@ Profile::dispatchDownload(qml_components::ScoreSyncOperation* op,
           }
           auto data = reply->readAll();
           threadPool.start([this, op, guid, data]() mutable {
+              if (op->isCancelled()) {
+                  return;
+              }
               try {
-                  auto doc = QJsonDocument::fromJson(data);
-                  auto scoreObj = doc.object();
-                  auto result = gameplay_logic::BmsResult::fromJson(scoreObj);
-                  auto replayData =
-                    std::make_unique<gameplay_logic::BmsReplayData>(
-                      gameplay_logic::BmsReplayData::fromJsonArray(
-                        scoreObj["replayData"].toArray()),
-                      result->getGuid());
-                  auto gaugeHistory =
-                    std::make_unique<gameplay_logic::BmsGaugeHistory>(
-                      gameplay_logic::BmsGaugeHistory::fromJsonArray(
-                        scoreObj["gaugeHistory"].toArray()),
-                      result->getGuid());
-                  gameplay_logic::BmsScore(std::move(result),
-                                           std::move(replayData),
-                                           std::move(gaugeHistory))
-                    .save(db);
+                  auto score =
+                    gameplay_logic::BmsScore::fromRemoteJson(data, guid);
+                  score->save(db);
 
                   QMetaObject::invokeMethod(
                     this, [op]() { op->increment(); }, Qt::QueuedConnection);

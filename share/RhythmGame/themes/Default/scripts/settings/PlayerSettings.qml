@@ -230,41 +230,22 @@ Item {
                     Layout.fillWidth: true
 
                     property var profile: Rg.profileList.mainProfile
-                    property bool syncing: false
-                    property int pendingOps: 0
-                    property bool syncError: false
+                    property var syncOperations: []
+                    readonly property bool syncing: loginSection.syncOperations.some(op => !op.finished)
+                    readonly property bool syncError: loginSection.syncOperations.some(op => op.errorCount > 0 || op.cancelled)
+
+                    onProfileChanged: {
+                        for (const op of loginSection.syncOperations || [])
+                            op.cancel();
+                        loginSection.syncOperations = [];
+                    }
+                    onSyncingChanged: {
+                        if (!loginSection.syncing && loginSection.syncOperations.length > 0)
+                            playerSettings.updateScoreCounts++;
+                    }
 
                     function runSync() {
-                        loginSection.syncing = true;
-                        loginSection.syncError = false;
-                        loginSection.pendingOps = 3;
-
-                        function attachOp(op) {
-                            function completeOp() {
-                                loginSection.pendingOps = Math.max(0, loginSection.pendingOps - 1);
-                                if (loginSection.pendingOps === 0) {
-                                    loginSection.syncing = false;
-                                    if (!loginSection.syncError)
-                                        playerSettings.updateScoreCounts++;
-                                }
-                            }
-
-                            op.error.connect(function(msg) {
-                                console.warn("Sync error:", msg);
-                                loginSection.syncError = true;
-                            });
-                            if (op.finished) {
-                                completeOp();
-                                return;
-                            }
-                            op.finishedChanged.connect(function() {
-                                completeOp();
-                            });
-                        }
-
-                        attachOp(loginSection.profile.downloadScores());
-                        attachOp(loginSection.profile.uploadScores());
-                        attachOp(loginSection.profile.importBokutachiScores());
+                        loginSection.syncOperations = [loginSection.profile.downloadScores(), loginSection.profile.uploadScores(), loginSection.profile.importBokutachiScores()];
                     }
 
                     Loader {

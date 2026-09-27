@@ -298,7 +298,8 @@ class OnlineRankingModel : public QAbstractListModel
     void handleTachiReply(int startRanking,
                           QString tachiGame,
                           int noteCount,
-                          QNetworkReply* reply);
+                          QNetworkReply* reply,
+                          quint64 generation);
 
     QNetworkRequestFactory networkRequestFactory;
 
@@ -323,7 +324,6 @@ class OnlineRankingModel : public QAbstractListModel
     int currentMissCountLte{ -1 };
 
     QList<RankingEntry> entries;
-    QList<QNetworkReply*> pendingReplies;
     QVariantMap clearCounts;
     int scoreCount{ 0 };
     int playerCount{ 0 };

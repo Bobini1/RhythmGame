@@ -125,6 +125,7 @@ OnlineRankingModel::performJsonGet(
   const std::function<void(const QJsonDocument&)> onSuccess,
   const std::function<void(const QString&)> onError)
 {
+    const auto generation = currentFetchGeneration;
     const auto request = networkRequestFactory.createRequest(url);
 
     QNetworkReply* reply = networkManager->get(request);
@@ -137,8 +138,11 @@ OnlineRankingModel::performJsonGet(
     connect(reply,
             &QNetworkReply::finished,
             this,
-            [this, reply, onSuccess, onError]() {
+            [this, reply, onSuccess, onError, generation]() {
                 reply->deleteLater();
+                if (generation != currentFetchGeneration) {
+                    return;
+                }
 
                 if (reply->error() == QNetworkReply::OperationCanceledError) {
                     return;
@@ -170,9 +174,13 @@ void
 OnlineRankingModel::handleTachiReply(int startRanking,
                                      QString tachiGame,
                                      int noteCount,
-                                     QNetworkReply* reply)
+                                     QNetworkReply* reply,
+                                     quint64 generation)
 {
     reply->deleteLater();
+    if (generation != currentFetchGeneration) {
+        return;
+    }
     if (reply->error() == QNetworkReply::OperationCanceledError) {
         setLoading(false);
         return;
@@ -228,18 +236,19 @@ OnlineRankingModel::handleTachiReply(int startRanking,
             .arg(startRanking);
         auto pbsReq = QNetworkRequest(QUrl(pbsUrlStr));
         QNetworkReply* pbsReply = networkManager->get(pbsReq);
-        reply->setParent(this);
+        pbsReply->setParent(this);
         connect(this,
                 &OnlineRankingModel::cancelPendingRequested,
                 pbsReply,
                 [pbsReply] { pbsReply->abort(); });
-        connect(pbsReply,
-                &QNetworkReply::finished,
-                this,
-                [this, startRanking, noteCount, pbsReply, tachiGame]() {
-                    handleTachiReply(
-                      startRanking, tachiGame, noteCount, pbsReply);
-                });
+        connect(
+          pbsReply,
+          &QNetworkReply::finished,
+          this,
+          [this, startRanking, noteCount, pbsReply, tachiGame, generation]() {
+              handleTachiReply(
+                startRanking, tachiGame, noteCount, pbsReply, generation);
+          });
     }
 
     auto usersMap = QHash<int, QJsonObject>();
@@ -791,7 +800,11 @@ OnlineRankingModel::fetchLR2IR()
                     fetchGeneration,
                     usesLocalSortOrFilter,
                     state,
-                    requestPage](int page) {
+                    weakRequestPage = std::weak_ptr(requestPage)](int page) {
+        const auto requestPage = weakRequestPage.lock();
+        if (!requestPage) {
+            return;
+        }
         if (fetchGeneration != currentFetchGeneration) {
             return;
         }
@@ -893,15 +906,19 @@ OnlineRankingModel::fetchLR2IR()
 void
 OnlineRankingModel::fetchTachi()
 {
+    const auto generation = currentFetchGeneration;
     auto* handle = onlineScores->resolveTachiChartId(currentMd5.toLower());
     handle->setParent(this);
 
     connect(handle,
             &TachiResolveHandle::resolved,
             this,
-            [this, handle](
+            [this, handle, generation](
               const QString& chartID, const QString& tachiGame, int noteCount) {
                 handle->deleteLater();
+                if (generation != currentFetchGeneration) {
+                    return;
+                }
                 setChartId(chartID);
 
                 const auto pbsUrlStr =
@@ -920,16 +937,20 @@ OnlineRankingModel::fetchTachi()
                 connect(pbsReply,
                         &QNetworkReply::finished,
                         this,
-                        [this, tachiGame, noteCount, pbsReply]() {
-                            handleTachiReply(1, tachiGame, noteCount, pbsReply);
+                        [this, tachiGame, noteCount, pbsReply, generation]() {
+                            handleTachiReply(
+                              1, tachiGame, noteCount, pbsReply, generation);
                         });
             });
 
     connect(handle,
             &TachiResolveHandle::failed,
             this,
-            [this, handle](const QString& err) {
+            [this, handle, generation](const QString& err) {
                 handle->deleteLater();
+                if (generation != currentFetchGeneration) {
+                    return;
+                }
                 spdlog::debug(
                   "OnlineRankingModel fetchTachi resolve failed: {}",
                   err.toStdString());
@@ -937,10 +958,11 @@ OnlineRankingModel::fetchTachi()
             });
 
     // Cancellation is now just a signal connection — no manual bookkeeping.
-    connect(this,
-            &OnlineRankingModel::cancelPendingRequested,
-            handle,
-            &TachiResolveHandle::cancel);
+    connect(
+      this, &OnlineRankingModel::cancelPendingRequested, handle, [handle] {
+          emit handle->cancel();
+          handle->deleteLater();
+      });
 }
 void
 OnlineRankingModel::fetch()

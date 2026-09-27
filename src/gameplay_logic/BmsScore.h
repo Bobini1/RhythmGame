@@ -118,6 +118,9 @@ class BmsScore final : public QObject
     };
 
     auto prepareSave() const -> PreparedData;
+    static auto fromRemoteJson(const QByteArray& data,
+                               const QString& expectedGuid)
+      -> std::unique_ptr<BmsScore>;
     void save(db::SqliteCppDb& db) const;
     void save(db::SqliteCppDb& db, const PreparedData& prepared) const;
   signals:

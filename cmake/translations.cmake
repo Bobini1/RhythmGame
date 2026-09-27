@@ -20,7 +20,7 @@ qt_add_translations(
 option(BUILD_TRANSLATIONS "Build translation files (qm) together with the game" ON)
 if (BUILD_TRANSLATIONS)
     add_custom_command(TARGET RhythmGame_exe POST_BUILD
-            COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target release_translations
+            COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config $<CONFIG> --target release_translations
             COMMENT "Compiling translation files"
             VERBATIM
     )
