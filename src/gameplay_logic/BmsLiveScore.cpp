@@ -211,7 +211,7 @@ BmsLiveScore::addHit(const HitEvent& tap)
             for (auto* gauge : gauges) {
                 gauge->addMineHit(
                   std::chrono::nanoseconds(tap.getOffsetFromStart()),
-                  tap.getPoints().value<double>());
+                  points->getValue());
             }
             ++mineHits;
             emit mineHitsChanged();
@@ -376,7 +376,7 @@ BmsLiveScore::sendVisualOnlyRelease(const HitEvent& release)
 auto
 BmsLiveScore::getMineHits() const -> int
 {
-    return hits.count();
+    return mineHits;
 }
 auto
 BmsLiveScore::getNormalNoteCount() const -> int

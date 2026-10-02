@@ -14,6 +14,10 @@ in each include or snippet. Filenames repeat across lessons, so a bare
 `main.qml` would be ambiguous. Pair snippet comments and include enough code
 to explain where the shown properties belong.
 
+Keep visible strings as plain English text in lessons 1 to 3. Introduce
+`qsTr()` and numbered placeholders in lesson 4, then use them in the later
+examples.
+
 When an example changes, update its copy in `10-complete` if that screen is
 included there. The deliberate duplication lets readers copy any folder into
 the game without installing a shared tutorial package. Keep lesson 4's `.ts`
@@ -28,6 +32,14 @@ Do not add a folder without a valid `theme.json` to the lesson archive list.
 Build the `docs` target and inspect `docs/html/theme_tutorial.html` in the build
 directory. Check links, snippet contents and figures, then open a downloaded
 archive to confirm it contains the entire theme folder.
+
+Use `import QtQuick.Controls.FluentWinUI3` in each tutorial QML file that uses
+controls, including reusable components and copies in `10-complete`.
+
+Render tutorial screenshots with FluentWinUI3 and the game's color scheme and
+font. Prefer in-game captures. A standalone preview must also import
+`QtQuick.Controls.FluentWinUI3` and host the example in an `ApplicationWindow`
+so it inherits the same control defaults.
 
 Validate manifests against `schemas/theme.json` and settings against
 `schemas/themeSettings.json`. Run QML lint with the project's module paths.
@@ -46,6 +58,11 @@ Teach ordinary QML themes through their context objects and Standard components.
 LR2 is an internal adapter and does not define the public API. Keep the
 normal-result and course-result roles distinct even if a theme shares their
 presentation.
+
+Link component and context names in lesson prose to their generated reference
+pages. QML reference links use paths such as
+`qml/qml-rhythmgameqml-standardmainactions.html`, relative to the generated
+tutorial page. For C++ types, use Doxygen references such as `[Rg](@ref Rg)`.
 
 The tutorial follows the source revision that contains it. It does not claim
 compatibility with older builds that lack the screen context API. Record the

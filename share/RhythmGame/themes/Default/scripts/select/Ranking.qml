@@ -8,109 +8,27 @@ import "../common"
 Image {
     id: ranking
 
-    required property var chartData
-    readonly property var md5: chartData?.md5
-    visible: !!md5
+    required property StandardRanking rankingState
+    readonly property var chartData: rankingState.chartData
+    readonly property string md5: rankingState.md5
+    visible: rankingState.available
     property int page: 0
-    property var profile: Rg.profileList.mainProfile
-    property var provider: OnlineRankingModel.LR2IR
-    property bool loading: onlineRankingModel.loading
-    property var bestPointsScore
-    property var bestClearTypeScore
-    readonly property var entries: onlineRankingModel.entries
-    readonly property var playerCount: entries.length
+    readonly property var profile: rankingState.profile
+    readonly property int provider: rankingState.provider
+    readonly property bool loading: rankingState.loading
+    readonly property var bestPointsResult: rankingState.bestPointsResult
+    readonly property var bestClearTypeResult: rankingState.bestClearTypeResult
+    readonly property var entries: rankingState.entries
+    readonly property int playerCount: rankingState.playerCount
+    readonly property var clearCounts: rankingState.clearCounts
+    readonly property string tachiGameId: rankingState.tachiGameId
     readonly property int tabTitleInset: 32
     readonly property int tabTitleWidth: rankingBack.width - tabTitleInset * 2
-    readonly property var clearCounts: {
-        let counts = {};
-        for (let i = 0; i < entries.length; i++) {
-            let clearType = entries[i].bestClearType;
-            counts[clearType] = (counts[clearType] ?? 0) + 1;
-        }
-        return counts;
-    }
-    readonly property string tachiGameId: {
-        switch (ranking.chartData?.keymode) {
-            case 5:
-            case 7:
-                return "bms-7k";
-            case 10:
-            case 14:
-                return "bms-14k";
-        }
-        return "";
-    }
-    readonly property string chartId: onlineRankingModel.chartId
 
     ThemeFont {
         id: rankingFont
         fileName: root.themeVars.rankingFont
         fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
-    }
-
-    component RankingModel: OnlineRankingModel {
-        md5: ranking.enabled ? ranking.md5 : "" // disable loading when in gameplay
-        sortBy: OnlineRankingModel.ScorePct
-        sortDir: OnlineRankingModel.Desc
-        webApiUrl: profile.vars.generalVars.webApiUrl
-        property var entries: {
-            let entries = onlineRankingModel.rankingEntries;
-            let ourUserId = ranking.profile.onlineUserData?.userId;
-            if (provider !== OnlineRankingModel.LR2IR) {
-                return entries;
-            }
-            if (ranking.bestPointsScore && ranking.bestClearTypeScore) {
-                let entry = {
-                    rank: -1,
-                    userName: ranking.profile.vars.generalVars.name,
-                    userId: ourUserId,
-                    bestClearType: ranking.bestClearTypeScore.result.clearType,
-                    bestPoints: ranking.bestPointsScore.result.points,
-                    maxPoints: ranking.bestPointsScore.result.maxPoints,
-                    bestClearTypeGuid: ranking.bestClearTypeScore.result.guid,
-                    bestPointsGuid: ranking.bestPointsScore.result.guid
-                };
-                // insert where it belongs based on bestPoints
-                let newEntries = [];
-                let inserted = false;
-                for (let i = 0; i < entries.length; i++) {
-                    if (!inserted && entry.bestPoints > entries[i].bestPoints) {
-                        newEntries.push(entry);
-                        inserted = true;
-                    }
-                    newEntries.push(entries[i]);
-                }
-                if (!inserted) {
-                    newEntries.push(entry);
-                }
-                return newEntries;
-            }
-            return entries;
-        }
-    }
-
-    RankingModel {
-        id: tachi
-        provider: OnlineRankingModel.Tachi
-    }
-    RankingModel {
-        id: lr2ir
-        provider: OnlineRankingModel.LR2IR
-    }
-    RankingModel {
-        id: rhythmGame
-        provider: OnlineRankingModel.RhythmGame
-    }
-
-    property var onlineRankingModel: {
-        switch (ranking.provider) {
-            case OnlineRankingModel.RhythmGame:
-                return rhythmGame;
-            case OnlineRankingModel.LR2IR:
-                return lr2ir;
-            case OnlineRankingModel.Tachi:
-                return tachi;
-        }
     }
 
     source: root.iniImagesUrl + "ir.png/ir" + (ranking.page + 1)
@@ -181,16 +99,16 @@ Image {
 
     BusyIndicator {
         anchors.centerIn: parent
-        running: (onlineRankingModel.loading && ranking.page === 1) ||
-            (onlineRankingModel.loading && !ranking.entries.length) ||
-            (onlineRankingModel.loading && ranking.entries.length === 1 && ranking.provider === OnlineRankingModel.LR2IR)
+        running: (ranking.loading && ranking.page === 1) ||
+            (ranking.loading && !ranking.entries.length) ||
+            (ranking.loading && ranking.entries.length === 1 && ranking.provider === OnlineRankingModel.LR2IR)
         visible: running
     }
 
     Loader {
         anchors.fill: parent
         sourceComponent: rankingPages
-        active: !!ranking.md5 && onlineRankingModel.entries.length && !(ranking.loading && ranking.entries.length === 1 && ranking.provider === OnlineRankingModel.LR2IR)
+        active: !!ranking.md5 && ranking.entries.length && !(ranking.loading && ranking.entries.length === 1 && ranking.provider === OnlineRankingModel.LR2IR)
     }
     Component {
         id: rankingPages
@@ -202,16 +120,16 @@ Image {
                 anchors.topMargin: 54
                 profile: ranking.profile
                 chartData: ranking.chartData
-                provider: onlineRankingModel.provider
+                provider: ranking.provider
                 entries: {
-                    let entries = onlineRankingModel.entries.slice(0, 7)
+                    let entries = ranking.entries.slice(0, 7)
                     if (ranking.loading && entries.length === 1 && ranking.provider === OnlineRankingModel.LR2IR && !(entries[0] instanceof rankingEntry)) {
                         return [];
                     }
                     return entries;
                 }
-                bestPointsScore: ranking.bestPointsScore
-                bestClearTypeScore: ranking.bestClearTypeScore
+                bestPointsResult: ranking.bestPointsResult
+                bestClearTypeResult: ranking.bestClearTypeResult
                 tachiGameId: ranking.tachiGameId
             }
 

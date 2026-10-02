@@ -24,6 +24,7 @@ Rectangle {
     }
 
     signal chatSelected(bool chat)
+    signal expandedChangeRequested(bool expanded)
 
     Accessible.role: Accessible.Grouping
     Accessible.name: root.roomName
@@ -209,7 +210,7 @@ Rectangle {
                     Layout.preferredHeight: implicitHeight
                     text: root.expanded ? qsTr("Compact") : qsTr("Expand")
                     visible: !root.chatOpen
-                    onClicked: root.expanded = !root.expanded
+                    onClicked: root.expandedChangeRequested(!root.expanded)
                 }
 
                 ArenaPanelTabs {

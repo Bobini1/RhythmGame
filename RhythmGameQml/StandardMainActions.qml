@@ -6,6 +6,9 @@ import RhythmGameQml
     \inqmlmodule RhythmGameQml
     \brief Opens the standard destinations from a main menu.
 
+    StandardMainController includes this component and background music. Use
+    StandardMainActions on its own when you only want actions and Start input.
+
     Create buttons in your theme and connect them to \l openSelect, \l openArena,
     \l openSettings or \l quit. The component draws no menu. Each method uses
     the corresponding \c globalRoot operation unless you provide a replacement

@@ -9,6 +9,7 @@
 #include <QFileInfo>
 #include <QFutureWatcher>
 #include <QtConcurrentRun>
+#include <QUrl>
 #include <algorithm>
 
 namespace sounds {
@@ -89,7 +90,11 @@ AudioPlayer::setSource(const QString& value)
         length = 0.0f;
         emit lengthChanged();
     }
+    if (value.isEmpty())
+        stop();
     emit sourceChanged();
+    if (generation != sourceGeneration)
+        return;
     if (value.isEmpty()) {
         return;
     }
@@ -133,7 +138,8 @@ AudioPlayer::setSource(const QString& value)
         }));
         return;
     }
-    loadResolvedSource(value);
+    const auto url = QUrl(value);
+    loadResolvedSource(url.isLocalFile() ? url.toLocalFile() : value);
 }
 
 void
@@ -263,24 +269,7 @@ AudioPlayer::loadEncodedSource(QByteArray value)
 void
 AudioPlayer::resetSource()
 {
-    if (sourceCancellation) {
-        sourceCancellation->store(true);
-        sourceCancellation.reset();
-    }
-    ++sourceGeneration;
-    stopOverlappingSounds();
-    if (sound) {
-        ma_sound_uninit(sound.get());
-        sound.reset();
-    }
-    clearMemoryDecoder();
-    encodedSource.clear();
-    setLoaded(false);
-    if (!source.isEmpty()) {
-        source.clear();
-        emit sourceChanged();
-    }
-    resolvedSource.clear();
+    setSource({});
 }
 auto
 AudioPlayer::isPlaying() const -> bool

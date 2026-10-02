@@ -8,7 +8,8 @@ import QtQuick
     Supply a list in \l source and the number of rows needed in \l minimumCount.
     If the source is already long enough, \l entries contains it unchanged.
     Otherwise, complete copies of the list are repeated until the minimum is met.
-    An empty source remains empty.
+    An empty source produces null placeholders, with at least one row.
+    These placeholders belong only to the presentation model.
 
     Repeated entries still refer to the same items. The adapter doesn't clone
     objects or track focus. A normal list can use StandardSelectState::entries
@@ -21,15 +22,16 @@ QtObject {
     property var source: []
     /*! Sets the minimum number of rows needed by the view. */
     property int minimumCount: 0
-    /*! Contains the source entries, repeated in complete groups when needed. */
+    /*! Contains repeated source entries, or null placeholders for an empty source. */
     readonly property var entries: {
-        if (!source || source.length === 0 || source.length >= minimumCount) {
-            return source || [];
+        const items = root.source && root.source.length > 0 ? root.source : [null];
+        if (items.length >= root.minimumCount) {
+            return items;
         }
-        let result = source.slice();
-        let limit = Math.ceil(minimumCount / source.length) * source.length;
-        for (let i = source.length; i < limit; ++i) {
-            result.push(source[i % source.length]);
+        let result = items.slice();
+        let limit = Math.ceil(root.minimumCount / items.length) * items.length;
+        for (let i = items.length; i < limit; ++i) {
+            result.push(items[i % items.length]);
         }
         return result;
     }

@@ -1,23 +1,35 @@
-pragma ComponentBehavior: Bound
 pragma ValueTypeBehavior: Addressable
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.FluentWinUI3
 import QtQuick.Layouts
 import RhythmGameQml
 
 FocusScope {
     id: screen
 
+    // [entry-labels]
     function labelFor(item) {
         if (typeof item === "string") {
             const path = item.replace(/\\/g, "/").replace(/\/$/, "");
-            return path.substring(path.lastIndexOf("/") + 1) || path;
+            const name = path.substring(path.lastIndexOf("/") + 1) || path;
+            return qsTr("Folder: %1").arg(name);
         }
-        return item ? (item.title || item.name || qsTr("Unnamed item")) : "";
+        if (item instanceof ChartData)
+            return item.title || qsTr("Untitled chart");
+        if (item instanceof entry)
+            return qsTr("%1 (not installed)").arg(item.title);
+        if (item instanceof table)
+            return qsTr("Table: %1").arg(item.name);
+        if (item instanceof level)
+            return qsTr("Level: %1").arg(item.name);
+        if (item instanceof course)
+            return qsTr("Course: %1").arg(item.name);
+        return "";
     }
+    // [entry-labels]
 
     function activateCurrent() {
-        if (selection.focusedItem !== null) {
+        if (selection.focusedItem != null) {
             selection.goForward(selection.focusedItem);
         }
     }
@@ -27,8 +39,7 @@ FocusScope {
         id: selection
 
         enabled: screen.enabled
-        autoInitialize: false
-        openInternetRankingShortcutEnabled: false
+        preview.moving: songList.moving
 
         onFocusRequested: index => songList.currentIndex = index
         onMoveRequested: steps => {
@@ -39,12 +50,11 @@ FocusScope {
             }
         }
     }
-
-    Component.onCompleted: selection.initialize()
     // [select-controller]
 
     Pane {
         anchors.fill: parent
+        focus: true
 
         ColumnLayout {
             anchors.fill: parent
@@ -70,11 +80,56 @@ FocusScope {
                 }
             }
 
+            // [select-keymode]
+            Flow {
+                Layout.fillWidth: true
+                spacing: 6
+
+                Repeater {
+                    model: [
+                        { value: SelectKeymodeFilter.All, text: qsTr("All") },
+                        { value: SelectKeymodeFilter.Single, text: qsTr("SP") },
+                        { value: SelectKeymodeFilter.Double, text: qsTr("DP") },
+                        { value: SelectKeymodeFilter.K5, text: qsTr("5K") },
+                        { value: SelectKeymodeFilter.K7, text: qsTr("7K") },
+                        { value: SelectKeymodeFilter.K10, text: qsTr("10K") },
+                        { value: SelectKeymodeFilter.K14, text: qsTr("14K") }
+                    ]
+
+                    delegate: Button {
+                        id: keymodeButton
+
+                        required property var modelData
+
+                        text: modelData.text
+                        checkable: true
+                        autoExclusive: true
+                        checked: selection.keymodeFilter === modelData.value
+                        onClicked: {
+                            Rg.profileList.mainProfile.vars.generalVars.selectKeymodeFilter =
+                                keymodeButton.modelData.value;
+                            songList.forceActiveFocus();
+                        }
+                    }
+                }
+            }
+            // [select-keymode]
+
+            // [select-empty]
+            Label {
+                Layout.fillWidth: true
+                visible: selection.entries.length === 0
+                text: qsTr("No entries. Check song folders and filters.")
+                wrapMode: Text.WordWrap
+            }
+            // [select-empty]
+
             ListView {
                 id: songList
 
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.minimumHeight: 60
                 clip: true
                 focus: true
                 keyNavigationEnabled: false
@@ -98,6 +153,7 @@ FocusScope {
                 Keys.onLeftPressed: selection.goBack()
                 // [select-focus]
 
+                // [select-delegate]
                 delegate: ItemDelegate {
                     id: row
 
@@ -115,22 +171,58 @@ FocusScope {
                         screen.activateCurrent();
                     }
                 }
+                // [select-delegate]
+            }
 
-                Label {
-                    anchors.centerIn: parent
-                    visible: songList.count === 0
-                    text: qsTr("No entries. Check song folders and filters.")
+            // [course-stages]
+            CourseStages {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredHeight: 140
+                Layout.maximumHeight: 140
+                courseData: selection.focusedItem instanceof course
+                    ? selection.focusedItem : null
+                visible: courseData !== null
+            }
+            // [course-stages]
+
+            // [select-actions]
+            RowLayout {
+                Button {
+                    text: qsTr("Sort: %1").arg(selection.sortModeText)
+                    onClicked: selection.cycleSortMode()
+                }
+                Button {
+                    text: qsTr("Autoplay")
+                    enabled: selection.autoplayAvailable
+                    onClicked: selection.openAutoplay()
                 }
             }
+            // [select-actions]
+
+            // [select-replay]
+            RowLayout {
+                ComboBox {
+                    model: selection.replayOptions
+                    textRole: "text"
+                    valueRole: "value"
+                    currentValue: selection.replayType
+                    onActivated: selection.setReplayType(currentValue)
+                }
+
+                Button {
+                    text: qsTr("Replay")
+                    enabled: selection.replayAvailable
+                    onClicked: selection.openReplay()
+                }
+            }
+            // [select-replay]
         }
     }
 
     // [arena-select]
     StandardArenaSelectOverlay {
-        readyShortcutDescription: selection.readyEnabled
-            ? selection.readyShortcutDescription : ""
         navigationFocusTarget: songList
-        z: 10
     }
     // [arena-select]
 

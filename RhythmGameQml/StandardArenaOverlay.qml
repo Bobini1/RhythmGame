@@ -10,13 +10,15 @@ import RhythmGameQml
     Usually use StandardArenaSelectOverlay, StandardArenaGameplayOverlay or
     StandardArenaResultOverlay. They choose when to show the panel and supply
     its default content. Place the overlay directly inside the screen root,
-    or set \c viewport to the item whose coordinates it should use.
+    or set its visual parent to the item whose coordinates it should use.
 
     Replace \l panelComponent to draw another panel. Its root item must expose
     an Item property named \c dragHandle, or you can set \c moveHandle yourself.
     Bind the panel to \l session and \c expanded. Call \c setExpanded() when the
     user changes its size mode, and \c setChatSelected() after changing the
     session's chat tab. \l toggleChat handles both chat and its saved preference.
+    The \c expanded, \c overlayVisible and \c chatSelected properties are read-only
+    views of the settings. Bind to them and use their setter methods for edits.
 
     The inherited \c defaultPixelRectHint sets the initial position and size.
     Players can move and resize the panel, and \c customizeMode shows its edit
@@ -51,7 +53,6 @@ ArenaOverlayPlacementFrame {
         const vars = profile.vars.themeVars[root.layoutVariant];
         return vars ? vars[profile.themeConfig[root.layoutVariant]] : null;
     }
-    viewport: parent
     moveHandle: root.panel ? root.panel.dragHandle : null
     visible: root.active && (root.overlayVisible || root.customizeMode)
 
@@ -64,19 +65,15 @@ ArenaOverlayPlacementFrame {
         root.setChatSelected(root.session.chatOpen === true);
     }
 
-    /*! \internal */
-    function restorePresentation() {
-        if (root.presentationActive) {
-            root.restoreChatSelection(root.session);
-        }
-    }
-
-    onPresentationActiveChanged: Qt.callLater(root.restorePresentation)
-    onPresentationStateReloaded: Qt.callLater(root.restorePresentation)
-    onOverlayVisibilityCommitted: visible => {
-        if (!visible && root.active && root.enabled && root.session) {
+    onPresentationActiveChanged: Qt.callLater(panelLoader.restorePresentation)
+    onChatSelectedChanged: Qt.callLater(panelLoader.restorePresentation)
+    onSessionChanged: Qt.callLater(panelLoader.restorePresentation)
+    onOverlayVisibleChanged: {
+        if (!root.overlayVisible && root.active && root.enabled
+                && root.viewport && root.viewport.visible && root.session) {
             root.session.setChatOpen(false);
         }
+        Qt.callLater(panelLoader.restorePresentation);
     }
 
     Loader {
@@ -85,6 +82,12 @@ ArenaOverlayPlacementFrame {
         anchors.fill: parent
         active: root.active
         sourceComponent: root.panelComponent
+
+        function restorePresentation() {
+            if (root.presentationActive && root.session) {
+                root.session.setChatOpen(root.overlayVisible && root.chatSelected);
+            }
+        }
     }
 
     Shortcut {

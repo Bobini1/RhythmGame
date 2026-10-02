@@ -71,8 +71,11 @@ ApplicationWindow {
                 frameImplementation.componentFor("select")
             readonly property Component decideComponent:
                 frameImplementation.componentFor("decide")
+            property url mainScreenUrl
             property var activeSettingsItem: null
             property bool fpsOverlayVisible: false
+
+            onMainComponentChanged: Qt.callLater(sceneStack.updateEnabledStates)
         }
 
         QtObject {
@@ -119,6 +122,24 @@ ApplicationWindow {
                 return item;
             }
 
+            function refreshMainScreen() {
+                const component = frameState.mainComponent;
+                if (sceneStack.depth !== 1 || !component
+                        || component.url === frameState.mainScreenUrl) {
+                    return;
+                }
+                // Wait until returning to the menu so other screens keep their state.
+                const item = frameImplementation.createScreen(component, {});
+                if (!item) {
+                    return;
+                }
+                if (sceneStack.replaceCurrentItem(item, {}, StackView.Immediate) === item) {
+                    frameState.mainScreenUrl = component.url;
+                } else {
+                    item.destroy();
+                }
+            }
+
             function createGameplayScreen(gameplay) {
                 if (!gameplay) {
                     return null;
@@ -129,16 +150,28 @@ ApplicationWindow {
                     frameImplementation.componentFor(screenKey), { "gameplay": gameplay });
             }
 
+            function screenForGameplay(gameplay) {
+                for (let i = sceneStack.depth - 1; i >= 0; --i) {
+                    const item = sceneStack.get(i, StackView.DontLoad);
+                    if (item && item.gameplay === gameplay) return item;
+                }
+                return null;
+            }
+
+            function openResultScreen(component, result) {
+                return result ? frameImplementation.pushScreen(
+                    frameImplementation.createScreen(component, { "result": result })) : null;
+            }
+
             function openDecide(runner) {
                 const gameplay = ScreenContexts.createGameplay(runner);
                 const item = frameImplementation.createScreen(
                     frameState.decideComponent, { "gameplay": gameplay });
                 if (!item) {
-                    runner.destroy();
+                    gameplay.destroy();
                     return null;
                 }
-                item.QmlUtils.adopt(runner);
-                gameplay._screen = item;
+                item.QmlUtils.adopt(gameplay);
                 return frameImplementation.pushScreen(item);
             }
         }
@@ -213,11 +246,19 @@ ApplicationWindow {
                 frameState.selectComponent, {}));
         }
 
-        function openChart(path: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var): var {
+        function openChart(path: var, players = [{profile: Rg.profileList.mainProfile}]): var {
+            if (!Array.isArray(players) || players.length < 1 || players.length > 2
+                    || players.some(player => !player || !player.profile)) {
+                console.error("Expected one or two players with a profile");
+                return null;
+            }
+            const first = players[0];
+            const second = players[1];
             if (sceneStack.busy) {
                 return null;
             }
-            let chart = Rg.chartLoader.loadChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2);
+            let chart = Rg.chartLoader.loadChart(path, first.profile, !!first.autoplay, !!first.replay, first.score || null,
+                second?.profile || null, !!second?.autoplay, !!second?.replay, second?.score || null);
             if (!chart) {
                 console.error("Failed to load chart");
                 return;
@@ -225,11 +266,19 @@ ApplicationWindow {
             return frameImplementation.openDecide(chart);
         }
 
-        function openCourse(course: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var): var {
+        function openCourse(course: var, players = [{profile: Rg.profileList.mainProfile}]): var {
+            if (!Array.isArray(players) || players.length < 1 || players.length > 2
+                    || players.some(player => !player || !player.profile)) {
+                console.error("Expected one or two players with a profile");
+                return null;
+            }
+            const first = players[0];
+            const second = players[1];
             if (sceneStack.busy) {
                 return null;
             }
-            let runner = Rg.chartLoader.loadCourse(course, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2);
+            let runner = Rg.chartLoader.loadCourse(course, first.profile, !!first.autoplay, !!first.replay, first.score || null,
+                second?.profile || null, !!second?.autoplay, !!second?.replay, second?.score || null);
             if (!runner) {
                 console.error("Failed to load course");
                 return;
@@ -244,14 +293,14 @@ ApplicationWindow {
             const item = frameImplementation.pushScreen(
                 frameImplementation.createGameplayScreen(gameplay));
             if (item) {
-                if (!gameplay.isArena) item.QmlUtils.adopt(gameplay._runner);
-                gameplay._screen = item;
+                item.QmlUtils.adopt(gameplay);
             }
             return item;
         }
 
         /*! Replaces screen and any screens above it with local gameplay. */
-        function replaceGameplay(gameplay: GameplayContext, screen = currentScreen): var {
+        function replaceGameplay(gameplay: GameplayContext, previous = null): var {
+            const screen = previous ? frameImplementation.screenForGameplay(previous) : currentScreen;
             if (!gameplay || gameplay.isArena || !screen || screen.StackView.view !== sceneStack
                     || sceneStack.busy) {
                 return null;
@@ -268,38 +317,39 @@ ApplicationWindow {
                     item.enabled = false;
                 }
             }
+            item.QmlUtils.adopt(gameplay);
             if (sceneStack.replace(screen, item, StackView.Immediate) !== item) {
+                if (screen.gameplay === gameplay) screen.QmlUtils.adopt(gameplay);
                 item.destroy();
                 sceneStack.updateEnabledStates();
                 return null;
             }
-            item.QmlUtils.adopt(gameplay._runner);
-            gameplay._screen = item;
             sceneStack.updateEnabledStates();
             return item;
         }
 
-        function openResult(scores: var, profiles: var, chartData: var, gameplay = null, arenaRoundId = ""): var {
-            const context = ScreenContexts.createResult(scores, profiles, chartData, gameplay, arenaRoundId);
-            if (!context) {
-                return null;
-            }
-            const item = frameImplementation.pushScreen(
-                frameImplementation.createScreen(frameState.resultComponent, { "result": context }));
-            if (item) item.QmlUtils.adopt(context);
-            else context.destroy();
+        function openResult(result: ResultContext): var {
+            return frameImplementation.openResultScreen(frameState.resultComponent, result);
+        }
+
+        function openCourseResult(result: CourseResultContext): var {
+            return frameImplementation.openResultScreen(frameState.courseResultComponent, result);
+        }
+
+        function openSavedResult(score, profile, chartData): var {
+            const result = ScreenContexts.createResult([score], [profile], chartData, null);
+            const item = openResult(result);
+            if (item) item.QmlUtils.adopt(result);
+            else if (result) result.destroy();
             return item;
         }
 
-        function openCourseResult(scores: var, profiles: var, chartDatas: var, course: var): var {
-            const context = ScreenContexts.createCourseResult(scores, profiles, chartDatas, course);
-            if (!context) {
-                return null;
-            }
-            const item = frameImplementation.pushScreen(
-                frameImplementation.createScreen(frameState.courseResultComponent, { "result": context }));
-            if (item) item.QmlUtils.adopt(context);
-            else context.destroy();
+        function openSavedCourseResult(score, profile, course): var {
+            const charts = Array.from(course.loadCharts(), item => item instanceof ChartData ? item : null);
+            const result = ScreenContexts.createCourseResult([score], [profile], charts, course);
+            const item = openCourseResult(result);
+            if (item) item.QmlUtils.adopt(result);
+            else if (result) result.destroy();
             return item;
         }
 
@@ -307,6 +357,7 @@ ApplicationWindow {
 
         StackView {
             id: sceneStack
+            focus: true
 
             onCurrentItemChanged: {
                 Qt.callLater(updateEnabledStates);
@@ -317,10 +368,12 @@ ApplicationWindow {
             }
 
             Component.onCompleted: {
+                frameState.mainScreenUrl = frameState.mainComponent.url;
                 Qt.callLater(updateEnabledStates);
             }
 
             function updateEnabledStates(): void {
+                frameImplementation.refreshMainScreen();
                 let topIndex = depth - 1;
                 for (let i = 0; i < depth; ++i) {
                     let item = get(i, StackView.ForceLoad);

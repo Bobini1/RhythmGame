@@ -5,19 +5,17 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectSession
     \inqmlmodule RhythmGameQml
-    \brief Loads folder contents and stores browsing history and pending replies.
+    \brief Loads folder contents and stores browsing history.
 
     Use this component when implementing browsing behavior that StandardSelectState
-    doesn't provide. It stores folder contents, history, scores and preview paths
+    doesn't provide. It stores folder contents, history and preview paths
     without sorting them or choosing the focused row.
 
     The \c resolve... methods return data without changing \l folderContents or
     \l historyStack. Call \l commitFolderContents and update the history together
     when the navigation is ready to take effect.
 
-    Pass score replies to \l trackScoreDbReply so the session can cancel them
-    through \l cancelScoreDbReplies or when it is destroyed. To supply custom
-    table courses, set \l tableCoursesProvider to a function that accepts a
+    To supply custom table courses, set \l tableCoursesProvider to a function that accepts a
     \c tableItem and returns its course list.
 */
 Item {
@@ -27,16 +25,10 @@ Item {
     property var folderContents: []
     /*! Navigation history for this selection session. */
     property var historyStack: []
-    /*! Score data loaded for the current contents. */
-    property var scores: ({})
     /*! Preview-file data loaded for the current contents. */
     property var previewFiles: ({})
     /*! Called as \c tableCoursesProvider(tableItem) to return a custom list of courses. */
     property var tableCoursesProvider: null
-
-    PendingReplyGroup {
-        id: scoreDbReplies
-    }
 
     /*! Resolves a history \a item to the folder it represents. */
     function folderForHistoryItem(item) {
@@ -106,13 +98,4 @@ Item {
         return true;
     }
 
-    /*! Retains \a reply until it finishes or the session cancels it. */
-    function trackScoreDbReply(reply) {
-        return scoreDbReplies.track(reply);
-    }
-
-    /*! Cancels and releases all pending score-database replies. */
-    function cancelScoreDbReplies() {
-        scoreDbReplies.cancelAll();
-    }
 }

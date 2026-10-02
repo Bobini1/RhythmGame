@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <utility>
+#include <QScopedValueRollback>
 
 namespace rhythm_game_qml {
 namespace {
@@ -22,12 +23,14 @@ readOnlyList(QObject* owner, QList<T*>* values) -> QQmlListProperty<T>
 
 GameplayContext::GameplayContext(QObject* runner,
                                  arena::ArenaSession* arenaSession)
-  : QObject(runner)
+  : QObject(nullptr)
   , chartRunner(qobject_cast<gameplay_logic::ChartRunner*>(runner))
   , courseRunner(qobject_cast<gameplay_logic::CourseRunner*>(runner))
   , arenaManaged(arenaSession != nullptr)
   , session(arenaSession)
 {
+    if (!arenaManaged)
+        runner->setParent(this);
     if (session) {
         connect(session,
                 &arena::ArenaSession::competitionChanged,
@@ -39,7 +42,7 @@ GameplayContext::GameplayContext(QObject* runner,
                 &GameplayContext::arenaActiveChanged);
     }
     if (chartRunner) {
-        chartMetadata = { chartRunner->getChartData() };
+        chartMetadata = { chartRunner->getChartData()->clone(this).release() };
         connect(chartRunner,
                 &gameplay_logic::ChartRunner::bgaLoaded,
                 this,
@@ -53,7 +56,9 @@ GameplayContext::GameplayContext(QObject* runner,
                 this,
                 &GameplayContext::inputMappingChanged);
     } else if (courseRunner) {
-        chartMetadata = courseRunner->getChartDatas();
+        for (const auto* chart : courseRunner->getChartDatas())
+            chartMetadata.append(chart->clone(this).release());
+        courseDefinition = QVariant::fromValue(courseRunner->getCourse());
         courseParticipants = { courseRunner->getCoursePlayer1() };
         if (auto* second = courseRunner->getCoursePlayer2())
             courseParticipants.append(second);
@@ -79,12 +84,24 @@ GameplayContext::GameplayContext(QObject* runner,
                 this,
                 &GameplayContext::inputMappingChanged);
     }
+    connect(runner, &QObject::destroyed, this, [this] {
+        currentPlayers.clear();
+        courseParticipants.clear();
+        emit stageChanged();
+        emit statusChanged();
+        emit bgaChanged();
+        emit inputMappingChanged();
+        emit arenaActiveChanged();
+    });
     refreshStage();
 }
 
 void
 GameplayContext::refreshStage()
 {
+    effectiveKeymode = chartRunner    ? chartRunner->getKeymode()
+                       : courseRunner ? courseRunner->getKeymode()
+                                      : effectiveKeymode;
     auto nextPlayers = QList<gameplay_logic::Player*>{};
     auto* first = chartRunner    ? chartRunner->getPlayer1()
                   : courseRunner ? courseRunner->getPlayer1()
@@ -135,14 +152,12 @@ GameplayContext::status() const -> gameplay_logic::ChartRunner::Status
 auto
 GameplayContext::keymode() const -> gameplay_logic::ChartData::Keymode
 {
-    return chartRunner    ? chartRunner->getKeymode()
-           : courseRunner ? courseRunner->getKeymode()
-                          : gameplay_logic::ChartData::Keymode::K7;
+    return effectiveKeymode;
 }
 auto
 GameplayContext::isCourse() const -> bool
 {
-    return !courseRunner.isNull();
+    return courseDefinition.isValid();
 }
 auto
 GameplayContext::isArena() const -> bool
@@ -158,8 +173,7 @@ GameplayContext::arenaActive() const -> bool
 auto
 GameplayContext::course() const -> QVariant
 {
-    return courseRunner ? QVariant::fromValue(courseRunner->getCourse())
-                        : QVariant{};
+    return courseDefinition;
 }
 auto
 GameplayContext::coursePlayers() const -> QList<gameplay_logic::CoursePlayer*>
@@ -220,13 +234,85 @@ GameplayContext::runner() const -> QObject*
                        : static_cast<QObject*>(courseRunner);
 }
 
-void
-GameplayContext::setHostScreen(QObject* value)
+bool
+GameplayContext::start()
 {
-    if (screen == value)
-        return;
-    screen = value;
-    emit screenChanged();
+    if (lifecycleBusy || isArena() || stageResult ||
+        status() != gameplay_logic::ChartRunner::Ready)
+        return false;
+    QScopedValueRollback busy(lifecycleBusy, true);
+    if (courseRunner)
+        courseRunner->start();
+    else if (chartRunner)
+        chartRunner->start();
+    return true;
+}
+
+auto
+GameplayContext::finishStage() -> ResultContext*
+{
+    if (lifecycleBusy)
+        return nullptr;
+    if (stageResult)
+        return stageResult;
+    if (!runner() || !chartData() ||
+        status() == gameplay_logic::ChartRunner::Loading)
+        return nullptr;
+    QScopedValueRollback busy(lifecycleBusy, true);
+    QList<resource_managers::Profile*> profiles;
+    for (auto* player : players())
+        profiles.append(player->getProfile());
+    const auto scores =
+      courseRunner ? courseRunner->finishStage() : chartRunner->finish();
+    // Single-chart completion returns newly allocated scores. Courses retain
+    // their stage scores themselves for the later aggregate result.
+    if (!courseRunner)
+        for (auto* score : scores)
+            if (score)
+                score->setParent(this);
+    if (scores.isEmpty() || scores.contains(nullptr))
+        return nullptr;
+    QString roundId;
+    if (session && session->submitLocalResult(scores.first()))
+        roundId = session->presentedResult()->roundId();
+    stageResult =
+      new ResultContext(scores, profiles, chartData(), this, roundId);
+    stageResult->setParent(this);
+    return stageResult;
+}
+
+bool
+GameplayContext::nextStage()
+{
+    if (lifecycleBusy || !courseRunner || !stageResult)
+        return false;
+    QScopedValueRollback busy(lifecycleBusy, true);
+    if (!courseRunner->nextStage())
+        return false;
+    stageResult = nullptr;
+    return true;
+}
+
+auto
+GameplayContext::finishCourse() -> CourseResultContext*
+{
+    if (lifecycleBusy)
+        return nullptr;
+    if (courseResult)
+        return courseResult;
+    if (!courseRunner || !stageResult || stageIndex() + 1 != stageCount())
+        return nullptr;
+    QScopedValueRollback busy(lifecycleBusy, true);
+    QList<resource_managers::Profile*> profiles;
+    for (auto* player : players())
+        profiles.append(player->getProfile());
+    const auto scores = courseRunner->finish();
+    if (scores.isEmpty() || scores.contains(nullptr))
+        return nullptr;
+    courseResult = new CourseResultContext(
+      scores, profiles, charts(), courseRunner->getCourse());
+    courseResult->setParent(this);
+    return courseResult;
 }
 
 ResultPlayer::ResultPlayer(resource_managers::Profile* profile,
@@ -250,7 +336,7 @@ ResultContext::ResultContext(const QList<gameplay_logic::BmsScore*>& scores,
                              gameplay_logic::ChartData* chartData,
                              GameplayContext* gameplay,
                              QString arenaRoundId)
-  : completedChart(chartData)
+  : completedChart(chartData ? chartData->clone(this).release() : nullptr)
   , originatingPlay(gameplay)
   , session(gameplay ? gameplay->arenaSession() : nullptr)
   , completedArenaRoundId(std::move(arenaRoundId))
@@ -276,8 +362,10 @@ ResultContext::ResultContext(const QList<gameplay_logic::BmsScore*>& scores,
         completedStageCount = gameplay->stageCount();
     }
     for (qsizetype i = 0; i < scores.size(); ++i)
-        participants.append(
-          new ResultPlayer(profiles.value(i), scores[i], this));
+        participants.append(new ResultPlayer(
+          profiles.value(i),
+          gameplay ? scores[i] : scores[i]->clone(this).release(),
+          this));
 }
 auto
 ResultContext::arenaActive() const -> bool
@@ -298,11 +386,12 @@ CourseResultContext::CourseResultContext(
   QList<gameplay_logic::ChartData*> charts,
   resource_managers::Course course)
   : completedCourse(std::move(course))
-  , completedCharts(std::move(charts))
 {
+    for (const auto* chart : charts)
+        completedCharts.append(chart ? chart->clone(this).release() : nullptr);
     for (qsizetype i = 0; i < scores.size(); ++i)
-        participants.append(
-          new CourseResultPlayer(profiles.value(i), scores[i], this));
+        participants.append(new CourseResultPlayer(
+          profiles.value(i), scores[i]->clone(this).release(), this));
 }
 
 auto
@@ -325,6 +414,28 @@ ScreenContexts::createGameplay(QObject* runner,
         !qobject_cast<gameplay_logic::CourseRunner*>(runner))
         return nullptr;
     return new GameplayContext(runner, arenaSession);
+}
+
+bool
+ScreenContexts::canRetry(GameplayContext* gameplay,
+                         qml_components::ChartLoader* loader) const
+{
+    return gameplay && loader && !gameplay->isArena() &&
+           !gameplay->isCourse() &&
+           loader->canRetry(
+             qobject_cast<gameplay_logic::ChartRunner*>(gameplay->runner()));
+}
+
+auto
+ScreenContexts::retryGameplay(GameplayContext* gameplay,
+                              qml_components::ChartLoader* loader,
+                              bool samePattern) const -> GameplayContext*
+{
+    if (!canRetry(gameplay, loader))
+        return nullptr;
+    return createGameplay(loader->retryChart(
+      qobject_cast<gameplay_logic::ChartRunner*>(gameplay->runner()),
+      samePattern));
 }
 namespace {
 template<typename Score>
@@ -361,9 +472,7 @@ ScreenContexts::createCourseResult(
   const QList<gameplay_logic::ChartData*>& charts,
   const resource_managers::Course& course) const -> CourseResultContext*
 {
-    if (charts.isEmpty() ||
-        std::ranges::find(charts, nullptr) != charts.end() ||
-        !validParticipants(scores, profiles))
+    if (charts.isEmpty() || !validParticipants(scores, profiles))
         return nullptr;
     return new CourseResultContext(scores, profiles, charts, course);
 }

@@ -56,8 +56,9 @@ class Rg final : public QObject
                  CONSTANT FINAL)
     Q_PROPERTY(
       arena::ArenaSession* arenaSession MEMBER arenaSession CONSTANT FINAL)
-    Q_PROPERTY(arena::ArenaSession* arenaDirectorySession MEMBER
-                 arenaDirectorySession CONSTANT FINAL)
+    /** Rooms advertised by Arena, or -1 while the directory is unavailable. */
+    Q_PROPERTY(
+      int arenaRoomCount READ arenaRoomCount NOTIFY arenaActivityChanged FINAL)
     Q_PROPERTY(resource_managers::Tables* tables MEMBER tables CONSTANT FINAL)
     Q_PROPERTY(
       resource_managers::Languages* languages MEMBER languages CONSTANT FINAL)
@@ -108,6 +109,9 @@ class Rg final : public QObject
        QObject* parent = nullptr);
     inline static Rg* instance = nullptr;
     static auto create(QQmlEngine* qmlEngine, QJSEngine*) -> Rg*;
+    auto arenaRoomCount() const -> int;
+  signals:
+    void arenaActivityChanged();
 };
 
 #endif // RG_H

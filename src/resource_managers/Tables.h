@@ -54,7 +54,8 @@ struct Level
     QString name;
     QList<Entry> entries;
     // for searching
-    QHash<QString, Entry> md5s;
+    QHash<QString, Entry> entriesById;
+    void addEntry(Entry entry);
     auto getEntries() const -> QVariantList;
     Q_INVOKABLE QVariantList loadCharts() const;
 };
@@ -78,7 +79,8 @@ struct Course
 {
     Q_GADGET
     Q_PROPERTY(QString name MEMBER name CONSTANT)
-    Q_PROPERTY(QStringList md5s MEMBER md5s CONSTANT)
+    /** Stage identifiers, each an MD5 or sha256/<hash>, in course order. */
+    Q_PROPERTY(QStringList chartIds READ getChartIds CONSTANT)
     Q_PROPERTY(QVariantList trophies READ getTrophies CONSTANT)
     Q_PROPERTY(QStringList constraints MEMBER constraints CONSTANT)
     Q_PROPERTY(QString identifier READ getIdentifier STORED false CONSTANT)
@@ -94,6 +96,7 @@ struct Course
     QStringList paths;
     QString unavailableReason;
     auto getTrophies() const -> QVariantList;
+    auto getChartIds() const -> QStringList;
     auto getIdentifier() const -> QString;
     auto chartPath(qsizetype index) const -> QString;
     Q_INVOKABLE QVariantList loadCharts() const;
@@ -158,7 +161,7 @@ struct Table
  * @details The Tables class handles downloading table data from specified
  * URLs, storing it in a local cache file, and parsing the data for use in QML.
  * It provides methods to add, remove, reload, and reorder tables, as well as
- * search for specific entries by their MD5 hash.
+ * search for entries by MD5 or sha256/<hash> identifier.
  */
 class Tables final : public QAbstractListModel
 {
@@ -230,15 +233,18 @@ class Tables final : public QAbstractListModel
     Q_INVOKABLE QVariantList getList();
     void setExternalTables(QList<Table> tables);
     /**
-     * @brief Searches for entries with the specified MD5 hash across all
+     * @brief Searches for a chart across downloaded and externally managed
      * tables.
-     * @param md5 The MD5 hash to search for.
+     * @param identifier A plain MD5 hash or a `sha256/<hash>` identifier, as
+     * returned for missing stages by Course::loadCharts(). Matching is
+     * case-insensitive.
      * @return A list of TableInfo objects containing information about the
      * matching entries.
      */
-    Q_INVOKABLE QList<TableInfo> search(const QString& md5);
+    Q_INVOKABLE QList<TableInfo> search(const QString& identifier);
 
   signals:
+    void contentsChanged();
     void externalReloadRequested();
 };
 } // namespace resource_managers

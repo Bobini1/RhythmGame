@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.FluentWinUI3
 import QtQuick.Layouts
 import RhythmGameQml
 
@@ -15,56 +15,87 @@ Rectangle {
     }
     // [binding]
 
-    StandardMainActions { id: actions; enabled: screen.enabled }
+    StandardMainController { id: actions; enabled: screen.enabled }
 
     // [layout]
     ColumnLayout {
-        anchors.centerIn: parent
-        width: Math.max(0, Math.min(400, screen.width - 32))
-        spacing: 12
-
-        Image {
-            Layout.fillWidth: true
-            Layout.preferredHeight: Math.min(120, screen.height / 5)
-            source: "images/notes.svg"
-            sourceSize: Qt.size(320, 120)
-            fillMode: Image.PreserveAspectFit
-            Accessible.ignored: true
-        }
-        Label {
-            Layout.fillWidth: true
-            text: qsTr("Choose what to open")
-            color: screen.accent
-            font.pixelSize: 26
-            wrapMode: Text.Wrap
-        }
+        anchors.fill: parent
+        anchors.margins: 16
+        spacing: 0
         // [layout]
 
-        // [use-component]
-        MenuButton {
-            Layout.fillWidth: true
-            label: qsTr("Song select")
-            focus: true
-            onClicked: actions.openSelect()
+        // [top-space]
+        Item {
+            Layout.fillHeight: true
+            Layout.preferredHeight: 1
         }
-        MenuButton {
-            Layout.fillWidth: true
-            label: qsTr("Settings")
-            onClicked: actions.openSettings()
-        }
-        MenuButton {
-            Layout.fillWidth: true
-            label: qsTr("Quit")
-            onClicked: actions.quit()
-        }
-        // [use-component]
+        // [top-space]
 
-        // [change-state]
-        CheckBox {
-            id: warmColors
-            text: qsTr("Use warm colors")
-            palette.windowText: screen.accent
+        // [menu-layout]
+        ColumnLayout {
+            id: menu
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.maximumWidth: 400
+            Layout.maximumHeight: menu.implicitHeight
+            Layout.alignment: Qt.AlignHCenter
+            spacing: 12
+            // [menu-layout]
+
+            // [image-layout]
+            Image {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredHeight: 120
+                Layout.maximumHeight: 120
+                source: "images/notes.svg"
+                sourceSize: Qt.size(320, 120)
+                fillMode: Image.PreserveAspectFit
+                Accessible.ignored: true
+            }
+            // [image-layout]
+
+            Label {
+                Layout.fillWidth: true
+                text: "Choose what to open"
+                color: screen.accent
+                font.pixelSize: 26
+                wrapMode: Text.Wrap
+            }
+
+            // [use-component]
+            MenuButton {
+                Layout.fillWidth: true
+                label: "Song select"
+                focus: true
+                onClicked: actions.openSelect()
+            }
+            MenuButton {
+                Layout.fillWidth: true
+                label: "Settings"
+                onClicked: actions.openSettings()
+            }
+            MenuButton {
+                Layout.fillWidth: true
+                label: "Quit"
+                onClicked: actions.quit()
+            }
+            // [use-component]
+
+            // [change-state]
+            CheckBox {
+                id: warmColors
+                text: "Use warm colors"
+                palette.windowText: screen.accent
+            }
+            // [change-state]
         }
-        // [change-state]
+
+        // [bottom-space]
+        Item {
+            Layout.fillHeight: true
+            Layout.preferredHeight: 1
+        }
+        // [bottom-space]
     }
 }

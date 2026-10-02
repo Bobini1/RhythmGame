@@ -16,15 +16,15 @@ doesn't implement Default's BGA, lane covers, gauges or speed controls.
 
 ## Let the standard flow run the play
 
-The root receives the same `GameplayContext` used by decide. Bind it to one
-`StandardGameplayFlow` directly inside the root. The flow uses its parent as
+The root receives the same [GameplayContext](qml/qml-rhythmgameqml-gameplaycontext.html) used by decide. Bind it to one
+[StandardGameplayFlow](qml/qml-rhythmgameqml-standardgameplayflow.html) directly inside the root. The flow uses its parent as
 the owning screen, so set `screen` explicitly if you nest it inside another item.
 
 \snippet 07-gameplay/Gameplay.qml flow
 
 The flow handles startup, Escape, retry and results. For a course, it also
 continues after each stage result and opens the final course summary.
-Don't add `StandardGameplayInput` beside it or call the runner's start and
+Don't add [StandardGameplayInput](qml/qml-rhythmgameqml-standardgameplayinput.html) beside it or call the runner's start and
 finish methods yourself.
 
 ## Follow the current stage and players
@@ -46,6 +46,26 @@ entry to handle in solo play.
 
 \snippet 07-gameplay/Gameplay.qml players
 
+Each field receives the gameplay context and a player index. Its `player`
+binding follows `gameplay.players[playerIndex]` when a course changes stages.
+
+## Show the player's score target
+
+[StandardGameplayTarget](qml/qml-rhythmgameqml-standardgameplaytarget.html)
+uses the same context and player index. The example displays its current
+target points in a label.
+
+\snippet 07-gameplay/PlayerField.qml score-target
+
+The target follows the player's profile setting: a score fraction, best run,
+latest run or next rank. Saved recordings supply the target's progress through
+the chart. A saved score without a recording uses its score rate instead.
+The component loads new scores for each course stage and cancels old requests.
+
+Battle targets follow the other player. Arena targets follow the opponent
+chosen by the session. `available` tells the display when it has a target.
+The helper also exposes `finalPoints` and personal-best values for graphs.
+
 ## Draw each player's lanes
 
 `PlayerField.qml` chooses column indices from the player's effective keymode.
@@ -65,15 +85,19 @@ position approaches the note position, the note moves toward the line at the
 bottom. Both positions include the chart's scroll changes. Long note bodies
 extend from their beginning toward their end position.
 
+The file starts with `pragma ValueTypeBehavior: Addressable` so it can use
+constants such as `note.Type.LongNoteBegin`. Qt requires this for the lowercase
+`note` value type.
+
 \snippet 07-gameplay/NoteLane.qml notes
 
 The lane highlight reads `columnState.pressed`. Autoplay and replay update
-that state too. `Input` reports physical input actions, so using it for the
+that state too. [Input](@ref qml_components::InputAttached) reports physical input actions, so using it for the
 highlight would miss presses supplied by autoplay or replay.
 
 \snippet 07-gameplay/NoteLane.qml pressed
 
-The screen adds `StandardArenaGameplayOverlay` beside the gameplay flow.
+The screen adds [StandardArenaGameplayOverlay](qml/qml-rhythmgameqml-standardarenagameplayoverlay.html) beside the gameplay flow.
 Both receive the same context. The overlay shows standings and chat for
 Arena play and stays hidden during local play and courses.
 
@@ -97,6 +121,12 @@ For an ordinary manual single chart, hold START+SELECT to enter retry choice.
 Release START for the same pattern, SELECT for a new pattern, or both to
 cancel. The example disables its Exit button while the choice is active.
 Courses, autoplay, replay, battle and Arena don't use the standard quick retry.
+
+The example also provides Retry and Same pattern buttons. Their `retryAvailable`
+binding uses the flow's eligibility checks. Both buttons call `retry(samePattern)`,
+which is also used by the hold-and-release gesture.
+
+\snippet 07-gameplay/Gameplay.qml retry-buttons
 
 Play a course through a stage result and confirm that the next stage changes
 both title and notes. The final course summary should return to selection

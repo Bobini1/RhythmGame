@@ -14,6 +14,50 @@
 #include <spdlog/spdlog.h>
 #include <QJsonArray>
 
+namespace {
+// BPM blobs written before API 1.0 omitted the unscaled beat position.
+// Keep reading those catalogs; new blobs preserve the exact source values.
+struct StoredBpmChanges
+{
+    QList<gameplay_logic::BpmChange> values;
+};
+constexpr quint32 bpmFormat = 0x52474232; // RGB2
+
+auto
+operator<<(QDataStream& stream, const StoredBpmChanges& changes) -> QDataStream&
+{
+    return stream << bpmFormat << changes.values;
+}
+
+auto
+operator>>(QDataStream& stream, StoredBpmChanges& changes) -> QDataStream&
+{
+    quint32 marker{};
+    stream >> marker;
+    if (marker == bpmFormat)
+        return stream >> changes.values;
+    if (marker > stream.device()->bytesAvailable() / 32) {
+        stream.setStatus(QDataStream::ReadCorruptData);
+        return stream;
+    }
+    for (quint32 i = 0; i < marker; ++i) {
+        gameplay_logic::BpmChange change;
+        qint64 timestamp{};
+        stream >> timestamp >> change.time.position >> change.bpm >>
+          change.scroll;
+        change.time.timestamp = timestamp;
+        if (!changes.values.isEmpty()) {
+            const auto& previous = changes.values.last();
+            change.time.beatPosition = previous.time.beatPosition +
+                                       (timestamp - previous.time.timestamp) *
+                                         previous.bpm / 60'000'000'000.0;
+        }
+        changes.values.append(change);
+    }
+    return stream;
+}
+}
+
 gameplay_logic::ChartData::ChartData(QString title,
                                      QString artist,
                                      QString subtitle,
@@ -90,6 +134,49 @@ gameplay_logic::ChartData::ChartData(QString title,
   , bpmChanges(std::move(bpmChanges))
 {
 }
+auto
+gameplay_logic::ChartData::clone(QObject* parent) const
+  -> std::unique_ptr<ChartData>
+{
+    return std::make_unique<ChartData>(title,
+                                       artist,
+                                       subtitle,
+                                       subartist,
+                                       genre,
+                                       stageFile,
+                                       banner,
+                                       backBmp,
+                                       rank,
+                                       total,
+                                       playLevel,
+                                       difficulty,
+                                       isRandom,
+                                       randomSequence,
+                                       normalNoteCount,
+                                       scratchCount,
+                                       lnCount,
+                                       bssCount,
+                                       mineCount,
+                                       length,
+                                       initialBpm,
+                                       maxBpm,
+                                       minBpm,
+                                       mainBpm,
+                                       avgBpm,
+                                       peakDensity,
+                                       avgDensity,
+                                       endDensity,
+                                       path,
+                                       directory,
+                                       sha256,
+                                       md5,
+                                       keymode,
+                                       histogramData,
+                                       bpmChanges,
+                                       gameVersion,
+                                       parent);
+}
+
 auto
 gameplay_logic::ChartData::getTitle() const -> const QString&
 {
@@ -173,7 +260,7 @@ gameplay_logic::ChartData::prepareSave() const -> PreparedData
 {
     return { support::compress(randomSequence),
              support::compress(histogramData),
-             support::compress(bpmChanges) };
+             support::compress(StoredBpmChanges{ bpmChanges }) };
 }
 
 auto
@@ -278,8 +365,9 @@ gameplay_logic::ChartData::load(const DTO& chartDataDto)
     }
     auto bpmChanges = QList<BpmChange>{};
     if (!chartDataDto.bpmChanges.empty()) {
-        bpmChanges = support::decompress<QList<BpmChange>>(
-          QByteArray::fromStdString(chartDataDto.bpmChanges));
+        bpmChanges = support::decompress<StoredBpmChanges>(
+                       QByteArray::fromStdString(chartDataDto.bpmChanges))
+                       .values;
     }
     return std::make_unique<ChartData>(
       QString::fromStdString(chartDataDto.title),
@@ -410,46 +498,6 @@ auto
 gameplay_logic::ChartData::getGameVersion() const -> quint64
 {
     return gameVersion;
-}
-auto
-gameplay_logic::ChartData::clone() const -> std::unique_ptr<ChartData>
-{
-    return std::make_unique<ChartData>(title,
-                                       artist,
-                                       subtitle,
-                                       subartist,
-                                       genre,
-                                       stageFile,
-                                       banner,
-                                       backBmp,
-                                       rank,
-                                       total,
-                                       playLevel,
-                                       difficulty,
-                                       isRandom,
-                                       randomSequence,
-                                       normalNoteCount,
-                                       scratchCount,
-                                       lnCount,
-                                       bssCount,
-                                       mineCount,
-                                       length,
-                                       initialBpm,
-                                       maxBpm,
-                                       minBpm,
-                                       mainBpm,
-                                       avgBpm,
-                                       peakDensity,
-                                       avgDensity,
-                                       endDensity,
-                                       path,
-                                       directory,
-                                       sha256,
-                                       md5,
-                                       keymode,
-                                       histogramData,
-                                       bpmChanges,
-                                       gameVersion);
 }
 auto
 gameplay_logic::ChartData::getInitialBpm() const -> double

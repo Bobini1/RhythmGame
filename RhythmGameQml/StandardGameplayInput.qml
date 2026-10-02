@@ -37,6 +37,10 @@ Item {
     property var retryAction: null
     /*! Reports whether the Start+Select gesture is waiting for a release choice. */
     readonly property bool retryChoosing: inputState.choosing
+    /*! Whether a retry button or gesture can request a supported restart now. */
+    readonly property bool retryAvailable: root.enabled && root.retryEnabled
+        && !root.gameplay?.isArena && !inputState.retrying
+        && (typeof root.retryAction === "function" || chartRetry.available)
 
     /*! Emitted by Escape or \l exit. The owning flow decides how to leave. */
     signal exitRequested()
@@ -51,17 +55,13 @@ Item {
         property int side: 0
         property bool choosing: false
         property bool retrying: false
-        readonly property bool retryAvailable: root.retryEnabled && !root.gameplay?.isArena
-            && (typeof root.retryAction === "function" || chartRetry.available)
         readonly property int buttons: (root.Input.start1 ? 1 : 0)
             | (root.Input.select1 ? 2 : 0)
             | (root.Input.start2 ? 4 : 0)
             | (root.Input.select2 ? 8 : 0)
 
-        onRetryAvailableChanged: if (!inputState.retryAvailable) root.cancelRetry()
-
         onButtonsChanged: {
-            if (!root.enabled || !inputState.retryAvailable) {
+            if (!root.retryAvailable) {
                 return;
             }
             if (root.retryChoosing) {
@@ -105,7 +105,7 @@ Item {
 
     /*! Retries with the same pattern if \a samePattern is true, or a fresh one. */
     function retry(samePattern) {
-        if (!root.enabled || !inputState.retryAvailable || inputState.retrying) {
+        if (!root.retryAvailable) {
             return false;
         }
         inputState.retrying = true;
@@ -125,7 +125,7 @@ Item {
         id: holdTimer
         interval: Math.max(1, root.retryHoldDurationMillis)
         onTriggered: {
-            if (root.enabled && inputState.retryAvailable
+            if (root.retryAvailable
                     && root.gameplay?.status !== ChartRunner.Finished
                     && inputState.heldButtons() === 3) {
                 inputState.choosing = true;
@@ -149,5 +149,6 @@ Item {
     }
 
     onGameplayChanged: root.cancelRetry()
+    onRetryAvailableChanged: if (!root.retryAvailable && !inputState.retrying) root.cancelRetry()
     onEnabledChanged: if (!root.enabled) root.cancelRetry()
 }

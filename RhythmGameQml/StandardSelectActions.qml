@@ -5,11 +5,12 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectActions
     \inqmlmodule RhythmGameQml
-    \brief Opens playable selections and handles leaving selection and Arena ready input.
+    \brief Opens playable selections and handles leaving selection.
 
     StandardSelectState already includes this component. Use it separately if
     your theme implements its own browsing state. \l openPlayable uses the current
-    solo or battle profiles outside Arena. In an Arena room it submits the chart
+    solo or battle profiles outside Arena. Replays use the main profile alone.
+    In an Arena room it submits the chart
     choice to the session, and it handles a course choice without opening it.
 
     A true return from \l openPlayable means the request was handled. It does
@@ -24,9 +25,7 @@ import RhythmGameQml
     to the browser when selection becomes active again. Disabling this component
     suspends navigation and input.
 
-    StandardSelectInput forwards Start presses to \l handleStartPress. A custom
-    input handler can call it directly. Pressing Start twice on the same player
-    side toggles ready when the room allows it.
+    StandardArenaSelectOverlay supplies the Arena ready controls and shortcut.
 */
 Item {
     id: root
@@ -38,39 +37,78 @@ Item {
     property var tryOpenPlayableAction: null
     /*! Calls \c exitAction() in place of leaving selection. */
     property var exitAction: null
-    /*! Describes the ready gesture for an Arena panel. */
-    readonly property string readyShortcutDescription:
-        qsTranslate("ArenaLegacySelectOverlay", "Press Start twice to toggle ready.")
     /*! Reports whether the local player is currently seated in an Arena room. */
     readonly property bool arenaSeated:
         Rg.arenaSession.state === ArenaSession.InRoom
         || Rg.arenaSession.state === ArenaSession.Reconnecting
+    /*! Whether a saved result or replay is waiting for its full score. */
+    readonly property bool loadingScore: state.loadingScore
 
     QtObject {
         id: state
         property bool arenaSelection: false
         property bool leaving: false
-    }
-    Timer { id: firstStart; interval: 500 }
-    Timer { id: secondStart; interval: 500 }
+        property bool loadingScore: false
+        property int scoreGeneration: 0
 
-    function returnFromRoom() {
-        if (root.enabled && state.arenaSelection && !root.arenaSeated && !state.leaving) {
-            state.leaving = !!globalRoot.returnToPreviousScreen();
+        function withScore(result, open) {
+            if (state.loadingScore) return false;
+            if (result.result) return open(result);
+            const profile = Rg.profileList.mainProfile;
+            const generation = ++state.scoreGeneration;
+            state.loadingScore = true;
+            scoreReplies.track(profile.scoreDb.getScore(result)).then(score => {
+                if (generation !== state.scoreGeneration) return;
+                state.loadingScore = false;
+                if (root.enabled && !root.arenaSeated && profile === Rg.profileList.mainProfile)
+                    open(score);
+            }, () => {
+                if (generation === state.scoreGeneration) state.loadingScore = false;
+            });
+            return true;
+        }
+
+        function returnFromRoom() {
+            if (root.enabled && state.arenaSelection && !root.arenaSeated && !state.leaving) {
+                state.leaving = !!globalRoot.returnToPreviousScreen();
+            }
         }
     }
 
+    PendingReplyGroup { id: scoreReplies }
+
+    /*! Cancels a pending saved-result or replay action. */
+    function cancelScoreLoading() {
+        ++state.scoreGeneration;
+        scoreReplies.cancelAll();
+        state.loadingScore = false;
+    }
+
+    Connections {
+        target: Rg.profileList
+        function onMainProfileChanged() { root.cancelScoreLoading(); }
+        function onBattleActiveChanged() { root.cancelScoreLoading(); }
+    }
+    Connections {
+        target: Rg.profileList.battleProfiles
+        function onPlayer1ProfileChanged() { root.cancelScoreLoading(); }
+        function onPlayer2ProfileChanged() { root.cancelScoreLoading(); }
+    }
+
     Component.onCompleted: state.arenaSelection = root.arenaSeated
-    onArenaSeatedChanged: Qt.callLater(root.returnFromRoom)
+    onArenaSeatedChanged: {
+        if (arenaSeated) root.cancelScoreLoading();
+        Qt.callLater(state.returnFromRoom);
+    }
     onEnabledChanged: {
-        firstStart.stop();
-        secondStart.stop();
-        Qt.callLater(root.returnFromRoom);
+        if (!enabled) root.cancelScoreLoading();
+        Qt.callLater(state.returnFromRoom);
     }
 
     /*! Leaves the room in Arena, or closes local selection. Folder history is separate. */
     function exit() {
         if (!root.enabled || state.leaving) return false;
+        root.cancelScoreLoading();
         if (typeof root.exitAction === "function") {
             root.exitAction();
         } else if (root.arenaSeated) {
@@ -81,45 +119,14 @@ Item {
         return true;
     }
 
-    /*!
-        Requests a ready-state change. Returns true after forwarding the request to the
-        session. Read \c Rg.arenaSession.ready for the confirmed state.
-    */
-    function toggleReady() {
-        const session = Rg.arenaSession;
-        if (!root.enabled || !root.arenaSeated || !session.roundsAvailable
-                || session.currentRoundId.length > 0 || (!session.ready && !session.canReady)) {
-            return false;
-        }
-        session.setReady(!session.ready);
-        return true;
-    }
-
-    /*! Handles a Start \a key. Returns true for the second press of the ready gesture. */
-    function handleStartPress(key) {
-        if (!root.enabled || !root.arenaSeated
-                || (key !== BmsKey.Start1 && key !== BmsKey.Start2)) {
-            return false;
-        }
-        const timer = key === BmsKey.Start2 ? secondStart : firstStart;
-        if (!timer.running) {
-            timer.start();
-            return false;
-        }
-        timer.stop();
-        root.toggleReady();
-        return true;
-    }
-
-    /*! Opens a saved chart or course result for \a item and \a score. */
+    /*! Opens \a score for \a item. Accepts a saved result or a full score, loading details when needed. */
     function openResult(item, score) {
         if (!root.enabled || root.arenaSeated || !score) return false;
-        const profiles = [Rg.profileList.mainProfile];
-        if (item instanceof course) {
-            return !!globalRoot.openCourseResult([score], profiles, item.loadCharts(), item);
-        }
-        return item instanceof ChartData
-            && !!globalRoot.openResult([score], profiles, item);
+        if (!(item instanceof course) && !(item instanceof ChartData)) return false;
+        const profile = Rg.profileList.mainProfile;
+        return state.withScore(score, loaded => item instanceof course
+            ? !!globalRoot.openSavedCourseResult(loaded, profile, item)
+            : !!globalRoot.openSavedResult(loaded, profile, item));
     }
 
     /*!
@@ -150,19 +157,22 @@ Item {
         }
 
         const profiles = Rg.profileList;
-        const player1 = profiles.battleActive
+        if (replay && (!replayScore || !(replayScore.result || replayScore).replayAvailable)) return false;
+        if (state.loadingScore) return false;
+        const battle = profiles.battleActive && !replay;
+        const player1 = battle
             ? profiles.battleProfiles.player1Profile : profiles.mainProfile;
-        const player2 = profiles.battleActive
+        const player2 = battle
             ? profiles.battleProfiles.player2Profile : null;
         const useReplay = !!replay && !!replayScore;
-        const autoplay2 = profiles.battleActive && !!autoplay;
-        if (isChart) {
-            globalRoot.openChart(item.path, player1, !!autoplay, useReplay,
-                                 replayScore || null, player2, autoplay2, false, null);
-        } else {
-            globalRoot.openCourse(item, player1, !!autoplay, useReplay,
-                                  replayScore || null, player2, autoplay2, false, null);
-        }
-        return true;
+        const autoplay2 = battle && !!autoplay;
+        const open = function(score) {
+            const players = [{ profile: player1, autoplay: !!autoplay, replay: useReplay, score }];
+            if (player2) players.push({ profile: player2, autoplay: autoplay2 });
+            if (isChart) globalRoot.openChart(item.path, players);
+            else globalRoot.openCourse(item, players);
+            return true;
+        };
+        return replayScore ? state.withScore(replayScore, open) : open(null);
     }
 }

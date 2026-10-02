@@ -7,6 +7,7 @@ project(RhythmGameTests LANGUAGES CXX)
 # ---- Dependencies ----
 
 find_package(Catch2 3 REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Test)
 # ---- Tests ----
 
 qt_add_executable(RhythmGame_test
@@ -56,6 +57,7 @@ qt_add_executable(RhythmGame_test
         support/FrameRateLimiter.test.cpp
         support/PendingReply.test.cpp
         qml/GameplaySession.test.cpp
+        qml/SelectOptions.test.cpp
         qml/ScreenContexts.test.cpp
         lr2_skin/Lr2BarBaseStateResolver.test.cpp
         lr2_skin/Lr2ResolvedTextRegistry.test.cpp
@@ -74,6 +76,7 @@ target_link_libraries(
         tga
         cim
         Catch2::Catch2WithMain
+        Qt6::Test
 )
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)
 target_compile_definitions(
@@ -89,6 +92,40 @@ set_target_properties(
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
 )
 include(Catch)
+
+# Complete Standard flows need a GUI application for Qt Quick shortcuts. Keep
+# them in an offscreen process, separate from the native tests' QCoreApplication.
+qt_add_executable(RhythmGame_flow_test
+        qml/StandardFlows.test.cpp
+        qml/ArenaOverlay.test.cpp
+        qml/DefaultThemeControls.test.cpp)
+target_link_libraries(RhythmGame_flow_test PRIVATE
+        RhythmGame_lib RhythmGame_qml RhythmGame_qmlplugin
+        dds tga cim Catch2::Catch2 Qt6::Test)
+target_compile_definitions(RhythmGame_flow_test PRIVATE
+        RHYTHMGAME_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+set_target_properties(RhythmGame_flow_test PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>")
+add_dependencies(RhythmGame_test RhythmGame_flow_test)
+add_test(NAME StandardGameplayFlowStartup COMMAND RhythmGame_flow_test "[StandardGameplayFlow]")
+add_test(NAME DefaultThemeControls COMMAND RhythmGame_flow_test "[DefaultTheme]")
+add_test(NAME ArenaOverlay COMMAND RhythmGame_flow_test "[ArenaOverlay]")
+if (WIN32)
+    add_custom_command(TARGET RhythmGame_flow_test POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:RhythmGame_flow_test>/platforms"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:Qt6::QMinimalIntegrationPlugin>
+                "$<TARGET_FILE_DIR:RhythmGame_flow_test>/platforms"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_SOURCE_DIR}/staticAssets/qt.conf"
+                "$<TARGET_FILE_DIR:RhythmGame_flow_test>/qt.conf"
+            VERBATIM)
+    add_custom_command(TARGET RhythmGame_flow_test POST_BUILD
+            COMMAND $<IF:$<CONFIG:Debug>,${TOOL_WINDEPLOYQT_DEBUG},${TOOL_WINDEPLOYQT}> --no-translations --no-compiler-runtime
+                --qmldir "${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default"
+                $<TARGET_FILE:RhythmGame_flow_test>
+            VERBATIM)
+endif ()
 
 # boolean cache variable "sanitize"
 option(DISABLE_WINDOW_TESTS "Disable tests that launch windows and fail at the sanitizer")

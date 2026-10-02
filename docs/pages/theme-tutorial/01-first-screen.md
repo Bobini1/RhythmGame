@@ -42,31 +42,54 @@ themes/
 ## Register the screen
 
 The game reads `theme.json` to find the screens a theme provides. The `scripts`
-object maps each screen role to a QML file, using paths relative to the theme
+object maps each screen role to a QML file, using paths relative to the theme's
 folder. The first example provides only `main`.
 
 \include 01-main/theme.json
 
-The `$schema` URL helps a text editor check the file. It doesn't download or
-enable a theme. The theme's name comes from its folder name, so the example will
+The `$schema` URL helps a text editor check the file. It's not required.
+The theme's name comes from its folder name, so the example will
 appear as `01-main` in the game.
+
+You can see all valid screen names [here](@ref theme_tutorial_stuck).
 
 ## Draw the menu
 
 Open `01-main/main.qml`. `QtQuick` supplies the basic visual objects,
-`QtQuick.Controls` supplies the buttons and label, and `QtQuick.Layouts` arranges
+`QtQuick.Controls.FluentWinUI3` supplies the buttons and label, and `QtQuick.Layouts` arranges
 them. `RhythmGameQml` supplies the game's types and also gives access to the Rg singleton,
 which we won't use in this part of the tutorial.
 
-`StandardMainActions` handles menu actions and bound START input. It draws
-nothing, so the theme needs to create its own buttons. Their `onClicked` handlers call
+The tutorial examples import the
+[FluentWinUI3 style](https://doc.qt.io/qt-6/qtquickcontrols-fluentwinui3.html)
+explicitly, so their controls use that style regardless of the game's default.
+FluentWinUI3 works on both Windows and Linux. Fonts and colors can still vary
+with the system settings. Read the documentation of specific styles for more info.
+
+You can completely avoid using the Qt Quick Controls module and create your own custom controls manually if you want.
+This can be a good idea if you want super custom controls,
+but I recommend checking out the [Imagine style](https://doc.qt.io/qt-6/qtquickcontrols-imagine.html) first, it's very
+customizable.
+
+[StandardMainController](qml/qml-rhythmgameqml-standardmaincontroller.html) handles menu actions, the START button and background music.
+It draws nothing, so the theme needs to create its own buttons. Their `onClicked` handlers call
 `openSelect()`, `openSettings()` and `quit()` for the three menu actions.
 The component is optional. You can call `globalRoot.openSelect()`,
 `globalRoot.openSettings()` and `globalRoot.quitApplication()` directly.
-If you omit the component, handle bound START input yourself so controller
-users can enter selection without a mouse.
+If you omit the component, make sure you give controller users some way to enter song select without using their mouse.
+[StandardMainController](qml/qml-rhythmgameqml-standardmaincontroller.html) binds the START button to `openSelect()`.
+
+In short, the rule is that each screen has a "contract".
+You can make a main menu theme that does give the user any way to go to song select.
+But this breaks the contract. It doesn't matter what UX you choose exactly but each screen has some roles.
 
 \snippet 01-main/main.qml main-actions
+
+The controller plays the main-menu track from the active profile's BGM set.
+Its `enabled` binding stops the music when another screen opens and starts it
+again when you return. You don't need to add an audio player to this example.
+To change the music, set the controller's `backgroundMusic.source` to a local
+audio file path. Set `backgroundMusic: null` if your menu should have no music.
 
 \snippet 01-main/main.qml buttons
 
@@ -79,26 +102,26 @@ The complete screen is short enough to read before making a change.
 
 \include{lineno} 01-main/main.qml
 
-\image html theme-tutorial-main.png "The example menu rendered with Qt's Basic controls style" width=640px
+\image html theme-tutorial-main.png "The example menu with FluentWinUI3 controls in dark mode" width=640px
 
 ## Choose the theme and try a change
 
 Second, launch the game and open Settings. Under Themes, select Main Menu and
 choose `01-main` as its theme. Leave the other screens on Default or your
-existing themes, then restart the game to load the new menu.
+existing themes, then go back to see the newly selected main menu.
 
 Click Song select or press your bound START button. The chosen selection
-screen should open. From the main menu, click Settings to change the selected
-theme or other options. Click Quit when you want to close the game.
+screen should open. The other buttons do what you would expect -
+Settings opens settings, Quit closes the game.
 
 Third, edit the title or background color in `main.qml`, save the file, and
-restart the game. Restart after changing a manifest too. F2 in song selection
-reloads songs or tables, so it won't reload your QML edits.
+restart the game.
+
+@note
+Hot reload is something I'm planning once Qt 6.12 becomes more widely available.
 
 Press F10 to inspect the log if the screen fails to load. `log.txt` is in the
-game's data directory, next to `themes`, in either portable or user data mode.
-Start with the first error naming your file and line, since later errors may
-follow from it.
+game's data directory, next to `themes`.
 
 Resize the window to a square, a 4:3 rectangle and a wide rectangle. The menu
 should stay centered with all three buttons visible. The next lesson explains the

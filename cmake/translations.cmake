@@ -11,6 +11,7 @@ qt_add_translations(
         SOURCES
         ${DEFAULT_QML_FILES}
         ${ARENA_QML_FILES}
+        ${CMAKE_SOURCE_DIR}/RhythmGameQml/StandardSelectOptions.qml
         LUPDATE_TARGET
         Default_translations
         QM_FILES_OUTPUT_VARIABLE

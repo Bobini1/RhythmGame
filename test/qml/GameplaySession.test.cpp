@@ -1,5 +1,3 @@
-#include "RegisterGameplayTestTypes.h"
-
 #include <catch2/catch_test_macros.hpp>
 
 #include <QCoreApplication>
@@ -24,7 +22,6 @@ ensureCoreApplication()
     if (!QCoreApplication::instance()) {
         [[maybe_unused]] static auto* app = new QCoreApplication(argc, argv);
     }
-    registerGameplayTestTypes();
 }
 
 class GameplayHarness

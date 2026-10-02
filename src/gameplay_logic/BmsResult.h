@@ -26,64 +26,65 @@ class BmsResult final : public QObject
     /**
      * @brief The maximum possible points achievable in the score.
      */
-    Q_PROPERTY(double maxPoints READ getMaxPoints CONSTANT)
+    Q_PROPERTY(double maxPoints READ getMaxPoints NOTIFY changed)
     /**
      * @brief The maximum number of possible hits (normal notes + long notes)
      * in the chart.
      */
-    Q_PROPERTY(int maxHits READ getMaxHits CONSTANT)
+    Q_PROPERTY(int maxHits READ getMaxHits NOTIFY changed)
     /**
      * @brief The number of normal notes in the chart.
      * @details Normal means not long notes, not mines, not invisible notes, not
      * scratches
      */
-    Q_PROPERTY(int normalNoteCount READ getNormalNoteCount CONSTANT)
+    Q_PROPERTY(int normalNoteCount READ getNormalNoteCount NOTIFY changed)
     /**
      * @brief The number of scratch notes in the chart.
      * @details Scratch notes are normal notes on scratch columns.
      */
-    Q_PROPERTY(int scratchCount READ getScratchCount CONSTANT)
+    Q_PROPERTY(int scratchCount READ getScratchCount NOTIFY changed)
     /**
      * @brief The number of long notes in the chart excluding BSS (scratch lns).
      * @details A long note consists of an LN start and LN end. Such a pair
      * counts as one long note.
      */
-    Q_PROPERTY(int lnCount READ getLnCount CONSTANT)
+    Q_PROPERTY(int lnCount READ getLnCount NOTIFY changed)
     /**
      * @brief The number of BSS (scratch long notes) in the chart.
      * @details A BSS consists of an ln start and ln end. Such a pair
      * counts as one BSS.
      */
-    Q_PROPERTY(int bssCount READ getBssCount CONSTANT)
+    Q_PROPERTY(int bssCount READ getBssCount NOTIFY changed)
     /**
      * @brief The number of mines (landmines) in the chart.
      */
-    Q_PROPERTY(int mineCount READ getMineCount CONSTANT)
+    Q_PROPERTY(int mineCount READ getMineCount NOTIFY changed)
     /**
      * @brief The points achieved in the score.
      */
-    Q_PROPERTY(double points READ getPoints CONSTANT)
+    Q_PROPERTY(double points READ getPoints NOTIFY changed)
     /**
      * @brief The best combo achieved in the score.
      */
-    Q_PROPERTY(int maxCombo READ getMaxCombo CONSTANT)
+    Q_PROPERTY(int maxCombo READ getMaxCombo NOTIFY changed)
     /**
      * @brief The counts of each judgement type achieved in the score.
      * @details The order is defined in the Judgement enum.
      * @see Judgement
      */
-    Q_PROPERTY(QList<int> judgementCounts READ getJudgementCounts CONSTANT)
+    Q_PROPERTY(
+      QList<int> judgementCounts READ getJudgementCounts NOTIFY changed)
     /**
      * @brief The number of mines hit in the score.
      */
-    Q_PROPERTY(int mineHits READ getMineHits CONSTANT)
+    Q_PROPERTY(int mineHits READ getMineHits NOTIFY changed)
     /**
      * @brief The clear type achieved in the score.
      * @details This property indicates the type of clear achieved in the
      * score, such as "HARD", "EXHARD", "FC", "FAILED", etc.
      * For charts played with course gauges, it will always be "NOPLAY".
      */
-    Q_PROPERTY(QString clearType READ getClearType CONSTANT)
+    Q_PROPERTY(QString clearType READ getClearType NOTIFY changed)
     /**
      * @brief The random sequence used for parsing the chart.
      * @details If the chart uses
@@ -92,21 +93,22 @@ class BmsResult final : public QObject
      * the contents of the chart. If the chart does not use randomization,
      * this list will be empty.
      */
-    Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
+    Q_PROPERTY(
+      QList<qint64> randomSequence READ getRandomSequence NOTIFY changed)
     /**
      * @brief The timestamp when the score was achieved, in Unix time.
      * @details This property records the time when the score was created,
      * represented as the number of seconds since January 1, 1970 (the Unix
      * epoch).
      */
-    Q_PROPERTY(int64_t unixTimestamp READ getUnixTimestamp CONSTANT)
+    Q_PROPERTY(int64_t unixTimestamp READ getUnixTimestamp NOTIFY changed)
     /**
      * @brief The length of the chart in nanoseconds.
      * @details This property indicates the total duration of the chart from
      * start to finish, measured in nanoseconds.
      * @note This is based on the timestamp of the last visible note.
      */
-    Q_PROPERTY(int64_t length READ getLength CONSTANT)
+    Q_PROPERTY(int64_t length READ getLength NOTIFY changed)
     /**
      * @brief The unique identifier for the score.
      * @details This GUID is generated when the BmsLiveScore instance is
@@ -118,12 +120,12 @@ class BmsResult final : public QObject
      * format.
      * @details This can be used to uniquely identify a chart file.
      */
-    Q_PROPERTY(QString sha256 READ getSha256 CONSTANT)
+    Q_PROPERTY(QString sha256 READ getSha256 NOTIFY changed)
     /**
      * @brief The MD5 hash of the chart file, in hexadecimal upper-case format.
      * @details This can be used to uniquely identify a chart file.
      */
-    Q_PROPERTY(QString md5 READ getMd5 CONSTANT)
+    Q_PROPERTY(QString md5 READ getMd5 NOTIFY changed)
     /**
      * @brief The random seed used for note order shuffling.
      * @details This seed is used to initialize the mt19937 random number
@@ -134,7 +136,7 @@ class BmsResult final : public QObject
      * @see resource_managers::NoteOrderAlgorithm
      * @see noteOrderAlgorithm
      */
-    Q_PROPERTY(uint64_t randomSeed READ getRandomSeed CONSTANT)
+    Q_PROPERTY(uint64_t randomSeed READ getRandomSeed NOTIFY changed)
     /**
      * @brief The note order algorithm used for the chart.
      * @details This property indicates the algorithm used to modify the
@@ -142,13 +144,13 @@ class BmsResult final : public QObject
      * @see resource_managers::note_order_algorithm::NoteOrderAlgorithm
      */
     Q_PROPERTY(resource_managers::NoteOrderAlgorithm noteOrderAlgorithm READ
-                 getNoteOrderAlgorithm CONSTANT)
+                 getNoteOrderAlgorithm NOTIFY changed)
     /**
      * @brief The note order algorithm used for player 2 side in DP charts.
      * @see noteOrderAlgorithm
      */
     Q_PROPERTY(resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2 READ
-                 getNoteOrderAlgorithmP2 CONSTANT)
+                 getNoteOrderAlgorithmP2 NOTIFY changed)
     /**
      * @brief The DP options used for the score.
      * @details This property indicates the DP options that were active during
@@ -156,7 +158,7 @@ class BmsResult final : public QObject
      * @see resource_managers::DpOptions
      */
     Q_PROPERTY(
-      resource_managers::DpOptions dpOptions READ getDpOptions CONSTANT)
+      resource_managers::DpOptions dpOptions READ getDpOptions NOTIFY changed)
     /**
      * @brief The keymode of the chart.
      * @details Can be different from the keymode of chartData when
@@ -165,7 +167,7 @@ class BmsResult final : public QObject
      * load.
      */
     Q_PROPERTY(
-      gameplay_logic::ChartData::Keymode keymode READ getKeymode CONSTANT)
+      gameplay_logic::ChartData::Keymode keymode READ getKeymode NOTIFY changed)
     /**
      * @brief The permutation of columns that resulted from
      * NoteOrderAlgorithm.
@@ -175,19 +177,31 @@ class BmsResult final : public QObject
      * same lane layout that was known
      * during gameplay.
      */
-    Q_PROPERTY(QList<int> permutation READ getPermutation CONSTANT)
+    Q_PROPERTY(QList<int> permutation READ getPermutation NOTIFY changed)
     /**
      * @brief The game version where the score was achieved.
      *
      * @details For migrations.
      */
-    Q_PROPERTY(uint64_t gameVersion READ getGameVersion CONSTANT)
+    Q_PROPERTY(uint64_t gameVersion READ getGameVersion NOTIFY changed)
     /**
      * @brief The owner of the score.
      * @details Local scores have an empty string as the source. For online
      * scores, this is a link to the profile this score belongs to.
      */
-    Q_PROPERTY(QString owner READ getOwner CONSTANT)
+    Q_PROPERTY(QString owner READ getOwner NOTIFY changed)
+
+    /** Whether the saved run has a recording, independently of whether it is
+     * loaded. */
+    Q_PROPERTY(bool replayAvailable READ isReplayAvailable NOTIFY changed)
+    Q_PROPERTY(
+      bool gaugeHistoryAvailable READ isGaugeHistoryAvailable NOTIFY changed)
+    Q_PROPERTY(bool imported READ isImported NOTIFY changed)
+    Q_PROPERTY(QString sourceName READ getSourceName NOTIFY changed)
+    bool replayAvailable = false;
+    bool gaugeHistoryAvailable = false;
+    bool imported = false;
+    QString sourceName = QStringLiteral("RhythmGame");
 
     double maxPoints;
     int maxHits;
@@ -291,7 +305,7 @@ class BmsResult final : public QObject
     auto getJudgementCounts() const -> const QList<int>&;
     auto getMineHits() const -> int;
     auto getClearType() const -> const QString&;
-    auto getRandomSequence() -> const QList<qint64>&;
+    auto getRandomSequence() const -> const QList<qint64>&;
     auto getUnixTimestamp() const -> int64_t;
     auto getLength() const -> int64_t;
     auto getGuid() const -> QString;
@@ -307,6 +321,23 @@ class BmsResult final : public QObject
     auto getGameVersion() const -> uint64_t;
     auto getOwner() const -> const QString&;
     auto clone() const -> std::unique_ptr<BmsResult>;
+    /** Updates cached metadata while keeping existing QML references valid. */
+    bool updateFrom(const BmsResult& other);
+    bool isReplayAvailable() const { return replayAvailable; }
+    bool isGaugeHistoryAvailable() const { return gaugeHistoryAvailable; }
+    bool isImported() const { return imported; }
+    auto getSourceName() const -> QString { return sourceName; }
+    // Set before publishing a newly constructed result to QML.
+    void setStoredData(bool replay,
+                       bool gauges,
+                       bool fromImport,
+                       QString source)
+    {
+        replayAvailable = replay;
+        gaugeHistoryAvailable = gauges;
+        imported = fromImport;
+        sourceName = std::move(source);
+    }
 
     void save(db::SqliteCppDb& db, int source = 0, int longNoteMode = 0) const;
     auto serializeRandomSequence() const -> QByteArray;
@@ -317,6 +348,8 @@ class BmsResult final : public QObject
     static auto load(const DTO& dto) -> std::unique_ptr<BmsResult>;
     auto toJson() const -> QJsonObject;
     static auto fromJson(const QJsonObject& obj) -> std::unique_ptr<BmsResult>;
+  signals:
+    void changed();
 };
 
 } // namespace gameplay_logic

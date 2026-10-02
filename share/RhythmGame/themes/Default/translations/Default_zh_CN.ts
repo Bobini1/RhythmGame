@@ -35,212 +35,230 @@
     </message>
 </context>
 <context>
+    <name>ArenaActivityLabel</name>
+    <message>
+        <location filename="../scripts/common/ArenaActivityLabel.qml" line="9"/>
+        <source>Arena: unavailable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/common/ArenaActivityLabel.qml" line="12"/>
+        <source>Arena: 1 room online</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/common/ArenaActivityLabel.qml" line="13"/>
+        <source>Arena: %1 rooms online</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ArenaBrowser</name>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="144"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="141"/>
         <source>Online Arena</source>
         <translation>在线大厅</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="34"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="31"/>
         <source>Log in to create or join a room.</source>
         <translation>登录以创建或加入房间。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="36"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="33"/>
         <source>You are already in a room.</source>
         <translation>你已在房间中。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="38"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="35"/>
         <source>That room no longer exists.</source>
         <translation>该房间已不存在。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="40"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="37"/>
         <source>The room password was rejected.</source>
         <translation>房间密码错误。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="42"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="39"/>
         <source>That room is full.</source>
         <translation>该房间已满。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="44"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="41"/>
         <source>You cannot rejoin that room.</source>
         <translation>你无法重新加入该房间。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="46"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="43"/>
         <source>This account already has a seat in that room.</source>
         <translation>此账号已在该房间中。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="48"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="45"/>
         <source>Your login expired. Please try the room request again.</source>
         <translation>登录已过期，请重试房间请求。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="51"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="48"/>
         <source>This Arena server requires a newer game version.</source>
         <translation>此多人服务器需要更新的游戏版本。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="53"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="50"/>
         <source>Your reserved seat could not be restored.</source>
         <translation>无法恢复你保留的位置。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="55"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="52"/>
         <source>Arena is restarting. Please try again shortly.</source>
         <translation>大厅正在重启，请稍后重试。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="57"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="54"/>
         <source>A secure connection to Arena could not be established.</source>
         <translation>无法与大厅建立安全连接。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="60"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="57"/>
         <source>The ranking service could not authorize Arena right now.</source>
         <translation>排行榜服务器目前无法授权大厅。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="64"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="61"/>
         <source>Arena is unavailable right now.</source>
         <translation>大厅当前不可用。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="66"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="63"/>
         <source>You were removed from the room.</source>
         <translation>你已被移出房间。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="68"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="65"/>
         <source>Please wait for the current room request to finish.</source>
         <translation>请等待当前房间请求完成。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="70"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="67"/>
         <source>Arena request failed. Please try again.</source>
         <translation>大厅请求失败，请重试。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="77"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="74"/>
         <source>Selecting</source>
         <translation>选曲中</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="79"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="76"/>
         <source>Unknown</source>
         <translation>未知</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="373"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="370"/>
         <source>Password required</source>
         <translation>需要密码</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="373"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="370"/>
         <source>Public</source>
         <translation>公开</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="136"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="133"/>
         <source>Exit Arena</source>
         <translation>退出大厅</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="151"/>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="263"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="148"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="260"/>
         <source>Create room</source>
         <translation>创建房间</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="182"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="179"/>
         <source>Update RhythmGame to create or join Arena rooms.</source>
         <translation>请更新 RhythmGame 以创建或加入大厅房间。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="188"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="185"/>
         <source>Connecting with your online account...</source>
         <translation>正在连接在线账号...</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="191"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="188"/>
         <source>Completing room request...</source>
         <translation>正在完成房间请求...</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="193"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="190"/>
         <source>Connecting to Arena...</source>
         <translation>正在连接大厅...</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="200"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="197"/>
         <source>Retry</source>
         <translation>重试</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="254"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="251"/>
         <source>No Arena rooms are open.</source>
         <translation>暂无开放的大厅房间。</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="366"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="363"/>
         <source>%1 / %2 players</source>
         <translation>%1 / %2 players</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="373"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="370"/>
         <source>%1 · %2</source>
         <translation>%1 · %2</translation>
     </message>
     <message numerus="yes">
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="380"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="377"/>
         <source>%n player reconnecting</source>
         <translation>
             <numerusform>%n 位玩家重连中</numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="399"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="396"/>
         <source>Full</source>
         <translation>已满</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="399"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="396"/>
         <source>Join</source>
         <translation>加入</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="441"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="438"/>
         <source>Create Arena room</source>
         <translation>创建房间</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="455"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="452"/>
         <source>%1&apos;s room</source>
         <translation>%1的房间</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="474"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="471"/>
         <source>Room name</source>
         <translation>房间名称</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="492"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="489"/>
         <source>Password (optional)</source>
         <translation>密码（可选）</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="518"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="515"/>
         <source>Join password-protected room</source>
         <translation>加入有密码保护的房间</translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="541"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="538"/>
         <source>Password</source>
         <translation>密码</translation>
     </message>
@@ -406,22 +424,22 @@
         <translation>大厅</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="210"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="211"/>
         <source>Compact</source>
         <translation>收起</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="210"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="211"/>
         <source>Expand</source>
         <translation>展开</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="441"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="442"/>
         <source>EX</source>
         <translation>EX</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="472"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="473"/>
         <source>Combo</source>
         <translation>Combo</translation>
     </message>
@@ -468,7 +486,7 @@
 <context>
     <name>ArenaLegacySelectOverlay</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLegacySelectOverlay.qml" line="30"/>
+        <location filename="../../../../../RhythmGameQml/StandardArenaSelectOverlay.qml" line="41"/>
         <source>Press Start twice to toggle ready.</source>
         <translation>按两下开始以准备</translation>
     </message>
@@ -514,12 +532,12 @@
 <context>
     <name>ArenaOverlayHost</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayHost.qml" line="99"/>
+        <location filename="../../../../../RhythmGameQml/StandardArenaGameplayOverlay.qml" line="25"/>
         <source>Arena gameplay panel</source>
         <translation>大厅游戏面板</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayHost.qml" line="156"/>
+        <location filename="../../../../../RhythmGameQml/StandardArenaResultOverlay.qml" line="30"/>
         <source>Arena result panel</source>
         <translation>大厅结算面板</translation>
     </message>
@@ -527,17 +545,17 @@
 <context>
     <name>ArenaOverlayPlacementFrame</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="18"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="16"/>
         <source>Arena panel</source>
         <translation>大厅面板</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="399"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="227"/>
         <source>%1 is hidden</source>
         <translation>%1 已隐藏</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="420"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="248"/>
         <source>Show Arena panel</source>
         <translation>显示大厅面板</translation>
     </message>
@@ -558,68 +576,68 @@
 <context>
     <name>ArenaResultOverlay</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="18"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="18"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="15"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="15"/>
         <source>Arena</source>
         <translation>大厅</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="26"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="24"/>
         <source>Arena result unavailable</source>
         <translation>大厅结算不可用</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="28"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="26"/>
         <source>Waiting for players…</source>
         <translation>等待玩家…</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="32"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="30"/>
         <source>Waiting for final standings</source>
         <translation>等待最终排名</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="40"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="38"/>
         <source>DNF / %1</source>
         <translation>未完成 / %1</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="43"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="41"/>
         <source>#%1 / %2</source>
         <translation>#%1 / %2</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="43"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="41"/>
         <source>— / %1</source>
         <translation>— / %1</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="47"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="45"/>
         <source>DNF</source>
         <translation>未完成</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="49"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="47"/>
         <source>#%1</source>
         <translation>#%1</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="144"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="142"/>
         <source>Compact</source>
         <translation>收起</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="144"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="142"/>
         <source>Expand</source>
         <translation>展开</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="357"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="355"/>
         <source>EX</source>
         <translation>EX</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="381"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaResultOverlay.qml" line="379"/>
         <source>Combo</source>
         <translation>Combo</translation>
     </message>
@@ -633,62 +651,62 @@
         <translation>大厅</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ArenaResultPanel.qml" line="26"/>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="27"/>
         <source>Waiting for final standings</source>
         <translation>等待最终排名</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ArenaResultPanel.qml" line="34"/>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="35"/>
         <source>DNF / %1</source>
         <translation>未完成 / %1</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ArenaResultPanel.qml" line="37"/>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="38"/>
         <source>#%1 / %2</source>
         <translation>#%1 / %2</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ArenaResultPanel.qml" line="37"/>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="38"/>
         <source>— / %1</source>
         <translation>— / %1</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ArenaResultPanel.qml" line="41"/>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="42"/>
         <source>DNF</source>
         <translation>未完成</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ArenaResultPanel.qml" line="43"/>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="44"/>
         <source>#%1</source>
         <translation>#%1</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ArenaResultPanel.qml" line="126"/>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="127"/>
         <source>Waiting for players…</source>
         <translation>等待玩家…</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ArenaResultPanel.qml" line="137"/>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="138"/>
         <source>Compact</source>
         <translation>收起</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ArenaResultPanel.qml" line="137"/>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="138"/>
         <source>Expand</source>
         <translation>展开</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ArenaResultPanel.qml" line="319"/>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="320"/>
         <source>You · %1</source>
         <translation>你 · %1</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ArenaResultPanel.qml" line="349"/>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="350"/>
         <source>EX</source>
         <translation>EX</translation>
     </message>
     <message>
-        <location filename="../scripts/result/ArenaResultPanel.qml" line="377"/>
+        <location filename="../scripts/result/ArenaResultPanel.qml" line="378"/>
         <source>Combo</source>
         <translation>Combo</translation>
     </message>
@@ -905,7 +923,12 @@
 <context>
     <name>ArenaSelectOverlay</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectOverlay.qml" line="25"/>
+        <location filename="../../../../../RhythmGameQml/StandardArenaSelectOverlay.qml" line="53"/>
+        <source>Wait for the room connection.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/StandardArenaSelectOverlay.qml" line="76"/>
         <source>Arena song-select panel</source>
         <translation>大厅选曲面板</translation>
     </message>
@@ -913,33 +936,33 @@
 <context>
     <name>ArenaSelectPanel</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="31"/>
+        <location filename="../../../../../RhythmGameQml/StandardArenaSelectOverlay.qml" line="55"/>
         <source>Update required to play in this room.</source>
         <translation>需要更新才能在此房间游玩。</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="34"/>
+        <location filename="../../../../../RhythmGameQml/StandardArenaSelectOverlay.qml" line="60"/>
         <source>Song libraries are still being compared.</source>
         <translation>曲库比对中。</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="37"/>
+        <location filename="../../../../../RhythmGameQml/StandardArenaSelectOverlay.qml" line="57"/>
         <source>The synchronized round is already being prepared.</source>
         <translation>同步对局准备中。</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="40"/>
+        <location filename="../../../../../RhythmGameQml/StandardArenaSelectOverlay.qml" line="61"/>
         <source>Choose a chart available to everyone before becoming ready.</source>
         <translation>选择所有人都可用的谱面后再准备。</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="137"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="138"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="120"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="121"/>
         <source>Arena room</source>
         <translation>大厅房间</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="202"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="179"/>
         <source>Ready</source>
         <translation>准备就绪</translation>
     </message>
@@ -1350,9 +1373,8 @@
 <context>
     <name>Gameplay</name>
     <message>
-        <location filename="../scripts/gameplay/Gameplay.qml" line="829"/>
         <source>Arena gameplay panel</source>
-        <translation>大厅游戏面板</translation>
+        <translation type="vanished">大厅游戏面板</translation>
     </message>
 </context>
 <context>
@@ -1512,9 +1534,8 @@
         <translation>游玩默认设置</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="308"/>
         <source>Newest;Best Score;Best Clear;Best Combo</source>
-        <translation>最近游玩;最高分;最佳血条通关;最大连击数</translation>
+        <translation type="vanished">最近游玩;最高分;最佳血条通关;最大连击数</translation>
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="309"/>
@@ -1980,22 +2001,22 @@
 <context>
     <name>Login</name>
     <message>
-        <location filename="../scripts/select/options/Login.qml" line="67"/>
+        <location filename="../scripts/select/options/Login.qml" line="68"/>
         <source>Select Profile</source>
         <translation>选择档案</translation>
     </message>
     <message>
-        <location filename="../scripts/select/options/Login.qml" line="181"/>
+        <location filename="../scripts/select/options/Login.qml" line="185"/>
         <source>Select Profiles</source>
         <translation>选择档案</translation>
     </message>
     <message>
-        <location filename="../scripts/select/options/Login.qml" line="239"/>
+        <location filename="../scripts/select/options/Login.qml" line="243"/>
         <source>Single Mode</source>
         <translation>单人模式</translation>
     </message>
     <message>
-        <location filename="../scripts/select/options/Login.qml" line="239"/>
+        <location filename="../scripts/select/options/Login.qml" line="243"/>
         <source>Battle Mode</source>
         <translation>对战模式</translation>
     </message>
@@ -2044,12 +2065,12 @@
 <context>
     <name>Lr2SkinScreenWrapper</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2923"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2722"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation>截图已保存至 %1 并复制到剪贴板。</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2925"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2724"/>
         <source>Failed to save screenshot.</source>
         <translation>截图保存失败。</translation>
     </message>
@@ -2057,32 +2078,32 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../scripts/main/Main.qml" line="165"/>
+        <location filename="../scripts/main/Main.qml" line="157"/>
         <source>%1 %2</source>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="192"/>
+        <location filename="../scripts/main/Main.qml" line="186"/>
         <source>Song Selection</source>
         <translation>选曲</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="199"/>
+        <location filename="../scripts/main/Main.qml" line="193"/>
         <source>Online Arena</source>
         <translation>在线对战</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="212"/>
+        <location filename="../scripts/main/Main.qml" line="219"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="225"/>
+        <location filename="../scripts/main/Main.qml" line="232"/>
         <source>Attributions</source>
         <translation>致谢</translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="240"/>
+        <location filename="../scripts/main/Main.qml" line="247"/>
         <source>Quit</source>
         <translation>退出</translation>
     </message>
@@ -2402,7 +2423,7 @@
         <translation>%1 个档案</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="215"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="213"/>
         <source>Open profile folder</source>
         <translation>打开档案文件夹</translation>
     </message>
@@ -2412,7 +2433,7 @@
         <translation>档案</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="228"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="226"/>
         <source>Online account</source>
         <translation>在线账号</translation>
     </message>
@@ -2421,101 +2442,124 @@
         <translation type="vanished">为所选档案下载及上传得分。</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="229"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="227"/>
         <source>Sync RhythmGame scores and import connected Bokutachi PBs.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="302"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="281"/>
         <source>Logging in...</source>
         <translation>登录中...</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="315"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="294"/>
         <source>Logged in as %1</source>
         <translation>已登录为 %1</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="320"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="299"/>
         <source>Logout</source>
         <translation>登出</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="330"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="309"/>
         <source>Sync scores</source>
         <translation>同步得分</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="356"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="335"/>
         <source>Email</source>
         <translation>邮箱</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="367"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="346"/>
         <source>Password</source>
         <translation>密码</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="377"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="356"/>
         <source>Login</source>
         <translation>登录</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="389"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="368"/>
         <source>Import score database</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="390"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="369"/>
         <source>Import scores from LR2 score.db or beatoraja score.db.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="409"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="388"/>
         <source>Select database...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="468"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="447"/>
         <source>Import replays</source>
         <translation>导入回放</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="470"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="449"/>
         <source>e.g. beatoraja/player/player1/replay or LR2files/Replay/player1</source>
         <translation>例如: beatoraja/player/player1/replay 或 LR2files/Replay/player1</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="498"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="477"/>
         <source>Import</source>
         <translation>导入</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="507"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="486"/>
         <source>Select...</source>
         <translation>选择...</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="507"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="486"/>
         <source>Change...</source>
         <translation>更改...</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="437"/>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="534"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="416"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="513"/>
         <source>Imported: %1, errors: %2, skipped: %3, total: %4</source>
         <translation>已导入: %1, 错误: %2, 跳过: %3, 总计: %4</translation>
     </message>
 </context>
 <context>
+    <name>QObject</name>
+    <message>
+        <location filename="../../../../../src/resource_managers/BackbeatSource.cpp" line="64"/>
+        <source>Managed by Backbeat</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../src/resource_managers/BackbeatSource.cpp" line="328"/>
+        <source>Backbeat courses</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../src/resource_managers/BackbeatSource.cpp" line="347"/>
+        <source>This course uses rules RhythmGame does not support.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../src/resource_managers/BackbeatSource.cpp" line="362"/>
+        <source>This course uses an unsupported chart identifier.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>Ranking</name>
     <message>
-        <location filename="../scripts/select/Ranking.qml" line="137"/>
+        <location filename="../scripts/select/Ranking.qml" line="55"/>
         <source>Ranking</source>
         <translation>排行榜</translation>
     </message>
     <message>
-        <location filename="../scripts/select/Ranking.qml" line="160"/>
+        <location filename="../scripts/select/Ranking.qml" line="78"/>
         <source>Stats</source>
         <translation>统计</translation>
     </message>
@@ -2536,24 +2580,20 @@
 <context>
     <name>ReplayAutoplay</name>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="49"/>
         <source>NEWEST</source>
-        <translation>最近游玩</translation>
+        <translation type="vanished">最近游玩</translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="51"/>
         <source>BEST SCORE</source>
-        <translation>最高分</translation>
+        <translation type="vanished">最高分</translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="53"/>
         <source>BEST CLEAR</source>
-        <translation>最佳血条通关</translation>
+        <translation type="vanished">最佳血条通关</translation>
     </message>
     <message>
-        <location filename="../scripts/select/ReplayAutoplay.qml" line="55"/>
         <source>BEST COMBO</source>
-        <translation>最大连击数</translation>
+        <translation type="vanished">最大连击数</translation>
     </message>
 </context>
 <context>
@@ -2567,12 +2607,12 @@
 <context>
     <name>Result</name>
     <message>
-        <location filename="../scripts/result/Result.qml" line="159"/>
+        <location filename="../scripts/result/ResultView.qml" line="124"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation>截图已保存至 %1 并复制到剪贴板。</translation>
     </message>
     <message>
-        <location filename="../scripts/result/Result.qml" line="161"/>
+        <location filename="../scripts/result/ResultView.qml" line="126"/>
         <source>Failed to save screenshot.</source>
         <translation>截图保存失败。</translation>
     </message>
@@ -2588,7 +2628,7 @@
 <context>
     <name>ScoreColumn</name>
     <message>
-        <location filename="../scripts/result/ScoreColumn.qml" line="122"/>
+        <location filename="../scripts/result/ScoreColumn.qml" line="123"/>
         <source>Arena</source>
         <translation>大厅</translation>
     </message>
@@ -2743,17 +2783,16 @@
 <context>
     <name>Select</name>
     <message>
-        <location filename="../scripts/select/Select.qml" line="294"/>
         <source>Press Start twice to toggle ready.</source>
-        <translation>按两次开始以准备。</translation>
+        <translation type="vanished">按两次开始以准备。</translation>
     </message>
     <message>
-        <location filename="../scripts/select/Select.qml" line="638"/>
+        <location filename="../scripts/select/Select.qml" line="357"/>
         <source>Score Details</source>
         <translation>得分详情</translation>
     </message>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="687"/>
+        <location filename="../scripts/select/Select.qml" line="406"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>找到 %n 个谱面</numerusform>
@@ -2955,60 +2994,122 @@
 <context>
     <name>SortButton</name>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="10"/>
-        <location filename="../scripts/select/SortButton.qml" line="33"/>
+        <source>Title</source>
+        <translation type="vanished">标题</translation>
+    </message>
+    <message>
+        <source>Artist</source>
+        <translation type="vanished">艺术家</translation>
+    </message>
+    <message>
+        <source>BPM</source>
+        <translation type="vanished">BPM</translation>
+    </message>
+    <message>
+        <source>Length</source>
+        <translation type="vanished">时长</translation>
+    </message>
+    <message>
+        <source>Clear</source>
+        <translation type="vanished">通关情况</translation>
+    </message>
+    <message>
+        <source>Score</source>
+        <translation type="vanished">得分</translation>
+    </message>
+    <message>
+        <source>Miss Count</source>
+        <translation type="vanished">Miss 数</translation>
+    </message>
+    <message>
+        <source>Level</source>
+        <translation type="vanished">等级</translation>
+    </message>
+    <message>
+        <source>Total</source>
+        <translation type="vanished">总计</translation>
+    </message>
+    <message>
+        <source>Directory</source>
+        <translation type="vanished">目录</translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/SortButton.qml" line="15"/>
+        <source>Sort: %1</source>
+        <translation>排序: %1</translation>
+    </message>
+</context>
+<context>
+    <name>StandardSelectOptions</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="39"/>
         <source>Title</source>
         <translation>标题</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="11"/>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="40"/>
         <source>Artist</source>
         <translation>艺术家</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="12"/>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="41"/>
         <source>BPM</source>
         <translation>BPM</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="13"/>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="42"/>
         <source>Length</source>
         <translation>时长</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="14"/>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="43"/>
         <source>Clear</source>
         <translation>通关情况</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="15"/>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="44"/>
         <source>Score</source>
         <translation>得分</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="16"/>
-        <source>Miss Count</source>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="45"/>
+        <source>Miss count</source>
         <translation>Miss 数</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="17"/>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="46"/>
         <source>Level</source>
         <translation>等级</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="18"/>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="47"/>
         <source>Total</source>
         <translation>总计</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="19"/>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="48"/>
         <source>Directory</source>
         <translation>目录</translation>
     </message>
     <message>
-        <location filename="../scripts/select/SortButton.qml" line="52"/>
-        <source>Sort: %1</source>
-        <translation>排序: %1</translation>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="52"/>
+        <source>Newest</source>
+        <translation>最近游玩</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="53"/>
+        <source>Best score</source>
+        <translation>最高分</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="54"/>
+        <source>Best clear</source>
+        <translation>最佳血条通关</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/StandardSelectOptions.qml" line="55"/>
+        <source>Best combo</source>
+        <translation>最大连击数</translation>
     </message>
 </context>
 <context>
@@ -3321,6 +3422,14 @@
         <location filename="../scripts/gameplay/popups/TitleDisplayPopup.qml" line="27"/>
         <source>Font</source>
         <translation>字体</translation>
+    </message>
+</context>
+<context>
+    <name>resource_managers::BackbeatCatalog</name>
+    <message>
+        <location filename="../../../../../src/resource_managers/BackbeatCatalog.cpp" line="273"/>
+        <source>Backbeat: %1 chart(s) could not be indexed. %2</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

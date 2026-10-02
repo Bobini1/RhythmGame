@@ -2,6 +2,7 @@
 
 #include "gameplay_logic/BmsResult.h"
 #include "gameplay_logic/BmsScore.h"
+#include "gameplay_logic/BmsScoreCourse.h"
 #include "gameplay_logic/ChartData.h"
 #include "gameplay_logic/Judgement.h"
 #include "resource_managers/Tables.h"
@@ -451,26 +452,33 @@ fillScoreFields(SortEntry& entry, const QVariantMap& scores)
     int minBadPoor = -1;
     for (const QVariant& scoreValue : scoreList) {
         const auto* score = scoreObject(scoreValue);
-        const auto* result = score ? score->getResult() : nullptr;
+        const QObject* result =
+          score ? score->getResult() : scoreValue.value<QObject*>();
+        if (const auto* course =
+              qobject_cast<const gameplay_logic::BmsScoreCourse*>(result))
+            result = course->getResult();
         if (!result) {
             continue;
         }
 
         entry.hasScore = true;
-        bestClearPriority = std::max(bestClearPriority,
-                                     clearTypePriority(result->getClearType()));
+        bestClearPriority =
+          std::max(bestClearPriority,
+                   clearTypePriority(result->property("clearType").toString()));
 
-        const QList<int> counts = result->getJudgementCounts();
+        const QList<int> counts =
+          result->property("judgementCounts").value<QList<int>>();
         const int badPoor =
           judgementCount(counts, gameplay_logic::Judgement::Bad) +
           judgementCount(counts, gameplay_logic::Judgement::Poor) +
           judgementCount(counts, gameplay_logic::Judgement::EmptyPoor);
         minBadPoor = minBadPoor < 0 ? badPoor : std::min(minBadPoor, badPoor);
 
-        const double maxPoints = result->getMaxPoints();
+        const double maxPoints = result->property("maxPoints").toDouble();
         const bool hasMaxPoints = maxPoints > 0.0;
         const double rate =
-          hasMaxPoints ? result->getPoints() / maxPoints : 0.0;
+          hasMaxPoints ? result->property("points").toDouble() / maxPoints
+                       : 0.0;
         if (rate > bestRate ||
             (rate == bestRate && hasMaxPoints && !bestHasMaxPoints)) {
             bestRate = rate;
@@ -889,7 +897,14 @@ sameEntry(const SortEntry& a, const SortEntry& b)
         return a.name == b.name;
     }
     if (a.kind == EntryKind && b.kind == EntryKind) {
-        return !a.md5.isEmpty() && a.md5 == b.md5;
+        if (!a.md5.isEmpty() && !b.md5.isEmpty()) {
+            return a.md5 == b.md5;
+        }
+        const auto aHash =
+          stringField(a.value, a.map, QStringLiteral("sha256"));
+        const auto bHash =
+          stringField(b.value, b.map, QStringLiteral("sha256"));
+        return !aHash.isEmpty() && aHash == bHash;
     }
     return false;
 }
@@ -1176,16 +1191,12 @@ resource_managers::ChartFolderModel::filterAndSort(
     }
 
     QVariantList resultItems;
-    resultItems.reserve(
-      std::max<qsizetype>(1, fixedEntries.size() + chartEntries.size()));
+    resultItems.reserve(fixedEntries.size() + chartEntries.size());
     for (const SortEntry& entry : fixedEntries) {
         resultItems.append(entry.value);
     }
     for (const SortEntry& entry : chartEntries) {
         resultItems.append(entry.value);
-    }
-    if (resultItems.isEmpty()) {
-        resultItems.append(QVariant());
     }
     return resultItems;
 }

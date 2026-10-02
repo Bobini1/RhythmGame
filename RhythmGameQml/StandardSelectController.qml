@@ -4,19 +4,24 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectController
     \inqmlmodule RhythmGameQml
-    \brief Supplies browsing, input and shortcuts for a song selector.
+    \brief Supplies browsing, input, shortcuts and music for a song selector.
 
     The controller includes StandardSelectState plus navigation, shortcuts and
-    folder feedback. Your theme draws the list or wheel and moves its focus.
-    Don't add the included components separately to the same screen.
+    folder feedback, background music and chart previews. Your theme owns the
+    list or wheel, its current row and its highlight. Don't add the included
+    components separately to the same screen.
 
     Use inherited \l entries for a list with one row per item. For a circular
     wheel that needs repeated rows, use \l presentationEntries and set
-    \l minimumEntryCount. Call \l setFocused when the focused item changes.
-    Handle \l focusRequested to restore focus and \l moveRequested to move it.
+    \l minimumEntryCount. Handle \l moveRequested to move the view's current row.
+    Call \l setFocused whenever the current entry changes in the view.
+    When browsing changes the controller's current entry, \l focusRequested
+    asks the theme to show that entry in its view.
 
-    The focused visual item must forward its keyboard events to \l handleUpPressed,
-    \l handleDownPressed and \l handleReleased. The
+    The theme also manages keyboard focus, which determines where key events
+    are delivered. The item receiving those events must forward Up and Down
+    presses and releases to \l handleUpPressed, \l handleDownPressed and
+    \l handleReleased. The
     \l {../theme_tutorial_select.html}{selection lesson} contains an installable
     list with the focus and keyboard handling in place.
 
@@ -24,44 +29,90 @@ import RhythmGameQml
     set \l autoInitialize to false and call \l initialize after the view is ready.
 
     F2 reloads the current folder or table, F3 opens the selected folder, and F12
-    opens Settings. F11 emits \l openInternetRankingRequested so the theme can show
-    its own ranking view. Autoplay has a standard action. Replay requires
-    \l tryReplayAction to choose a saved replay. Escape leaves selection or
-    its Arena room. In Arena, pressing Start twice on the same player side
-    toggles ready. Disable either gesture with \l exitEnabled or \l readyEnabled.
+    opens Settings. F11 calls \l openInternetRanking to open the selected chart's
+    ranking page. The included \l ranking also supplies data for a ranking display.
+    Buttons can call \l reloadCurrentFolderOrTable, \l openSelectedFolder and
+    \l openSettings to use the same actions and overrides as those shortcuts.
+    At the root, keys 2 and 4 call \l cycleSortMode. The profile keeps the choice.
+    Autoplay and replay have standard actions. Key 7 calls the inherited
+    \l openReplay; key 6 calls \l cycleReplayType. Bind replay buttons to
+    \l replayAvailable and call \l openReplay from their click handlers.
+    Autoplay buttons use \l autoplayAvailable and \l openAutoplay.
+    Override \l tryReplayAction to provide a custom replay picker. Escape leaves selection or
+    its Arena room. Disable Escape with \l exitEnabled.
+    StandardArenaSelectOverlay supplies the Arena ready controls and shortcut.
 
-    Disabling the controller stops its input, shortcuts and feedback. Use
+    The included \l preview follows the focused chart. Bind preview.moving to
+    your view's movement state to wait until scrolling stops. Background music
+    stops while a preview is playing and returns after \l backgroundMusicDelayMillis.
+    Customize the \l preview and \l backgroundMusic properties, or set either to
+    null to omit it. Don't add a second StandardSelectPreview alongside the controller.
+
+    Disabling the controller stops its input, shortcuts, feedback and music. Use
     \l inputEnabled, \l shortcutsEnabled or \l feedbackEnabled to disable just
     one part. Disabled keyboard handlers leave events unaccepted for another handler.
+    Keep the controller outside any visual container that you disable for a
+    popup if music should continue while that popup is open.
+
+    Set \l enterFeedbackSource and \l leaveFeedbackSource to choose folder sounds.
+    For custom feedback, set \l feedbackEnabled to false and handle
+    \l enteredFolder and \l leftFolder yourself.
 */
 StandardSelectState {
     id: root
 
+    /*!
+        Preview for the focused chart. Plays a discovered preview file or falls
+        back to chart audio without BGA. Customize its delayMillis, moving,
+        volume or chartAudioEnabled properties. Set it to null to omit previews,
+        or supply another StandardSelectPreview with its own selection bindings.
+    */
+    property StandardSelectPreview preview: StandardSelectPreview {
+        id: defaultPreview
+
+        enabled: root.enabled && root.preview === defaultPreview
+        selectState: root
+    }
+    /*!
+        Looping selection music. Its source defaults to the active profile's
+        bgmPath followed by "select". The player accepts a local file path.
+        Playback stops while a preview plays or the controller is disabled.
+
+        Customize the player's source, volume or fadeInMillis. Set it to null
+        to omit background music, or supply another AudioPlayer. A replacement
+        owns its playback binding and must stop when the controller is disabled.
+    */
+    property AudioPlayer backgroundMusic: AudioPlayer {
+        id: defaultBackgroundMusic
+
+        source: {
+            const path = Rg.profileList.mainProfile.vars.generalVars.bgmPath;
+            return root.backgroundMusic === defaultBackgroundMusic && path
+                ? path + "select" : "";
+        }
+        playing: backgroundMusicDelay.canPlay && backgroundMusicDelay.elapsed
+            && defaultBackgroundMusic.loaded
+        looping: true
+        fadeInMillis: 1000
+    }
+    /*! Delay before background music starts or returns after a preview, in milliseconds. */
+    property int backgroundMusicDelayMillis: 500
+
+    /*!
+        Ranking for the focused chart. Uses the active profile and its chosen
+        provider. Bind a display to its entries, position and loading properties.
+        Customize its properties, or replace it with another StandardRanking.
+        Set it to null to omit ranking support.
+    */
+    property StandardRanking ranking: StandardRanking {
+        id: defaultRanking
+        enabled: root.enabled && root.ranking === defaultRanking
+        chartData: root.focusedItem
+    }
+    /*! Calls openInternetRankingAction() instead of opening the ranking website. */
+    property var openInternetRankingAction: null
     /*! Minimum number of entries produced by \l presentationEntries. */
     property int minimumEntryCount: 0
-    /*!
-        Called as \c tryAutoplayAction(). Return true to handle the request, or false to
-        continue with the standard action.
-    */
-    property var tryAutoplayAction: null
-    /*!
-        Called as \c tryReplayAction() to choose and open a replay. Return true when handled.
-        Without a successful handler, replay input does nothing.
-    */
-    property var tryReplayAction: null
-    /*! Calls \c cycleReplayTypeAction() when key 6 is pressed. Without a callback, the key does nothing. */
-    property var cycleReplayTypeAction: null
-    /*!
-        Called as \c tryCycleSortModeAction(delta). Return true to handle the request, or
-        false to continue with the standard action.
-    */
-    property var tryCycleSortModeAction: null
-    /*! Calls \c reloadAction() in place of F2. */
-    property var reloadAction: null
-    /*! Calls \c openSelectedFolderAction() in place of F3. */
-    property var openSelectedFolderAction: null
-    /*! Calls \c openSettingsAction() in place of F12. */
-    property var openSettingsAction: null
     /*! Controls whether the F2 reload shortcut is active. */
     property bool reloadShortcutEnabled: true
     /*! Controls whether the F3 folder shortcut is active. */
@@ -74,11 +125,9 @@ StandardSelectState {
     property bool inputEnabled: enabled
     /*! Controls the Escape shortcut for leaving selection. */
     property alias exitEnabled: input.exitEnabled
-    /*! Controls the double-Start Arena ready gesture. */
-    property alias readyEnabled: input.readyEnabled
     /*! Controls whether selection-specific F-key shortcuts are active. */
     property bool shortcutsEnabled: enabled
-    /*! Controls whether standard audio and replacement feedback actions are active. */
+    /*! Controls folder sounds, independently of music. */
     property bool feedbackEnabled: enabled
     /*! Number of analog scratch ticks required for one logical step. */
     property alias analogTicksPerStep: input.analogTicksPerStep
@@ -86,29 +135,28 @@ StandardSelectState {
     property alias initialRepeatDelayMillis: input.initialRepeatDelayMillis
     /*! Delay between repeated classic-scratch steps, in milliseconds. */
     property alias repeatDelayMillis: input.repeatDelayMillis
-    /*! Calls \c enterFeedbackAction() in place of the entering sound. */
-    property var enterFeedbackAction: null
-    /*! Calls \c leaveFeedbackAction() in place of the leaving sound. */
-    property var leaveFeedbackAction: null
-    /*! Default entering-folder sound source, loaded only for built-in feedback. */
+    /*! Entering-folder sound source. Use an empty URL to omit it. */
     property url enterFeedbackSource:
         Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-open"
-    /*! Default leaving-folder sound source, loaded only for built-in feedback. */
+    /*! Leaving-folder sound source. Use an empty URL to omit it. */
     property url leaveFeedbackSource:
         Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-close"
 
-    /*! Contains a copy of the entries, repeated to fill \l minimumEntryCount when needed. */
+    /*!
+        Contains a copy of the entries, repeated to fill \l minimumEntryCount when
+        needed. When \l entries is empty, contains null placeholders instead,
+        with at least one row. The logical \l entries list stays empty.
+    */
     readonly property var presentationEntries: modelAdapter.entries.slice()
 
     /*! Emitted when F2 was not handled by the standard reload behavior. */
     signal reloadRequested()
     /*! Emitted when F3 was not handled by the standard folder behavior. */
     signal openSelectedFolderRequested()
-    /*! Emitted when F11 requests the theme's ranking view. */
-    signal openInternetRankingRequested()
     /*!
-        Requests relative focus movement by \a steps. \a repeated identifies held input and \a
-        analog identifies analog-scratch input.
+        Requests that the theme move its current row by \a steps. The theme
+        chooses whether movement wraps or stops at the end of the list.
+        \a repeated identifies held input and \a analog identifies analog-scratch input.
     */
     signal moveRequested(int steps, bool repeated, bool analog)
 
@@ -119,19 +167,26 @@ StandardSelectState {
         minimumCount: root.minimumEntryCount
     }
 
+    Timer {
+        id: backgroundMusicDelay
+
+        property bool elapsed: false
+        readonly property bool canPlay: root.enabled
+            && root.backgroundMusic === defaultBackgroundMusic
+            && !root.preview?.playing
+        interval: Math.max(1, root.backgroundMusicDelayMillis)
+        running: canPlay && !elapsed
+        onCanPlayChanged: elapsed = false
+        onTriggered: elapsed = true
+    }
+
     AudioPlayer {
         id: enterFeedback
 
-        source: root.feedbackEnabled
-                && typeof root.enterFeedbackAction !== "function"
-            ? root.enterFeedbackSource : ""
+        source: root.feedbackEnabled ? root.enterFeedbackSource : ""
 
         function trigger() {
             if (!root.enabled || !root.feedbackEnabled) {
-                return;
-            }
-            if (typeof root.enterFeedbackAction === "function") {
-                root.enterFeedbackAction();
                 return;
             }
             stop();
@@ -142,16 +197,10 @@ StandardSelectState {
     AudioPlayer {
         id: leaveFeedback
 
-        source: root.feedbackEnabled
-                && typeof root.leaveFeedbackAction !== "function"
-            ? root.leaveFeedbackSource : ""
+        source: root.feedbackEnabled ? root.leaveFeedbackSource : ""
 
         function trigger() {
             if (!root.enabled || !root.feedbackEnabled) {
-                return;
-            }
-            if (typeof root.leaveFeedbackAction === "function") {
-                root.leaveFeedbackAction();
                 return;
             }
             stop();
@@ -164,10 +213,6 @@ StandardSelectState {
 
         enabled: root.inputEnabled
         selectState: root
-        tryAutoplayAction: root.tryAutoplayAction
-        tryReplayAction: root.tryReplayAction
-        cycleReplayTypeAction: root.cycleReplayTypeAction
-        tryCycleSortModeAction: root.tryCycleSortModeAction
         onMoveRequested: (steps, repeated, analog) => {
             root.moveRequested(steps, repeated, analog);
         }
@@ -178,9 +223,7 @@ StandardSelectState {
 
         enabled: root.shortcutsEnabled
         selectState: root
-        reloadAction: root.reloadAction
-        openSelectedFolderAction: root.openSelectedFolderAction
-        openSettingsAction: root.openSettingsAction
+        openInternetRankingAction: root.openInternetRanking
         reloadEnabled: root.reloadShortcutEnabled
         openSelectedFolderEnabled:
             root.openSelectedFolderShortcutEnabled
@@ -190,8 +233,15 @@ StandardSelectState {
         onReloadRequested: root.reloadRequested()
         onOpenSelectedFolderRequested:
             root.openSelectedFolderRequested()
-        onOpenInternetRankingRequested:
-            root.openInternetRankingRequested()
+    }
+
+    /*! Opens the selected chart's ranking page, or calls the replacement action. */
+    function openInternetRanking() {
+        if (!enabled) return false;
+        if (typeof openInternetRankingAction === "function") {
+            return openInternetRankingAction() !== false;
+        }
+        return ranking ? ranking.open() : false;
     }
 
     /*! Handles an Up key \a event from the theme's visual focus item. */

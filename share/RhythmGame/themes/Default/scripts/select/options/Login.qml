@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Effects
 import QtQuick.Shapes
+import Qt.labs.synchronizer
 
 Rectangle {
     id: bg
@@ -73,7 +74,10 @@ Rectangle {
                     profile: Rg.profileList.mainProfile
                     playerNumber: 0
 
-                    onProfileChanged: Rg.profileList.mainProfile = profile;
+                    Synchronizer on profile {
+                        sourceObject: Rg.profileList
+                        sourceProperty: "mainProfile"
+                    }
                 }
             }
         }

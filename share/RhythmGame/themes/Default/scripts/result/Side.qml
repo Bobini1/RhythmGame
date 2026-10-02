@@ -16,53 +16,15 @@ Column {
     readonly property var stddevAndMean: Helpers.getStddevAndMean(score.replayData)
     readonly property var stddev: stddevAndMean.stddev
     readonly property var mean: stddevAndMean.mean
-    readonly property string oldBestClear: Helpers.getClearType(scores)
-    readonly property var oldBestPointsScore: Helpers.getScoreWithBestPoints(scores)
-    readonly property var oldBestStats: Helpers.getBestStats(scores)
-    property var scores: []
-    property var pendingScoreDbReply: null
-
-    function trackScoreDbReply(reply: var) : var {
-        if (!reply || reply.resultAvailable) {
-            return reply;
-        }
-        pendingScoreDbReply = reply;
-        let forget = function() {
-            reply.finished.disconnect(forget);
-            if (pendingScoreDbReply === reply) {
-                pendingScoreDbReply = null;
-            }
-        };
-        reply.finished.connect(forget);
-        return reply;
+    readonly property string oldBestClear: Helpers.getClearType(results)
+    readonly property var oldBestPointsScore: Helpers.getScoreWithBestPoints(results)
+    readonly property var oldBestStats: Helpers.getBestStats(results)
+    readonly property var results: {
+        const scoreDb = side.profile.scoreDb;
+        const key = root.course ? root.course.identifier : root.chartData.md5;
+        const records = root.course ? scoreDb.courseResults : scoreDb.chartResults;
+        return (records[key] || []).filter(result => result.guid !== side.score.result.guid);
     }
-
-    function cancelScoreDbReply() {
-        let reply = pendingScoreDbReply;
-        pendingScoreDbReply = null;
-        if (reply && !reply.resultAvailable) {
-            reply.cancel();
-        }
-    }
-
-    Component.onCompleted: {
-        if (root.course) {
-            trackScoreDbReply(profile.scoreDb.getScoresForCourseId([root.course.identifier])).then((dbScores) => {
-                if (dbScores.scores[root.course.identifier] === undefined) {
-                    return;
-                }
-                scores =  dbScores.scores[root.course.identifier].filter((oldScore) => oldScore.result.guid !== score.result.guid);
-            });
-        } else {
-            trackScoreDbReply(profile.scoreDb.getScoresForMd5([root.chartData.md5])).then((dbScores) => {
-                if (dbScores.scores[root.chartData.md5] === undefined) {
-                    return;
-                }
-                scores = dbScores.scores[root.chartData.md5].filter((oldScore) => oldScore.result.guid !== score.result.guid);
-            });
-        }
-    }
-    Component.onDestruction: cancelScoreDbReply();
 
     function cycleGauge() {
         if (side.score.gaugeHistory === null) {
@@ -136,39 +98,14 @@ Column {
         ScoreColumn {
             id: scoreColumn
 
-            component Ranking: RankingQuery {
-                md5: side.score.result.md5
-                webApiUrl: side.profile.vars.generalVars.webApiUrl
-                userId: provider === OnlineRankingModel.Tachi ? side.profile.tachiData?.userId : side.profile.onlineUserData?.userId
+            StandardRanking {
+                id: ranking
+                enabled: side.enabled && !root.course && !scoreColumn.arenaSourceSelected
+                chartData: root.course ? null : root.chartData
+                profile: side.profile
+                score: root.course ? null : side.score
+                provider: scoreColumn.effectiveRankingProvider
             }
-
-            Ranking {
-                id: tachi
-                provider: OnlineRankingModel.Tachi
-            }
-
-            Ranking {
-                id: lr2ir
-                provider: OnlineRankingModel.LR2IR
-            }
-
-            Ranking {
-                id: rhythmGame
-                provider: OnlineRankingModel.RhythmGame
-            }
-
-            property var ranking: {
-                switch (effectiveRankingProvider) {
-                    case OnlineRankingModel.RhythmGame:
-                        return rhythmGame;
-                    case OnlineRankingModel.LR2IR:
-                        return lr2ir;
-                    case OnlineRankingModel.Tachi:
-                        return tachi;
-                }
-                return rhythmGame;
-            }
-
             readonly property var generalVars: side.profile.vars.generalVars
             readonly property bool arenaMode: side.arenaResultActive
             readonly property bool arenaSourceSelected: arenaMode
@@ -263,32 +200,10 @@ Column {
 
             onRightClicked: cycleEffectiveResultSource(-1)
 
-            Connections {
-                target: side.score
-                ignoreUnknownSignals: true
-
-                function onSubmissionStateChanged() {
-                    rhythmGame.refresh();
-                    tachi.refresh();
-                }
-            }
-
-            readonly property string tachiGameId: {
-                switch (side.score.keymode || side.chartKeymode) {
-                    case 5:
-                    case 7:
-                        return "bms-7k";
-                    case 10:
-                    case 14:
-                        return "bms-14k";
-                }
-                return "";
-            }
-
             points: side.score.result.points
             importedSource: side.score.imported === true ? side.score.sourceName : ""
             maxPoints: side.score.result.maxPoints
-            oldBestPoints: side.oldBestPointsScore?.result?.points || 0
+            oldBestPoints: side.oldBestPointsScore?.points || 0
             oldBestStats: side.oldBestStats
             earlyLate: side.earlyLate
             judgementCounts: side.score.result.judgementCounts
@@ -297,7 +212,7 @@ Column {
             oldBestClear: side.oldBestClear
             // Course rankings are not implemented atm
             oldRankingPosition: scoreColumn.arenaSourceSelected || root.course
-                ? 0 : ranking.oldPosition
+                ? 0 : ranking.previousPosition
             newRankingPosition: scoreColumn.arenaSourceSelected
                 ? (side.presentedResult.finalized
                     ? side.presentedResult.localRank : 0)
@@ -316,35 +231,19 @@ Column {
                 ? side.presentedResult.participantCount : 0
             totalEntries: scoreColumn.arenaSourceSelected
                 ? side.presentedResult.participantCount
-                : (root.course ? 0 : ranking.size)
+                : (root.course ? 0 : ranking.playerCount)
             loading: scoreColumn.arenaSourceSelected
                 ? !side.presentedResult.finalized
-                : (ranking.loading || ranking.positionLoading
+                : (ranking.loading
                    || side.score.submissionState === BmsScore.Submitting)
             scoreSubmissionFailed: !scoreColumn.arenaSourceSelected && (
                 side.score.submissionState === BmsScore.Failed ||
                 side.score.submissionState === BmsScore.NotSubmitting || root.course ||
                 (ranking.provider === OnlineRankingModel.RhythmGame && !side.profile.onlineUserData) ||
                 (ranking.provider === OnlineRankingModel.Tachi && !side.profile.tachiData))
-            rankingUrl: {
-                if (scoreColumn.arenaSourceSelected) {
-                    return "";
-                }
-                if (root.course || !totalEntries || (ranking.provider === OnlineRankingModel.LR2IR && totalEntries <= 1)) {
-                    return "";
-                }
-                if (ranking.provider === OnlineRankingModel.LR2IR) {
-                    return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + side.score.result.md5;
-                }
-                if (ranking.provider === OnlineRankingModel.Tachi) {
-                    if (!ranking.chartId || !scoreColumn.tachiGameId) {
-                        return "";
-                    }
-                    return "https://boku.tachi.ac/games/" + scoreColumn.tachiGameId +
-                        "/charts/" + ranking.chartId;
-                }
-                return side.profile.vars.generalVars.websiteBaseUrl + "/charts/" + side.score.result.md5
-            }
+            rankingAvailable: !scoreColumn.arenaSourceSelected && !root.course
+                && ranking.available && !ranking.opening
+            onRankingClicked: ranking.open()
             transform: Scale {
                 xScale: side.mirrored ? -1 : 1
                 origin.x: side.mirrored ? scoreColumn.width / 2 : 0

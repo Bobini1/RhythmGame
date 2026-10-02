@@ -668,6 +668,7 @@ Player::finish(const ChartData& chartData) -> BmsScore*
     if (auto* profilePtr = profile.get()) {
         try {
             score->save(profilePtr->getDb());
+            profilePtr->getScoreDb()->rememberScore(score.get());
         } catch (const std::exception& e) {
             spdlog::error("Failed to save score: {}", e.what());
         }

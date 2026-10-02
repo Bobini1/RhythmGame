@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.FluentWinUI3
 import QtQuick.Layouts
 import RhythmGameQml
 
@@ -43,6 +43,24 @@ Pane {
         }
 
         // [course-players]
+
+        // [course-stages]
+        Repeater {
+            model: screen.result.course.chartIds
+
+            Label {
+                required property int index
+                required property string modelData
+                readonly property ChartData chart: screen.result.charts[index]
+                readonly property var tableEntry: chart ? null
+                    : Rg.tables.search(modelData)[0]?.entry
+
+                Layout.fillWidth: true
+                text: (index + 1) + ". " + (chart?.title || tableEntry?.title || modelData)
+                wrapMode: Text.Wrap
+            }
+        }
+        // [course-stages]
 
         Item {
             Layout.fillHeight: true

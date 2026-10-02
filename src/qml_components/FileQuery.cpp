@@ -205,7 +205,7 @@ getDefaultSystemFontFamily(const bool fixedPitchOnly,
 }
 
 auto
-decodeTextFile(const QByteArray& data) -> QString
+decodeTextFile(const QByteArray& data, const QString& encoding) -> QString
 {
     const auto startsWithBytes = [&data](QByteArrayView prefix) {
         return data.size() >= prefix.size() &&
@@ -233,6 +233,15 @@ decodeTextFile(const QByteArray& data) -> QString
         return decode(QStringConverter::Utf16LE, data.sliced(2));
     }
 
+    if (encoding.compare("CP932", Qt::CaseInsensitive) != 0) {
+        QStringDecoder decoder(encoding.toUtf8().constData());
+        if (!decoder.isValid()) {
+            spdlog::warn("Unsupported text encoding: {}",
+                         encoding.toStdString());
+            return {};
+        }
+        return decoder.decode(data);
+    }
     // LR2-era text files commonly omit a BOM and use Japanese Windows CP932.
     // Do not auto-detect UTF-8 for these files; ASCII survives unchanged.
     for (const auto* encoding : { "CP932",
@@ -316,7 +325,8 @@ FileQuery::openUrl(const QUrl& url) const -> bool
 }
 
 auto
-FileQuery::readTextFile(const QString& path) const -> QString
+FileQuery::readTextFile(const QString& path, const QString& encoding) const
+  -> QString
 {
     if (assetStore) {
         try {
@@ -327,7 +337,7 @@ FileQuery::readTextFile(const QString& path) const -> QString
                   resource_managers::SongAssetStore::pathFromUrl(path);
             }
             if (assetStore->isVirtual(virtualPath)) {
-                return decodeTextFile(assetStore->read(virtualPath));
+                return decodeTextFile(assetStore->read(virtualPath), encoding);
             }
         } catch (const std::exception& error) {
             spdlog::warn("Failed to read archived text file {}: {}",
@@ -341,7 +351,7 @@ FileQuery::readTextFile(const QString& path) const -> QString
         spdlog::warn("Failed to read text file {}", path.toStdString());
         return {};
     }
-    return decodeTextFile(file.readAll());
+    return decodeTextFile(file.readAll(), encoding);
 }
 
 auto

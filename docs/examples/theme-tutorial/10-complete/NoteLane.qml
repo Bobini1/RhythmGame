@@ -1,4 +1,5 @@
-pragma ComponentBehavior: Bound
+pragma ValueTypeBehavior: Addressable
+
 import QtQuick
 import RhythmGameQml
 

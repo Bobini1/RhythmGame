@@ -145,6 +145,48 @@ generateResultPermutation(ChartData::Keymode keymode,
 }
 } // namespace
 
+bool
+gameplay_logic::BmsResult::updateFrom(const BmsResult& other)
+{
+    Q_ASSERT(guid == other.guid);
+    const auto fields = [](auto& value) {
+        return std::tie(value.replayAvailable,
+                        value.gaugeHistoryAvailable,
+                        value.imported,
+                        value.sourceName,
+                        value.maxPoints,
+                        value.maxHits,
+                        value.normalNoteCount,
+                        value.scratchCount,
+                        value.lnCount,
+                        value.bssCount,
+                        value.mineCount,
+                        value.clearType,
+                        value.judgementCounts,
+                        value.randomSequence,
+                        value.sha256,
+                        value.md5,
+                        value.mineHits,
+                        value.points,
+                        value.maxCombo,
+                        value.unixTimestamp,
+                        value.length,
+                        value.randomSeed,
+                        value.noteOrderAlgorithm,
+                        value.noteOrderAlgorithmP2,
+                        value.dpOptions,
+                        value.keymode,
+                        value.gameVersion,
+                        value.owner,
+                        value.permutation);
+    };
+    if (fields(*this) == fields(other))
+        return false;
+    fields(*this) = fields(other);
+    emit changed();
+    return true;
+}
+
 auto
 gameplay_logic::BmsResult::getMaxPoints() const -> double
 {
@@ -176,7 +218,7 @@ gameplay_logic::BmsResult::getClearType() const -> const QString&
     return clearType;
 }
 auto
-gameplay_logic::BmsResult::getRandomSequence() -> const QList<qint64>&
+gameplay_logic::BmsResult::getRandomSequence() const -> const QList<qint64>&
 {
     return randomSequence;
 }
@@ -255,31 +297,34 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
 auto
 gameplay_logic::BmsResult::clone() const -> std::unique_ptr<BmsResult>
 {
-    return std::make_unique<BmsResult>(maxPoints,
-                                       maxHits,
-                                       normalNoteCount,
-                                       scratchCount,
-                                       lnCount,
-                                       bssCount,
-                                       mineCount,
-                                       clearType,
-                                       judgementCounts,
-                                       mineHits,
-                                       points,
-                                       maxCombo,
-                                       unixTimestamp,
-                                       length,
-                                       randomSequence,
-                                       randomSeed,
-                                       noteOrderAlgorithm,
-                                       noteOrderAlgorithmP2,
-                                       dpOptions,
-                                       keymode,
-                                       guid,
-                                       sha256,
-                                       md5,
-                                       gameVersion,
-                                       owner);
+    auto copy = std::make_unique<BmsResult>(maxPoints,
+                                            maxHits,
+                                            normalNoteCount,
+                                            scratchCount,
+                                            lnCount,
+                                            bssCount,
+                                            mineCount,
+                                            clearType,
+                                            judgementCounts,
+                                            mineHits,
+                                            points,
+                                            maxCombo,
+                                            unixTimestamp,
+                                            length,
+                                            randomSequence,
+                                            randomSeed,
+                                            noteOrderAlgorithm,
+                                            noteOrderAlgorithmP2,
+                                            dpOptions,
+                                            keymode,
+                                            guid,
+                                            sha256,
+                                            md5,
+                                            gameVersion,
+                                            owner);
+    copy->setStoredData(
+      replayAvailable, gaugeHistoryAvailable, imported, sourceName);
+    return copy;
 }
 
 auto

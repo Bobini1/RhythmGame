@@ -30,12 +30,11 @@ StandardArenaOverlay {
     customizationLabel: qsTr("Arena result panel")
     defaultExpanded: true
     layoutVariant: "result"
-    placementKind: "resultStandings"
 
     panelComponent: ArenaResultOverlay {
         session: root.session
         expanded: root.expanded
         onChatSelected: chat => root.setChatSelected(chat)
-        onExpandedChanged: root.setExpanded(expanded)
+        onExpandedChangeRequested: expanded => root.setExpanded(expanded)
     }
 }

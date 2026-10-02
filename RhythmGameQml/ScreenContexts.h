@@ -4,12 +4,15 @@
 #include "gameplay_logic/ChartRunner.h"
 #include "gameplay_logic/CourseRunner.h"
 #include "arena/ArenaSession.h"
+#include "qml_components/ChartLoader.h"
 
 #include <QPointer>
 #include <QQmlListProperty>
 #include <QtQml/qqmlregistration.h>
 
 namespace rhythm_game_qml {
+class ResultContext;
+class CourseResultContext;
 
 /** Screen input shared by single-chart and course gameplay, including decide.
  */
@@ -32,17 +35,13 @@ class GameplayContext final : public QObject
     Q_PROPERTY(bool arenaActive READ arenaActive NOTIFY arenaActiveChanged)
     Q_PROPERTY(QVariant course READ course CONSTANT)
     Q_PROPERTY(QQmlListProperty<gameplay_logic::CoursePlayer> coursePlayers READ
-                 qmlCoursePlayers CONSTANT)
+                 qmlCoursePlayers NOTIFY stageChanged)
     Q_PROPERTY(int stageIndex READ stageIndex NOTIFY stageChanged)
     Q_PROPERTY(int stageCount READ stageCount CONSTANT)
     Q_PROPERTY(QQmlListProperty<gameplay_logic::ChartData> charts READ qmlCharts
                  CONSTANT)
     Q_PROPERTY(QList<int> inputMapping READ inputMapping WRITE setInputMapping
                  NOTIFY inputMappingChanged)
-    // Used only by the host and the standard gameplay lifecycle.
-    Q_PROPERTY(QObject* _runner READ runner CONSTANT)
-    Q_PROPERTY(
-      QObject* _screen READ hostScreen WRITE setHostScreen NOTIFY screenChanged)
 
   public:
     GameplayContext(QObject* runner, arena::ArenaSession* arenaSession);
@@ -66,27 +65,40 @@ class GameplayContext final : public QObject
     auto inputMapping() const -> QList<int>;
     void setInputMapping(const QList<int>& mapping);
     auto runner() const -> QObject*;
-    auto hostScreen() const -> QObject* { return screen; }
-    void setHostScreen(QObject* value);
+    /** Starts the ready local stage. Arena controls its own synchronized start.
+     */
+    Q_INVOKABLE bool start();
+    /** Saves this stage once. Returns null while it is still loading. */
+    Q_INVOKABLE rhythm_game_qml::ResultContext* finishStage();
+    /** Advances a completed course stage. False if final or unavailable. */
+    Q_INVOKABLE bool nextStage();
+    /** Saves the course summary after its final stage. Repeated calls reuse it.
+     */
+    Q_INVOKABLE rhythm_game_qml::CourseResultContext* finishCourse();
 
   signals:
     void stageChanged();
     void bgaChanged();
     void statusChanged();
     void inputMappingChanged();
-    void screenChanged();
     void arenaActiveChanged();
 
   private:
     void refreshStage();
     QPointer<gameplay_logic::ChartRunner> chartRunner;
     QPointer<gameplay_logic::CourseRunner> courseRunner;
-    QPointer<QObject> screen;
+    QPointer<ResultContext> stageResult;
+    QPointer<CourseResultContext> courseResult;
     QPointer<gameplay_logic::ChartData> currentChartData;
     QList<gameplay_logic::Player*> currentPlayers;
     QList<gameplay_logic::CoursePlayer*> courseParticipants;
     QList<gameplay_logic::ChartData*> chartMetadata;
+    QVariant courseDefinition;
     int currentStageIndex{};
+    gameplay_logic::ChartData::Keymode effectiveKeymode{
+        gameplay_logic::ChartData::Keymode::K7
+    };
+    bool lifecycleBusy{};
     bool arenaManaged{};
     QPointer<arena::ArenaSession> session;
 };
@@ -235,6 +247,18 @@ class ScreenContexts : public QObject
     Q_INVOKABLE rhythm_game_qml::GameplayContext* createGameplay(
       QObject* runner,
       arena::ArenaSession* arenaSession = nullptr) const;
+    Q_INVOKABLE bool canRetry(rhythm_game_qml::GameplayContext* gameplay,
+                              qml_components::ChartLoader* loader) const;
+    Q_INVOKABLE rhythm_game_qml::GameplayContext* retryGameplay(
+      rhythm_game_qml::GameplayContext* gameplay,
+      qml_components::ChartLoader* loader,
+      bool samePattern) const;
+    // Only the legacy implementation consumes native runner types.
+    Q_INVOKABLE QObject* legacyRunner(
+      rhythm_game_qml::GameplayContext* gameplay) const
+    {
+        return gameplay ? gameplay->runner() : nullptr;
+    }
     Q_INVOKABLE rhythm_game_qml::ResultContext* createResult(
       const QList<gameplay_logic::BmsScore*>& scores,
       const QList<resource_managers::Profile*>& profiles,

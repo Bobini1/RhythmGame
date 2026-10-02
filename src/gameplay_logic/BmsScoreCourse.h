@@ -32,12 +32,16 @@ class BmsScoreCourse : public QObject
     Q_PROPERTY(BmsGaugeHistory* gaugeHistory READ getGaugeHistory CONSTANT)
     /**
      * @brief The combined replay data of the course.
+     * @details Timestamps include the lengths of earlier stages. Note indices
+     * and columns remain local to each stage. Use scores for stage-specific
+     * note matching.
      */
     Q_PROPERTY(BmsReplayData* replayData READ getReplayData CONSTANT)
     BmsResultCourse* result;
     BmsGaugeHistory* gaugeHistory;
     BmsReplayData* replayData;
     QList<BmsScore*> scores;
+
   public:
     explicit BmsScoreCourse(std::unique_ptr<BmsResultCourse> resultCourse,
                             std::unique_ptr<BmsGaugeHistory> gaugeHistory,
@@ -49,9 +53,12 @@ class BmsScoreCourse : public QObject
     auto getGaugeHistory() const -> BmsGaugeHistory*;
     auto getReplayData() const -> BmsReplayData*;
     void save(db::SqliteCppDb& db) const;
+    auto clone(QObject* parent = nullptr) const
+      -> std::unique_ptr<BmsScoreCourse>;
     static auto fromScores(std::unique_ptr<BmsResultCourse> resultCourse,
                            QList<BmsScore*> scores,
-                           QObject* parent = nullptr) -> std::unique_ptr<BmsScoreCourse>;
+                           QObject* parent = nullptr)
+      -> std::unique_ptr<BmsScoreCourse>;
 };
 
 }

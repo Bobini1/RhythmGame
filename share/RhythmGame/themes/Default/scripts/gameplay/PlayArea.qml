@@ -263,32 +263,11 @@ Item {
     }
     Item {
         id: judgementsPositioner
-        // This is a lazy solution to a bug where the judgements moved slightly on init
-        property bool initializing: true
-        Binding {
-            delayed: true
-            judgementsPositioner.x: judgements.x
-            judgementsPositioner.width: judgements.width
-            judgementsPositioner.height: judgements.height
-            judgementsPositioner.y: playArea.height / 2 + judgements.anchors.verticalCenterOffset - judgementsPositioner.height / 2
-        }
+        x: judgements.x
+        y: judgements.y
+        width: judgements.width
+        height: judgements.height
         z: 11
-        Component.onCompleted: {
-            x = judgements.x;
-            y = judgements.y;
-            width = judgements.width;
-            height = judgements.height;
-            initializing = false;
-        }
-        onYChanged: {
-            if (initializing) return;
-            let center = parent.height / 2;
-            let offset = y + height / 2 - center;
-            playArea.vars.judgementsOffset = -offset / (center - height / 2) / 2 + 0.5;
-        }
-        onHeightChanged: {
-            playArea.vars.judgementsHeight = height / parent.height;
-        }
 
         TemplateDragBorder {
             id: judgementsTemplate
@@ -299,6 +278,14 @@ Item {
             visible: root.customizeMode
             dragAxis: Drag.YAxis
             keepAspectRatio: true
+
+            onGeometryEdited: geometry => {
+                if (playArea.height <= 0)
+                    return;
+                if (geometry.height !== playArea.height)
+                    playArea.vars.judgementsOffset = 1 - geometry.y / (playArea.height - geometry.height);
+                playArea.vars.judgementsHeight = geometry.height / playArea.height;
+            }
 
             MouseArea {
                 acceptedButtons: Qt.RightButton
@@ -325,30 +312,12 @@ Item {
         property bool fast: false
         property bool shouldShow: false
 
-        Binding {
-            delayed: true
-            fastslow.x: judgements.x + judgements.width / 2 + playArea.vars.fastslowX * judgements.height - fastslow.width / 2
-            fastslow.y: judgements.y + playArea.vars.fastslowY * judgements.height - fastslow.height
-            fastslow.height: playArea.vars.fastslowHeight * judgements.height
-        }
-        Binding {
-            target: fastslow
-            property: "width"
-            delayed: true
-            when: fastslowImage.sourceSize.height > 0
-            value: fastslowImage.sourceSize.width * (fastslow.height / fastslowImage.sourceSize.height)
-        }
-        Component.onCompleted: {
-            height = playArea.vars.fastslowHeight * judgements.height;
-            x = judgements.x + judgements.width / 2 + playArea.vars.fastslowX * judgements.height - fastslow.width / 2;
-            y = judgements.y + playArea.vars.fastslowY * judgements.height - fastslow.height;
-            if (fastslowImage.sourceSize.height > 0)
-                width = fastslowImage.sourceSize.width * (height / fastslowImage.sourceSize.height);
-        }
+        x: judgements.x + judgements.width / 2 + playArea.vars.fastslowX * judgements.height - width / 2
+        y: judgements.y + playArea.vars.fastslowY * judgements.height - height
+        height: playArea.vars.fastslowHeight * judgements.height
+        width: fastslowImage.sourceSize.height > 0
+            ? fastslowImage.sourceSize.width * height / fastslowImage.sourceSize.height : 0
         z: 13
-        onHeightChanged: playArea.vars.fastslowHeight = height / judgements.height;
-        onXChanged: playArea.vars.fastslowX = (x + width / 2 - judgements.x - judgements.width / 2) / judgements.height;
-        onYChanged: playArea.vars.fastslowY = (y - judgements.y + height) / judgements.height;
 
         Image {
             id: fastslowImage
@@ -370,6 +339,14 @@ Item {
             keepAspectRatio: true
             anchorXCenter: true
             anchorYBottom: true
+
+            onGeometryEdited: geometry => {
+                if (judgements.height <= 0)
+                    return;
+                playArea.vars.fastslowX = (geometry.x + geometry.width / 2 - judgements.x - judgements.width / 2) / judgements.height;
+                playArea.vars.fastslowY = (geometry.y + geometry.height - judgements.y) / judgements.height;
+                playArea.vars.fastslowHeight = geometry.height / judgements.height;
+            }
 
             MouseArea {
                 acceptedButtons: Qt.RightButton
@@ -436,36 +413,11 @@ Item {
             text: ghostScore.text
         }
 
-        Binding {
-            delayed: true
-            ghostScore.height: playArea.vars.ghostScoreHeight * judgements.height
-            ghostScore.x: judgements.x + judgements.width / 2 + playArea.vars.ghostScoreX * judgements.height - ghostScore.width / 2
-            ghostScore.y: judgements.y + playArea.vars.ghostScoreY * judgements.height - ghostScore.height
-        }
-        Binding {
-            target: ghostScore
-            property: "width"
-            delayed: true
-            when: fontInfo.width > 0
-            value: fontInfo.width
-        }
-        Component.onCompleted: {
-            height = playArea.vars.ghostScoreHeight * judgements.height;
-            x = judgements.x + judgements.width / 2 + playArea.vars.ghostScoreX * judgements.height - ghostScore.width / 2;
-            y = judgements.y + playArea.vars.ghostScoreY * judgements.height - ghostScore.height;
-            width = fontInfo.width;
-        }
+        x: judgements.x + judgements.width / 2 + playArea.vars.ghostScoreX * judgements.height - width / 2
+        y: judgements.y + playArea.vars.ghostScoreY * judgements.height - height
+        height: playArea.vars.ghostScoreHeight * judgements.height
+        width: fontInfo.width
         z: 12
-
-        onHeightChanged: {
-            playArea.vars.ghostScoreHeight = height / judgements.height;
-        }
-        onXChanged: {
-            playArea.vars.ghostScoreX = (x + width / 2 - judgements.x - judgements.width / 2) / judgements.height;
-        }
-        onYChanged: {
-            playArea.vars.ghostScoreY = (y - judgements.y + height) / judgements.height;
-        }
 
         TemplateDragBorder {
             id: ghostScoreTemplate
@@ -476,6 +428,14 @@ Item {
             keepAspectRatio: true
             anchorXCenter: true
             anchorYBottom: true
+
+            onGeometryEdited: geometry => {
+                if (judgements.height <= 0)
+                    return;
+                playArea.vars.ghostScoreX = (geometry.x + geometry.width / 2 - judgements.x - judgements.width / 2) / judgements.height;
+                playArea.vars.ghostScoreY = (geometry.y + geometry.height - judgements.y) / judgements.height;
+                playArea.vars.ghostScoreHeight = geometry.height / judgements.height;
+            }
 
             MouseArea {
                 acceptedButtons: Qt.RightButton

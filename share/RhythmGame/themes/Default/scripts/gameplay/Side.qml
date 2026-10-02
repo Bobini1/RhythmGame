@@ -175,38 +175,6 @@ Item {
         x: side.profileVars["playAreaX" + side.dpSuffix]
         y: side.profileVars["playAreaY" + side.dpSuffix]
 
-        onHeightChanged: {
-            side.profileVars.playAreaHeight = height;
-        }
-        onWidthChanged: {
-            let spacing = side.profileVars.spacing;
-            let oldWithoutSpacing = side.columns.reduce((a, b) => a + playArea.columnSizes[b], 0);
-            let newWithoutSpacing = width - spacing * 7;
-            let newWidths = [];
-            for (let i = 5; i < 8; i++) {
-                newWidths.push(newWithoutSpacing / oldWithoutSpacing * playArea.columnSizes[i]);
-            }
-            side.profileVars.blackWidth = newWidths[0];
-            side.profileVars.whiteWidth = newWidths[1];
-            side.profileVars.scratchWidth = newWidths[2];
-        }
-        onXChanged: {
-            side.profileVars["playAreaX" + side.dpSuffix] = x;
-        }
-        onYChanged: {
-            side.profileVars["playAreaY" + side.dpSuffix] = y;
-        }
-        Binding {
-            delayed: true
-            playArea.width: {
-                return side.columns.reduce((a, b) => a + playArea.columnSizes[b], 0) + (side.columns.length - 1) * side.profileVars.spacing;
-            }
-        }
-        Binding {
-            delayed: true
-            playArea.height: side.profileVars.playAreaHeight
-        }
-
         TemplateDragBorder {
             visible: root.customizeMode
             z: 10
@@ -214,6 +182,23 @@ Item {
             anchors.fill: parent
             anchors.margins: -borderMargin
             color: "transparent"
+
+            onGeometryEdited: geometry => {
+                if (geometry.width !== playArea.width) {
+                    let oldLaneWidth = side.columns.reduce((sum, column) => sum + playArea.columnSizes[column], 0);
+                    let newLaneWidth = geometry.width - (side.columns.length - 1) * side.profileVars.spacing;
+                    if (oldLaneWidth <= 0 || newLaneWidth <= 0)
+                        return;
+                    let ratio = newLaneWidth / oldLaneWidth;
+                    let widths = [side.profileVars.blackWidth, side.profileVars.whiteWidth, side.profileVars.scratchWidth].map(width => width * ratio);
+                    side.profileVars.blackWidth = widths[0];
+                    side.profileVars.whiteWidth = widths[1];
+                    side.profileVars.scratchWidth = widths[2];
+                }
+                side.profileVars["playAreaX" + side.dpSuffix] = geometry.x;
+                side.profileVars["playAreaY" + side.dpSuffix] = geometry.y;
+                side.profileVars.playAreaHeight = geometry.height;
+            }
 
             MouseArea {
                 id: playAreaTemplateMouseArea
@@ -277,19 +262,6 @@ Item {
         y: side.profileVars.lifeBarY
         z: side.profileVars.lifeBarZ
 
-        onHeightChanged: {
-            side.profileVars.lifeBarHeight = height;
-        }
-        onWidthChanged: {
-            side.profileVars.lifeBarWidth = width;
-        }
-        onXChanged: {
-            side.profileVars.lifeBarX = x;
-        }
-        onYChanged: {
-            side.profileVars.lifeBarY = y;
-        }
-
         TemplateDragBorder {
             id: lifeBarTemplate
 
@@ -298,6 +270,13 @@ Item {
             color: "transparent"
             visible: root.customizeMode
             mirrored: side.mirrored
+
+            onGeometryEdited: geometry => {
+                side.profileVars.lifeBarX = geometry.x;
+                side.profileVars.lifeBarY = geometry.y;
+                side.profileVars.lifeBarWidth = geometry.width;
+                side.profileVars.lifeBarHeight = geometry.height;
+            }
 
             MouseArea {
                 id: lifeBarMouseArea
@@ -346,17 +325,19 @@ Item {
         targetPoints: side.pointTarget
         targetFinalPoints: side.targetFinalPoints
 
-        onXChanged: side.profileVars.scoreGraphX = x
-        onYChanged: side.profileVars.scoreGraphY = y
-        onWidthChanged: side.profileVars.scoreGraphWidth = width
-        onHeightChanged: side.profileVars.scoreGraphHeight = height
-
         TemplateDragBorder {
             anchors.fill: parent
             anchors.margins: -borderMargin
             color: "transparent"
             visible: root.customizeMode
             mirrored: side.mirrored
+
+            onGeometryEdited: geometry => {
+                side.profileVars.scoreGraphX = geometry.x;
+                side.profileVars.scoreGraphY = geometry.y;
+                side.profileVars.scoreGraphWidth = geometry.width;
+                side.profileVars.scoreGraphHeight = geometry.height;
+            }
         }
 
         MouseArea {
@@ -389,19 +370,6 @@ Item {
         score: side.score
         fontFile: side.profileVars.judgementCountsFont
 
-        onHeightChanged: {
-            side.profileVars.judgementCountsHeight = height;
-        }
-        onWidthChanged: {
-            side.profileVars.judgementCountsWidth = width;
-        }
-        onXChanged: {
-            side.profileVars.judgementCountsX = x;
-        }
-        onYChanged: {
-            side.profileVars.judgementCountsY = y;
-        }
-
         TemplateDragBorder {
             id: judgementCountsTemplate
 
@@ -410,6 +378,13 @@ Item {
             color: "transparent"
             visible: root.customizeMode
             mirrored: side.mirrored
+
+            onGeometryEdited: geometry => {
+                side.profileVars.judgementCountsX = geometry.x;
+                side.profileVars.judgementCountsY = geometry.y;
+                side.profileVars.judgementCountsWidth = geometry.width;
+                side.profileVars.judgementCountsHeight = geometry.height;
+            }
         }
 
         MouseArea {
@@ -484,17 +459,19 @@ Item {
         timingWindows: root.chartData.timingWindows
         score: side.score
 
-        onXChanged: side.profileVars.hitDistributionX = x
-        onYChanged: side.profileVars.hitDistributionY = y
-        onWidthChanged: side.profileVars.hitDistributionWidth = width
-        onHeightChanged: side.profileVars.hitDistributionHeight = height
-
         TemplateDragBorder {
             anchors.fill: parent
             anchors.margins: -borderMargin
             color: "transparent"
             visible: root.customizeMode
             mirrored: side.mirrored
+
+            onGeometryEdited: geometry => {
+                side.profileVars.hitDistributionX = geometry.x;
+                side.profileVars.hitDistributionY = geometry.y;
+                side.profileVars.hitDistributionWidth = geometry.width;
+                side.profileVars.hitDistributionHeight = geometry.height;
+            }
         }
 
         MouseArea {

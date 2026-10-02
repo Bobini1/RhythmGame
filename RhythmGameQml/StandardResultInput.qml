@@ -25,6 +25,10 @@ import RhythmGameQml
     side. The originating play comes from \l result. Course summaries can be
     closed but cannot use single-chart retry.
 
+    Retry buttons bind enabled to \l retryAvailable and call \l retry with false
+    for fresh randomization or true for the same pattern. The same method and
+    optional override serve both buttons and bound input.
+
     See the \l {../theme_tutorial_results.html}{result lesson} for separate chart
     and course result examples.
 */
@@ -36,7 +40,7 @@ Item {
     /*! Calls \c closeAction() in place of closing the result. */
     property var closeAction: null
     /*!
-        Called as \c tryRetryAction(key). Return true to handle the request, or false to
+        Called as \c tryRetryAction(samePattern). Return true to handle the request, or false to
         continue with the standard action.
     */
     property var tryRetryAction: null
@@ -54,6 +58,11 @@ Item {
     property bool confirmEnabled: true
     /*! Controls whether BMS-controller input is active. */
     property bool controllerEnabled: true
+    /*! Controls retries from both buttons and bound controller input. */
+    property bool retryEnabled: true
+    /*! Whether a supported retry can be requested now, including the input delay. */
+    readonly property bool retryAvailable: enabled && acceptsInput && retryEnabled
+        && (chartRetry.available || typeof tryRetryAction === "function")
 
     QtObject {
         id: inputState
@@ -88,24 +97,15 @@ Item {
         return confirmEnabled && close();
     }
 
-    /*! Uses \a key to retry with a fresh pattern for key 5 or the same pattern for key 7 on either side. */
-    function retry(key) {
-        if (!enabled || !acceptsInput) {
+    /*! Retries with the same pattern when \a samePattern is true, or fresh randomization otherwise. */
+    function retry(samePattern) {
+        if (!enabled || !acceptsInput || !retryEnabled) {
             return false;
         }
-        if (typeof tryRetryAction === "function" && tryRetryAction(key)) {
+        if (typeof tryRetryAction === "function" && tryRetryAction(samePattern)) {
             return true;
         }
-        switch (key) {
-        case BmsKey.Col15:
-        case BmsKey.Col25:
-            return chartRetry.retry(false);
-        case BmsKey.Col17:
-        case BmsKey.Col27:
-            return chartRetry.retry(true);
-        default:
-            return false;
-        }
+        return chartRetry.retry(samePattern);
     }
 
     /*! Handles a standard result-screen \a key. */
@@ -117,7 +117,9 @@ Item {
                 && tryHandleButtonAction(key)) {
             return true;
         }
-        if (retry(key)) {
+        const freshPattern = key === BmsKey.Col15 || key === BmsKey.Col25;
+        const samePattern = key === BmsKey.Col17 || key === BmsKey.Col27;
+        if ((freshPattern || samePattern) && retry(samePattern)) {
             return true;
         }
         if (StandardInputKeys.isPlayKey(key)) {

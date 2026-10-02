@@ -110,7 +110,7 @@ enum class SelectSortMode
     ClearLamp,
     ScoreRate,
     MissCount,
-    TotalNotes,
+    Total,
 };
 Q_ENUM_NS(SelectSortMode)
 } // namespace select_sort_mode
@@ -148,6 +148,8 @@ class GeneralVars final : public QObject
      * @brief The time in milliseconds a note takes to travel from the top of
      * the screen to the judgement line.
      */
+    /** Note travel time in milliseconds. Must be finite and at least 1.
+     * Invalid assignments leave the current value unchanged. */
     Q_PROPERTY(double noteScreenTimeMillis READ getNoteScreenTimeMillis WRITE
                  setNoteScreenTimeMillis NOTIFY noteScreenTimeMillisChanged
                    RESET resetNoteScreenTimeMillis)
@@ -640,6 +642,11 @@ class GeneralVars final : public QObject
     void tableListUrlChanged();
     void rankingProviderChanged();
 };
+
+// Uses the same parser as profile settings. Throws for an invalid declaration.
+void
+validateThemeSettings(const std::filesystem::path& themePath,
+                      const std::filesystem::path& settingsPath);
 
 class Vars final : public QObject
 {

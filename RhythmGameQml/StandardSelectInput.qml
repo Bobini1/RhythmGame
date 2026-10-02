@@ -1,3 +1,4 @@
+pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
 
@@ -7,7 +8,7 @@ import RhythmGameQml
     \brief Maps bound selection actions and forwards movement requests.
 
     The component extends StandardSelectNavigation with activation, autoplay,
-    replay, sorting, leaving selection and Arena ready input. Use
+    replay, sorting and leaving selection. Use
     StandardSelectNavigation alone if you
     only need movement. StandardSelectController already includes both.
 
@@ -16,26 +17,28 @@ import RhythmGameQml
         \header \li Input \li Action
         \row \li Keys 1 and 3 \li Activate the focused item.
         \row \li Key 5 \li Start autoplay.
-        \row \li Key 7 \li Request replay through \l tryReplayAction.
-        \row \li Key 6 \li Cycle the selected replay through \l cycleReplayTypeAction.
+        \row \li Key 7 \li Open the selected replay.
+        \row \li Key 6 \li Cycle newest, best score, best clear and best combo.
         \row \li Keys 2 and 4 at the root
-             \li Call \l tryCycleSortModeAction with -1 or +1, then go back if unhandled.
+             \li Cycle the sort mode backward or forward.
         \row \li Keys 2 and 4 below the root \li Go back.
         \row \li Scratch directions \li Emit \l moveRequested.
         \row \li Escape \li Leave selection or the current Arena room.
-        \row \li Start twice in Arena \li Toggle ready for the next round.
     \endtable
 
-    Autoplay uses StandardSelectState::openPlayable unless \l tryAutoplayAction
-    handles it first. Replay requires \l tryReplayAction to choose a score.
-    Without a successful replay handler, the replay key does nothing.
+    Autoplay calls StandardSelectState::openAutoplay unless \l tryAutoplayAction
+    handles it first. On folders, the autoplay key enters the folder.
+    Replay calls StandardSelectState::openReplay unless
+    \l tryReplayAction handles it first. Key 6 calls
+    StandardSelectState::cycleReplayType unless \l cycleReplayTypeAction is supplied.
 
     Keyboard arrows must come from the focused visual item. Forward presses and
     releases to \l handleUpPressed, \l handleDownPressed and \l handleReleased.
     Assign \l selectState for standard activation and back behavior. For your
     own browsing state, supply \l activateAction, \l goBackAction and \l atTopLevel.
-    Assign \l actions to a StandardSelectActions instance for Escape and Arena
-    ready input, or disable these with \l exitEnabled and \l readyEnabled.
+    Assign \l actions to a StandardSelectActions instance for Escape, or
+    disable it with \l exitEnabled. StandardArenaSelectOverlay supplies Arena
+    ready input.
 */
 StandardSelectNavigation {
     id: root
@@ -46,8 +49,6 @@ StandardSelectNavigation {
     property StandardSelectActions actions: selectState ? selectState.actions : null
     /*! Controls the Escape shortcut for leaving selection or its Arena room. */
     property bool exitEnabled: true
-    /*! Controls the double-Start Arena ready gesture. */
-    property bool readyEnabled: true
     /*! Calls \c activateAction() in place of focused-item activation. */
     property var activateAction: null
     /*! Calls \c goBackAction() in place of leaving the current entry. */
@@ -62,10 +63,10 @@ StandardSelectNavigation {
     property var tryAutoplayAction: null
     /*!
         Called as \c tryReplayAction() to choose and open a replay. Return true when handled.
-        Without a successful handler, replay input does nothing.
+        Return false to continue with StandardSelectState::openReplay.
     */
     property var tryReplayAction: null
-    /*! Calls \c cycleReplayTypeAction() when key 6 is pressed. Without a callback, the key does nothing. */
+    /*! Calls \c cycleReplayTypeAction() instead of StandardSelectState::cycleReplayType. */
     property var cycleReplayTypeAction: null
     /*!
         Called as \c tryCycleSortModeAction(delta). Return true to handle the request, or
@@ -102,10 +103,11 @@ StandardSelectNavigation {
 
     /*! Activates replay for the focused chart. */
     function activateReplay() {
-        if (!root.enabled || typeof tryReplayAction !== "function") {
-            return false;
+        if (!root.enabled) return false;
+        if (typeof root.tryReplayAction === "function" && root.tryReplayAction()) {
+            return true;
         }
-        return !!tryReplayAction();
+        return root.selectState ? root.selectState.openReplay() : false;
     }
 
     /*! Activates autoplay for the focused chart. */
@@ -116,11 +118,11 @@ StandardSelectNavigation {
         if (typeof tryAutoplayAction === "function" && tryAutoplayAction()) {
             return true;
         }
-        if (selectState && selectState.openPlayable(
-                selectState.focusedItem, true, false, null)) {
-            return true;
-        }
-        return false;
+        if (!selectState) return false;
+        if (selectState.openAutoplay()) return true;
+        const item = selectState.focusedItem;
+        return !(item instanceof ChartData) && !(item instanceof course)
+            && selectState.goForward(item);
     }
 
     /*! Handles an Up key \a event. */
@@ -172,16 +174,13 @@ StandardSelectNavigation {
 
     /*! Handles top-level sort-mode input for \a key. */
     function handleTopLevelSortKey(key) {
-        if (!atTopLevel || typeof tryCycleSortModeAction !== "function") {
-            return false;
-        }
-        if (key === BmsKey.Col12 || key === BmsKey.Col22) {
-            return tryCycleSortModeAction(-1);
-        }
-        if (key === BmsKey.Col14 || key === BmsKey.Col24) {
-            return tryCycleSortModeAction(1);
-        }
-        return false;
+        if (!root.enabled || !root.atTopLevel) return false;
+        const delta = key === BmsKey.Col12 || key === BmsKey.Col22 ? -1
+            : key === BmsKey.Col14 || key === BmsKey.Col24 ? 1 : 0;
+        if (!delta) return false;
+        if (typeof root.tryCycleSortModeAction === "function"
+                && root.tryCycleSortModeAction(delta)) return true;
+        return root.selectState ? root.selectState.cycleSortMode(delta) : false;
     }
 
     Shortcut {
@@ -189,15 +188,6 @@ StandardSelectNavigation {
         autoRepeat: false
         enabled: root.enabled && root.exitEnabled && !!root.actions
         onActivated: root.actions.exit()
-    }
-
-    Input.onStart1Pressed: {
-        if (root.enabled && root.readyEnabled && root.actions)
-            root.actions.handleStartPress(BmsKey.Start1);
-    }
-    Input.onStart2Pressed: {
-        if (root.enabled && root.readyEnabled && root.actions)
-            root.actions.handleStartPress(BmsKey.Start2);
     }
 
     Input.onCol1sDownTicked: (number, type) => root.navigate(number, type, false, BmsKey.Col1sDown)
@@ -225,9 +215,12 @@ StandardSelectNavigation {
         if (!root.enabled) {
             return;
         }
-        if ((key === BmsKey.Col16 || key === BmsKey.Col26)
-                && typeof cycleReplayTypeAction === "function") {
-            cycleReplayTypeAction();
+        if (key === BmsKey.Col16 || key === BmsKey.Col26) {
+            if (typeof root.cycleReplayTypeAction === "function") {
+                root.cycleReplayTypeAction();
+            } else if (root.selectState) {
+                root.selectState.cycleReplayType();
+            }
             return;
         }
         if (handleTopLevelSortKey(key)) {

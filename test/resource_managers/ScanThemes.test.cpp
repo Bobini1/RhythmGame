@@ -58,17 +58,21 @@ TEST_CASE("A chart result theme does not replace the configured course result",
 {
     QTemporaryDir tempDir;
     const auto themesRoot = makeThemesRoot(tempDir);
-    writeLr2SkinBytes(themesRoot / "Default" / "Result.qml", "import QtQuick\n");
-    writeLr2SkinBytes(themesRoot / "Default" / "CourseResult.qml", "import QtQuick\n");
+    writeLr2SkinBytes(themesRoot / "Default" / "Result.qml",
+                      "import QtQuick\n");
+    writeLr2SkinBytes(themesRoot / "Default" / "CourseResult.qml",
+                      "import QtQuick\n");
     writeLr2SkinBytes(themesRoot / "Default" / "theme.json", R"({
         "scripts": { "result": "Result.qml", "courseResult": "CourseResult.qml" }
     })");
-    writeLr2SkinBytes(themesRoot / "ChartResult" / "Result.qml", "import QtQuick\n");
+    writeLr2SkinBytes(themesRoot / "ChartResult" / "Result.qml",
+                      "import QtQuick\n");
     writeLr2SkinBytes(themesRoot / "ChartResult" / "theme.json", R"({
         "scripts": { "result": "Result.qml" }
     })");
     const auto themes = resource_managers::scanThemes(themesRoot);
-    auto config = std::unique_ptr<QQmlPropertyMap>(support::createQmlPropertyMap());
+    auto config =
+      std::unique_ptr<QQmlPropertyMap>(support::createQmlPropertyMap());
     resource_managers::fillWithDefaults(*config, themes);
     const auto configPath = themesRoot / "profile.json";
     writeLr2SkinBytes(configPath, R"({
@@ -79,7 +83,7 @@ TEST_CASE("A chart result theme does not replace the configured course result",
     CHECK(config->value("courseResult").toString() == "Default");
 }
 
-TEST_CASE("Theme scanner canonicalizes translation locale tags",
+TEST_CASE("Theme scanner preserves source languages and canonicalizes locales",
           "[themes][translations]")
 {
     QTemporaryDir tempDir;
@@ -90,7 +94,7 @@ TEST_CASE("Theme scanner canonicalizes translation locale tags",
     writeLr2SkinBytes(themeRoot / "zh_Hant_TW.qm", QByteArray("translation"));
     writeLr2SkinBytes(themeRoot / "theme.json", QByteArray(R"({
         "scripts": { "main": "main.qml" },
-        "translations": { "zh_Hant_TW": "zh_Hant_TW.qm" }
+        "translations": { "en": "", "fr_CA": "", "zh_Hant_TW": "zh_Hant_TW.qm" }
       })"));
 
     const auto themes = resource_managers::scanThemes(themesRoot);
@@ -98,8 +102,45 @@ TEST_CASE("Theme scanner canonicalizes translation locale tags",
     REQUIRE(themes.contains(QStringLiteral("ScriptLocaleTheme")));
     const auto translations =
       themes[QStringLiteral("ScriptLocaleTheme")].getTranslations();
+    REQUIRE(translations.contains(QStringLiteral("en")));
+    CHECK(translations.value(QStringLiteral("en")).isEmpty());
+    CHECK_FALSE(translations.value(QStringLiteral("en")).isValid());
+    REQUIRE(translations.contains(QStringLiteral("fr-CA")));
+    CHECK(translations.value(QStringLiteral("fr-CA")).isEmpty());
     CHECK(translations.contains(QStringLiteral("zh-Hant-TW")));
+    CHECK(translations.value(QStringLiteral("zh-Hant-TW")).toLocalFile() ==
+          support::pathToQString(themeRoot / "zh_Hant_TW.qm"));
     CHECK_FALSE(translations.contains(QStringLiteral("zh_Hant_TW")));
+}
+
+TEST_CASE("Theme discovery isolates invalid settings and API requirements",
+          "[themes]")
+{
+    QTemporaryDir directory;
+    const auto root = makeThemesRoot(directory);
+    writeLr2SkinBytes(root / "Default" / "theme.json",
+                      R"({"scripts":{"main":"main.qml"},"apiVersion":"1.0"})");
+    writeLr2SkinBytes(
+      root / "Broken" / "theme.json",
+      R"({"scripts":{"main":"main.qml"},"settings":{"main":"settings.json"}})");
+    SECTION("missing settings items")
+    {
+        writeLr2SkinBytes(root / "Broken" / "settings.json", "{}");
+    }
+    SECTION("invalid choice default")
+    {
+        writeLr2SkinBytes(
+          root / "Broken" / "settings.json",
+          R"({"items":[{"id":"choice","name":{"en":"Choice"},"type":"choice","default":"absent","choices":[{"name":{"en":"Present"},"value":"present"}]}]})");
+    }
+    for (const auto& version : { "1.1", "2.0", "garbage", "1.0extra" }) {
+        writeLr2SkinBytes(root / version / "theme.json",
+                          QByteArray("{\"apiVersion\":\"") + version +
+                            "\",\"scripts\":{\"main\":\"main.qml\"}}");
+    }
+    const auto themes = resource_managers::scanThemes(root);
+    REQUIRE(themes.contains("Default"));
+    CHECK(themes.size() == 1);
 }
 
 TEST_CASE("LR2 skin scanner skips unsupported beatoraja keymodes",

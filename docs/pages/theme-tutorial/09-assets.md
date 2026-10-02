@@ -3,8 +3,8 @@
 [Previous](08-results.md) | [Tutorial](index.md) | [Next: Share a theme](10-shipping.md)
 
 Install `docs/examples/theme-tutorial/09-assets/` and choose it for Select.
-It extends the earlier list with a chart image, preview audio and a button
-that reveals the number of saved scores for the focused chart.
+It extends the earlier list with a chart image, an online rank
+and a button that shows saved results and timing statistics for the focused chart.
 
 [Download 09-assets](examples/theme-tutorial/09-assets.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/09-assets).
@@ -23,59 +23,124 @@ For a raw local path, use `Rg.fileQuery.localFileUrl(path)` instead of adding
 URLs. For assets inside songs, prefer the chart's source properties or
 `Rg.songAssets` so archive paths continue to work.
 
-## Start preview audio only while selection is active
+## Use the controller's preview player
 
-The controller discovers preview files and provides them by chart directory.
-The helper waits 300 milliseconds before starting a preview, which avoids
-starting audio for every row passed during quick scrolling. Charts without a
-preview file stay silent in this example.
+The controller already includes a
+[StandardSelectPreview](qml/qml-rhythmgameqml-standardselectpreview.html)
+as `preview`. It uses the focused chart and discovered preview files, and waits
+300 milliseconds before playing, so moving through the list doesn't start
+every preview. The binding inside the controller holds a pending preview
+until scrolling stops.
 
-\snippet 09-assets/Select.qml assets-state
+\snippet 09-assets/Select.qml preview
 
-\include{lineno} 09-assets/PreviewAudio.qml
+When a chart has no preview file, the player uses its chart audio without
+loading BGA. Set `preview.chartAudioEnabled: false` on the controller to use
+preview files only. A folder or course has no preview. Change
+`preview.delayMillis` or `preview.volume` to adjust the delay or volume.
 
-The timer's source follows the preview URL while the screen is enabled, and
-becomes empty when the screen is inactive. A new URL clears `delayedSource`
-and restarts the delay. The timer sets `delayedSource` when the delay ends,
-and the player loads that source through a binding.
+The controller's `backgroundMusic` uses the selection track from the active
+profile's BGM set. It stops while a preview plays and returns after 500
+milliseconds without a playing preview. The delay avoids restarting music
+between quick chart changes. Change `backgroundMusicDelayMillis` to adjust it.
+You can also change the player's `source`, `volume` and `fadeInMillis`.
 
-The delay needs a stored value because it depends on time as well as the
-current URL. The timer's source and the player's `playing` state can still
-use ordinary bindings. When selection becomes inactive, the timer stops and
-the player clears its source. The screen may remain in memory while you play, so
-destruction alone is too late to stop its audio.
+Set `preview: null` or `backgroundMusic: null` on the controller to omit either
+player. Disabling the controller stops both kinds of audio and cancels any
+preview load, since selection remains in memory during gameplay.
 
-## Cancel score requests you no longer need
+For a selector built without the controller, use StandardSelectPreview on its
+own. Supply a `selectState`, or set `chartData` and `previewSource` directly.
+Its `playing` property tells you when to stop your own background music.
 
-Score queries finish asynchronously, after the call returns. A request can
-still be pending when the reader focuses another chart or leaves selection.
-`PendingReplyGroup` groups replies so the helper can cancel the old requests
-before starting another one.
+## Read saved results without loading recordings
 
-\include{lineno} 09-assets/AsyncScores.qml
+The controller's `results` map contains saved `BmsResult` objects for charts and
+`BmsResultCourse` objects for courses. The keys are chart MD5s or course
+identifiers. Each list is ordered from newest to oldest. An unknown key has no
+list, so use `|| []` when reading it.
 
-`refresh()` first cancels pending replies and clears the displayed count. It
-then requests scores for the current MD5 when the screen is enabled.
-`getScoresForMd5()` accepts a list, so the example passes `[md5]` for one chart.
-The completion handler reads the matching entry from the returned score map.
-The group also cancels retained replies when it is destroyed.
+Results hold points, clear types, judgement counts and the settings used for a
+run. They do not hold hit events or gauge histories. The game keeps results in
+memory for each profile and updates them after saves and imports. Opening a
+folder or changing the sort order can use them straight away.
 
-The helper uses change handlers because a query creates work that must be
-cancelled when its inputs change. Its result arrives later through a callback.
-Keep ordinary display values as bindings, and use handlers where an operation
-needs to start, finish or be cancelled.
+The example passes `selection.results[screen.chartData?.md5] || []` to
+`OptionalDetails`. The binding follows the focused chart and the active profile.
+The ranking and replay controls use the same cached results.
 
-The example disables the controller's `scoresEnabled` option because the
-helper demonstrates its own score query. Ordinary selectors can use the
-controller's `scores` directly instead of adding this helper. Preview discovery
-continues to use the controller.
+For a screen without a selection controller, bind to
+`profile.scoreDb.chartResults[md5.toUpperCase()] || []` or
+`profile.scoreDb.courseResults[identifier] || []`. Both maps update bindings
+automatically after saves and imports. Result objects keep their identity for
+the lifetime of the profile, so a panel can keep its selected result when a
+new run is saved. Imports update an existing result's properties in place.
+
+If a run is removed from the database, it disappears from the maps. An already
+held result stays readable until the profile closes, but loading its full score
+will fail if that run is no longer stored.
+
+## Load a recording when you need it
+
+[ScoreDetails](qml/qml-rhythmgameqml-scoredetails.html) takes a saved result and
+loads its full score. It uses the main profile by default; set `profile` when
+showing another player's history. The example loads the latest run only while
+the details panel is open.
+
+\snippet 09-assets/OptionalDetails.qml score-details
+
+`score` is null while loading or after an error. Once ready, it is a `BmsScore`
+for a chart or a `BmsScoreCourse` for a course. Imported scores may have no
+recording or gauge history, so check those properties before using them.
+Course scores provide the individual stages in `scores` and combined
+`replayData` and `gaugeHistory` for drawing a graph across the course.
+
+Changing the result or profile cancels this component's old request. Disabling
+or destroying it also cancels the request and releases its score. Another
+component loading the same run keeps its own request. The game shares decoded
+data and keeps a limited cache for reuse.
+
+You can calculate statistics in JavaScript from the loaded events. This example
+counts early hits that removed a note. `deviation` is in nanoseconds: negative
+means early, positive means late. Choose the judgements and events that make
+sense for your display.
+
+\snippet 09-assets/OptionalDetails.qml score-statistics
+
+The normal replay and saved-result actions handle loading themselves. Pass a
+result to `selection.openResult(item, result)` to open it; themes do not need a
+separate ScoreDetails for that action.
+
+## Show the online ranking
+
+The controller's `ranking` follows the focused chart and the profile's chosen
+provider. Bind a label to its `loading`, `position` and `playerCount` properties.
+The display updates when a request finishes or the selection changes.
+
+\snippet 09-assets/Select.qml select-ranking
+
+The button and F11 both call `selection.openInternetRanking()`. Tachi needs
+to look up its chart ID before opening a link. The shared component handles
+that lookup and cancels it if you move to another chart or leave the screen.
+
+For a leaderboard, use `selection.ranking.entries` as your view's model.
+Each entry includes `userName`, `bestPoints`, `maxPoints` and `bestClearType`.
+The entries are ordered by score percentage. LR2IR also includes the active
+profile's local best score, since it cannot identify that profile's LR2 account.
+`position` is one-based, and zero means the profile has no ranking entry.
+
+[StandardRanking](qml/qml-rhythmgameqml-standardranking.html) also works on its
+own, as the [result lesson](08-results.md) shows. Override `ranking.provider`
+to use a particular provider, or set `ranking.entriesEnabled` to false when
+you only want to open links. `openInternetRankingAction` replaces the
+controller's website action, for example with a panel supplied by your theme.
 
 ## Load optional content when it is opened
 
 `OptionalDetails.qml` uses a checkable button to keep track of whether the
 details are open. The `Loader` binds `active` to the button's `checked` state
 and the screen's `enabled` state. Closing the details or leaving the screen
-destroys the label. `Connections` unchecks the button when the main profile
+destroys the panel and its ScoreDetails. `Connections` unchecks the button when the main profile
 changes.
 
 \include{lineno} 09-assets/OptionalDetails.qml
@@ -85,5 +150,5 @@ shortcuts don't automatically stop when a retained screen loses input.
 
 Browse quickly between charts, then enter gameplay while a preview is playing.
 The preview should stop, and details should show the newly focused chart's
-score count when you return. Also check a folder and a chart without an image
+score and statistics when you return. Also check a folder and a chart without an image
 or preview. Their absence should leave the list usable.

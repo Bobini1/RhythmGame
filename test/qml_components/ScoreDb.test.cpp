@@ -1,4 +1,6 @@
 #include "qml_components/ScoreDb.h"
+#include "Lr2SelectItemModel.h"
+#include "resource_managers/ChartFolderModel.h"
 #include "gameplay_logic/BmsScoreCourse.h"
 #include "resource_managers/DefineDb.h"
 #include "resource_managers/ChartDataFactory.h"
@@ -10,8 +12,11 @@
 #include <QCoreApplication>
 #include <QElapsedTimer>
 #include <QJSEngine>
+#include <QMetaEnum>
 #include <QNetworkAccessManager>
 #include <QPointer>
+#include <QQmlComponent>
+#include <QQmlEngine>
 #include <QTemporaryDir>
 #include <QThread>
 #include <catch2/catch_test_macros.hpp>
@@ -54,9 +59,10 @@ struct Scores
           &assets);
     }
 
-    void save()
+    void save(QString guid = "score-1",
+              double points = 150,
+              int64_t timestamp = 1234)
     {
-        const auto guid = QStringLiteral("score-1");
         auto result = std::make_unique<gameplay_logic::BmsResult>(
           200.0,
           100,
@@ -68,9 +74,9 @@ struct Scores
           QStringLiteral("HARD"),
           QList<int>(magic_enum::enum_count<gameplay_logic::Judgement>()),
           0,
-          150.0,
+          points,
           80,
-          1234,
+          timestamp,
           10000,
           QList<qint64>{},
           0,
@@ -89,14 +95,15 @@ struct Scores
             QList<gameplay_logic::BmsGaugeInfo>{}, guid));
         score.save(profile->getDb());
         profile->getDb().execute(
-          "INSERT INTO score_course(guid, identifier, score_guids, clear_type, "
+          "INSERT OR IGNORE INTO score_course(guid, identifier, score_guids, "
+          "clear_type, "
           "max_combo, constraints, unix_timestamp, game_version) VALUES "
           "('course-1', 'COURSE', 'score-1', 'HARD', 80, '', 1234, 0)");
     }
 };
 
 void
-waitFor(support::PendingReply* reply)
+waitFor(support::PendingReply* reply, bool success = true)
 {
     QElapsedTimer timer;
     timer.start();
@@ -105,7 +112,7 @@ waitFor(support::PendingReply* reply)
         QThread::msleep(1);
     }
     REQUIRE(reply->isResultAvailable());
-    REQUIRE(reply->isSuccessful());
+    REQUIRE(reply->isSuccessful() == success);
 }
 
 void
@@ -204,89 +211,122 @@ TEST_CASE("Folder scores include exact additional memberships",
     const auto counts = summary.value("counts").toMap();
     CHECK(counts.value("HARD").toInt() == 1);
     CHECK(counts.value("NOPLAY").toInt() == 1);
-
-    const auto scoresReply = std::unique_ptr<support::PendingReply>(
-      fixture.profile->getScoreDb()->getScores(folder));
-    waitFor(scoresReply.get());
-    const auto scores =
-      scoresReply->value().value<qml_components::ScoreQueryResult>();
-    CHECK(scores.unplayed == 1);
-    REQUIRE(scores.scores.size() == 1);
-    REQUIRE(scores.scores.contains("MD5"));
-    CHECK(scores.scores.value("MD5").toList().size() == 1);
 }
 
-TEST_CASE("QML score lists retain their payload independently of replies",
-          "[ScoreDb]")
+TEST_CASE("Cached histories update QML bindings and retain result identities",
+          "[ScoreDb][results][qml]")
 {
     Scores fixture;
-    fixture.save();
-    QJSEngine engine;
-    support::PendingReply* reply = nullptr;
-    QString key;
-    SECTION("Chart scores")
-    {
-        reply = fixture.profile->getScoreDb()->getScoresForMd5({ "MD5" });
-        key = "MD5";
-    }
-    SECTION("Course scores")
-    {
-        reply =
-          fixture.profile->getScoreDb()->getScoresForCourseId({ "COURSE" });
-        key = "COURSE";
-    }
-    engine.globalObject().setProperty("reply", engine.newQObject(reply));
-    waitFor(reply);
-    QPointer<QObject> score = reply->value()
-                                .value<qml_components::ScoreQueryResult>()
-                                .scores.value(key)
-                                .toList()
-                                .front()
-                                .value<QJSValue>()
-                                .toQObject();
-    REQUIRE(score);
-    CHECK(score->thread() == QCoreApplication::instance()->thread());
-    engine.evaluate("var kept = reply.value.scores; reply = null;");
-    delete reply;
-    collect(engine);
-    REQUIRE(score);
-    engine.globalObject().setProperty("key", key);
-    REQUIRE(engine.evaluate("kept[key][0].result.guid.length > 0").toBool());
-    engine.evaluate("var keptScore = kept[key][0]; kept = null;");
-    collect(engine);
-    REQUIRE(score);
-    engine.evaluate("keptScore = null;");
-    collect(engine);
-    CHECK(score.isNull());
-}
+    auto* db = fixture.profile->getScoreDb();
+    QQmlEngine engine;
+    QQmlComponent component(&engine);
+    component.setData(R"(
+        import QtQml
+        QtObject {
+            id: root
+            required property var profile
+            property string hash: "MD5"
+            readonly property var charts: root.profile?.scoreDb.chartResults ?? ({})
+            readonly property var courses: root.profile?.scoreDb.courseResults ?? ({})
+            readonly property var results: root.charts[root.hash] || []
+            readonly property var courseResults: root.courses["COURSE"] || []
+            readonly property int count: root.results.length
+            readonly property real points: root.results.reduce((sum, result) => sum + result.points, 0)
+            property var kept: null
+            property var keptCourse: null
+            property var keptStage: null
+            readonly property real keptPoints: root.kept?.points ?? 0
+            readonly property real coursePoints: root.keptCourse?.points ?? 0
+            readonly property real stagePoints: root.keptStage?.points ?? 0
+        }
+    )",
+                      QUrl("qrc:/CachedResultsTest.qml"));
+    INFO(component.errorString().toStdString());
+    REQUIRE(component.isReady());
+    auto object =
+      std::unique_ptr<QObject>(component.createWithInitialProperties(
+        { { "profile", QVariant::fromValue(fixture.profile.get()) } }));
+    REQUIRE(object);
+    engine.globalObject().setProperty("h", engine.newQObject(object.get()));
+    CHECK(object->property("count").toInt() == 0);
 
-TEST_CASE("Score browsing does not wait for an uncommitted score import",
-          "[ScoreDb][scheduling]")
-{
-    Scores fixture;
     fixture.save();
-    auto transaction = fixture.profile->getDb().transaction();
-    fixture.profile->getDb().execute("UPDATE score SET md5 = 'CHANGED'");
-    auto query = std::unique_ptr<support::PendingReply>(
-      fixture.profile->getScoreDb()->getScoresForMd5({ "MD5" }));
-    waitFor(query.get());
+    db->refreshResults();
+    CHECK(object->property("count").toInt() == 1);
+    CHECK(object->property("points").toDouble() == 150);
+    engine.evaluate("h.kept = h.results[0]; h.keptCourse = h.courseResults[0]; "
+                    "h.keptStage = h.keptCourse.results[0];");
+    QPointer<QObject> kept = engine.evaluate("h.kept").toQObject();
+    QPointer<QObject> keptCourse = engine.evaluate("h.keptCourse").toQObject();
+    QPointer<QObject> keptStage = engine.evaluate("h.keptStage").toQObject();
+    REQUIRE(kept);
+    REQUIRE(keptCourse);
+    REQUIRE(keptStage);
+
+    fixture.profile->getDb().execute("UPDATE score SET points = 175");
+    db->refreshResults({ "score-1" });
+    CHECK(engine
+            .evaluate(
+              "h.kept === h.results[0] && h.keptCourse === h.courseResults[0] "
+              "&& h.keptStage === h.keptCourse.results[0]")
+            .toBool());
+    CHECK(object->property("points").toDouble() == 175);
+    CHECK(object->property("keptPoints").toDouble() == 175);
+    CHECK(object->property("coursePoints").toDouble() == 175);
+    CHECK(object->property("stagePoints").toDouble() == 175);
+
+    const auto children = db->findChildren<gameplay_logic::BmsResult*>().size();
+    db->refreshResults();
+    db->refreshResults();
+    CHECK(db->findChildren<gameplay_logic::BmsResult*>().size() == children);
+    fixture.save("score-2", 190, 2000);
+    db->refreshResults({ "score-2" });
+    CHECK(object->property("count").toInt() == 2);
+    CHECK(object->property("points").toDouble() == 365);
     CHECK(
-      query->value().value<qml_components::ScoreQueryResult>().scores.contains(
-        "MD5"));
+      engine
+        .evaluate("h.results[0].guid === 'score-2' && h.results[1] === h.kept")
+        .toBool());
+
+    // Reading a cached history does not acquire a database connection.
+    auto transaction = fixture.profile->getDb().transaction();
+    fixture.profile->getDb().execute("UPDATE score SET md5 = 'NEW'");
+    CHECK(db->getChartResults().value("MD5").toList().size() == 2);
     transaction.commit();
-    query.reset(fixture.profile->getScoreDb()->getScoresForMd5({ "MD5" }));
-    waitFor(query.get());
-    CHECK(query->value()
-            .value<qml_components::ScoreQueryResult>()
-            .scores.isEmpty());
+    db->refreshResults();
+    CHECK(object->property("count").toInt() == 0);
+    object->setProperty("hash", "NEW");
+    CHECK(object->property("count").toInt() == 2);
+
+    fixture.profile->getDb().execute("DELETE FROM replay_data");
+    fixture.profile->getDb().execute("DELETE FROM gauge_history");
+    fixture.profile->getDb().execute("DELETE FROM score");
+    db->refreshResults();
+    collect(engine);
+    CHECK(object->property("count").toInt() == 0);
+    REQUIRE(kept);
+    CHECK(object->property("keptPoints").toDouble() == 175);
+    CHECK(
+      engine
+        .evaluate("!h.keptCourse.complete && h.keptCourse.results[0] === null")
+        .toBool());
+    REQUIRE(keptStage);
+    CHECK(object->property("stagePoints").toDouble() == 175);
+    fixture.profile.reset();
+    CHECK(kept.isNull());
+    CHECK(keptCourse.isNull());
+    CHECK(keptStage.isNull());
 }
 
-TEST_CASE("Unconsumed score results are reclaimed with the reply", "[ScoreDb]")
+TEST_CASE("Unconsumed full scores are reclaimed with the reply", "[ScoreDb]")
 {
     Scores fixture;
     fixture.save();
+    auto* db = fixture.profile->getScoreDb();
+    db->refreshResults();
     QJSEngine engine;
-    auto* reply = fixture.profile->getScoreDb()->getScoresForMd5({ "MD5" });
+    auto* reply = db->getScore(
+      db->getChartResults().value("MD5").toList().front().value<QObject*>());
     bool qml = false;
     SECTION("C++ caller") {}
     SECTION("QML caller")
@@ -295,13 +335,9 @@ TEST_CASE("Unconsumed score results are reclaimed with the reply", "[ScoreDb]")
         engine.globalObject().setProperty("reply", engine.newQObject(reply));
     }
     waitFor(reply);
-    auto scoreValue = reply->value()
-                        .value<qml_components::ScoreQueryResult>()
-                        .scores.value("MD5")
-                        .toList()
-                        .front();
-    QPointer<QObject> score = qml ? scoreValue.value<QJSValue>().toQObject()
-                                  : scoreValue.value<QObject*>();
+    auto scoreValue = reply->value();
+    INFO(scoreValue.typeName());
+    QPointer<QObject> score = scoreValue.value<QObject*>();
     REQUIRE(score);
     QPointer<QObject> result =
       qobject_cast<gameplay_logic::BmsScore*>(score.data())->getResult();
@@ -316,4 +352,379 @@ TEST_CASE("Unconsumed score results are reclaimed with the reply", "[ScoreDb]")
     }
     CHECK(score.isNull());
     CHECK(result.isNull());
+}
+
+TEST_CASE("Profile startup caches results without decoding recordings",
+          "[ScoreDb][results]")
+{
+    Scores fixture;
+    fixture.save();
+    fixture.profile->getDb().execute(
+      "UPDATE replay_data SET replay_data = X'00'");
+    fixture.profile.reset();
+    REQUIRE_NOTHROW(fixture.openProfile());
+    auto* db = fixture.profile->getScoreDb();
+    const auto charts = db->getChartResults();
+    REQUIRE(charts.value("MD5").toList().size() == 1);
+    CHECK(charts.value("MISSING").toList().isEmpty());
+    auto* result =
+      charts.value("MD5").toList().front().value<gameplay_logic::BmsResult*>();
+    REQUIRE(result);
+    CHECK(result->getPoints() == 150);
+    CHECK(result->isReplayAvailable());
+    CHECK(result->isGaugeHistoryAvailable());
+    CHECK_FALSE(result->isImported());
+    CHECK(result->children().isEmpty());
+
+    auto* course = db->getCourseResults()
+                     .value("COURSE")
+                     .toList()
+                     .front()
+                     .value<gameplay_logic::BmsResultCourse*>();
+    REQUIRE(course);
+    CHECK(course->getPoints() == 150);
+    CHECK(course->isReplayAvailable());
+    CHECK(course->findChildren<gameplay_logic::BmsReplayData*>().isEmpty());
+
+    // Cached lookups remain usable even when the database cannot answer them.
+    fixture.profile->getDb().execute("DROP TABLE replay_data");
+    fixture.profile->getDb().execute("DROP TABLE gauge_history");
+    fixture.profile->getDb().execute("DROP TABLE score_course");
+    fixture.profile->getDb().execute("DROP TABLE score");
+    CHECK(db->getChartResults().value("MD5").toList().size() == 1);
+    CHECK(db->getCourseResults().value("COURSE").toList().size() == 1);
+}
+
+TEST_CASE("Result refresh updates imported metadata in place and invalidates "
+          "full scores",
+          "[ScoreDb][results]")
+{
+    Scores fixture;
+    fixture.save();
+    auto* db = fixture.profile->getScoreDb();
+    db->refreshResults();
+    auto* before =
+      db->getChartResults().value("MD5").toList().front().value<QObject*>();
+    auto first = std::unique_ptr<support::PendingReply>(db->getScore(before));
+    waitFor(first.get());
+    fixture.profile->getDb().execute(
+      "UPDATE score SET md5 = 'NEW', points = 175, source = 1");
+    fixture.profile->getDb().execute("DELETE FROM replay_data");
+    fixture.profile->getDb().execute("DELETE FROM gauge_history");
+    db->refreshResults({ "score-1" });
+    CHECK(db->getChartResults().value("MD5").toList().isEmpty());
+    auto* result = db->getChartResults()
+                     .value("NEW")
+                     .toList()
+                     .front()
+                     .value<gameplay_logic::BmsResult*>();
+    REQUIRE(result);
+    CHECK(result == before);
+    CHECK(result->isImported());
+    CHECK(result->getSourceName() == "LR2");
+    CHECK_FALSE(result->isReplayAvailable());
+    auto reply = std::unique_ptr<support::PendingReply>(db->getScore(result));
+    waitFor(reply.get());
+    auto* score =
+      qobject_cast<gameplay_logic::BmsScore*>(reply->value().value<QObject*>());
+    REQUIRE(score);
+    CHECK(score->getResult()->getPoints() == 175);
+    CHECK_FALSE(score->getReplayData());
+    CHECK_FALSE(score->getGaugeHistory());
+    CHECK(
+      qobject_cast<gameplay_logic::BmsScore*>(first->value().value<QObject*>())
+        ->getResult()
+        ->getPoints() == 150);
+}
+
+TEST_CASE("Full score subscribers cancel independently and share decoded data",
+          "[ScoreDb][details]")
+{
+    Scores fixture;
+    fixture.save();
+    const auto event = gameplay_logic::HitEvent(
+      0,
+      0,
+      123,
+      gameplay_logic::BmsPoints(2, gameplay_logic::Judgement::Perfect, -20),
+      gameplay_logic::HitEvent::Action::Press,
+      true);
+    gameplay_logic::BmsReplayData replay({ event }, "score-1");
+    fixture.profile->getDb().execute("DELETE FROM replay_data");
+    replay.save(fixture.profile->getDb());
+    auto* db = fixture.profile->getScoreDb();
+    db->refreshResults();
+    auto* result =
+      db->getChartResults().value("MD5").toList().front().value<QObject*>();
+    auto cancelled =
+      std::unique_ptr<support::PendingReply>(db->getScore(result));
+    auto first = std::unique_ptr<support::PendingReply>(db->getScore(result));
+    auto second = std::unique_ptr<support::PendingReply>(db->getScore(result));
+    cancelled->cancel();
+    waitFor(first.get());
+    waitFor(second.get());
+    CHECK_FALSE(cancelled->isSuccessful());
+    auto* a =
+      qobject_cast<gameplay_logic::BmsScore*>(first->value().value<QObject*>());
+    auto* b = qobject_cast<gameplay_logic::BmsScore*>(
+      second->value().value<QObject*>());
+    REQUIRE(a);
+    REQUIRE(b);
+    REQUIRE(a != b);
+    const auto eventsA = a->getReplayData()->getHitEvents();
+    const auto eventsB = b->getReplayData()->getHitEvents();
+    REQUIRE(eventsA.size() == 1);
+    CHECK(eventsA.constData() == eventsB.constData());
+    CHECK(a->getReplayData()->getTotalEarly() ==
+          b->getReplayData()->getTotalEarly());
+
+    // A cache hit needs no second decode, even if the stored blob becomes bad.
+    fixture.profile->getDb().execute(
+      "UPDATE replay_data SET replay_data = X'00'");
+    auto cached = std::unique_ptr<support::PendingReply>(db->getScore(result));
+    waitFor(cached.get());
+    CHECK(
+      qobject_cast<gameplay_logic::BmsScore*>(cached->value().value<QObject*>())
+        ->getReplayData()
+        ->getHitEvents()
+        .constData() == eventsA.constData());
+}
+
+TEST_CASE(
+  "Course results preserve stage slots and full scores combine timelines",
+  "[ScoreDb][details][course]")
+{
+    Scores fixture;
+    fixture.save();
+    fixture.profile->getDb().execute(
+      "UPDATE score_course SET score_guids = 'score-1 score-1'");
+    const auto event = gameplay_logic::HitEvent(
+      0,
+      0,
+      123,
+      gameplay_logic::BmsPoints(2, gameplay_logic::Judgement::Perfect, -20),
+      gameplay_logic::HitEvent::Action::Press,
+      true);
+    gameplay_logic::BmsReplayData replay({ event }, "score-1");
+    fixture.profile->getDb().execute("DELETE FROM replay_data");
+    replay.save(fixture.profile->getDb());
+    gameplay_logic::BmsGaugeHistory gauges(
+      { gameplay_logic::BmsGaugeInfo{
+        100, 80, "NORMAL", false, { { 123, 50 } } } },
+      "score-1");
+    fixture.profile->getDb().execute("DELETE FROM gauge_history");
+    gauges.save(fixture.profile->getDb());
+    auto* db = fixture.profile->getScoreDb();
+    db->refreshResults();
+    auto* result = db->getCourseResults()
+                     .value("COURSE")
+                     .toList()
+                     .front()
+                     .value<gameplay_logic::BmsResultCourse*>();
+    REQUIRE(result);
+    REQUIRE(result->getResults().size() == 2);
+    CHECK(result->isComplete());
+    CHECK(result->getPoints() == 300);
+    auto reply = std::unique_ptr<support::PendingReply>(db->getScore(result));
+    waitFor(reply.get());
+    auto* score = qobject_cast<gameplay_logic::BmsScoreCourse*>(
+      reply->value().value<QObject*>());
+    REQUIRE(score);
+    REQUIRE(score->getScores().size() == 2);
+    CHECK(score->getScores()[0] != score->getScores()[1]);
+    const auto events = score->getReplayData()->getHitEvents();
+    REQUIRE(events.size() == 2);
+    CHECK(events[0].getOffsetFromStart() == 123);
+    CHECK(events[1].getOffsetFromStart() == 10123);
+    const auto history =
+      score->getGaugeHistory()->getGaugeInfo()[0].gaugeHistory;
+    REQUIRE(history.size() == 2);
+    CHECK(history[1].getOffsetFromStart() == 10123);
+    auto copy = score->clone();
+    CHECK(copy->getReplayData()->getHitEvents().constData() ==
+          events.constData());
+
+    fixture.profile->getDb().execute(
+      "UPDATE score_course SET score_guids = 'missing score-1 missing'");
+    db->refreshResults();
+    result = db->getCourseResults()
+               .value("COURSE")
+               .toList()
+               .front()
+               .value<gameplay_logic::BmsResultCourse*>();
+    REQUIRE(result->getResults().size() == 3);
+    CHECK_FALSE(result->getResults()[0]);
+    REQUIRE(result->getResults()[1]);
+    CHECK_FALSE(result->getResults()[2]);
+    CHECK_FALSE(result->isComplete());
+    CHECK_FALSE(result->isReplayAvailable());
+    CHECK(result->getUnixTimestamp() == 1234);
+    auto incomplete =
+      std::unique_ptr<support::PendingReply>(db->getScore(result));
+    waitFor(incomplete.get(), false);
+}
+
+TEST_CASE(
+  "QML can retain one loaded score after cache refresh and reply destruction",
+  "[ScoreDb][details]")
+{
+    Scores fixture;
+    fixture.save();
+    auto* db = fixture.profile->getScoreDb();
+    db->refreshResults();
+    auto* result =
+      db->getChartResults().value("MD5").toList().front().value<QObject*>();
+    QJSEngine engine;
+    auto* reply = db->getScore(result);
+    engine.globalObject().setProperty("reply", engine.newQObject(reply));
+    waitFor(reply);
+    const auto value = reply->value();
+    INFO(value.typeName());
+    QPointer<QObject> score = value.value<QObject*>();
+    REQUIRE(score);
+    engine.evaluate("var kept = reply.value; reply = null;");
+    delete reply;
+    db->refreshResults();
+    collect(engine);
+    REQUIRE(score);
+    CHECK(
+      engine.evaluate("kept.result.points === 150 && kept.replayData !== null")
+        .toBool());
+    engine.evaluate("kept = null;");
+    collect(engine);
+    CHECK(score.isNull());
+}
+
+TEST_CASE("ScoreDetails follows its inputs and recovers from a failed load",
+          "[ScoreDb][ScoreDetails][qml]")
+{
+    Scores fixture;
+    fixture.save();
+    auto* db = fixture.profile->getScoreDb();
+    db->refreshResults();
+    auto* result =
+      db->getChartResults().value("MD5").toList().front().value<QObject*>();
+    QQmlEngine engine;
+    QQmlComponent component(&engine);
+    component.setData("import RhythmGameQml\nScoreDetails { profile: null }",
+                      QUrl("qrc:/ScoreDetailsTest.qml"));
+    INFO(component.errorString().toStdString());
+    REQUIRE(component.isReady());
+    auto details =
+      std::unique_ptr<QObject>(component.createWithInitialProperties(
+        { { "profile", QVariant::fromValue(fixture.profile.get()) },
+          { "result", QVariant::fromValue(result) } }));
+    INFO(component.errorString().toStdString());
+    REQUIRE(details);
+    engine.globalObject().setProperty("details",
+                                      engine.newQObject(details.get()));
+    const auto statusEnum = details->metaObject()->enumerator(
+      details->metaObject()->indexOfEnumerator("Status"));
+    REQUIRE(statusEnum.isValid());
+    const auto awaitStatus = [&](const char* name) {
+        QElapsedTimer timer;
+        timer.start();
+        const auto expected = statusEnum.keyToValue(name);
+        REQUIRE(expected >= 0);
+        while (details->property("status").toInt() != expected &&
+               timer.elapsed() < 5000) {
+            QCoreApplication::processEvents();
+            QThread::msleep(1);
+        }
+        INFO("Expected ScoreDetails." << name);
+        REQUIRE(details->property("status").toInt() == expected);
+    };
+    engine.globalObject().setProperty("DetailsIdle",
+                                      statusEnum.keyToValue("Idle"));
+    awaitStatus("Ready");
+    CHECK(engine.evaluate("details.score.result.guid === 'score-1'").toBool());
+    details->setProperty("enabled", false);
+    CHECK(
+      engine
+        .evaluate("details.score === null && details.status === DetailsIdle")
+        .toBool());
+    details->setProperty("enabled", true);
+    awaitStatus("Ready");
+
+    // Refreshing the database reloads details even when the result keeps its
+    // identity.
+    fixture.profile->getDb().execute(
+      "UPDATE replay_data SET replay_data = X'00'");
+    db->refreshResults();
+    result =
+      db->getChartResults().value("MD5").toList().front().value<QObject*>();
+    details->setProperty("result", QVariant::fromValue(result));
+    awaitStatus("Error");
+    fixture.profile->getDb().execute("DELETE FROM replay_data");
+    gameplay_logic::BmsReplayData({}, "score-1").save(fixture.profile->getDb());
+    REQUIRE(QMetaObject::invokeMethod(details.get(), "reload"));
+    awaitStatus("Ready");
+    details->setProperty("result",
+                         QVariant::fromValue(static_cast<QObject*>(nullptr)));
+    CHECK(
+      engine
+        .evaluate("details.score === null && details.status === DetailsIdle")
+        .toBool());
+}
+
+TEST_CASE("A queued detail request observes refreshed results and tolerates "
+          "profile teardown",
+          "[ScoreDb][details]")
+{
+    Scores fixture;
+    fixture.save();
+    auto* db = fixture.profile->getScoreDb();
+    db->refreshResults();
+    auto* result =
+      db->getChartResults().value("MD5").toList().front().value<QObject*>();
+    auto reply = std::unique_ptr<support::PendingReply>(db->getScore(result));
+    fixture.profile->getDb().execute("UPDATE score SET points = 180");
+    db->refreshResults();
+    waitFor(reply.get());
+    auto* score =
+      qobject_cast<gameplay_logic::BmsScore*>(reply->value().value<QObject*>());
+    REQUIRE(score);
+    CHECK(score->getResult()->getPoints() == 180);
+
+    result =
+      db->getChartResults().value("MD5").toList().front().value<QObject*>();
+    QPointer<support::PendingReply> pending = db->getScore(result);
+    fixture.profile.reset();
+    CHECK(pending.isNull());
+    QCoreApplication::processEvents();
+    CHECK(score->getResult()->getPoints() == 180);
+}
+
+TEST_CASE("Selection sorting and LR2 summaries accept cached result objects",
+          "[ScoreDb][results][select]")
+{
+    Scores fixture;
+    fixture.save();
+    auto* db = fixture.profile->getScoreDb();
+    db->refreshResults();
+    const auto records = db->getChartResults();
+    const auto scored = QVariant::fromValue(
+      resource_managers::Entry{ .title = "Z", .md5 = "MD5" });
+    const auto unplayed = QVariant::fromValue(
+      resource_managers::Entry{ .title = "A", .md5 = "EMPTY" });
+    const QVariantList items{ unplayed, scored };
+    resource_managers::ChartFolderModel sorting;
+    sorting.setScores(records);
+    for (const auto mode : { resource_managers::SelectSortMode::ScoreRate,
+                             resource_managers::SelectSortMode::ClearLamp,
+                             resource_managers::SelectSortMode::MissCount }) {
+        sorting.setSortMode(static_cast<int>(mode));
+        const auto sorted = sorting.filterAndSort(items);
+        REQUIRE(sorted.size() == 2);
+        CHECK(sorted[0].value<resource_managers::Entry>().md5 == "MD5");
+    }
+    Lr2SelectItemModel presentation;
+    presentation.setItems(items);
+    presentation.setScoreSummariesFromScores(records);
+    CHECK(presentation
+            .data(presentation.index(1, 0), Lr2SelectItemModel::ScoreRateRole)
+            .toDouble() == 0.75);
+    CHECK(
+      presentation.data(presentation.index(1, 0), Lr2SelectItemModel::LampRole)
+        .toInt() > 0);
 }

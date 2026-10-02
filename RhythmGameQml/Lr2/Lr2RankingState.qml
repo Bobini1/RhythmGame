@@ -368,7 +368,7 @@ QtObject {
         let scoreList = root.selectContext.entryScores(targetChart);
         let bestPointsScore = root.selectContext.bestScoreByPoints(scoreList);
         let bestClearScore = root.selectContext.scoreWithBestClear(scoreList);
-        if (!bestPointsScore || !bestPointsScore.result || !bestClearScore || !bestClearScore.result) {
+        if (!bestPointsScore || !bestClearScore) {
             return null;
         }
 
@@ -377,10 +377,10 @@ QtObject {
             __lr2Local: true,
             userId: profile.onlineUserData ? profile.onlineUserData.userId : 0,
             userName: profile.vars.generalVars.name,
-            bestClearType: bestClearScore.result.clearType || "NOPLAY",
-            bestPoints: bestPointsScore.result.points || 0,
-            maxPoints: bestPointsScore.result.maxPoints || 0,
-            bestCombo: bestPointsScore.result.maxCombo || 0,
+            bestClearType: bestClearScore.clearType || "NOPLAY",
+            bestPoints: bestPointsScore.points || 0,
+            maxPoints: bestPointsScore.maxPoints || 0,
+            bestCombo: bestPointsScore.maxCombo || 0,
             bestComboBreaks: stats ? stats.badPoor : 0,
             bestPerfect: stats ? stats.pg : 0,
             bestGreat: stats ? stats.gr : 0,
@@ -492,10 +492,10 @@ QtObject {
         if (entries === undefined) {
             return root.snapshot().totalPlayCount;
         }
-        let modelCount = root.rankingModel.scoreCount || 0;
+        let modelCount = Math.max(0, root.rankingModel.scoreCount || 0);
         let total = 0;
         for (let entry of entries || []) {
-            total += entry.scoreCount || 0;
+            total += Math.max(0, entry.scoreCount || 0);
         }
         return Math.max(modelCount, total);
     }

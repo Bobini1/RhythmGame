@@ -590,6 +590,7 @@ Profile::Profile(
     stmt.bind(1, static_cast<int64_t>(support::currentVersion));
     stmt.execute();
     transaction.commit();
+    scoreDb.refreshResults();
 }
 auto
 Profile::getPath() const -> std::filesystem::path
@@ -1027,12 +1028,18 @@ Profile::importBokutachiScores() -> qml_components::ScoreSyncOperation*
                         imported,
                         gameName.toStdString());
                       QMetaObject::invokeMethod(
-                        this, [op] { op->increment(); }, Qt::QueuedConnection);
+                        this,
+                        [this, op] {
+                            scoreDb.refreshResults();
+                            op->increment();
+                        },
+                        Qt::QueuedConnection);
                   } catch (const std::exception& exception) {
                       const auto message = QString::fromUtf8(exception.what());
                       QMetaObject::invokeMethod(
                         this,
-                        [op, gameName, message] {
+                        [this, op, gameName, message] {
+                            scoreDb.refreshResults();
                             op->reportError(
                               QStringLiteral("Bokutachi %1 import failed: %2")
                                 .arg(gameName, message));
@@ -1213,7 +1220,12 @@ Profile::dispatchDownload(qml_components::ScoreSyncOperation* op,
                   score->save(db);
 
                   QMetaObject::invokeMethod(
-                    this, [op]() { op->increment(); }, Qt::QueuedConnection);
+                    this,
+                    [this, op, guid]() {
+                        scoreDb.refreshResults({ guid });
+                        op->increment();
+                    },
+                    Qt::QueuedConnection);
               } catch (const std::exception& e) {
                   spdlog::error("Error saving downloaded score {}: {}",
                                 guid.toStdString(),
@@ -1244,12 +1256,16 @@ Profile::importReplays(const QString& folderPath)
               this, songAssetStore, folderPath, operation);
             QMetaObject::invokeMethod(
               operation,
-              [operation] { operation->finish(); },
+              [this, operation] {
+                  scoreDb.refreshResults();
+                  operation->finish();
+              },
               Qt::QueuedConnection);
         } catch (const std::exception& exception) {
             QMetaObject::invokeMethod(
               operation,
-              [operation, message = QString::fromUtf8(exception.what())] {
+              [this, operation, message = QString::fromUtf8(exception.what())] {
+                  scoreDb.refreshResults();
                   operation->fail(message);
               },
               Qt::QueuedConnection);
@@ -1315,13 +1331,19 @@ Profile::importScores(const QString& databasePath)
               db, databasePath, callbacks);
             QMetaObject::invokeMethod(
               operation,
-              [operation] { operation->finish(); },
+              [this, operation] {
+                  scoreDb.refreshResults();
+                  operation->finish();
+              },
               Qt::QueuedConnection);
         } catch (const std::exception& exception) {
             const auto message = QString::fromUtf8(exception.what());
             QMetaObject::invokeMethod(
               operation,
-              [operation, message] { operation->fail(message); },
+              [this, operation, message] {
+                  scoreDb.refreshResults();
+                  operation->fail(message);
+              },
               Qt::QueuedConnection);
         }
     });

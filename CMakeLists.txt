@@ -77,7 +77,7 @@ message(STATUS "miniaudio include dirs: ${MINIAUDIO_INCLUDE_DIRS}")
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg LinguistTools QuickControls2 WebSockets REQUIRED)
+find_package(Qt6 6.10 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg LinguistTools QuickControls2 WebSockets REQUIRED)
 qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp zh_CN)
 
 # <------------ QtKeychain (storing login data) --------------->

@@ -84,6 +84,83 @@ TEST_CASE("PendingReply exposes one terminal result", "[PendingReply]")
     delete reply;
 }
 
+TEST_CASE("Owned reply values survive independent QML references",
+          "[PendingReply][ownership]")
+{
+    ensureCoreApplication();
+    QJSEngine engine;
+    support::PendingReplySource<QObject*> source(nullptr);
+    QPointer<support::PendingReply> reply = source.reply();
+    auto object = std::make_unique<QObject>();
+    object->setObjectName("retained score");
+    QPointer<QObject> result = object.get();
+
+    SECTION("reply is exposed before settlement")
+    {
+        engine.globalObject().setProperty("request", engine.newQObject(reply));
+        REQUIRE(source.succeed(std::move(object)));
+    }
+    SECTION("reply is exposed after settlement")
+    {
+        REQUIRE(source.succeed(std::move(object)));
+        CHECK(result->parent() == reply);
+        engine.globalObject().setProperty("request", engine.newQObject(reply));
+    }
+    CHECK(reply->value().value<QObject*>() == result);
+    CHECK(engine.evaluate("request.value.objectName").toString() ==
+          "retained score");
+    engine.collectGarbage();
+    CHECK(result);
+    const auto delivered = engine.evaluate(
+      "var score; request.then(value => score = value); score.objectName");
+    INFO(delivered.toString().toStdString());
+    REQUIRE_FALSE(delivered.isError());
+    CHECK(delivered.toString() == "retained score");
+    engine.evaluate("request = null;");
+    for (int i = 0; i < 3; ++i) {
+        engine.collectGarbage();
+        QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    }
+    CHECK(reply.isNull());
+    REQUIRE(result);
+    CHECK(engine.evaluate("score.objectName").toString() == "retained score");
+    engine.evaluate("score = null;");
+    for (int i = 0; i < 3; ++i) {
+        engine.collectGarbage();
+        QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    }
+    CHECK(result.isNull());
+}
+
+TEST_CASE("Unconsumed and rejected owned reply values are reclaimed",
+          "[PendingReply][ownership]")
+{
+    ensureCoreApplication();
+    support::PendingReplySource<QObject*> source(nullptr);
+    auto* reply = source.reply();
+    auto object = std::make_unique<QObject>();
+    QPointer<QObject> result = object.get();
+    SECTION("native reply owns an unconsumed result")
+    {
+        REQUIRE(source.succeed(std::move(object)));
+        CHECK(result->parent() == reply);
+        delete reply;
+    }
+    SECTION("cancellation rejects and destroys the result")
+    {
+        reply->cancel();
+        CHECK_FALSE(source.succeed(std::move(object)));
+        delete reply;
+    }
+    SECTION("a finished handler destroys the reply")
+    {
+        QObject::connect(
+          reply, &support::PendingReply::finished, [reply] { delete reply; });
+        REQUIRE(source.succeed(std::move(object)));
+    }
+    CHECK(result.isNull());
+}
+
 TEST_CASE("PendingReply accepts queued producer completion",
           "[PendingReply][async]")
 {
@@ -496,6 +573,26 @@ TEST_CASE("PendingReplyGroup owns replies through one QML lifetime",
         delete first;
         delete second;
     }
+}
+
+TEST_CASE("Late QML exposure preserves an explicitly transferred native owner",
+          "[PendingReply][ownership]")
+{
+    ensureCoreApplication();
+    QObject owner;
+    support::PendingReplySource<QObject*> source(nullptr);
+    QPointer<QObject> result = new QObject;
+    REQUIRE(source.succeed(std::unique_ptr<QObject>(result)));
+    result->setParent(&owner);
+    QJSEngine engine;
+    auto* reply = source.reply();
+    QQmlEngine::setObjectOwnership(reply, QQmlEngine::CppOwnership);
+    engine.globalObject().setProperty("request", engine.newQObject(reply));
+    REQUIRE_FALSE(engine.evaluate("request.value.objectName").isError());
+    CHECK(result->parent() == &owner);
+    delete result;
+    CHECK_FALSE(reply->value().isValid());
+    delete reply;
 }
 
 #include "PendingReply.test.moc"

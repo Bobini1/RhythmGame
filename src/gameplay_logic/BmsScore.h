@@ -107,6 +107,7 @@ class BmsScore final : public QObject
     auto getSource() const -> Source;
     auto getLongNoteMode() const -> LongNoteMode;
     auto getSourceName() const -> QString;
+    static auto sourceName(Source source) -> QString;
     auto isImported() const -> bool;
     void setSubmissionState(SubmissionState newState);
     auto getSubmissionState() const -> SubmissionState;

@@ -20,6 +20,7 @@ Rectangle {
         ? String(panel.session.roomName || qsTr("Arena")) : qsTr("Arena")
 
     signal chatSelected(bool chat)
+    signal expandedChangeRequested(bool expanded)
 
     readonly property string winnerSummary: {
         if (!panel.result || !panel.result.valid || !panel.result.finalized) {
@@ -138,7 +139,7 @@ Rectangle {
                 visible: !panel.chatOpen
 
                 Accessible.name: text
-                onClicked: panel.expanded = !panel.expanded
+                onClicked: panel.expandedChangeRequested(!panel.expanded)
             }
 
             ArenaPanelTabs {

@@ -114,6 +114,23 @@ TEST_CASE("background keyboard input is not translated to BMS actions",
       false, Qt::ApplicationInactive, false, false, false));
 }
 
+TEST_CASE("Input configuration rejects invalid game buttons",
+          "[input][configuration]")
+{
+    InputTranslatorHarness fixture;
+    for (const auto value : { -1, 1000 }) {
+        fixture.translator->setConfiguredButton(
+          QVariant::fromValue(static_cast<input::BmsKey>(value)));
+        CHECK_FALSE(fixture.translator->isConfiguring());
+        auto mappings = fixture.translator->getKeyConfig();
+        mappings.first().button = static_cast<input::BmsKey>(value);
+        fixture.translator->setKeyConfig(mappings);
+        for (const auto& mapping : fixture.translator->getKeyConfig())
+            CHECK(static_cast<int>(mapping.button) >= 0);
+        CHECK(fixture.translator->getKeyConfig().size() <= 1);
+    }
+}
+
 TEST_CASE("beatoraja analog scratch ticks use wrapped 0.009 axis quanta")
 {
     using input::InputTranslator;

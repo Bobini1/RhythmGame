@@ -253,6 +253,7 @@ class ChartData : public QObject
     Q_PROPERTY(QVariantList timingWindows READ getTimingWindows CONSTANT)
 
   public:
+    auto clone(QObject* parent = nullptr) const -> std::unique_ptr<ChartData>;
     ChartData(QString title,
               QString artist,
               QString subtitle,
@@ -336,8 +337,6 @@ class ChartData : public QObject
     [[nodiscard]] auto getTimingWindows() const -> QVariantList;
     [[nodiscard]] auto getTimingWindowsHash() const
       -> QHash<Judgement, QPair<qint64, qint64>>;
-
-    auto clone() const -> std::unique_ptr<ChartData>;
 
     struct DTO
     {

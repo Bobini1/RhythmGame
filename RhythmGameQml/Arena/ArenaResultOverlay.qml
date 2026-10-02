@@ -15,6 +15,7 @@ Rectangle {
         ? String(root.session.roomName || qsTr("Arena")) : qsTr("Arena")
 
     signal chatSelected(bool chat)
+    signal expandedChangeRequested(bool expanded)
 
     readonly property var result: root.session ? root.session.presentedResult : null
     readonly property bool resultAvailable: root.result && root.result.valid === true
@@ -142,7 +143,7 @@ Rectangle {
                 visible: !root.chatOpen
 
                 Accessible.name: text
-                onClicked: root.expanded = !root.expanded
+                onClicked: root.expandedChangeRequested(!root.expanded)
             }
 
             ArenaPanelTabs {

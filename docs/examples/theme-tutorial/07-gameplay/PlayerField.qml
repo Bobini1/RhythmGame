@@ -1,12 +1,13 @@
-pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.FluentWinUI3
 import QtQuick.Layouts
 import RhythmGameQml
 
 ColumnLayout {
     id: field
-    required property Player player
+    required property GameplayContext gameplay
+    property int playerIndex: 0
+    readonly property Player player: gameplay.players[playerIndex]
 
     // [columns]
     readonly property var columns: {
@@ -27,6 +28,20 @@ ColumnLayout {
             .arg(field.player.score.points).arg(field.player.score.combo)
         elide: Text.ElideRight
     }
+
+    // [score-target]
+    StandardGameplayTarget {
+        id: scoreTarget
+        gameplay: field.gameplay
+        playerIndex: field.playerIndex
+    }
+    Label {
+        Layout.fillWidth: true
+        visible: scoreTarget.available
+        text: qsTr("Target: %1 points").arg(Math.floor(scoreTarget.points))
+        elide: Text.ElideRight
+    }
+    // [score-target]
 
     // [visible-range]
     readonly property real visibleBeats: 6

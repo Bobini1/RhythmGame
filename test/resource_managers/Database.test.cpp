@@ -8,6 +8,9 @@
 #include "support/QStringToPath.h"
 #include "support/Version.h"
 #include "support/FolderName.h"
+#include "support/Compress.h"
+#include "qml_components/FileQuery.h"
+#include <QMetaProperty>
 
 #include <QCoreApplication>
 #include <QTemporaryDir>
@@ -376,4 +379,104 @@ TEST_CASE("BMSON with only background audio is not cataloged",
     chart.chartData->save(catalog.database);
     CHECK(catalog.database.createStatement("SELECT count(*) FROM charts")
             .executeAndGet<int>() == 0);
+}
+
+TEST_CASE(
+  "Folder reload matches native paths and local URLs at directory boundaries",
+  "[Database][RootSongFolders]")
+{
+    Catalog catalog;
+    const auto root = catalog.directory.filePath("Songs #音");
+    for (const auto& path : { root, root + "/nested" }) {
+        auto insert = catalog.database.createStatement(
+          "INSERT INTO root_dir(path, status) VALUES (?, 2)");
+        insert.bind(1, path.toStdString());
+        insert.execute();
+    }
+    qml_components::RootSongFolders folders(&catalog.database, nullptr);
+    REQUIRE(folders.containing(root + "/chart.bms"));
+    CHECK(folders.containing(root + "/chart.bms")->getName() == root);
+    CHECK(
+      folders
+        .containing(QUrl::fromLocalFile(root + "/nested/chart.bms").toString())
+        ->getName() == root + "/nested");
+    CHECK_FALSE(folders.containing(root + "-other/chart.bms"));
+#ifdef Q_OS_WIN
+    CHECK(folders.containing(root.toUpper()));
+#else
+    CHECK_FALSE(folders.containing(root.toUpper()));
+#endif
+    CHECK(qml_components::ScanningQueue::staticMetaObject.indexOfMethod(
+            "performTask()") == -1);
+}
+
+namespace {
+struct LegacyBpms
+{
+    QList<gameplay_logic::BpmChange> values;
+};
+QDataStream&
+operator<<(QDataStream& stream, const LegacyBpms& changes)
+{
+    stream << quint32(changes.values.size());
+    for (const auto& change : changes.values)
+        stream << qint64(change.time.timestamp) << change.time.position
+               << change.bpm << change.scroll;
+    return stream;
+}
+}
+
+TEST_CASE("Chart BPM persistence retains unscaled beats and reads legacy "
+          "scroll and stop data",
+          "[Database][BpmChange]")
+{
+    using namespace gameplay_logic;
+    ChartData::DTO dto{};
+    dto.randomSequence = support::compress(QList<qint64>{}).toStdString();
+    const QList<BpmChange> changes{ { { 0, 0, 0 }, 120, 1 },
+                                    { { 1'000'000'000, 2, 2 }, 120, 0 },
+                                    { { 2'000'000'000, 2, 4 }, 0, 0 },
+                                    { { 3'000'000'000, 2, 4 }, 120, 2 },
+                                    { { 4'000'000'000, 6, 6 }, 180, 2 } };
+    auto chart = ChartData::load(dto);
+    chart->getBpmChanges() = changes;
+    SECTION("New exact representation")
+    {
+        dto.bpmChanges = chart->prepareSave().bpmChanges.toStdString();
+    }
+    SECTION("Old representation reconstructs unscaled beats")
+    {
+        dto.bpmChanges = support::compress(LegacyBpms{ changes }).toStdString();
+    }
+    const auto restored = ChartData::load(dto);
+    REQUIRE(restored->getBpmChanges().size() == changes.size());
+    for (int i = 0; i < changes.size(); ++i) {
+        const auto& time = restored->getBpmChanges()[i].time;
+        CHECK(time == changes[i].time);
+        const auto property = Time::staticMetaObject.property(
+          Time::staticMetaObject.indexOfProperty("beatPosition"));
+        CHECK(property.readOnGadget(&time).toDouble() ==
+              changes[i].time.beatPosition);
+    }
+    const auto time =
+      support::decompress<Time>(support::compress(changes[2].time));
+    CHECK(time == changes[2].time);
+}
+
+TEST_CASE("Theme text defaults to UTF-8 with explicit legacy decoding",
+          "[FileQuery]")
+{
+    Catalog catalog;
+    qml_components::FileQuery query;
+    const auto filename = catalog.directory.filePath("text #音.txt");
+    QFile file(filename);
+    REQUIRE(file.open(QIODevice::WriteOnly));
+    file.write(QString::fromUtf8("日本語 ąć").toUtf8());
+    file.close();
+    CHECK(query.readTextFile(QUrl::fromLocalFile(filename).toString()) ==
+          QString::fromUtf8("日本語 ąć"));
+    REQUIRE(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    file.write(QByteArray::fromHex("93fa967b8cea"));
+    file.close();
+    CHECK(query.readTextFile(filename, "CP932") == QString::fromUtf8("日本語"));
 }

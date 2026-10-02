@@ -5,6 +5,7 @@
 #include "ScanThemes.h"
 
 #include "Languages.h"
+#include "Vars.h"
 
 #include "resource_managers/lr2_skin/Lr2ThemeScanner.h"
 #include "support/PathToQString.h"
@@ -15,6 +16,7 @@
 #include <QJsonObject>
 #include <QUrl>
 #include <QVariant>
+#include <QVersionNumber>
 #include <spdlog/spdlog.h>
 
 #include <exception>
@@ -43,6 +45,20 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                 continue;
             }
             const auto config = QJsonDocument::fromJson(file.readAll());
+            const auto requirement = config["apiVersion"].isUndefined()
+                                       ? QStringLiteral("1.0")
+                                       : config["apiVersion"].toString();
+            qsizetype suffix{};
+            const auto version =
+              QVersionNumber::fromString(requirement, &suffix);
+            if (suffix != requirement.size() || version.segmentCount() != 2 ||
+                version.majorVersion() != 1 || version.minorVersion() > 0) {
+                spdlog::error("Theme {} requires unsupported API '{}'; this "
+                              "game supports 1.0",
+                              path.string(),
+                              requirement.toStdString());
+                continue;
+            }
             const auto& scripts = config["scripts"];
             if (!scripts.isObject() || scripts.toObject().isEmpty()) {
                 continue;
@@ -72,6 +88,11 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                         path / support::qStringToPath(
                                  settingsScripts.toObject()[key].toString())))
                     : QUrl("");
+
+                if (!settingsUrl.isEmpty()) {
+                    validateThemeSettings(
+                      path, support::qStringToPath(settingsUrl.toLocalFile()));
+                }
 
                 auto screen = qml_components::Screen{
                     QUrl::fromLocalFile(support::pathToQString(
@@ -104,9 +125,10 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                        .toObject()
                        .toVariantHash()
                        .asKeyValueRange()) {
-                    auto translationPath =
-                      path / support::qStringToPath(translation.toString());
-                    if (exists(translationPath)) {
+                    const auto fileName = translation.toString();
+                    const auto translationPath =
+                      path / support::qStringToPath(fileName);
+                    if (fileName.isEmpty() || exists(translationPath)) {
                         const auto canonicalLanguage =
                           Languages::canonicalLanguageTag(language);
                         if (canonicalLanguage.isEmpty()) {
@@ -126,8 +148,10 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                         }
                         translations.insert(
                           canonicalLanguage,
-                          QUrl::fromLocalFile(
-                            support::pathToQString(translationPath)));
+                          fileName.isEmpty()
+                            ? QUrl{}
+                            : QUrl::fromLocalFile(
+                                support::pathToQString(translationPath)));
                     } else {
                         spdlog::warn(
                           "Translation file {} does not exist for theme {}",

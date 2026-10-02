@@ -22,10 +22,8 @@ RowLayout {
     CheckBox {
         id: checkBox
 
-        checked: destination[id_]
-        onCheckedChanged: {
-            destination[id_] = checked
-        }
+        checked: booleanProp.destination[booleanProp.id_]
+        onToggled: booleanProp.destination[booleanProp.id_] = checked
         Layout.fillWidth: true
         Layout.preferredWidth: 400
         Layout.minimumWidth: 200

@@ -70,8 +70,6 @@ class ArenaSession final : public QObject
                  availabilityChanged FINAL)
     Q_PROPERTY(arena::ArenaAvailabilityIndex* availability READ getAvailability
                  CONSTANT FINAL)
-    Q_PROPERTY(
-      arena::RoomPhase roomPhase READ getRoomPhase NOTIFY roundChanged FINAL)
     Q_PROPERTY(bool canSelect READ getCanSelect NOTIFY selectionChanged FINAL)
     Q_PROPERTY(bool canReady READ getCanReady NOTIFY readyChanged FINAL)
     Q_PROPERTY(bool ready READ getReady NOTIFY readyChanged FINAL)
@@ -110,8 +108,8 @@ class ArenaSession final : public QObject
                  NOTIFY competitionChanged FINAL)
     Q_PROPERTY(bool chatOpen READ chatOpen WRITE setChatOpen NOTIFY
                  chatOpenChanged FINAL)
-    Q_PROPERTY(int unreadChatCount READ unreadChatCount NOTIFY
-                 chatActivityChanged FINAL)
+    Q_PROPERTY(
+      int unreadChatCount READ unreadChatCount NOTIFY chatActivityChanged FINAL)
     Q_PROPERTY(QString latestUnreadChatDisplayName READ
                  latestUnreadChatDisplayName NOTIFY chatActivityChanged FINAL)
     Q_PROPERTY(QString latestUnreadChatText READ latestUnreadChatText NOTIFY
@@ -302,6 +300,7 @@ class ArenaSession final : public QObject
     ArenaOpponentTarget m_opponentTarget;
 
     State m_state{ State::Disconnected };
+    [[nodiscard]] auto canParticipateInSelection() const -> bool;
     bool m_active{};
     bool m_authenticated{};
     bool m_loginRequired{};

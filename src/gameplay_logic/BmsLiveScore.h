@@ -19,7 +19,7 @@
 
 namespace gameplay_logic {
 
-class JudgementCounts final : public QAbstractListModel
+class JudgementCounts : public QAbstractListModel
 {
     Q_OBJECT
 

@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.FluentWinUI3
 import QtQuick.Layouts
 import RhythmGameQml
 
@@ -11,10 +11,10 @@ Rectangle {
     readonly property Profile profile: Rg.profileList.mainProfile
     readonly property var generalVars: screen.profile.vars.generalVars
     readonly property var themeVars:
-        screen.profile.vars.themeVars["main"][screen.QmlUtils.themeName]
+        screen.profile.vars.themeVars["main"][QmlUtils.themeName]
     // [profile]
 
-    StandardMainActions { id: actions; enabled: screen.enabled }
+    StandardMainController { id: actions; enabled: screen.enabled }
 
     ColumnLayout {
         anchors.centerIn: parent
@@ -24,7 +24,7 @@ Rectangle {
         // [profile-label]
         Label {
             Layout.fillWidth: true
-            text: qsTr("Hello, %1").arg(screen.generalVars.name)
+            text: "Hello, " + screen.generalVars.name
             color: screen.themeVars.accentColor
             font.pixelSize: 32
             wrapMode: Text.Wrap
@@ -32,18 +32,18 @@ Rectangle {
         // [profile-label]
         Button {
             Layout.fillWidth: true
-            text: qsTr("Song select")
+            text: "Song select"
             focus: true
             onClicked: actions.openSelect()
         }
         Button {
             Layout.fillWidth: true
-            text: qsTr("Settings")
+            text: "Settings"
             onClicked: actions.openSettings()
         }
         Button {
             Layout.fillWidth: true
-            text: qsTr("Quit")
+            text: "Quit"
             onClicked: actions.quit()
         }
     }

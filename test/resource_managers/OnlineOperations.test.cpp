@@ -7,10 +7,13 @@
 #include "qml_components/OnlineScores.h"
 #include "qml_components/ScoreSyncOperation.h"
 #include "gameplay_logic/BmsScore.h"
+#include "gameplay_logic/BmsScoreCourse.h"
+#include "Rg.h"
 #include "support/QStringToPath.h"
 
 #include <catch2/catch_test_macros.hpp>
 #include <QCoreApplication>
+#include <QAbstractItemModelTester>
 #include <QElapsedTimer>
 #include <QFile>
 #include <QDir>
@@ -19,6 +22,8 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QPointer>
+#include <QQmlComponent>
+#include <QQmlEngine>
 #include <QScopeGuard>
 #include <QTemporaryDir>
 #include <QThread>
@@ -163,6 +168,208 @@ scoreJson(const QString& guid) -> QJsonObject
              { "replayData", QJsonArray{} },
              { "gaugeHistory", QJsonArray{} } };
 }
+}
+
+namespace {
+struct RankingHarness
+{
+    Network network;
+    qml_components::OnlineScores scores{ &network };
+    Rg rg{ nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+           nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+           nullptr, nullptr, nullptr, &scores, nullptr };
+    Rg* oldRg = Rg::instance;
+    QNetworkAccessManager* oldNetwork =
+      qml_components::OnlineRankingModel::networkManager;
+    qml_components::OnlineScores* oldScores =
+      qml_components::OnlineRankingModel::onlineScores;
+    QScopeGuard<std::function<void()>> restore{ [this] {
+        Rg::instance = oldRg;
+        qml_components::OnlineRankingModel::networkManager = oldNetwork;
+        qml_components::OnlineRankingModel::onlineScores = oldScores;
+    } };
+    std::unique_ptr<QQmlEngine> engine;
+    std::unique_ptr<QObject> object;
+    QStringList warnings;
+
+    RankingHarness()
+    {
+        ensureApplication();
+        Rg::instance = &rg;
+        qml_components::OnlineRankingModel::networkManager = &network;
+        qml_components::OnlineRankingModel::onlineScores = &scores;
+        engine = std::make_unique<QQmlEngine>();
+        QObject::connect(engine.get(),
+                         &QQmlEngine::warnings,
+                         engine.get(),
+                         [this](const QList<QQmlError>& errors) {
+                             for (const auto& error : errors)
+                                 warnings.append(error.toString());
+                         });
+        QQmlComponent component(
+          engine.get(),
+          QUrl::fromLocalFile(QString::fromUtf8(RHYTHMGAME_SOURCE_DIR) +
+                              "/test/qml/RankingHarness.qml"));
+        INFO(component.errorString().toStdString());
+        REQUIRE(component.isReady());
+        object.reset(component.create());
+        INFO(component.errorString().toStdString());
+        REQUIRE(object);
+        engine->globalObject().setProperty("h",
+                                           engine->newQObject(object.get()));
+        drain();
+    }
+
+    ~RankingHarness()
+    {
+        object.reset();
+        engine.reset();
+    }
+
+    static void drain()
+    {
+        for (int i = 0; i < 4; ++i)
+            QCoreApplication::processEvents();
+    }
+
+    void run(const QString& script, bool processEvents = true)
+    {
+        const auto result = engine->evaluate(script);
+        INFO(result.toString().toStdString());
+        REQUIRE_FALSE(result.isError());
+        if (processEvents)
+            drain();
+    }
+
+    void check(const QString& expression)
+    {
+        const auto result = engine->evaluate(expression);
+        INFO(expression.toStdString());
+        INFO(result.toString().toStdString());
+        REQUIRE_FALSE(result.isError());
+        CHECK(result.toBool());
+        INFO(warnings.join('\n').toStdString());
+        CHECK(warnings.isEmpty());
+    }
+};
+}
+
+TEST_CASE("Standard ranking opens profile links without loading a leaderboard",
+          "[StandardRanking][qml][online]")
+{
+    ensureApplication();
+    RankingHarness h;
+    h.check("h.ranking.available && h.ranking.open()");
+    h.check("h.openedUrls[0] === 'https://ranking.example/charts/chart-A'");
+    h.run("h.provider = 2;");
+    h.check("h.ranking.open() && h.openedUrls[1].endsWith('bmsmd5=chart-A')");
+    CHECK(h.network.requests.isEmpty());
+    h.run("h.ranking.url = 'https://custom.example/ranking';");
+    h.check("h.ranking.open() && h.openedUrls[2] === "
+            "'https://custom.example/ranking'");
+    h.run("h.chart = { identifier: 'course', charts: [] };");
+    h.check("!h.ranking.available && !h.ranking.open() && "
+            "h.ranking.playerCount === 0");
+    h.run("h.chart = {md5: 'chart-B'}; h.active = false;");
+    h.check("!h.ranking.open() && h.openedUrls.length === 3");
+}
+
+TEST_CASE("Standard ranking merges local LR2IR scores on select and result",
+          "[StandardRanking][qml][online]")
+{
+    ensureApplication();
+    RankingHarness h;
+    h.run(
+      "h.provider = 2; h.savedResults = {'CHART-A': [{ guid: 'old', "
+      "points: 80, maxPoints: 200, clearType: 'HARD', unixTimestamp: 100 }]}; "
+      "h.showResult = true; h.loadEntries = true;");
+    REQUIRE_FALSE(h.network.requests.isEmpty());
+    h.network.requests.back()->complete(
+      R"({"chart":{},"leaderboard":[{"player_id":1,"score":200,"score_max":200,"clear_type":"HARD"},{"player_id":2,"score":100,"score_max":200,"clear":"NORMAL"}],"total_pages":1})");
+    h.drain();
+    h.check("h.ranking.playerCount === 3 && h.ranking.position === 2 && "
+            "h.ranking.previousPosition === 3");
+    h.check("h.ranking.entries[1].bestPoints === 180 && "
+            "h.ranking.entries[1].bestClearType === 'HARD'");
+    h.run("h.showResult = false; h.savedResults = {};");
+    h.check("h.ranking.playerCount === 2 && h.ranking.position === 0 && "
+            "h.ranking.previousPosition === 0");
+    h.run("h.savedResults = {'CHART-A': [{guid:'saved', points:175, "
+          "maxPoints:200, clearType:'HARD'}]};");
+    h.check("h.ranking.position === 2 && !h.ranking.loading");
+    h.run("h.savedResults = {'CHART-A': [{guid:'saved', points:50, "
+          "maxPoints:200, clearType:'HARD'}]};");
+    h.check("h.ranking.position === 3 && !h.ranking.loading");
+    h.run("h.provider = 0;");
+    h.check("h.ranking.bestPointsResult.guid === 'saved' && "
+            "h.ranking.bestClearTypeResult.guid === 'saved'");
+}
+
+TEST_CASE(
+  "Standard result ranking tracks the earlier score and submission refresh",
+  "[StandardRanking][qml][online]")
+{
+    ensureApplication();
+    RankingHarness h;
+    h.run("h.loadEntries = true; h.showResult = true;");
+    REQUIRE(h.network.requests.size() == 2);
+    auto history = h.network.requests.back();
+    CHECK(history->url().query().contains("date_lte=199"));
+    history->complete(R"([{"userId":42,"bestPoints":80,"maxPoints":200}])");
+    h.network.requests.front()->complete(
+      R"([{"userId":1,"bestPoints":200},{"userId":42,"bestPoints":180},{"userId":2,"bestPoints":100}])");
+    h.drain();
+    h.check("h.ranking.position === 2 && h.ranking.previousPosition === 3 && "
+            "!h.ranking.loading");
+    CHECK(h.network.requests.size() == 2);
+    h.run("h.resultScore.submissionState = 1;");
+    CHECK(h.network.requests.size() == 4);
+    h.run("h.active = false;");
+    h.check("h.ranking.playerCount === 0 && !h.ranking.loading");
+    CHECK(h.network.requests[2]->aborted);
+    CHECK(h.network.requests[3]->aborted);
+}
+
+TEST_CASE("Standard ranking resolves a Tachi link without fetching scores",
+          "[StandardRanking][qml][online]")
+{
+    ensureApplication();
+    RankingHarness h;
+    h.run("h.provider = 1; h.ranking.open(); h.ranking.open();");
+    REQUIRE(h.network.requests.size() == 1);
+    h.check("h.ranking.opening");
+    h.network.requests.back()->complete("{}",
+                                        QNetworkReply::ContentNotFoundError);
+    REQUIRE(h.network.requests.size() == 2);
+    CHECK(h.network.requests.back()->url().path().contains("bms-14k"));
+    h.network.requests.back()->complete(
+      R"({"body":{"chart":{"chartID":"42","data":{"notecount":100}}}})");
+    h.drain();
+    h.check(
+      "!h.ranking.opening && h.openedUrls.length === 1 && h.openedUrls[0] === "
+      "'https://boku.tachi.ac/games/bms-14k/charts/42'");
+    CHECK(h.network.requests.size() == 2);
+}
+
+TEST_CASE("Standard ranking cancels a pending open when its selection changes",
+          "[StandardRanking][qml][online]")
+{
+    ensureApplication();
+    RankingHarness h;
+    h.run("h.provider = 1; h.ranking.open();");
+    REQUIRE_FALSE(h.network.requests.isEmpty());
+    auto old = h.network.requests.back();
+    h.run("h.chart = {md5: 'chart-B'};", false);
+    REQUIRE(old);
+    CHECK(old->aborted);
+    old->complete(R"({"body":{"chart":{"chartID":"old","data":{}}}})");
+    h.drain();
+    h.check(
+      "h.openedUrls.length === 0 && h.failures === 0 && !h.ranking.opening");
+    h.run("h.ranking.open(); h.active = false;", false);
+    CHECK(h.network.requests.back()->aborted);
+    h.drain();
+    h.check("h.openedUrls.length === 0 && h.failures === 0");
 }
 
 TEST_CASE("Account replies cannot revive a logged out or replaced session",
@@ -430,12 +637,25 @@ TEST_CASE(
           1);
     network.requests.back()->complete(
       R"({"body":{"chart":{"chartID":"42","data":{"notecount":1}}}})");
+    CHECK(model->getChartId() == "42");
+    CHECK(model->getGameId() == "bms-7k");
     auto firstPage = network.requests.back();
     REQUIRE(firstPage->parent() == model.get());
-    firstPage->complete(R"({"body":{"pbs":[{}],"users":[]}})");
+    QJsonArray page;
+    for (int i = 0; i < 100; ++i)
+        page.append(QJsonObject{});
+    firstPage->complete(
+      QJsonDocument(QJsonObject{ { "body",
+                                   QJsonObject{ { "pbs", page },
+                                                { "users", QJsonArray{} } } } })
+        .toJson());
     auto nextPage = network.requests.back();
     REQUIRE(nextPage != firstPage);
     CHECK(nextPage->parent() == model.get());
+    model->setMd5("next-chart");
+    CHECK(model->getChartId().isEmpty());
+    CHECK(model->getGameId().isEmpty());
+    CHECK(nextPage->aborted);
     model.reset();
     CHECK(nextPage.isNull());
 }
@@ -464,6 +684,7 @@ TEST_CASE("Leaderboard ignores stale completions and owns paginated replies",
     REQUIRE(network.requests.size() == 3);
     network.requests[2]->complete(R"({"chart":{},"leaderboard":[{}]})");
     CHECK(model->rowCount() == 2);
+    CHECK(model->getScoreCount() == -1);
     CHECK_FALSE(model->isLoading());
     model->refresh();
     auto pending = network.requests.back();
@@ -512,4 +733,156 @@ TEST_CASE("Profile destruction flushes delayed settings changes",
           QString::number(i));
     fixture.profile.reset();
     CHECK(resource_managers::readJsonConfig(path)["name"].toString() == "99");
+}
+
+TEST_CASE("Leaderboard filters and paging expose a consistent model",
+          "[OnlineRanking]")
+{
+    ensureApplication();
+    using Model = qml_components::OnlineRankingModel;
+    Network network;
+    auto* previous = Model::networkManager;
+    Model::networkManager = &network;
+    const auto restore = qScopeGuard([&] { Model::networkManager = previous; });
+    Model model;
+    QAbstractItemModelTester modelTester(
+      &model, QAbstractItemModelTester::FailureReportingMode::Fatal);
+    model.setProvider(Model::Provider::LR2IR);
+    model.setLimit(1);
+    model.setOffset(1);
+    model.setMissCountLte(0);
+    model.setSortBy(Model::SortableColumn::Combo);
+    model.setSortDir(Model::SortDirection::Desc);
+    int resets = 0;
+    QObject::connect(&model, &QAbstractItemModel::modelReset, [&] {
+        ++resets;
+        CHECK((model.rowCount() <= model.getLimit() || model.getLimit() == 0));
+        for (int row = 0; row < model.rowCount(); ++row)
+            CHECK(model.data(model.index(row), Model::UserNameRole).isValid());
+    });
+    QObject::connect(&model, &QAbstractItemModel::rowsInserted, [&] {
+        FAIL("Pagination must reset its filtered slice");
+    });
+    model.setMd5("chart");
+    network.requests.back()->complete(
+      R"({"chart":{"play_people":3,"play_count":12,"hard_count":3},"total_pages":2,"leaderboard":[{"player_id":1,"player_name":"A","combo":5,"bad_poor":0,"score":10,"score_max":20,"clear_type":"HARD"}]})");
+    CHECK(model.rowCount() == 0);
+    network.requests.back()->complete(
+      R"({"chart":{},"leaderboard":[{"player_id":2,"player_name":"B","combo":10,"bad_poor":0,"score":20,"score_max":20,"clear_type":"HARD"},{"player_id":3,"player_name":"C","combo":15,"bad_poor":1,"score":30,"score_max":40,"clear_type":"HARD"}]})");
+    REQUIRE_FALSE(model.isLoading());
+    CHECK(model.rowCount() == 1);
+    CHECK(model.data(model.index(0), Model::UserNameRole).toString() == "A");
+    CHECK(model.getRankingEntries().size() == 2);
+    CHECK(model.getPlayerCount() == 3);
+    CHECK(model.getScoreCount() == 12);
+    CHECK(model.getClearCounts().value("HARD").toInt() == 2);
+    model.setOffset(20);
+    CHECK(model.rowCount() == 0);
+    model.setOffset(0);
+    model.setLimit(0);
+    CHECK(model.rowCount() == 2);
+    CHECK(resets >= 4);
+}
+
+TEST_CASE(
+  "Leaderboard totals remain unavailable when any player count is missing",
+  "[OnlineRanking]")
+{
+    ensureApplication();
+    using Model = qml_components::OnlineRankingModel;
+    Network network;
+    auto* previous = Model::networkManager;
+    Model::networkManager = &network;
+    const auto restore = qScopeGuard([&] { Model::networkManager = previous; });
+    for (bool unavailable : { false, true }) {
+        Model model;
+        model.setWebApiUrl("https://example.test/api/");
+        const auto previousRequests = network.requests.size();
+        model.setMd5("chart");
+        REQUIRE(network.requests.size() == previousRequests + 1);
+        network.requests.back()->complete(
+          unavailable
+            ? R"([{"userId":1,"scoreCount":3},{"userId":2}])"
+            : R"([{"userId":1,"scoreCount":3},{"userId":2,"scoreCount":0}])");
+        CHECK_FALSE(model.isLoading());
+        CHECK(model.getPlayerCount() == 2);
+        CHECK(model.getScoreCount() == (unavailable ? -1 : 3));
+    }
+}
+
+TEST_CASE("Tachi applies filters even with provider ordering and keeps "
+          "unavailable counts distinct",
+          "[OnlineRanking]")
+{
+    ensureApplication();
+    using Model = qml_components::OnlineRankingModel;
+    Network network;
+    qml_components::OnlineScores scores(&network);
+    auto* oldNetwork = Model::networkManager;
+    auto* oldScores = Model::onlineScores;
+    Model::networkManager = &network;
+    Model::onlineScores = &scores;
+    const auto restore = qScopeGuard([&] {
+        Model::networkManager = oldNetwork;
+        Model::onlineScores = oldScores;
+    });
+    Model model;
+    QAbstractItemModelTester modelTester(
+      &model, QAbstractItemModelTester::FailureReportingMode::Fatal);
+    model.setProvider(Model::Provider::Tachi);
+    model.setComboLte(0);
+    model.setLimit(1);
+    model.setMd5("chart");
+    network.requests.back()->complete(
+      R"({"body":{"chart":{"chartID":"42","data":{"notecount":10}}}})");
+    network.requests.back()->complete(
+      R"({"body":{"pbs":[{"userID":1,"scoreData":{"score":20,"optional":{"maxCombo":10}}},{"userID":2,"scoreData":{"score":0,"optional":{"maxCombo":0}}}],"users":[{"id":1,"username":"A"},{"id":2,"username":"B"}]}})");
+    REQUIRE_FALSE(model.isLoading());
+    REQUIRE(model.rowCount() == 1);
+    CHECK(model.data(model.index(0), Model::UserNameRole).toString() == "B");
+    CHECK(model.getPlayerCount() == 2);
+    CHECK(model.getScoreCount() == -1);
+    CHECK(model.data(model.index(0), Model::ScoreCountRole).toInt() == -1);
+}
+
+TEST_CASE(
+  "Bokutachi imports refresh cached results before reporting completion",
+  "[Profile][ScoreDb][OnlineOperations]")
+{
+    ensureApplication();
+    ProfileFixture fixture;
+    resource_managers::ProfileTestAccess::signIn(*fixture.profile);
+    resource_managers::ProfileTestAccess::fetchTachi(*fixture.profile);
+    fixture.network.requests.back()->complete(
+      R"({"success":true,"body":{"username":"Test"}})");
+    auto components = resource_managers::ChartDataFactory{}.loadChartData(
+      "#TITLE Imported\n#BPM 120\n#00111:01\n", "imported.bms", [](auto) {
+          return 1;
+      });
+    components.chartData->save(fixture.songs);
+    const auto md5 = components.chartData->getMd5();
+    const auto sha256 = components.chartData->getSha256();
+    auto* scores = fixture.profile->getScoreDb();
+    CHECK(scores->getChartResults().value(md5).toList().isEmpty());
+    const auto firstRequest = fixture.network.requests.size();
+    auto* operation = fixture.profile->importBokutachiScores();
+    REQUIRE_FALSE(operation->isFinished());
+    REQUIRE(fixture.network.requests.size() == firstRequest + 2);
+    bool completed = false;
+    QObject::connect(
+      operation, &qml_components::ScoreSyncOperation::finishedChanged, [&] {
+          if (operation->isFinished()) {
+              completed = true;
+              CHECK(scores->getChartResults().value(md5).toList().size() == 1);
+          }
+      });
+    auto payload = QByteArray(
+      R"({"body":{"charts":[{"chartID":"chart","data":{"hashMD5":"%MD5%","hashSHA256":"%SHA%"}}],"pbs":[{"game":"bms-7k","chartID":"chart","timeAchieved":1234000,"scoreData":{"enumIndexes":{"lamp":7},"score":2,"judgements":{"pgreat":1,"great":0,"good":0,"bad":0,"poor":0},"optional":{"maxCombo":1}}}]}})");
+    payload.replace("%MD5%", md5.toUtf8()).replace("%SHA%", sha256.toUtf8());
+    fixture.network.requests[firstRequest]->complete(payload);
+    fixture.network.requests[firstRequest + 1]->complete(
+      R"({"body":{"charts":[],"pbs":[]}})");
+    REQUIRE(waitUntil([&] { return operation->isFinished(); }));
+    CHECK(completed);
+    CHECK(scores->getChartResults().value(md5).toList().size() == 1);
 }

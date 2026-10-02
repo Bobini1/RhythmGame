@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/master/schemas/themeSettings.json",
+  "items": [
+    {
+      "id": "accentColor",
+      "name": {
+        "en": "Accent color",
+        "pl": "Kolor wyróżnienia"
+      },
+      "description": {
+        "en": "The color of the greeting on the main menu.",
+        "pl": "Kolor powitania w menu głównym."
+      },
+      "type": "color",
+      "default": "#a8dcc9"
+    }
+  ]
+}

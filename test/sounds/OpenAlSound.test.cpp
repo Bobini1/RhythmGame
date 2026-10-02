@@ -14,6 +14,8 @@
 #include <QByteArray>
 #include <QFile>
 #include <QScopeGuard>
+#include <QTemporaryDir>
+#include <QUrl>
 #include <latch>
 #include <thread>
 
@@ -134,4 +136,35 @@ TEST_CASE("AudioPlayer distinguishes playback intent from a loaded sound",
         CHECK(player.property("loaded").toBool());
     }
     sounds::AudioPlayer::engine = nullptr;
+}
+
+TEST_CASE("AudioPlayer accepts local URLs and clears playback on source reset",
+          "[sounds][AudioPlayer]")
+{
+    qputenv("RHYTHMGAME_AUDIO_BACKEND", "Null");
+    sounds::AudioEngine engine;
+    auto* previous = sounds::AudioPlayer::engine;
+    sounds::AudioPlayer::engine = &engine;
+    const auto restore =
+      qScopeGuard([&] { sounds::AudioPlayer::engine = previous; });
+    QTemporaryDir directory;
+    const auto source = findTestAssetsFolder() / "supportedSoundFormats" /
+                        "audiocheck.net_sin_1000Hz_-3dBFS_0.2s_44.1k.ogg";
+    const auto path = directory.filePath(QString::fromUtf8("sound #音.ogg"));
+    REQUIRE(QFile::copy(support::pathToQString(source), path));
+    sounds::AudioPlayer player;
+    for (const bool reset : { false, true }) {
+        player.setSource(QUrl::fromLocalFile(path).toString());
+        REQUIRE(player.property("loaded").toBool());
+        CHECK(player.getLength() > 0);
+        player.play();
+        REQUIRE(player.isPlaying());
+        if (reset)
+            player.resetSource();
+        else
+            player.setSource({});
+        CHECK_FALSE(player.isPlaying());
+        CHECK_FALSE(player.property("loaded").toBool());
+        CHECK(player.getLength() == 0);
+    }
 }

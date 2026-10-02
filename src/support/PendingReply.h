@@ -4,6 +4,7 @@
 #include <QCoreApplication>
 #include <QJSValue>
 #include <QObject>
+#include <QPointer>
 #include <QThread>
 #include <QVariant>
 
@@ -30,8 +31,7 @@ inline void
 assertApplicationThread()
 {
     const auto* application = QCoreApplication::instance();
-    Q_ASSERT(!application ||
-             QThread::currentThread() == application->thread());
+    Q_ASSERT(!application || QThread::currentThread() == application->thread());
 }
 
 } // namespace detail
@@ -67,7 +67,8 @@ class PendingReply final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool valid READ isValid CONSTANT FINAL)
-    Q_PROPERTY(bool resultAvailable READ isResultAvailable NOTIFY finished FINAL)
+    Q_PROPERTY(
+      bool resultAvailable READ isResultAvailable NOTIFY finished FINAL)
     Q_PROPERTY(bool success READ isSuccessful NOTIFY finished FINAL)
     Q_PROPERTY(QVariant value READ value NOTIFY finished FINAL)
 
@@ -142,12 +143,16 @@ class PendingReply final : public QObject
     explicit PendingReply(std::shared_ptr<detail::PendingReplyState> state,
                           QObject* parent);
     bool settle(bool success, QVariant value, bool requestCancellation);
+    bool settleOwned(QVariant value, std::unique_ptr<QObject> object);
+    void retainOwnedResult() const;
     QJSValue takeCallback();
     void invokeCallback(QJSValue callback);
     void releaseToQml();
 
     std::shared_ptr<detail::PendingReplyState> state;
     QVariant result;
+    QPointer<QObject> ownedResult;
+    mutable QJSValue resultAnchor;
     QJSValue successCallback;
     QJSValue failedCallback;
     bool resultAvailable = {};
@@ -226,6 +231,24 @@ class PendingReplySource
               true, QVariant::fromValue(value), false);
     }
 
+    /** Transfers an independent QObject result. A QML caller can retain either
+     * the reply or the value. A native caller borrows it from the reply, or
+     * gives it another QObject parent before deleting the reply. Rejected
+     * deliveries are destroyed here. */
+    template<typename Object>
+        requires std::is_base_of_v<QObject, Object> &&
+                 (std::is_same_v<T, QVariant> ||
+                  std::is_convertible_v<Object*, T>)
+    [[nodiscard]] bool succeed(std::unique_ptr<Object> object) const
+    {
+        detail::assertApplicationThread();
+        auto* pendingReply = state->reply;
+        if (!pendingReply)
+            return false;
+        auto value = QVariant::fromValue(object.get());
+        return pendingReply->settleOwned(std::move(value), std::move(object));
+    }
+
     /**
      * @brief Attempts to settle the reply as a failure without requesting
      * cancellation.
@@ -237,8 +260,7 @@ class PendingReplySource
     {
         detail::assertApplicationThread();
         auto* pendingReply = state->reply;
-        return pendingReply &&
-               pendingReply->settle(false, QVariant{}, false);
+        return pendingReply && pendingReply->settle(false, QVariant{}, false);
     }
 
     /**

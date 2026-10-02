@@ -29,7 +29,7 @@ Item {
     readonly property Profile profile2: profiles[1] || null
     readonly property bool isBattle: score1 && score2
     readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.result || {})[QmlUtils.themeName] || ({})
-    readonly property var chartKeymode: chartData ? chartData.keymode : chartDatas[0].keymode
+    readonly property var chartKeymode: root.score1.result.keymode
 
     ThemeFont {
         id: resultStatsFont
@@ -252,6 +252,7 @@ Item {
                 spacing: 10
                 width: parent.width
                 chartDatas: root.chartDatas
+                chartIds: root.course ? root.course.chartIds : []
             }
         }
 
@@ -264,12 +265,10 @@ Item {
                 && arenaResultOverlay.overlayVisible
             minimumPixelSize: Qt.size(360, 240)
             themeVars: root.themeVars
-            viewport: resultBackground
+
             z: 20
 
             panelComponent: ArenaResultPanel {
-                id: arenaResultPanel
-
                 anchors.fill: parent
                 localMemberId: String(Rg.arenaSession.selfMemberId || "")
                 result: root.arenaResult
@@ -281,10 +280,7 @@ Item {
                 onChatSelected: chat => {
                     arenaResultOverlay.setChatSelected(chat);
                 }
-                onExpandedChanged: {
-                    arenaResultOverlay.setExpanded(
-                                arenaResultPanel.expanded);
-                }
+                onExpandedChangeRequested: expanded => arenaResultOverlay.setExpanded(expanded)
             }
         }
     }

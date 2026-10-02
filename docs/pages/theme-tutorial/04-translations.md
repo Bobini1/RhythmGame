@@ -12,15 +12,21 @@ try it before installing any translation tools.
 
 ## Mark text in QML
 
-`qsTr()` marks a literal string for translation. `%1` is replaced with the
-profile name after translation, so the name itself isn't translated.
+The earlier examples use plain English strings. To make them translatable,
+wrap each string shown to the player in `qsTr()`. The Song select button now
+contains:
+
+\snippet 04-translations/main.qml translated-text
+
+`qsTr()` looks up the translation for the selected language. If none is
+available, it returns the original text.
+
+For the greeting, keep the whole phrase inside `qsTr()` and put `%1` where the
+profile name belongs. `.arg()` replaces `%1` after translation, so the name
+itself isn't translated. A translator can move `%1` to the right place for
+their language.
 
 \snippet 04-translations/main.qml profile-label
-
-Qt groups translations by context. For `qsTr()` the default context is the
-QML file's name without `.qml`, which is `main` here. The context in the
-translation file must match. If you rename a QML file, update its translations
-as well. A shared component can set a fixed context with `pragma Translator`.
 
 ## Include the translation files
 

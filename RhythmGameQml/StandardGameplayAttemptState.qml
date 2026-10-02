@@ -27,50 +27,44 @@ Item {
 
         property bool attempted: false
 
-        function hitCountsAsPlayed(tap) {
-            let judgement = tap?.points?.judgement;
-            return judgement !== undefined
-                && judgement !== Judgement.Poor
-                && judgement !== Judgement.EmptyPoor
-                && judgement !== Judgement.MineHit
-                && judgement !== Judgement.MineAvoided;
+        function reset() {
+            attemptState.attempted = false;
+        }
+
+        function observeHit(tap) {
+            const judgement = tap?.points?.judgement;
+            if (judgement !== undefined
+                    && judgement !== Judgement.Poor
+                    && judgement !== Judgement.EmptyPoor
+                    && judgement !== Judgement.MineHit
+                    && judgement !== Judgement.MineAvoided) {
+                attemptState.attempted = true;
+            }
         }
     }
 
-    /*! Clears the attempted state. */
-    function reset() {
-        attemptState.attempted = false;
-    }
-
-    /*! Updates \l attempted from \a tap. */
-    function observeHit(tap) {
-        if (attemptState.hitCountsAsPlayed(tap)) {
-            attemptState.attempted = true;
-        }
-    }
-
-    onGameplayChanged: reset()
+    onGameplayChanged: attemptState.reset()
 
     Connections {
         target: root.gameplay?.players[0]?.score || null
         function onHit(tap) {
-            root.observeHit(tap);
+            attemptState.observeHit(tap);
         }
     }
 
     Connections {
         target: root.gameplay?.players[1]?.score || null
         function onHit(tap) {
-            root.observeHit(tap);
+            attemptState.observeHit(tap);
         }
     }
 
     Connections {
         target: root.gameplay
-        function onStageChanged() { root.reset(); }
+        function onStageChanged() { attemptState.reset(); }
         function onStatusChanged() {
             if (root.gameplay.status === ChartRunner.Ready) {
-                root.reset();
+                attemptState.reset();
             }
         }
     }

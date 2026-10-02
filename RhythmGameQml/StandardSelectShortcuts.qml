@@ -17,7 +17,8 @@ import QtQuick
         \row \li F3
              \li Use \l openSelectedFolderAction if set. Otherwise ask the state
                  to open the folder, then emit \l openSelectedFolderRequested if unhandled.
-        \row \li F11 \li Emit \l openInternetRankingRequested for the theme's ranking view.
+        \row \li F11 \li Use \l openInternetRankingAction if set, otherwise emit
+             \l openInternetRankingRequested.
         \row \li F12 \li Use \l openSettingsAction if set, otherwise open Settings.
     \endtable
 
@@ -33,6 +34,8 @@ Item {
     property var reloadAction: null
     /*! Calls \c openSelectedFolderAction() in place of F3. */
     property var openSelectedFolderAction: null
+    /*! Calls openInternetRankingAction() in place of the F11 request signal. */
+    property var openInternetRankingAction: null
     /*! Calls \c openSettingsAction() in place of F12. */
     property var openSettingsAction: null
     /*! Standard selection state used by the built-in F2 and F3 implementations. */
@@ -77,6 +80,8 @@ Item {
         function openSettings() {
             if (typeof root.openSettingsAction === "function") {
                 root.openSettingsAction();
+            } else if (root.selectState) {
+                root.selectState.openSettings();
             } else {
                 globalRoot.openSettings();
             }
@@ -101,7 +106,13 @@ Item {
         autoRepeat: false
         enabled: root.enabled && root.openInternetRankingEnabled
         sequence: "F11"
-        onActivated: root.openInternetRankingRequested()
+        onActivated: {
+            if (typeof root.openInternetRankingAction === "function") {
+                root.openInternetRankingAction();
+            } else {
+                root.openInternetRankingRequested();
+            }
+        }
     }
 
     Shortcut {

@@ -122,6 +122,11 @@ TEST_CASE("ArenaSession ProfileList silently enforces the generic battle gate",
     auto* secondProfile = profiles.createProfile();
     REQUIRE(secondProfile != nullptr);
     REQUIRE(profiles.getProfiles().size() >= 2);
+    CHECK(profiles.at(-1) == nullptr);
+    CHECK(profiles.at(1000) == nullptr);
+    const auto count = profiles.getProfiles().size();
+    profiles.removeProfile(nullptr);
+    CHECK(profiles.getProfiles().size() == count);
     profiles.getBattleProfiles()->setPlayer1Profile(profiles.getProfiles()[0]);
     profiles.getBattleProfiles()->setPlayer2Profile(secondProfile);
     profiles.setBattleActive(true);

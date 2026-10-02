@@ -1,4 +1,9 @@
 /*!
+    \externalpage ../theme_tutorial_select.html#theme_tutorial_select_entry_types
+    \title Song selection entry types
+*/
+
+/*!
     \qmlmodule RhythmGameQml
     \title RhythmGame QML types
     \brief Provides game data and optional behavior for themes.
@@ -21,7 +26,7 @@
 
     \table
         \header \li Screen \li Component \li What the theme draws
-        \row \li Main menu \li \l StandardMainActions \li Buttons, labels and images
+        \row \li Main menu \li \l StandardMainController \li Buttons, labels and images
         \row \li Multiplayer \li \l StandardMultiplayerFlow \li Room list and room controls
         \row \li Song selection \li \l StandardSelectController \li List or wheel and focus movement
         \row \li Decide \li \l StandardDecideFlow \li Chart or course details
@@ -67,8 +72,8 @@
     \table
         \header \li Component \li Responsibility
         \row \li \l StandardSelectState \li Browsing, focus, sorting, filtering and activation
-        \row \li \l StandardSelectSession \li Folder loading, history storage and score replies
-        \row \li \l StandardSelectActions \li Chart and course activation, saved results, leaving selection and Arena ready input
+        \row \li \l StandardSelectSession \li Folder loading, history storage and cached result lists
+        \row \li \l StandardSelectActions \li Chart and course activation, saved results and leaving selection
         \row \li \l StandardSelectModelAdapter \li Repeated entries for a circular view
         \row \li \l StandardSelectNavigation \li Directional keys and scratch movement
         \row \li \l StandardSelectInput \li Navigation plus activation, replay, autoplay and back actions
@@ -76,6 +81,55 @@
         \row \li \l StandardSelectReload \li Table reload and root folder scans
         \row \li \l PendingReplyGroup \li Cancellation for a group of asynchronous replies
     \endtable
+
+    \section1 Load saved score details
+
+    Selection's results map contains BmsResult and BmsResultCourse objects from
+    the profile's memory cache. These results contain points and settings,
+    without recordings or gauge histories. Profile::scoreDb also exposes
+    chartResults and courseResults maps for other screens. Bind to a chart MD5
+    or course identifier in the appropriate map. Saves and imports update these
+    bindings automatically. Result objects keep their identity for the lifetime
+    of the profile, and imported changes update their properties in place.
+
+    \l ScoreDetails takes a result and profile and loads one full score.
+    Bind enabled to the screen or panel that needs it. The component cancels
+    obsolete requests and exposes score, status and loading. Course scores
+    retain combined events and gauges as well as their individual stage scores.
+    Themes can calculate statistics in JavaScript from the loaded events.
+
+    \section1 Add online rankings
+
+    StandardSelectController includes \l StandardRanking as its \c ranking
+    property. It follows the focused chart and profile. The controller's
+    \c openInternetRanking() method and F11 open the selected provider's website.
+
+    Use StandardRanking directly on results or other screens. Supply the chart
+    and profile, and a score when showing a result. Themes draw the entries and
+    positions; the shared component handles queries, provider settings, local
+    LR2IR scores and website links. Course summaries have no online ranking.
+
+    \section1 Play menu music and previews
+
+    \l StandardMainController includes main-menu actions and background music.
+    StandardSelectController includes \l StandardSelectPreview as \c preview
+    and an AudioPlayer as \c backgroundMusic. The music stops while a preview
+    plays. Both controllers stop their music when disabled.
+
+    Customize the players' properties, or set either property to null to omit
+    that player. Bind \c preview.moving to a list's movement state. Set
+    \c preview.chartAudioEnabled to false to use preview files only.
+
+    For a custom selector, StandardSelectPreview also works on its own with a
+    \c selectState, or explicit \c chartData and \c previewSource properties.
+    \l StandardMainActions provides menu actions without music.
+
+    \section1 Show score targets
+
+    \l StandardGameplayTarget takes a gameplay context and player index. It
+    loads saved scores for each stage and supplies the profile's chosen target,
+    including recorded progress, battle opponents and Arena targets. Themes
+    draw the points and personal-best values. The helper is optional.
 
     \section1 Build a custom gameplay flow
 
@@ -90,14 +144,16 @@
     StandardGameplayFlow.
 
     \l StandardChartRetry supplies retry without choosing an input gesture.
+    StandardGameplayFlow and StandardResultInput already expose
+    \c retryAvailable and \c retry(samePattern) for theme buttons.
     \l StandardGameplayAttemptState tracks whether a player made a scoring hit.
     \l StandardInputKeys identifies bound lane keys for custom input handlers.
 
     \section1 Add Arena presentation
 
     A screen adds its own Arena panel. Use \l StandardArenaSelectOverlay for
-    room controls and chat, \l StandardArenaGameplayOverlay for live standings,
-    and \l StandardArenaResultOverlay for completed standings. Gameplay and
+    room controls, the ready shortcut and chat, \l StandardArenaGameplayOverlay
+    for live standings, and \l StandardArenaResultOverlay for completed standings. Gameplay and
     result overlays take the same typed contexts as the rest of their screens.
     Course summaries do not need an Arena panel.
 

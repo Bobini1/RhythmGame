@@ -10,14 +10,10 @@ Column {
         && chartDatas.length > 0 && chartDatas.every(chart => chart instanceof ChartData)
     Repeater {
         model: {
-            let md5s = songList.current.md5s;
-            let chartDatas = courseSongsColumn.chartDatas;
             let names = []
-            for (let index = 0; index < md5s.length; ++index) {
-                const md5 = md5s[index];
-                let info = Rg.tables.search(md5);
-                let chartData = chartDatas[index];
+            for (let chartData of courseSongsColumn.chartDatas) {
                 let red = !(chartData instanceof ChartData);
+                let info = Rg.tables.search(red ? chartData : chartData.md5);
                 if (info.length) {
                     names.push({red, text: (info[0].symbol + info[0].levelName + " " + info[0].entry.title + (info[0].entry.subtitle ? " " + info[0].entry.subtitle : "")).replace(/\r\n|\n|\r/g, " ")});
                 } else {

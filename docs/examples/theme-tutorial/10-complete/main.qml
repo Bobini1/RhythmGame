@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.FluentWinUI3
 import QtQuick.Layouts
 import RhythmGameQml
 
@@ -11,10 +11,10 @@ Rectangle {
     readonly property Profile profile: Rg.profileList.mainProfile
     readonly property var generalVars: screen.profile.vars.generalVars
     readonly property var themeVars:
-        screen.profile.vars.themeVars["main"][screen.QmlUtils.themeName]
+        screen.profile.vars.themeVars["main"][QmlUtils.themeName]
     // [profile]
 
-    StandardMainActions { id: actions; enabled: screen.enabled }
+    StandardMainController { id: actions; enabled: screen.enabled }
 
     ColumnLayout {
         anchors.centerIn: parent

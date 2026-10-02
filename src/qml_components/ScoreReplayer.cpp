@@ -49,6 +49,11 @@ ScoreReplayer::setHitEvents(const QList<gameplay_logic::HitEvent>& newHitEvents)
         const auto key = noteKey(ev.getColumn(), ev.getNoteIndex());
         double pts = 0.0;
         if (const auto p = ev.getPointsOptional(); p.has_value()) {
+            if (p->getJudgement() == gameplay_logic::Judgement::MineHit ||
+                p->getJudgement() == gameplay_logic::Judgement::MineAvoided ||
+                p->getJudgement() == gameplay_logic::Judgement::LnEndSkip) {
+                continue;
+            }
             pts = p->getValue();
         }
         m_savedPointsByNote[key] += pts;

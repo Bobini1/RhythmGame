@@ -13,16 +13,14 @@ QtObject {
     property int failures: 0
 
     property QtObject navigation: QtObject {
-        function openResult(scores, profiles, data, origin, roundId) {
-            const result = ScreenContexts.createResult(scores, profiles, data, origin, roundId);
+        function openResult(result) {
             if (!result) return null;
             root.results = root.results.concat([result]);
             root.visits = root.visits.concat(["result " + result.stageIndex]);
             root.active = false;
             return result;
         }
-        function openCourseResult(scores, profiles, charts, course) {
-            const result = ScreenContexts.createCourseResult(scores, profiles, charts, course);
+        function openCourseResult(result) {
             if (!result) return null;
             root.courseResult = result;
             root.visits = root.visits.concat(["courseResult"]);
@@ -40,11 +38,8 @@ QtObject {
         gameplay: root.gameplay
         navigation: root.navigation
         active: root.active
+        startReady: false
         onPresentationFailed: root.failures++
     }
 
-    Component.onDestruction: {
-        for (const result of root.results) result.destroy();
-        if (root.courseResult) root.courseResult.destroy();
-    }
 }

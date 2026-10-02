@@ -39,6 +39,10 @@ class OnlineScores : public QObject
     ~OnlineScores() override;
     auto resolveTachiChartId(const QString& md5) const -> TachiResolveHandle*;
 
+    /** Resolves a chart without downloading its leaderboard. Returns chartId
+     * and gameId. */
+    Q_INVOKABLE support::PendingReply* getTachiChart(const QString& md5);
+
     Q_INVOKABLE support::PendingReply* getScoreByGuid(const QString& webApiUrl,
                                                       const QString& guid);
     /**

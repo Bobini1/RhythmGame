@@ -13,7 +13,7 @@ a course shows the course name in the same screen.
 
 The game supplies `gameplay` when it creates the screen. Declare the required
 property on the root object so QML checks that the value is present at creation.
-You don't construct a `GameplayContext` yourself.
+You don't construct a [GameplayContext](qml/qml-rhythmgameqml-gameplaycontext.html) yourself.
 
 \snippet 06-decide/Decide.qml context
 
@@ -29,7 +29,7 @@ or course. In a course, the current chart and players change as stages advance.
 
 ## Accept or cancel with the standard flow
 
-Pass the supplied context to `StandardDecideFlow`. Its default timeout starts
+Pass the supplied context to [StandardDecideFlow](qml/qml-rhythmgameqml-standarddecideflow.html). Its default timeout starts
 play after five seconds. Enter or a bound play key also starts, while Escape
 or START+SELECT cancels.
 
@@ -53,7 +53,7 @@ current folder and focus. Starting play replaces decide with gameplay.
 The game later shows a result above gameplay, then resumes gameplay after
 the result closes so the flow can advance or return to selection.
 
-Arena rounds open gameplay directly, without decide. `StandardMultiplayerFlow`
+Arena rounds open gameplay directly, without decide. [StandardMultiplayerFlow](qml/qml-rhythmgameqml-standardmultiplayerflow.html)
 handles that transition when the session prepares a round.
 
 \image html theme-lifetime.svg "Screen lifetime during a single chart"

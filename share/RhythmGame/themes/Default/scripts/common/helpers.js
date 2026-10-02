@@ -1,10 +1,12 @@
+function resultOf(score) { return score ? (score.result || score) : null; }
+
 const clearTypePriorities = ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
 
 function getClearType(scores) {
     let clearType = "NOPLAY";
     for (let score of scores) {
-        if (clearTypePriorities.indexOf(score?.result?.clearType) > clearTypePriorities.indexOf(clearType)) {
-            clearType = score.result.clearType;
+        if (clearTypePriorities.indexOf(resultOf(score)?.clearType) > clearTypePriorities.indexOf(clearType)) {
+            clearType = resultOf(score).clearType;
         }
     }
     return clearType;
@@ -14,10 +16,10 @@ function getScoreWithBestPoints(scores) {
     let bestPoints = -1;
     let bestScore = null;
     for (let score of scores) {
-        if (score.result.maxPoints === 0) {
+        if (resultOf(score).maxPoints === 0) {
             continue;
         }
-        let percent = score.result.points / score.result.maxPoints;
+        let percent = resultOf(score).points / resultOf(score).maxPoints;
         if (percent > bestPoints) {
             bestPoints = percent;
             bestScore = score;
@@ -47,14 +49,14 @@ function getScoreWithBestClear(scores) {
     let bestPoints = 0;
     for (let score of scores) {
         let oldIndex = clearTypePriorities.indexOf(bestClear);
-        let newIndex = clearTypePriorities.indexOf(score.result.clearType);
+        let newIndex = clearTypePriorities.indexOf(resultOf(score).clearType);
         if (newIndex >= oldIndex || bestScore === null) {
-            if (newIndex === oldIndex && score.result.points / (score.result.maxPoints || 1) < bestPoints) {
+            if (newIndex === oldIndex && resultOf(score).points / (resultOf(score).maxPoints || 1) < bestPoints) {
                 continue;
             }
-            bestClear = score.result.clearType;
+            bestClear = resultOf(score).clearType;
             bestScore = score;
-            bestPoints = score.result.points / (score.result.maxPoints || 1);
+            bestPoints = resultOf(score).points / (resultOf(score).maxPoints || 1);
         }
     }
     return bestScore;
@@ -67,14 +69,14 @@ function getBestStats(scores) {
         return null;
     }
     for (let score of scores) {
-        if (score.result.maxCombo > best.maxCombo || best.maxCombo === undefined) {
-            best.maxCombo = score.result.maxCombo;
+        if (resultOf(score).maxCombo > best.maxCombo || best.maxCombo === undefined) {
+            best.maxCombo = resultOf(score).maxCombo;
         }
-        let missCount = score.result.judgementCounts[Judgement.Poor] + score.result.judgementCounts[Judgement.EmptyPoor] + score.result.judgementCounts[Judgement.Bad];
+        let missCount = resultOf(score).judgementCounts[Judgement.Poor] + resultOf(score).judgementCounts[Judgement.EmptyPoor] + resultOf(score).judgementCounts[Judgement.Bad];
         if (missCount < best.missCount || best.missCount === undefined) {
             best.missCount = missCount;
         }
-        let comboBreak = score.result.judgementCounts[Judgement.Poor] + score.result.judgementCounts[Judgement.Bad];
+        let comboBreak = resultOf(score).judgementCounts[Judgement.Poor] + resultOf(score).judgementCounts[Judgement.Bad];
         if (comboBreak < best.comboBreak || best.comboBreak === undefined) {
             best.comboBreak = comboBreak;
         }

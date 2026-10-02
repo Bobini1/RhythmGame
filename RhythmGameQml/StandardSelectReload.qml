@@ -34,7 +34,7 @@ Item {
                 return true;
             }
         }
-        if (implementation.scanRootSongFolderForPath(folderPath)) {
+        if (Rg.rootSongFoldersConfig.rescan(folderPath)) {
             return true;
         }
         Rg.songFolderFactory.refresh(true);
@@ -43,60 +43,6 @@ Item {
 
     QtObject {
         id: implementation
-
-        function normalizeLocalPath(path) {
-            let value = String(path || "").trim();
-            if (value.length === 0) {
-                return "";
-            }
-            if (/^file:\/\//i.test(value)) {
-                let url = value;
-                if (/^file:\/\/\//i.test(url)) {
-                    value = url.slice(8);
-                } else {
-                    value = url.slice(7);
-                }
-                value = decodeURIComponent(value);
-            }
-            value = value.replace(/\\/g, "/");
-            while (value.length > 3 && value.endsWith("/")) {
-                value = value.slice(0, -1);
-            }
-            return value;
-        }
-
-        function rootSongFolderForPath(path) {
-            let target = implementation.normalizeLocalPath(path);
-            if (target.length === 0 || !Rg.rootSongFoldersConfig
-                    || !Rg.rootSongFoldersConfig.folders) {
-                return null;
-            }
-            let targetLower = target.toLowerCase();
-            let folders = Rg.rootSongFoldersConfig.folders;
-            let best = null;
-            let bestLength = -1;
-            for (let i = 0; i < folders.rowCount(); ++i) {
-                let folder = folders.at(i);
-                let folderPath = implementation.normalizeLocalPath(
-                    folder ? folder.name : "");
-                if (folderPath.length === 0) {
-                    continue;
-                }
-                let folderLower = folderPath.toLowerCase();
-                let matches = targetLower === folderLower
-                    || targetLower.startsWith(folderLower + "/");
-                if (matches && folderLower.length > bestLength) {
-                    best = folder;
-                    bestLength = folderLower.length;
-                }
-            }
-            return best;
-        }
-
-        function scanRootSongFolderForPath(path: var): var {
-            let folder = implementation.rootSongFolderForPath(path);
-            return !!folder && !!Rg.rootSongFoldersConfig && !!Rg.rootSongFoldersConfig.scanningQueue && Rg.rootSongFoldersConfig.scanningQueue.scan(folder);
-        }
 
         function reloadTableForItem(item: var): var {
             return item instanceof table && Rg.tables.reloadTable(item);

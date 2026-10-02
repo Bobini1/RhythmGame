@@ -46,12 +46,10 @@ class BmsScoreDelivery
         return score->thread() == thread;
     }
 
-    [[nodiscard]] auto get() const -> gameplay_logic::BmsScore*
+    [[nodiscard]] auto take() -> std::unique_ptr<gameplay_logic::BmsScore>
     {
-        return score.get();
+        return std::move(score);
     }
-
-    void release() { (void)score.release(); }
 
   private:
     std::unique_ptr<gameplay_logic::BmsScore> score;
@@ -199,6 +197,43 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
 }
 
 auto
+OnlineScores::getTachiChart(const QString& md5) -> support::PendingReply*
+{
+    auto source = support::PendingReplySource<QVariantMap>{ this };
+    auto* operation = source.reply();
+    if (stopping || md5.isEmpty()) {
+        (void)source.fail();
+        return operation;
+    }
+
+    auto* handle = resolveTachiChartId(md5);
+    handle->setParent(this);
+    source.setCancellationHandler([handle = QPointer(handle)] {
+        if (handle) {
+            emit handle->cancel();
+            handle->deleteLater();
+        }
+    });
+    connect(handle,
+            &TachiResolveHandle::resolved,
+            this,
+            [handle, source](
+              const QString& chartId, const QString& gameId, int) mutable {
+                handle->deleteLater();
+                (void)source.succeed(
+                  { { "chartId", chartId }, { "gameId", gameId } });
+            });
+    connect(handle,
+            &TachiResolveHandle::failed,
+            this,
+            [handle, source](const QString&) mutable {
+                handle->deleteLater();
+                (void)source.fail();
+            });
+    return operation;
+}
+
+auto
 OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
   -> support::PendingReply*
 {
@@ -286,11 +321,7 @@ OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
                               return;
                           }
 
-                          auto* score = delivery->get();
-                          QQmlEngine::setObjectOwnership(
-                            score, QQmlEngine::JavaScriptOwnership);
-                          if (source.succeed(score))
-                              delivery->release();
+                          (void)source.succeed(delivery->take());
                       },
                       Qt::QueuedConnection);
                   if (queued && parserDeliveryQueuedHook)

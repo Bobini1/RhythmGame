@@ -13,7 +13,6 @@ QtObject {
     property bool startReady: false
     property bool finishReady: true
 
-    readonly property var chart: root.gameplay ? root.gameplay._runner : null
     readonly property bool ready: root.gameplay?.status === ChartRunner.Ready
     readonly property bool finished: root.gameplay?.status === ChartRunner.Finished
     readonly property bool arenaManaged: root.gameplay?.isArena ?? false
@@ -68,10 +67,6 @@ QtObject {
         Qt.callLater(root.synchronize);
     }
 
-    function profiles() {
-        return Array.from(root.gameplay.players, player => player.profile);
-    }
-
     function leave() {
         if (!root.active || state.busy) {
             return false;
@@ -89,7 +84,7 @@ QtObject {
     // An explicit exit skips the natural-finish animation gate. It can also
     // retry a failed presentation without finishing the runner a second time.
     function complete() {
-        if (!root.active || !root.chart || state.busy
+        if (!root.active || !root.gameplay || state.busy
                 || (state.phase !== "playing" && state.phase !== "finishing")) {
             return false;
         }
@@ -113,26 +108,22 @@ QtObject {
         state.busy = true;
         root.closing();
         if (!state.stageResult) {
-            // proceed() changes the index and players synchronously. Capture
-            // the completed stage before it mutates any presentation bindings.
-            const data = root.chartData;
-            const players = root.profiles();
-            const finalStage = root.stageIndex >= root.gameplay.stageCount - 1;
-            const scores = root.isCourse ? root.chart.proceed() : root.chart.finish();
-            state.stageResult = { scores: scores, profiles: players, chartData: data,
-                                  finalStage: finalStage };
-            state.resultSession = root.arenaManaged ? root.arenaSession : null;
-            if (state.resultSession && state.resultSession.submitLocalResult(scores[0])) {
-                state.arenaRoundId = String(state.resultSession.presentedResult.roundId || "");
+            state.stageResult = root.gameplay.finishStage();
+            if (!state.stageResult) {
+                state.busy = false;
+                state.blocked = true;
+                root.presentationFailed();
+                return;
             }
+            state.resultSession = root.arenaManaged ? root.arenaSession : null;
+            state.arenaRoundId = state.stageResult.arenaRoundId;
         }
         const result = state.stageResult;
         state.phase = "stageResult";
         state.returned = false;
         // Retain the scores and submitted round if creating the screen fails.
         // Trying again only opens the result; it never saves or submits twice.
-        const item = root.navigation.openResult(result.scores, result.profiles,
-                                                result.chartData, root.gameplay, state.arenaRoundId);
+        const item = root.navigation.openResult(result);
         state.resultItem = item || null;
         if (!item) {
             state.phase = "finishing";
@@ -147,17 +138,12 @@ QtObject {
     function presentCourseResult() {
         state.busy = true;
         if (!state.courseResult) {
-            const players = root.profiles();
-            const data = root.gameplay.charts;
-            const course = root.gameplay.course;
-            state.courseResult = { scores: root.chart.finish(), profiles: players,
-                                   chartDatas: data, course: course };
+            state.courseResult = root.gameplay.finishCourse();
         }
         const result = state.courseResult;
         state.phase = "courseResult";
         state.returned = false;
-        const item = root.navigation.openCourseResult(result.scores, result.profiles,
-                                                     result.chartDatas, result.course);
+        const item = root.navigation.openCourseResult(result);
         if (!item) {
             state.phase = "stageResult";
             state.returned = true;
@@ -170,11 +156,16 @@ QtObject {
     }
 
     function synchronize() {
-        if (!root.active || !root.chart || state.busy || state.blocked) {
+        if (!root.active || !root.gameplay || state.busy || state.blocked) {
             return;
         }
         if (state.phase === "stageResult" && state.returned) {
-            if (root.isCourse && !state.stageResult.finalStage) {
+            if (root.isCourse && root.stageIndex + 1 < root.gameplay.stageCount) {
+                if (!root.gameplay.nextStage()) {
+                    console.warn("Cannot continue the course; returning to selection");
+                    root.leave();
+                    return;
+                }
                 state.phase = "playing";
                 state.started = false;
                 state.waitForFinish = true;
@@ -201,7 +192,7 @@ QtObject {
                 }
                 if (root.ready && root.startReady && !root.arenaManaged && !state.started) {
                     state.started = true;
-                    root.chart.start();
+                    root.gameplay.start();
                 }
             }
         }

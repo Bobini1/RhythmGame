@@ -234,9 +234,10 @@ validateParams(resource_managers::Profile* player1,
         spdlog::error("Player 2 autoplay and replay both requested");
         return false;
     }
-    if constexpr (std::is_same_v<Score, gameplay_logic::BmsResultCourse>) {
+    if constexpr (std::is_same_v<Score, gameplay_logic::BmsScoreCourse>) {
         if (score1 && score2) {
-            if (score1->getIdentifier() != score2->getIdentifier()) {
+            if (score1->getResult()->getIdentifier() !=
+                score2->getResult()->getIdentifier()) {
                 spdlog::error("Score 1 and score 2 aren't for the same course");
                 return false;
             }
@@ -315,7 +316,7 @@ ChartLoader::loadChart(const QString& filename,
             : support::qStringToPath(QFileInfo(filename).absoluteFilePath());
         const auto file = [&] {
             if (score1 || score2) {
-                return getChartPathFromMd5(
+                return findChartPath(
                   (score1 ? score1 : score2)->getResult()->getMd5(),
                   fileAbsolute);
             }
@@ -439,8 +440,8 @@ constrainNoteOrderAlgorithm(resource_managers::NoteOrderAlgorithm algo,
                             bool mirror)
   -> resource_managers::NoteOrderAlgorithm
 {
-    if (mirror && algo != resource_managers::NoteOrderAlgorithm::Mirror) {
-        return resource_managers::NoteOrderAlgorithm::Normal;
+    if (mirror && algo == resource_managers::NoteOrderAlgorithm::Mirror) {
+        return resource_managers::NoteOrderAlgorithm::Mirror;
     }
     return resource_managers::NoteOrderAlgorithm::Normal;
 }
@@ -456,6 +457,24 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
                         bool player2Replay,
                         gameplay_logic::BmsScoreCourse* score2) const
 {
+    const auto usableScore =
+      [&course](const gameplay_logic::BmsScoreCourse* score, bool replay) {
+          if (!score)
+              return true;
+          if (score->getResult()->getIdentifier() != course.getIdentifier() ||
+              score->getScores().size() != course.getChartIds().size()) {
+              spdlog::error(
+                "Saved score does not contain every stage of this course");
+              return false;
+          }
+          return std::ranges::all_of(
+            score->getScores(), [replay](const auto* stage) {
+                return stage && (!replay || stage->getReplayData());
+            });
+      };
+    if (!usableScore(score1, player1Replay) ||
+        !usableScore(score2, player2Replay))
+        return nullptr;
     if (!validateParams(player1,
                         player1AutoPlay,
                         player1Replay,
@@ -466,19 +485,20 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
                         score2)) {
         return nullptr;
     }
-    if (!course.unavailableReason.isEmpty() || course.md5s.isEmpty()) {
+    if (!course.unavailableReason.isEmpty() || course.getChartIds().isEmpty()) {
         spdlog::warn("Cannot play course: {}",
                      course.unavailableReason.toStdString());
         return nullptr;
     }
     auto chartComponents =
       QList<resource_managers::ChartDataFactory::ChartComponents>{};
-    for (const auto& [i, md5] : std::ranges::views::enumerate(course.md5s)) {
+    for (const auto& [i, identifier] :
+         std::ranges::views::enumerate(course.getChartIds())) {
         try {
             const auto path = course.chartPath(i);
             if (path.isEmpty()) {
                 spdlog::error("Failed to find chart path for course: {}",
-                              md5.toStdString());
+                              identifier.toStdString());
                 return nullptr;
             }
             auto randomSequence =
@@ -701,15 +721,19 @@ ChartLoader::loadCourse(const resource_managers::Course& course,
 }
 gameplay_logic::ChartData*
 ChartLoader::loadChartData(const QString& filename,
-                           const QString& md5,
+                           const QString& identifier,
                            QList<int64_t> randomSequence) const
 {
     try {
-        auto path =
-          getChartPathFromMd5(md5.toUpper(), support::qStringToPath(filename));
+        const auto url = QUrl(filename);
+        const auto hint = support::qStringToPath(
+          url.isLocalFile() ? url.toLocalFile() : filename);
+        auto path = identifier.isEmpty() && !hint.empty()
+                      ? std::optional{ hint }
+                      : findChartPath(identifier.toUpper(), hint);
         if (!path) {
             spdlog::error("Failed to find chart path for course: {}",
-                          md5.toStdString());
+                          identifier.toStdString());
             return nullptr;
         }
 
@@ -739,45 +763,56 @@ ChartLoader::loadChartData(const QString& filename,
 }
 constexpr int maxVariables = 999;
 auto
-ChartLoader::loadChartDataFromDb(QList<QString> md5s) const -> QVariantMap
+ChartLoader::loadChartDataFromDb(QList<QString> identifiers) const
+  -> QVariantMap
 {
-    auto uniqueMd5s = QSet<QString>{};
-    for (const auto& md5 : md5s) {
-        uniqueMd5s.insert(md5.toUpper());
+    auto uniqueIds = QSet<QString>{};
+    for (const auto& id : identifiers) {
+        uniqueIds.insert(id.toUpper());
     }
-    const auto md5sToFetch = uniqueMd5s.values();
+    const auto idsToFetch = uniqueIds.values();
     std::vector<gameplay_logic::ChartData::DTO> allResults;
 
-    for (int i = 0; i < md5sToFetch.size(); i += maxVariables) {
-        auto chunk = md5sToFetch.mid(i, maxVariables);
-        auto statement = db->createStatement(
-          "SELECT c.id, c.title, c.artist, c.subtitle, c.subartist, "
-          "c.genre, c.stage_file, c.banner, c.back_bmp, c.rank, c.total, "
-          "c.play_level, c.difficulty, c.is_random, c.random_sequence, "
-          "c.normal_note_count, c.scratch_count, c.ln_count, c.bss_count, "
-          "c.mine_count, c.length, c.initial_bpm, "
-          "c.max_bpm, c.min_bpm, c.main_bpm, c.avg_bpm, c.peak_density, "
-          "c.avg_density, c.end_density, c.path, c.directory, "
-          "c.sha256, c.md5, "
-          "c.keymode, c.game_version, h.bpms, h.histogram_data "
-          "FROM charts c "
-          "LEFT JOIN histogram_data h ON h.chart_id = c.id "
-          "WHERE c.md5 IN (" +
-          QString("?, ").repeated(chunk.size()).chopped(2).toStdString() +
-          ") ORDER BY c.title, c.subtitle ASC");
-
-        for (int j = 0; j < chunk.size(); ++j) {
-            statement.bind(j + 1, chunk[j].toStdString());
-        }
-
-        const auto result =
-          statement.executeAndGetAll<gameplay_logic::ChartData::DTO>();
-        allResults.insert(allResults.end(), result.begin(), result.end());
-    }
     auto ret = QVariantMap{};
-    for (const auto& result : allResults) {
-        ret[QString::fromStdString(result.md5)] = QVariant::fromValue(
-          gameplay_logic::ChartData::load(result).release());
+    for (const bool sha256 : { false, true }) {
+        QList<QString> hashes;
+        for (const auto& id : idsToFetch)
+            if (id.startsWith("SHA256/") == sha256)
+                hashes.append(sha256 ? id.mid(7) : id);
+        allResults.clear();
+        for (int i = 0; i < hashes.size(); i += maxVariables) {
+            auto chunk = hashes.mid(i, maxVariables);
+            auto statement = db->createStatement(
+              "SELECT c.id, c.title, c.artist, c.subtitle, c.subartist, "
+              "c.genre, c.stage_file, c.banner, c.back_bmp, c.rank, c.total, "
+              "c.play_level, c.difficulty, c.is_random, c.random_sequence, "
+              "c.normal_note_count, c.scratch_count, c.ln_count, c.bss_count, "
+              "c.mine_count, c.length, c.initial_bpm, "
+              "c.max_bpm, c.min_bpm, c.main_bpm, c.avg_bpm, c.peak_density, "
+              "c.avg_density, c.end_density, c.path, c.directory, "
+              "c.sha256, c.md5, "
+              "c.keymode, c.game_version, h.bpms, h.histogram_data "
+              "FROM charts c "
+              "LEFT JOIN histogram_data h ON h.chart_id = c.id "
+              "WHERE " +
+              std::string(sha256 ? "c.sha256" : "c.md5") + " IN (" +
+              QString("?, ").repeated(chunk.size()).chopped(2).toStdString() +
+              ") ORDER BY c.title, c.subtitle ASC");
+
+            for (int j = 0; j < chunk.size(); ++j) {
+                statement.bind(j + 1, chunk[j].toStdString());
+            }
+
+            const auto result =
+              statement.executeAndGetAll<gameplay_logic::ChartData::DTO>();
+            allResults.insert(allResults.end(), result.begin(), result.end());
+        }
+        for (const auto& result : allResults) {
+            ret[sha256 ? "sha256/" + QString::fromStdString(result.sha256)
+                       : QString::fromStdString(result.md5)] =
+              QVariant::fromValue(
+                gameplay_logic::ChartData::load(result).release());
+        }
     }
     return ret;
 }
@@ -866,7 +901,7 @@ ChartLoader::ChartLoader(ProfileList* profileList,
                          HitValueFactory hitValueFactory,
                          GaugeFactory gaugeFactory,
                          GaugeFactoryCourse gaugeFactoryCourse,
-                         GetChartPathFromMd5 getChartPathFromMd5,
+                         FindChartPath findChartPath,
                          resource_managers::ChartFactory* chartFactory,
                          db::SqliteCppDb* db,
                          QObject* parent)
@@ -876,7 +911,7 @@ ChartLoader::ChartLoader(ProfileList* profileList,
   , hitValueFactory(std::move(hitValueFactory))
   , gaugeFactory(std::move(gaugeFactory))
   , gaugeFactoryCourse(std::move(gaugeFactoryCourse))
-  , getChartPathFromMd5(std::move(getChartPathFromMd5))
+  , findChartPath(std::move(findChartPath))
   , chartFactory(chartFactory)
   , profileList(profileList)
   , inputTranslator(inputTranslator)

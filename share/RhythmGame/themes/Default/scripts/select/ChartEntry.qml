@@ -7,11 +7,11 @@ import "../common/helpers.js" as Helpers
 Image {
     id: image
 
-    property string clearType: Helpers.getClearType(scores)
-    required property var scores
-    property var bestStats: Helpers.getBestStats(scores)
-    property var scoreWithBestPoints: Helpers.getScoreWithBestPoints(scores)
-    property var scoreWithBestClear: Helpers.getScoreWithBestClear(scores)
+    property string clearType: Helpers.getClearType(results)
+    required property var results
+    property var bestStats: Helpers.getBestStats(results)
+    property var scoreWithBestPoints: Helpers.getScoreWithBestPoints(results)
+    property var scoreWithBestClear: Helpers.getScoreWithBestClear(results)
     property bool scrollingText: false
     property bool isCurrentItem: false
     readonly property bool isCourse: modelData instanceof course

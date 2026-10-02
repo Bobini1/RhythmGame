@@ -6,38 +6,15 @@ PathView {
     id: pathView
 
     property var current: model[currentIndex]
-    readonly property var folderContents: selectController.folderContents
-    readonly property var historyStack: selectController.historyStack
-    readonly property var scores: selectController.scores
-    readonly property var previewFiles: selectController.previewFiles
-    property alias controller: selectController
+    required property StandardSelectController controller
+    readonly property var folderContents: controller.folderContents
+    readonly property var historyStack: controller.historyStack
+    readonly property var results: controller.results
+    readonly property var previewFiles: controller.previewFiles
 
     signal openedFolder()
 
-    StandardSelectController {
-        id: selectController
-
-        enabled: pathView.enabled
-        minimumEntryCount: pathView.pathItemCount
-        tryAutoplayAction: () => root.openSelectedAutoplay()
-            || selectController.goForward(pathView.current)
-        tryReplayAction: () => root.openSelectedReplay(Qt.LeftButton)
-            || selectController.goForward(pathView.current)
-        cycleReplayTypeAction: () => root.cycleReplayType()
-        tryCycleSortModeAction: delta => root.cycleSortMode(delta)
-        onOpenInternetRankingRequested: root.openSelectedInternetRanking()
-
-        onOpenedFolder: pathView.openedFolder()
-        onFocusRequested: index => {
-            pathView.positionViewAtIndex(index, PathView.Center);
-            pathView.resetNavigation();
-        }
-        onMoveRequested: (steps, repeated, analog) => {
-            pathView.moveSelection(steps, repeated, analog);
-        }
-    }
-
-    model: selectController.presentationEntries
+    model: controller.presentationEntries
 
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
     readonly property bool movingManually: visualMoveActive || pendingWheelSteps !== 0
@@ -265,7 +242,7 @@ PathView {
             id: chartComponent
             ChartEntry {
                 property string identifier: modelData instanceof course ? modelData.identifier : modelData.md5
-                scores: pathView.scores[identifier] || []
+                results: pathView.results[identifier] || []
                 isCurrentItem: selectItemLoader.isCurrentItem
                 scrollingText: selectItemLoader.scrollingText
             }
@@ -274,7 +251,7 @@ PathView {
         Component {
             id: folderComponent
             FolderEntry {
-                clearStats: selectController.folderClearStatsFor(modelData)
+                clearStats: pathView.controller.folderClearStatsFor(modelData)
                 isCurrentItem: selectItemLoader.isCurrentItem
                 scrollingText: selectItemLoader.scrollingText
             }
@@ -284,13 +261,13 @@ PathView {
             && "scoreWithBestPoints" in item ? item.scoreWithBestPoints : null
         readonly property var scoreWithBestClear: item
             && "scoreWithBestClear" in item ? item.scoreWithBestClear : null
-        readonly property var scores: item && "scores" in item ? item.scores : []
+        readonly property var results: item && "results" in item ? item.results : []
         readonly property var bestStats: item
             && "bestStats" in item ? item.bestStats : null
         readonly property bool isCurrentItem: PathView.isCurrentItem
         readonly property bool scrollingText: pathView.scrollingText
 
-        sourceComponent: selectController.isChartItem(modelData)
+        sourceComponent: pathView.controller.isChartItem(modelData)
             || modelData instanceof course ? chartComponent : folderComponent
     }
     path: Path {
@@ -323,19 +300,19 @@ PathView {
         }
     }
 
-    Keys.onLeftPressed: selectController.goBack()
-    Keys.onReturnPressed: selectController.goForward(current)
-    Keys.onEnterPressed: selectController.goForward(current)
-    Keys.onRightPressed: selectController.goForward(current)
-    Keys.onUpPressed: event => selectController.handleUpPressed(event)
-    Keys.onDownPressed: event => selectController.handleDownPressed(event)
-    Keys.onReleased: event => selectController.handleReleased(event)
+    Keys.onLeftPressed: controller.goBack()
+    Keys.onReturnPressed: controller.goForward(current)
+    Keys.onEnterPressed: controller.goForward(current)
+    Keys.onRightPressed: controller.goForward(current)
+    Keys.onUpPressed: event => controller.handleUpPressed(event)
+    Keys.onDownPressed: event => controller.handleDownPressed(event)
+    Keys.onReleased: event => controller.handleReleased(event)
     AudioPlayer {
         id: scratchSound
         source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "scratch"
     }
     onCurrentItemChanged: {
-        selectController.setFocused(current);
+        controller.setFocused(current);
         scrollingTextTimer.restart();
         scrollingText = false;
         if (suppressedCurrentItemSoundChanges > 0) {

@@ -76,16 +76,6 @@ makeEntry(const QString& id,
     return entry;
 }
 
-void
-addEntry(Level& level, Entry entry)
-{
-    entry.level = level.name;
-    if (!entry.md5.isEmpty()) {
-        level.md5s.insert(entry.md5, entry);
-    }
-    level.entries.append(std::move(entry));
-}
-
 } // namespace
 
 class BackbeatSource::Impl
@@ -315,10 +305,9 @@ BackbeatSource::collections(db::SqliteCppDb* db,
         const auto appendLevel = [&](const auto& src, const QString& name) {
             Level level{ db, name };
             for (const auto& chart : std::span(src.charts, src.charts_len)) {
-                addEntry(level,
-                         entryFor(string(chart.id),
-                                  string(chart.desc),
-                                  string(chart.bundle_id)));
+                level.addEntry(entryFor(string(chart.id),
+                                        string(chart.desc),
+                                        string(chart.bundle_id)));
             }
             table.levels.append(std::move(level));
         };

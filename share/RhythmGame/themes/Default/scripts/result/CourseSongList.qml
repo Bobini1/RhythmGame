@@ -5,6 +5,7 @@ import "../common"
 Column {
     id: courseSongList
     required property var chartDatas
+    required property var chartIds
 
     ThemeFont {
         id: courseSongListFont
@@ -15,10 +16,12 @@ Column {
     Repeater {
         model: {
             let ret = [];
-            for (let chartData of courseSongList.chartDatas) {
-                let infos = Rg.tables.search(chartData.md5);
-                let title = chartData.title;
-                let subtitle = chartData.subtitle;
+            for (let index = 0; index < courseSongList.chartIds.length; index++) {
+                const chartData = courseSongList.chartDatas[index];
+                const identifier = courseSongList.chartIds[index];
+                const infos = Rg.tables.search(identifier);
+                let title = chartData?.title || infos[0]?.entry.title || identifier;
+                const subtitle = chartData?.subtitle;
                 if (subtitle) {
                     title += " " + subtitle;
                 }

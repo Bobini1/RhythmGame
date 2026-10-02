@@ -42,9 +42,7 @@ Item {
             Layout.preferredWidth: 238
             checked: booleanOption.src[booleanOption.prop]
 
-            onCheckedChanged: {
-                booleanOption.src[booleanOption.prop] = checked;
-            }
+            onToggled: booleanOption.src[booleanOption.prop] = checked
         }
     }
 }

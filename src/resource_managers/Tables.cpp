@@ -158,6 +158,19 @@ queryCharts(db::SqliteCppDb& db,
     }
     return queryResult.size();
 }
+void
+resource_managers::Level::addEntry(Entry entry)
+{
+    entry.level = name;
+    if (!entry.md5.isEmpty()) {
+        entriesById.insert(entry.md5.toUpper(), entry);
+    }
+    if (!entry.sha256.isEmpty()) {
+        entriesById.insert("SHA256/" + entry.sha256.toUpper(), entry);
+    }
+    entries.append(std::move(entry));
+}
+
 auto
 resource_managers::Level::loadCharts() const -> QVariantList
 {
@@ -236,9 +249,21 @@ resource_managers::Course::getTrophies() const -> QVariantList
     return list;
 }
 auto
-resource_managers::Course::getIdentifier() const -> QString
+resource_managers::Course::getChartIds() const -> QStringList
 {
     auto ids = md5s;
+    ids.resize(std::max(md5s.size(), sha256s.size()));
+    for (qsizetype i = 0; i < ids.size(); ++i) {
+        if (ids[i].isEmpty() && !sha256s.value(i).isEmpty())
+            ids[i] = "sha256/" + sha256s[i];
+    }
+    return ids;
+}
+
+auto
+resource_managers::Course::getIdentifier() const -> QString
+{
+    auto ids = getChartIds();
     for (qsizetype i = 0; i < ids.size(); ++i) {
         if (!sha256s.value(i).isEmpty()) {
             ids[i] = "sha256/" + sha256s[i];
@@ -271,10 +296,11 @@ resource_managers::Course::loadCharts() const
     auto ret = QVariantList{};
     auto references = QList<Entry>{};
 
-    for (qsizetype i = 0; i < md5s.size(); ++i) {
-        ret.append(md5s[i].isEmpty() ? "sha256/" + sha256s.value(i) : md5s[i]);
+    const auto ids = getChartIds();
+    for (qsizetype i = 0; i < ids.size(); ++i) {
+        ret.append(ids[i]);
         Entry entry;
-        entry.md5 = md5s[i];
+        entry.md5 = md5s.value(i);
         entry.sha256 = sha256s.value(i);
         entry.path = paths.value(i);
         references.append(std::move(entry));
@@ -493,13 +519,11 @@ resource_managers::Tables::readData(Table& table, const QJsonArray& data) const
         entry.artist = chartObj["artist"].toString();
         entry.subtitle = chartObj["subtitle"].toString();
         entry.subartist = chartObj["subartist"].toString();
-        entry.level = levelStr;
         entry.url = chartObj["url"].toString();
         entry.urlDiff = chartObj["url_diff"].toString();
         entry.comment = chartObj["comment"].toString();
 
-        level->entries.push_back(entry);
-        level->md5s.insert(entry.md5.toUpper(), entry);
+        level->addEntry(std::move(entry));
     }
     auto extraLevelValues = extraLevels.values();
     std::ranges::sort(extraLevelValues, [](const auto& a, const auto& b) {
@@ -582,6 +606,7 @@ resource_managers::Tables::handleHeaderReply(const QUrl& url,
                                { { "header", header }, { "data", data } });
                       });
                     emit dataChanged(index(i), index(i));
+                    emit contentsChanged();
                     break;
                 }
             });
@@ -742,6 +767,7 @@ resource_managers::Tables::removeAt(int index)
     beginRemoveRows(QModelIndex(), index, index);
     tables.removeAt(index);
     endRemoveRows();
+    emit contentsChanged();
 }
 void
 resource_managers::Tables::add(const QUrl& url)
@@ -861,6 +887,7 @@ resource_managers::Tables::reorder(int from, int to)
     const auto toUrl = tables[to].url;
     tables.move(from, to);
     endMoveRows();
+    emit contentsChanged();
     fileOperationThreadPool.start(
       [fromUrl, toUrl, tableLocation = tableLocation] {
           reorderInFile(tableLocation, fromUrl, toUrl);
@@ -879,16 +906,17 @@ void
 resource_managers::Tables::setExternalTables(QList<Table> updated)
 {
     externalTables = std::move(updated);
+    emit contentsChanged();
 }
 auto
-resource_managers::Tables::search(const QString& md5) -> QList<TableInfo>
+resource_managers::Tables::search(const QString& identifier) -> QList<TableInfo>
 {
-    const auto upper = md5.toUpper();
+    const auto upper = identifier.toUpper();
     auto info = QList<TableInfo>{};
     for (const auto& table : tables + externalTables) {
         for (const auto& level : table.levels) {
-            if (auto entry = level.md5s.find(upper);
-                entry != level.md5s.end()) {
+            if (auto entry = level.entriesById.constFind(upper);
+                entry != level.entriesById.cend()) {
                 info.push_back(TableInfo{ .tableName = table.name,
                                           .levelName = level.name,
                                           .symbol = table.symbol,

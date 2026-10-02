@@ -10,6 +10,10 @@ and Multiplayer because it doesn't provide those roles.
 [Download 10-complete](examples/theme-tutorial/10-complete.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/10-complete).
 
+The example manifest requires theme API 1.0. Keep `apiVersion` at the oldest
+version that provides the features your theme uses. See
+[API compatibility](../theme-api.md) for supported interfaces and update rules.
+
 ## Choose the screens in the manifest
 
 The manifest combines the main menu, enhanced selector, decide, gameplay and
@@ -34,22 +38,27 @@ assumptions about which selector opened your gameplay screen.
 The complete example has an Arena button that opens the configured Multiplayer
 screen. The example keeps Default for that role, then uses its own selector
 after you join a room. A custom Multiplayer screen can use
-`StandardMultiplayerFlow` to connect, enter a room and open scheduled rounds.
+[StandardMultiplayerFlow](qml/qml-rhythmgameqml-standardmultiplayerflow.html) to connect, enter a room and open scheduled rounds.
 The browser and selector are ordinary screens on the same stack. Leaving the
 room returns to the browser; closing the browser disconnects from Arena.
 
 \snippet 10-complete/main.qml arena-menu
 
-Each screen adds its own panel. `StandardArenaSelectOverlay` shows the room,
+Each screen adds its own panel. [StandardArenaSelectOverlay](qml/qml-rhythmgameqml-standardarenaselectoverlay.html) shows the room,
 ready controls and chat while you are in a room. Its `navigationFocusTarget`
 returns keyboard focus to the song list after chat closes. The earlier
-selector examples include the same component. The controller handles leaving
-the room and the double-Start ready gesture; the panel only presents the room
-and its controls.
+selector examples include the same component. The overlay also handles the
+double-Start ready gesture. Set its `readyShortcutEnabled` to false to provide
+your own shortcut. The controller handles leaving the room and proposing charts.
+
+For a custom Ready button, use the overlay's `ready`, `canToggleReady` and
+`readyDisabledReason` properties, then call `toggleReady()` when clicked.
+The same method handles double-Start. `session.canReady` only describes
+becoming ready, so it isn't enough to enable a button that also cancels readiness.
 
 \snippet 10-complete/Select.qml arena-select
 
-Gameplay binds its overlay to the same context as `StandardGameplayFlow`.
+Gameplay binds its overlay to the same context as [StandardGameplayFlow](qml/qml-rhythmgameqml-standardgameplayflow.html).
 The overlay shows standings for that Arena play and stays hidden during
 local play or a course. F8 switches between standings and chat.
 
@@ -72,7 +81,7 @@ Arena result presentation. Removing the overlay does not change that state.
 Set an overlay's `defaultPixelRectHint` to choose its initial position and
 size. Players can then move and resize it, and their profile keeps those
 settings for the chosen theme. Set `customizeMode` to show its editing controls.
-`z` places the panel above the example's content.
+The overlays are declared after the screen content, so they appear on top.
 
 The overlays also allow a different chat shortcut or a replacement
 `panelComponent`. See the

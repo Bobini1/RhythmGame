@@ -39,7 +39,7 @@ struct RankingEntry
     Q_PROPERTY(QString owner MEMBER owner CONSTANT)
     Q_PROPERTY(qint64 scoreCount MEMBER scoreCount CONSTANT)
   public:
-    qint64 userId;
+    qint64 userId{};
     QString userName;
     QString userImage;
     double bestPoints{};
@@ -61,7 +61,7 @@ struct RankingEntry
     QString bestClearTypeGuid;
     QString latestDateGuid;
     QString owner;
-    int scoreCount{};
+    int scoreCount{ -1 };
     auto operator<=>(const RankingEntry&) const = default;
 };
 
@@ -92,17 +92,13 @@ class OnlineRankingModel : public QAbstractListModel
                  sortDirChanged)
     Q_PROPERTY(
       QVariantMap clearCounts READ getClearCounts NOTIFY clearCountsChanged)
+    /** Total provider counts before local filters; -1 when unavailable. */
     Q_PROPERTY(int scoreCount READ getScoreCount NOTIFY scoreCountChanged)
     Q_PROPERTY(int playerCount READ getPlayerCount NOTIFY playerCountChanged)
     Q_PROPERTY(QString webApiUrl READ getWebApiUrl WRITE setWebApiUrl NOTIFY
                  webApiUrlChanged)
-    Q_PROPERTY(QList<RankingEntry> rankingEntries READ getRankingEntries NOTIFY
-                 rankingEntriesChanged)
-
-    Q_PROPERTY(qint64 lastPlayedGte READ getLastPlayedGte WRITE setLastPlayedGte
-                 NOTIFY lastPlayedGteChanged)
-    Q_PROPERTY(qint64 lastPlayedLte READ getLastPlayedLte WRITE setLastPlayedLte
-                 NOTIFY lastPlayedLteChanged)
+    Q_PROPERTY(QList<qml_components::RankingEntry> rankingEntries READ
+                 getRankingEntries NOTIFY rankingEntriesChanged)
 
     Q_PROPERTY(double scorePctGte READ getScorePctGte WRITE setScorePctGte
                  NOTIFY scorePctGteChanged)
@@ -123,6 +119,7 @@ class OnlineRankingModel : public QAbstractListModel
                  providerChanged)
 
     Q_PROPERTY(QString chartId READ getChartId NOTIFY chartIdChanged)
+    Q_PROPERTY(QString gameId READ getGameId NOTIFY gameIdChanged)
   public:
     enum Roles
     {
@@ -202,12 +199,6 @@ class OnlineRankingModel : public QAbstractListModel
     auto getSortDir() const -> SortDirection;
     void setSortDir(SortDirection sortDir);
 
-    auto getLastPlayedGte() const -> qint64;
-    void setLastPlayedGte(qint64 val);
-
-    auto getLastPlayedLte() const -> qint64;
-    void setLastPlayedLte(qint64 val);
-
     auto getScorePctGte() const -> double;
     void setScorePctGte(double val);
 
@@ -240,6 +231,7 @@ class OnlineRankingModel : public QAbstractListModel
     void setWebApiUrl(const QString& baseUrl);
     auto getWebApiUrl() const -> QString;
     auto getChartId() const -> QString;
+    auto getGameId() const -> QString;
 
     inline static QNetworkAccessManager* networkManager = nullptr;
     inline static ProfileList* profileList = nullptr;
@@ -252,13 +244,6 @@ class OnlineRankingModel : public QAbstractListModel
     void offsetChanged();
     void sortByChanged();
     void sortDirChanged();
-    void searchChanged();
-    void lastPlayedGteChanged();
-    void lastPlayedLteChanged();
-
-    void dateGteChanged();
-    void dateLteChanged();
-
     void scorePctGteChanged();
     void scorePctLteChanged();
 
@@ -274,6 +259,7 @@ class OnlineRankingModel : public QAbstractListModel
     void rankingEntriesChanged();
     void providerChanged();
     void chartIdChanged();
+    void gameIdChanged();
 
     void cancelPendingRequested();
 
@@ -288,8 +274,8 @@ class OnlineRankingModel : public QAbstractListModel
     void setScoreCount(int count);
     void setClearCounts(QVariantMap counts);
     void setChartId(const QString& chartId);
+    void setGameId(const QString& gameId);
     void setEntries(QList<RankingEntry> entries);
-    void appendEntries(QList<RankingEntry> entries);
     auto buildUrl() const -> QUrl;
     void fetchRhythmGame();
     void performJsonGet(const QString& url,
@@ -311,9 +297,6 @@ class OnlineRankingModel : public QAbstractListModel
     SortDirection currentSortDir{ SortDirection::Desc };
 
     // Filter parameters
-    qint64 currentLastPlayedGte{ -1 };
-    qint64 currentLastPlayedLte{ -1 };
-
     double currentScorePctGte{ -1.0 };
     double currentScorePctLte{ -1.0 };
 
@@ -324,10 +307,12 @@ class OnlineRankingModel : public QAbstractListModel
     int currentMissCountLte{ -1 };
 
     QList<RankingEntry> entries;
+    QList<RankingEntry> pendingTachiEntries;
     QVariantMap clearCounts;
-    int scoreCount{ 0 };
-    int playerCount{ 0 };
+    int scoreCount{ -1 };
+    int playerCount{ -1 };
     QString chartId;
+    QString gameId;
     quint64 currentFetchGeneration{ 0 };
 
     Provider currentProvider{ Provider::RhythmGame };

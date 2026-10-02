@@ -1,5 +1,9 @@
 #include "ScreenContexts.h"
-#include "RegisterGameplayTestTypes.h"
+#include "resource_managers/GaugeFactory.h"
+#include "gameplay_logic/rules/Lr2Gauge.h"
+#include "qml_components/ScoreReplayer.h"
+#include <catch2/generators/catch_generators.hpp>
+#include <limits>
 #include "../arena/FakeArenaIdentityProvider.h"
 #include "../arena/FakeArenaScheduler.h"
 #include "../arena/FakeArenaTransport.h"
@@ -37,7 +41,6 @@ ensureContextApplication()
 void
 registerContextTestTypes()
 {
-    registerGameplayTestTypes();
     static const auto registration = [] {
         qmlRegisterUncreatableType<Player>(
           "ScreenContractsTest", 1, 0, "Player", "runner supplied");
@@ -143,6 +146,13 @@ struct ContextFixture
     {
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     }
+    auto gameplay(QObject* runner, arena::ArenaSession* arena = nullptr)
+      -> GameplayContext*
+    {
+        auto* context = contexts.createGameplay(runner, arena);
+        context->setParent(&contexts);
+        return context;
+    }
     auto profile(const QString& name)
       -> std::unique_ptr<resource_managers::Profile>
     {
@@ -154,8 +164,9 @@ struct ContextFixture
           &network,
           &assets);
     }
-    auto player(ChartData::Keymode keys, resource_managers::Profile* profile)
-      -> Player*
+    auto player(ChartData::Keymode keys,
+                resource_managers::Profile* profile,
+                QList<gameplay_logic::rules::BmsGauge*> gauges = {}) -> Player*
     {
         auto promise = std::make_unique<QPromise<BmsGameReferee>>();
         promise->start();
@@ -169,7 +180,7 @@ struct ContextFixture
                            0,
                            1,
                            2,
-                           {},
+                           std::move(gauges),
                            {},
                            resource_managers::NoteOrderAlgorithm::Normal,
                            resource_managers::NoteOrderAlgorithm::Normal,
@@ -189,7 +200,10 @@ struct ContextFixture
                           std::chrono::seconds(1),
                           120);
     }
-    auto chart(ChartData::Keymode keys, bool battle, QString title = "Chart")
+    auto chart(ChartData::Keymode keys,
+               bool battle,
+               QString title = "Chart",
+               std::optional<ChartData::Keymode> sourceKeys = std::nullopt)
       -> std::unique_ptr<ChartRunner>
     {
         auto promise = std::make_unique<
@@ -197,12 +211,12 @@ struct ContextFixture
         promise->start();
         auto future = promise->future();
         bgas.push_back(std::move(promise));
-        return std::make_unique<ChartRunner>(metadata(std::move(title), keys),
-                                             future,
-                                             keys,
-                                             player(keys, first.get()),
-                                             battle ? player(keys, second.get())
-                                                    : nullptr);
+        return std::make_unique<ChartRunner>(
+          metadata(std::move(title), sourceKeys.value_or(keys)),
+          future,
+          keys,
+          player(keys, first.get()),
+          battle ? player(keys, second.get()) : nullptr);
     }
     auto course(ChartData::Keymode keys, bool battle)
       -> std::unique_ptr<CourseRunner>
@@ -223,6 +237,17 @@ struct ContextFixture
         auto* live = player->getScore();
         return std::make_unique<BmsScore>(
           live->getResult(), live->getReplayData(), live->getGaugeHistory());
+    }
+    void ready(CourseRunner* runner)
+    {
+        bgas.back()->addResult(std::unique_ptr<qml_components::BgaContainer>(
+          new qml_components::BgaContainer({}, {}, {})));
+        bgas.back()->finish();
+        runner->getPlayer1()->setStatus(ChartRunner::Ready);
+        if (runner->getPlayer2())
+            runner->getPlayer2()->setStatus(ChartRunner::Ready);
+        QCoreApplication::processEvents();
+        REQUIRE(runner->getStatus() == ChartRunner::Ready);
     }
 };
 }
@@ -245,7 +270,7 @@ TEST_CASE("Gameplay contexts cover single charts and courses for every "
             auto course = fixture.course(keys, battle);
             for (auto* runner : { static_cast<QObject*>(single.get()),
                                   static_cast<QObject*>(course.get()) }) {
-                auto* context = fixture.contexts.createGameplay(runner);
+                auto* context = fixture.gameplay(runner);
                 REQUIRE(context);
                 CHECK(context->players().size() == (battle ? 2 : 1));
                 CHECK(context->players()[0]->getProfile() ==
@@ -261,7 +286,9 @@ TEST_CASE("Gameplay contexts cover single charts and courses for every "
                       (context->isCourse() ? context->players().size() : 0));
                 CHECK(context->metaObject()->indexOfProperty("runner") == -1);
                 CHECK(context->runner() == runner);
-                CHECK(context->parent() == runner);
+                CHECK(runner->parent() == context);
+                CHECK(context->metaObject()->indexOfProperty("_runner") == -1);
+                CHECK(context->metaObject()->indexOfProperty("_screen") == -1);
             }
         }
     }
@@ -274,19 +301,20 @@ TEST_CASE("Course contexts publish coherent stages and results retain "
     ensureContextApplication();
     ContextFixture fixture;
     auto runner = fixture.course(ChartData::Keymode::K7, true);
-    auto* context = fixture.contexts.createGameplay(runner.get());
+    auto* context = fixture.gameplay(runner.get());
     const auto firstPlayer = context->players()[0];
     auto firstScore = fixture.score(firstPlayer);
     auto secondScore = fixture.score(context->players()[1]);
     auto* completedChart = context->chartData();
     int stageChanges = 0;
-    QObject::connect(context, &GameplayContext::stageChanged, context, [&] {
-        ++stageChanges;
-        CHECK(context->stageIndex() == 1);
-        CHECK(context->chartData()->getTitle() == "Second");
-        CHECK(context->players()[0] == runner->getPlayer1());
-        CHECK(context->players()[0] != firstPlayer);
-    });
+    const auto connection =
+      QObject::connect(context, &GameplayContext::stageChanged, context, [&] {
+          ++stageChanges;
+          CHECK(context->stageIndex() == 1);
+          CHECK(context->chartData()->getTitle() == "Second");
+          CHECK(context->players()[0] == runner->getPlayer1());
+          CHECK(context->players()[0] != firstPlayer);
+      });
     runner->proceed();
     CHECK(stageChanges == 1);
     // The host opens the result after proceed() has installed the next stage.
@@ -307,37 +335,52 @@ TEST_CASE("Course contexts publish coherent stages and results retain "
     CHECK(context->stageIndex() == 1);
     CHECK(context->chartData()->getTitle() == "Second");
     CHECK(stageChanges == 1);
+    QObject::disconnect(connection);
 }
 
-TEST_CASE(
-  "Play context survives decide handoff and follows its runner lifetime",
-  "[ScreenContexts]")
+TEST_CASE("Gameplay owns local runners and safely outlives Arena runners",
+          "[ScreenContexts]")
 {
     ensureContextApplication();
     ContextFixture fixture;
-    auto runner = fixture.chart(ChartData::Keymode::K7, false);
-    QPointer<GameplayContext> context =
-      fixture.contexts.createGameplay(runner.get(), &fixture.arenaSession);
-    QObject decide;
-    QObject gameplay;
-    int screenChanges = 0;
-    QObject::connect(context, &GameplayContext::screenChanged, context, [&] {
-        ++screenChanges;
-    });
-    context->setHostScreen(&decide);
-    CHECK(context->hostScreen() == &decide);
-    context->setHostScreen(&gameplay);
-    CHECK(context->hostScreen() == &gameplay);
-    CHECK(screenChanges == 2);
-    context->setHostScreen(&gameplay);
-    CHECK(screenChanges == 2);
-    CHECK(context->isArena());
-    auto mapping = context->inputMapping();
-    std::swap(mapping[0], mapping[1]);
-    context->setInputMapping(mapping);
-    CHECK(runner->getInputMapping() == mapping);
-    runner.reset();
-    CHECK(context.isNull());
+    SECTION("Local ownership follows the screen")
+    {
+        auto runner = fixture.chart(ChartData::Keymode::K7, false);
+        QPointer<ChartRunner> trackedRunner = runner.get();
+        QPointer<GameplayContext> context =
+          fixture.contexts.createGameplay(runner.release());
+        auto decide = std::make_unique<QObject>();
+        auto screen = std::make_unique<QObject>();
+        context->setParent(decide.get());
+        context->setParent(screen.get());
+        decide.reset();
+        CHECK(context);
+        CHECK(trackedRunner);
+        screen.reset();
+        CHECK(context.isNull());
+        CHECK(trackedRunner.isNull());
+    }
+    SECTION("Arena owns its runner independently")
+    {
+        auto runner = fixture.chart(
+          ChartData::Keymode::K14, false, "Chart", ChartData::Keymode::K7);
+        auto* context = fixture.gameplay(runner.get(), &fixture.arenaSession);
+        auto mapping = context->inputMapping();
+        std::swap(mapping[0], mapping[1]);
+        context->setInputMapping(mapping);
+        CHECK(runner->getInputMapping() == mapping);
+        CHECK_FALSE(context->start());
+        int changes = 0;
+        QObject::connect(
+          context, &GameplayContext::stageChanged, [&] { ++changes; });
+        runner.reset();
+        CHECK(context->players().isEmpty());
+        CHECK(context->charts()[0]->getTitle() == "Chart");
+        CHECK(context->keymode() == ChartData::Keymode::K14);
+        CHECK(context->status() == ChartRunner::Finished);
+        CHECK(changes == 1);
+        CHECK_FALSE(context->finishStage());
+    }
 }
 
 TEST_CASE(
@@ -399,7 +442,6 @@ TEST_CASE("QML can release a failed result without destroying its play",
             property GameplayContext gameplay: ScreenContexts.createGameplay(runner)
             property ResultContext result: ScreenContexts.createResult(
                 [score], [profile], gameplay.chartData, gameplay)
-            Component.onCompleted: gameplay._screen = screen
             function discardResult() { result.destroy(); }
         }
     )",
@@ -419,9 +461,9 @@ TEST_CASE("QML can release a failed result without destroying its play",
       screen->property("result").value<ResultContext*>();
     REQUIRE(gameplay);
     REQUIRE(result);
-    CHECK(gameplay->parent() == runner.get());
-    CHECK(gameplay->property("_runner").value<QObject*>() == runner.get());
-    CHECK(gameplay->hostScreen() == screen.get());
+    gameplay->setParent(screen.get());
+    CHECK(runner->parent() == gameplay);
+    runner.release();
     CHECK(result->gameplay() == gameplay);
     CHECK(QQmlEngine::objectOwnership(result) ==
           QQmlEngine::JavaScriptOwnership);
@@ -430,8 +472,6 @@ TEST_CASE("QML can release a failed result without destroying its play",
     CHECK(result.isNull());
     CHECK(gameplay);
     screen.reset();
-    CHECK(gameplay->hostScreen() == nullptr);
-    runner.reset();
     CHECK(gameplay.isNull());
 }
 
@@ -443,7 +483,7 @@ TEST_CASE(
     registerContextTestTypes();
     ContextFixture fixture;
     auto runner = fixture.course(ChartData::Keymode::K7, false);
-    auto* gameplay = fixture.contexts.createGameplay(runner.get());
+    auto* gameplay = fixture.gameplay(runner.get());
     auto score = fixture.score(runner->getPlayer1());
     std::unique_ptr<ResultContext> result(
       fixture.contexts.createResult({ score.get() },
@@ -495,7 +535,8 @@ TEST_CASE(
     CHECK(item->property("player").value<QObject*>() == runner->getPlayer1());
     CHECK(item->property("completedTitle").toString() == "First");
     CHECK(item->property("arenaRoundId").toString().isEmpty());
-    CHECK(item->property("completedScore").value<QObject*>() == score.get());
+    CHECK(item->property("completedScore").value<QObject*>() ==
+          result->players()[0]->score());
     CHECK(item->property("completedProfile").value<QObject*>() ==
           fixture.first.get());
 }
@@ -506,8 +547,7 @@ TEST_CASE("Arena round identity is available in the result context",
     ensureContextApplication();
     ContextFixture fixture;
     auto runner = fixture.chart(ChartData::Keymode::K7, false);
-    auto* gameplay =
-      fixture.contexts.createGameplay(runner.get(), &fixture.arenaSession);
+    auto* gameplay = fixture.gameplay(runner.get(), &fixture.arenaSession);
     auto score = fixture.score(runner->getPlayer1());
     std::unique_ptr<ResultContext> result(
       fixture.contexts.createResult({ score.get() },
@@ -528,7 +568,7 @@ TEST_CASE("Result construction rejects incomplete participants instead of "
     ContextFixture fixture;
     auto runner = fixture.chart(ChartData::Keymode::K7, false);
     auto score = fixture.score(runner->getPlayer1());
-    auto* context = fixture.contexts.createGameplay(runner.get());
+    auto* context = fixture.gameplay(runner.get());
     CHECK_FALSE(fixture.contexts.createResult(
       { score.get() }, {}, context->chartData(), context));
     CHECK_FALSE(fixture.contexts.createResult(
@@ -583,13 +623,19 @@ TEST_CASE("Course summary contexts pair aggregate scores with participants",
         CHECK(result->players().size() == scores.size());
         for (qsizetype i = 0; i < scores.size(); ++i) {
             CHECK(result->players()[i]->profile() == profiles[i]);
-            CHECK(result->players()[i]->score() == scores[i]);
+            CHECK(result->players()[i]->score() != scores[i]);
+            CHECK(result->players()[i]->score()->getResult()->getGuid() ==
+                  scores[i]->getResult()->getGuid());
             CHECK(result->players()[i]->score()->getScores().size() == 2);
         }
         CHECK_FALSE(fixture.contexts.createCourseResult(
           scores, {}, result->charts(), result->course()));
         CHECK_FALSE(fixture.contexts.createCourseResult(
           scores, profiles, {}, result->course()));
+        ownedScores.clear();
+        CHECK(result->players()[0]->score()->getResult()->getGuid() ==
+              "summary");
+        CHECK(result->players()[0]->score()->getScores().size() == 2);
     }
 }
 
@@ -602,7 +648,7 @@ TEST_CASE(
     for (const bool battle : { false, true }) {
         ContextFixture fixture;
         auto runner = fixture.course(ChartData::Keymode::K7, battle);
-        auto* gameplay = fixture.contexts.createGameplay(runner.get());
+        auto* gameplay = fixture.gameplay(runner.get());
         QQmlEngine engine;
         QQmlComponent component(
           &engine,
@@ -632,20 +678,17 @@ TEST_CASE(
             REQUIRE_FALSE(result.isError());
             CHECK(result.toBool());
         };
-        runner->getPlayer1()->setStatus(ChartRunner::Ready);
-        if (runner->getPlayer2())
-            runner->getPlayer2()->setStatus(ChartRunner::Ready);
+        fixture.ready(runner.get());
         run("h.session.complete()");
         check("h.visits.join(',') === 'result 0' && h.failures === 0");
         check("h.results[0].gameplay === h.gameplay && h.gameplay.stageIndex "
-              "=== 1");
+              "=== 0");
         check("h.results[0].chartData.title === 'First' && "
               "h.results[0].stageCount === 2");
         run("h.active = true");
-        check("h.visits.length === 1 && h.departures === 0");
-        runner->getPlayer1()->setStatus(ChartRunner::Ready);
-        if (runner->getPlayer2())
-            runner->getPlayer2()->setStatus(ChartRunner::Ready);
+        check("h.visits.length === 1 && h.departures === 0 && "
+              "h.gameplay.stageIndex === 1");
+        fixture.ready(runner.get());
         run("h.session.complete()");
         check("h.visits.join(',') === 'result 0,result 1' && h.failures === 0");
         check("h.results[0].chartData.title === 'First' && "
@@ -660,5 +703,175 @@ TEST_CASE(
           QString("h.courseResult.players.length === %1").arg(battle ? 2 : 1));
         run("h.active = true");
         check("h.departures === 1 && h.visits.length === 3");
+    }
+}
+
+TEST_CASE(
+  "Course completion is idempotent and preserves each stage until advance",
+  "[ScreenContexts][Course]")
+{
+    ensureContextApplication();
+    ContextFixture fixture;
+    auto runner = fixture.course(ChartData::Keymode::K7, false);
+    auto* context = fixture.gameplay(runner.get());
+    const auto [judgement, points, clear] =
+      GENERATE(std::tuple{ Judgement::Perfect, 2.0, "MAX" },
+               std::tuple{ Judgement::Great, 1.0, "PERFECT" },
+               std::tuple{ Judgement::Good, 0.0, "FC" });
+    int nestedCalls = 0;
+    const auto connection =
+      QObject::connect(context, &GameplayContext::statusChanged, [&] {
+          if (context->status() == ChartRunner::Finished) {
+              ++nestedCalls;
+              CHECK_FALSE(context->finishStage());
+              CHECK_FALSE(context->nextStage());
+          }
+      });
+    CHECK_FALSE(context->nextStage());
+    CHECK_FALSE(context->finishCourse());
+    CHECK_FALSE(context->finishStage());
+    CHECK(context->status() == ChartRunner::Loading);
+    for (int stage = 0; stage < 2; ++stage) {
+        fixture.ready(runner.get());
+        runner->getPlayer1()->getScore()->addHit(
+          HitEvent(0,
+                   0,
+                   1,
+                   BmsPoints(points, judgement, 0),
+                   HitEvent::Action::Press,
+                   true));
+        auto* result = context->finishStage();
+        REQUIRE(result);
+        CHECK(context->finishStage() == result);
+        CHECK(context->stageIndex() == stage);
+        CHECK(result->stageIndex() == stage);
+        CHECK(result->players()[0]->score()->parent() == runner.get());
+        if (stage == 0) {
+            CHECK_FALSE(context->finishCourse());
+            CHECK(context->nextStage());
+            CHECK(result->chartData()->getTitle() == "First");
+        }
+    }
+    CHECK(nestedCalls == 2);
+    CHECK_FALSE(context->nextStage());
+    auto* summary = context->finishCourse();
+    REQUIRE(summary);
+    CHECK(context->finishCourse() == summary);
+    CHECK(summary->players()[0]->score()->getScores().size() == 2);
+    CHECK(summary->players()[0]->score()->getResult()->getClearType() == clear);
+    CHECK(summary->charts()[0] != context->charts()[0]);
+    QList<ChartData*> missing{ nullptr, context->charts()[1] };
+    std::unique_ptr<CourseResultContext> saved(
+      fixture.contexts.createCourseResult({ summary->players()[0]->score() },
+                                          { fixture.first.get() },
+                                          missing,
+                                          summary->course()));
+    REQUIRE(saved);
+    QObject::disconnect(connection);
+    runner.reset();
+    CHECK(saved->charts()[0] == nullptr);
+    CHECK(saved->charts()[1]->getTitle() == "Second");
+    CHECK(saved->course().getChartIds()[0] == "first");
+}
+
+TEST_CASE(
+  "Mine hits affect mine count and gauge without changing target points",
+  "[BmsScore][ScoreReplayer]")
+{
+    ensureContextApplication();
+    ContextFixture fixture;
+    auto* gauge = new rules::Lr2Gauge(
+      "TEST", 100, 100, 0, false, false, [](double, Judgement) { return 0.0; });
+    auto player = std::unique_ptr<Player>(
+      fixture.player(ChartData::Keymode::K7, fixture.first.get(), { gauge }));
+    const QList<HitEvent> events{ HitEvent(0,
+                                           0,
+                                           1,
+                                           BmsPoints(2, Judgement::Perfect, 0),
+                                           HitEvent::Action::Press,
+                                           true),
+                                  HitEvent(
+                                    0,
+                                    1,
+                                    2,
+                                    BmsPoints(-0.25, Judgement::MineHit, 0),
+                                    HitEvent::Action::Press,
+                                    true),
+                                  HitEvent(0,
+                                           2,
+                                           3,
+                                           BmsPoints(-1, Judgement::Poor, 0),
+                                           HitEvent::Action::None,
+                                           true) };
+    qml_components::ScoreReplayer target;
+    target.setHitEvents(events);
+    for (const auto& event : events) {
+        player->getScore()->addHit(event);
+        target.notifyHit(event);
+    }
+    CHECK(player->getScore()->getMineHits() == 1);
+    CHECK(gauge->getGauge() == 75);
+    CHECK(player->getScore()->getPoints() == 1);
+    CHECK(target.getPoints() == 1);
+}
+
+TEST_CASE("Course gauge ranges use the configured lower bound",
+          "[Course][Gauge]")
+{
+    ensureContextApplication();
+    ContextFixture fixture;
+    auto* vars = fixture.first->getVars()->getGeneralVars();
+    vars->setGaugeMode(resource_managers::GaugeMode::SelectToUnder);
+    vars->setGaugeType("EXHARD");
+    vars->setBottomShiftableGauge("NORMAL");
+    const auto gauges = resource_managers::GaugeFactory{}.getCourseGauges(
+      fixture.first.get(), {});
+    QStringList names;
+    for (auto* gauge : gauges) {
+        names.append(gauge->getName());
+        delete gauge;
+    }
+    CHECK(names == QStringList{ "EXHARDDAN", "EXDAN", "DAN" });
+}
+
+TEST_CASE("Note travel time rejects zero and non-finite values", "[Vars]")
+{
+    resource_managers::GeneralVars vars({});
+    vars.setNoteScreenTimeMillis(450);
+    for (const auto value : { 0.0,
+                              -1.0,
+                              std::numeric_limits<double>::infinity(),
+                              std::numeric_limits<double>::quiet_NaN() }) {
+        vars.setNoteScreenTimeMillis(value);
+        CHECK(vars.getNoteScreenTimeMillis() == 450);
+    }
+    vars.setNoteScreenTimeMillis(1);
+    CHECK(vars.getNoteScreenTimeMillis() == 1);
+}
+
+TEST_CASE("Deleting a course participant cannot advance into an invalid stage",
+          "[ScreenContexts][Course]")
+{
+    ensureContextApplication();
+    ContextFixture fixture;
+    auto runner = fixture.course(ChartData::Keymode::K7, true);
+    auto* context = fixture.gameplay(runner.get());
+    fixture.ready(runner.get());
+    REQUIRE(context->finishStage());
+    const auto lastStage = GENERATE(false, true);
+    if (lastStage) {
+        REQUIRE(context->nextStage());
+        fixture.ready(runner.get());
+        REQUIRE(context->finishStage());
+    }
+    const auto deleteSecond = GENERATE(false, true);
+    (deleteSecond ? fixture.second : fixture.first).reset();
+    CHECK_FALSE(context->nextStage());
+    CHECK(context->stageIndex() == (lastStage ? 1 : 0));
+    if (lastStage) {
+        REQUIRE(context->finishCourse());
+    } else {
+        CHECK_FALSE(context->finishCourse());
+        CHECK(runner->finish().isEmpty());
     }
 }

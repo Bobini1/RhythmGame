@@ -1,13 +1,12 @@
-pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.FluentWinUI3
 import QtQuick.Layouts
 import RhythmGameQml
 
 ColumnLayout {
     id: root
 
-    required property string details
+    required property var results
 
     Button {
         id: detailsButton
@@ -19,12 +18,40 @@ ColumnLayout {
     Loader {
         Layout.fillWidth: true
         active: root.enabled && detailsButton.checked
-        sourceComponent: Label {
-            text: root.details
-            wrapMode: Text.Wrap
+        sourceComponent: ColumnLayout {
+            // [score-details]
+            ScoreDetails {
+                id: details
+                result: root.results[0] || null
+            }
+
+            Label {
+                text: qsTr("%1 saved scores for the selected chart.").arg(root.results.length)
+            }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.Wrap
+                text: !details.result ? qsTr("No saved score")
+                    : details.loading ? qsTr("Loading latest score...")
+                    : details.status === ScoreDetails.Error ? qsTr("Could not load this score")
+                    : !details.score?.replayData ? qsTr("This score has no recording")
+                    : qsTr("Early hits in the latest score: %1").arg(root.countEarly(details.score))
+            }
+            // [score-details]
         }
     }
     // [lazy-panel]
+
+    // [score-statistics]
+    function countEarly(score) {
+        let count = 0;
+        for (const hit of score.replayData.hitEvents) {
+            if (hit.noteRemoved && hit.points && hit.points.deviation < 0)
+                ++count;
+        }
+        return count;
+    }
+    // [score-statistics]
 
     // [profile-connection]
     Connections {

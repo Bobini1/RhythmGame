@@ -2,6 +2,7 @@
 #include "Lr2SelectBarCell.h"
 #include "Lr2ChartDataSnapshot.h"
 #include "gameplay_logic/ChartData.h"
+#include "resource_managers/ChartFolderModel.h"
 #include "resource_managers/Tables.h"
 
 #include <catch2/catch_test_macros.hpp>
@@ -159,6 +160,39 @@ chartWithHistogram(QObject* parent = nullptr)
 }
 
 } // namespace
+
+TEST_CASE("Empty select placeholders belong to the LR2 presentation model",
+          "[lr2][runtime][select][SelectEmpty]")
+{
+    resource_managers::ChartFolderModel folderModel;
+    auto chart = chartWithHistogram();
+    const auto chartValue = QVariant::fromValue(chart.get());
+    QVariantList contents;
+
+    SECTION("Empty folder") {}
+    SECTION("All charts excluded by the key filter")
+    {
+        contents.append(chartValue);
+        folderModel.setKeymodeFilter(6);
+    }
+
+    REQUIRE(folderModel.filterAndSort(contents).isEmpty());
+
+    Lr2SelectItemModel presentation;
+    presentation.setItems({ chartValue });
+    presentation.setFolderItems(&folderModel, contents, chartValue, 32);
+    REQUIRE(presentation.count() == 32);
+    for (const auto& row : presentation.items()) {
+        CHECK_FALSE(row.isValid());
+    }
+
+    folderModel.setKeymodeFilter(0);
+    REQUIRE(folderModel.filterAndSort({ chartValue }) ==
+            QVariantList{ chartValue });
+    presentation.setFolderItems(&folderModel, { chartValue }, chartValue, 32);
+    REQUIRE(presentation.count() == 32);
+    CHECK(presentation.currentItem() == chartValue);
+}
 
 TEST_CASE("LR2 select bar model wraps by logical count, not padded model count",
           "[lr2][runtime][select]")

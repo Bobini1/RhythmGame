@@ -26,15 +26,12 @@ Item {
     /*! Supplies the gameplay context when retry is offered during play. */
     property GameplayContext gameplay: null
     /*! Reports whether the current screen and runner support standard retry. */
-    readonly property bool available: !!retryState.context?._screen
-        && !retryState.context.isArena
-        && !retryState.context.isCourse
+    readonly property bool available: !!retryState.context
         && (root.result
             ? globalRoot.currentScreen?.result === root.result
                 && retryState.context.status === ChartRunner.Finished
-                && retryState.normalResult.chartData === retryState.context.chartData
-            : globalRoot.currentScreen === retryState.context._screen)
-        && Rg.chartLoader.canRetry(retryState.context._runner)
+            : globalRoot.currentScreen?.gameplay === retryState.context)
+        && ScreenContexts.canRetry(retryState.context, Rg.chartLoader)
 
     QtObject {
         id: retryState
@@ -53,13 +50,9 @@ Item {
         if (!root.enabled || !root.available) {
             return false;
         }
-        const screen = retryState.context._screen;
-        const runner = Rg.chartLoader.retryChart(retryState.context._runner, samePattern);
-        if (runner) {
-            const gameplay = ScreenContexts.createGameplay(runner);
-            if (!globalRoot.replaceGameplay(gameplay, screen)) {
-                runner.destroy();
-            }
+        const gameplay = ScreenContexts.retryGameplay(retryState.context, Rg.chartLoader, samePattern);
+        if (gameplay && !globalRoot.replaceGameplay(gameplay, retryState.context)) {
+            gameplay.destroy();
         }
         return true;
     }

@@ -115,7 +115,7 @@ rhythmGameRankingEntryFromJson(const QJsonObject& obj) -> RankingEntry
     entry.bestComboBreaksGuid = obj.value("bestComboBreaksGuid").toString();
     entry.latestDate = obj.value("latestDate").toInteger();
     entry.latestDateGuid = obj.value("latestDateGuid").toString();
-    entry.scoreCount = obj.value("scoreCount").toInt();
+    entry.scoreCount = obj.value("scoreCount").toInt(-1);
     return entry;
 }
 
@@ -212,20 +212,7 @@ OnlineRankingModel::handleTachiReply(int startRanking,
     const QJsonArray pbsArr = pbsBody.value("pbs").toArray();
     const QJsonArray usersArr = pbsBody.value("users").toArray();
 
-    if (pbsArr.isEmpty()) {
-        if (currentSortBy != SortableColumn::None &&
-            currentSortDir != SortDirection::None &&
-            !(currentSortBy == SortableColumn::ScorePct &&
-              currentSortDir == SortDirection::Desc) &&
-            (currentComboLte > 0 || currentComboGte > 0 ||
-             currentMissCountGte > 0 || currentMissCountLte > 0 ||
-             currentScorePctGte > 0.0 || currentScorePctLte > 0.0)) {
-            setEntries(sortFilterLocal(std::move(entries)));
-        }
-        setLoading(false);
-        return;
-    }
-    if (entries.size() + pbsArr.size() != playerCount) {
+    if (pbsArr.size() == 100) {
         const int pageSize = 100;
         startRanking += pageSize;
         const auto pbsUrlStr =
@@ -320,12 +307,6 @@ OnlineRankingModel::handleTachiReply(int startRanking,
             if (cfObj["name"] == "Best Lamp") {
                 auto value = cfObj.value("scoreID").toString();
                 r.bestClearTypeGuid = value;
-                if (r.bestClearTypeGuid.isEmpty()) {
-                    r.bestClearTypeGuid = value;
-                }
-                if (r.bestClearTypeGuid.isEmpty()) {
-                    r.bestClearTypeGuid = value;
-                }
             } else if (cfObj["name"] == "BEST SCORE") {
                 r.bestPointsGuid = cfObj.value("scoreID").toString();
             } else if (cfObj["name"] == "LOWEST BP") {
@@ -347,22 +328,11 @@ OnlineRankingModel::handleTachiReply(int startRanking,
         newPbs.append(r);
     }
 
-    if (newPbs.size() + entries.size() == playerCount) {
-        auto oldEntries = entries;
-        oldEntries.append(newPbs);
-        if (currentSortBy != SortableColumn::None &&
-            currentSortDir != SortDirection::None &&
-            !(currentSortBy == SortableColumn::ScorePct &&
-              currentSortDir == SortDirection::Desc) &&
-            (currentComboLte > 0 || currentComboGte > 0 ||
-             currentMissCountGte > 0 || currentMissCountLte > 0 ||
-             currentScorePctGte > 0.0 || currentScorePctLte > 0.0)) {
-            setEntries(sortFilterLocal(std::move(oldEntries)));
-        } else {
-            setEntries(std::move(oldEntries));
-        }
-    } else {
-        appendEntries(newPbs);
+    pendingTachiEntries.append(std::move(newPbs));
+    if (pbsArr.size() < 100) {
+        setPlayerCount(static_cast<int>(pendingTachiEntries.size()));
+        setEntries(sortFilterLocal(std::exchange(pendingTachiEntries, {})));
+        setLoading(false);
     }
 }
 
@@ -545,19 +515,19 @@ OnlineRankingModel::fetchRhythmGame()
           auto playerCount = array.size();
           auto scoreCount = 0;
           newEntries.reserve(array.size());
-          auto clearTypeCounts = QHash<QString, int>{};
           for (const auto& item : array) {
               if (!item.isObject())
                   continue;
               const auto obj = item.toObject();
               auto entry = rhythmGameRankingEntryFromJson(obj);
-              clearTypeCounts[entry.bestClearType]++;
-              scoreCount += entry.scoreCount;
+              scoreCount = scoreCount < 0 || entry.scoreCount < 0
+                             ? -1
+                             : scoreCount + entry.scoreCount;
               newEntries.append(std::move(entry));
           }
           setScoreCount(scoreCount);
           setPlayerCount(playerCount);
-          setEntries(std::move(newEntries));
+          setEntries(sortFilterLocal(std::move(newEntries)));
 
           setLoading(false);
       },
@@ -573,7 +543,6 @@ constexpr int lr2irPageSize = 100;
 struct Lr2irFetchState
 {
     QList<RankingEntry> entries;
-    QVariantMap clearCounts;
     int targetPages{ 1 };
 };
 
@@ -649,23 +618,6 @@ lr2irEntryFromJson(const QJsonObject& obj) -> RankingEntry
     return entry;
 }
 
-auto
-lr2irClearCountsFromChart(const QJsonObject& chart) -> QVariantMap
-{
-    auto counts = QVariantMap{};
-    counts.insert(QStringLiteral("FAILED"),
-                  chart.value(QStringLiteral("failed_count")).toInt());
-    counts.insert(QStringLiteral("EASY"),
-                  chart.value(QStringLiteral("easy_count")).toInt());
-    counts.insert(QStringLiteral("NORMAL"),
-                  chart.value(QStringLiteral("normal_count")).toInt());
-    counts.insert(QStringLiteral("HARD"),
-                  chart.value(QStringLiteral("hard_count")).toInt());
-    counts.insert(QStringLiteral("FC"),
-                  chart.value(QStringLiteral("fc_count")).toInt());
-    return counts;
-}
-
 }
 auto
 OnlineRankingModel::sortFilterLocal(QList<RankingEntry> entriesUnfiltered) const
@@ -701,6 +653,10 @@ OnlineRankingModel::sortFilterLocal(QList<RankingEntry> entriesUnfiltered) const
         }
     }
 
+    if (currentSortBy == SortableColumn::None ||
+        currentSortDir == SortDirection::None)
+        return filtered;
+
     // Sorting: comparator returns true if a should come before b
     // Use explicit priority ordering for clear types
     static const QStringList clearTypePriorities = {
@@ -714,30 +670,29 @@ OnlineRankingModel::sortFilterLocal(QList<RankingEntry> entriesUnfiltered) const
             case SortableColumn::Player: {
                 ord = a.userName <=> b.userName;
                 if (ord == std::partial_ordering::equivalent) {
-                    ord = (a.maxPoints > 0) ? (a.bestPoints / a.maxPoints) <=>
-                                                (b.bestPoints / b.maxPoints)
-                                            : std::partial_ordering::equivalent;
+                    ord =
+                      (a.maxPoints > 0 ? a.bestPoints / a.maxPoints : 0.0) <=>
+                      (b.maxPoints > 0 ? b.bestPoints / b.maxPoints : 0.0);
                 }
             } break;
             case SortableColumn::Grade: {
-                ord = (a.maxPoints > 0) ? (a.bestPoints / a.maxPoints) <=>
-                                            (b.bestPoints / b.maxPoints)
-                                        : std::partial_ordering::equivalent;
+                ord = (a.maxPoints > 0 ? a.bestPoints / a.maxPoints : 0.0) <=>
+                      (b.maxPoints > 0 ? b.bestPoints / b.maxPoints : 0.0);
             } break;
             case SortableColumn::Combo:
                 ord = a.bestCombo <=> b.bestCombo;
                 if (ord == std::partial_ordering::equivalent) {
-                    ord = (a.maxPoints > 0) ? (a.bestPoints / a.maxPoints) <=>
-                                                (b.bestPoints / b.maxPoints)
-                                            : std::partial_ordering::equivalent;
+                    ord =
+                      (a.maxPoints > 0 ? a.bestPoints / a.maxPoints : 0.0) <=>
+                      (b.maxPoints > 0 ? b.bestPoints / b.maxPoints : 0.0);
                 }
                 break;
             case SortableColumn::ComboBreaks:
                 ord = a.bestComboBreaks <=> b.bestComboBreaks;
                 if (ord == std::partial_ordering::equivalent) {
-                    ord = (a.maxPoints > 0) ? (a.bestPoints / a.maxPoints) <=>
-                                                (b.bestPoints / b.maxPoints)
-                                            : std::partial_ordering::equivalent;
+                    ord =
+                      (a.maxPoints > 0 ? a.bestPoints / a.maxPoints : 0.0) <=>
+                      (b.maxPoints > 0 ? b.bestPoints / b.maxPoints : 0.0);
                 }
                 break;
             case SortableColumn::ClearType: {
@@ -745,20 +700,23 @@ OnlineRankingModel::sortFilterLocal(QList<RankingEntry> entriesUnfiltered) const
                 const int ib = clearTypePriorities.indexOf(b.bestClearType);
                 ord = ia <=> ib;
                 if (ord == std::partial_ordering::equivalent) {
-                    ord = (a.maxPoints > 0) ? (a.bestPoints / a.maxPoints) <=>
-                                                (b.bestPoints / b.maxPoints)
-                                            : std::partial_ordering::equivalent;
+                    ord =
+                      (a.maxPoints > 0 ? a.bestPoints / a.maxPoints : 0.0) <=>
+                      (b.maxPoints > 0 ? b.bestPoints / b.maxPoints : 0.0);
                 }
                 break;
             }
-            case SortableColumn::ScorePct:
             case SortableColumn::Date:
+                ord = a.latestDate <=> b.latestDate;
+                break;
             case SortableColumn::PlayCount:
+                ord = a.scoreCount <=> b.scoreCount;
+                break;
+            case SortableColumn::ScorePct:
             case SortableColumn::None:
             default:
-                ord = (a.maxPoints > 0) ? (a.bestPoints / a.maxPoints) <=>
-                                            (b.bestPoints / b.maxPoints)
-                                        : std::partial_ordering::equivalent;
+                ord = (a.maxPoints > 0 ? a.bestPoints / a.maxPoints : 0.0) <=>
+                      (b.maxPoints > 0 ? b.bestPoints / b.maxPoints : 0.0);
                 if (ord == std::partial_ordering::equivalent) {
                     const int ia = clearTypePriorities.indexOf(a.bestClearType);
                     const int ib = clearTypePriorities.indexOf(b.bestClearType);
@@ -873,8 +831,7 @@ OnlineRankingModel::fetchLR2IR()
                   setPlayerCount(chart.value(QStringLiteral("play_people"))
                                    .toInt(totalRows));
                   setScoreCount(
-                    chart.value(QStringLiteral("play_count")).toInt(totalRows));
-                  state->clearCounts = lr2irClearCountsFromChart(chart);
+                    chart.value(QStringLiteral("play_count")).toInt(-1));
                   state->targetPages = std::max(1, totalPages);
                   state->entries.reserve(totalRows);
               }
@@ -896,7 +853,6 @@ OnlineRankingModel::fetchLR2IR()
                   loadedEntries = sortFilterLocal(std::move(loadedEntries));
               }
               setEntries(std::move(loadedEntries));
-              setClearCounts(state->clearCounts);
               setLoading(false);
           });
     };
@@ -919,6 +875,7 @@ OnlineRankingModel::fetchTachi()
                 if (generation != currentFetchGeneration) {
                     return;
                 }
+                setGameId(tachiGame);
                 setChartId(chartID);
 
                 const auto pbsUrlStr =
@@ -968,6 +925,7 @@ void
 OnlineRankingModel::fetch()
 {
     ++currentFetchGeneration;
+    pendingTachiEntries.clear();
     emit cancelPendingRequested();
 
     if (currentMd5.isEmpty() || (!networkRequestFactory.baseUrl().isValid() &&
@@ -980,8 +938,8 @@ OnlineRankingModel::fetch()
         return;
     }
     setLoading(true);
-    setPlayerCount(0);
-    setScoreCount(0);
+    setPlayerCount(-1);
+    setScoreCount(-1);
     setEntries({});
     setClearCounts({});
 
@@ -1014,6 +972,7 @@ OnlineRankingModel::setMd5(const QString& md5)
         return;
     }
     currentMd5 = md5;
+    setGameId({});
     if (currentProvider != Provider::Tachi) {
         setChartId(md5);
     } else {
@@ -1080,6 +1039,15 @@ OnlineRankingModel::setChartId(const QString& chartId)
     emit chartIdChanged();
 }
 void
+OnlineRankingModel::setGameId(const QString& gameId)
+{
+    if (this->gameId == gameId) {
+        return;
+    }
+    this->gameId = gameId;
+    emit gameIdChanged();
+}
+void
 OnlineRankingModel::setEntries(QList<RankingEntry> entries)
 {
     if (this->entries == entries) {
@@ -1087,32 +1055,12 @@ OnlineRankingModel::setEntries(QList<RankingEntry> entries)
     }
     beginResetModel();
     this->entries = std::move(entries);
-    emit rankingEntriesChanged();
     endResetModel();
+    emit rankingEntriesChanged();
 
     auto variantMap = clearCountsForEntries(this->entries);
     setClearCounts(std::move(variantMap));
 }
-void
-OnlineRankingModel::appendEntries(QList<RankingEntry> entries)
-{
-    if (entries.isEmpty()) {
-        return;
-    }
-    auto newClearCounts = clearCountsForEntries(entries);
-    const int oldSize = this->entries.size();
-    beginInsertRows(QModelIndex(), oldSize, oldSize + entries.size() - 1);
-    this->entries.append(std::move(entries));
-    emit rankingEntriesChanged();
-    endInsertRows();
-    auto clearCounts = getClearCounts();
-    for (const auto& key : newClearCounts.keys()) {
-        clearCounts[key] =
-          clearCounts.value(key, 0).toInt() + newClearCounts.value(key).toInt();
-    }
-    setClearCounts(std::move(clearCounts));
-}
-
 auto
 OnlineRankingModel::getLimit() const -> int
 {
@@ -1125,9 +1073,10 @@ OnlineRankingModel::setLimit(int limit)
     if (currentLimit == limit) {
         return;
     }
+    beginResetModel();
     currentLimit = limit;
+    endResetModel();
     emit limitChanged();
-    fetch();
 }
 
 auto
@@ -1142,9 +1091,10 @@ OnlineRankingModel::setOffset(int offset)
     if (currentOffset == offset) {
         return;
     }
+    beginResetModel();
     currentOffset = offset;
+    endResetModel();
     emit offsetChanged();
-    fetch();
 }
 
 auto
@@ -1176,36 +1126,6 @@ OnlineRankingModel::setSortDir(SortDirection sortDir)
     }
     currentSortDir = sortDir;
     emit sortDirChanged();
-    fetch();
-}
-
-auto
-OnlineRankingModel::getLastPlayedGte() const -> qint64
-{
-    return currentLastPlayedGte;
-}
-void
-OnlineRankingModel::setLastPlayedGte(qint64 val)
-{
-    if (currentLastPlayedGte == val)
-        return;
-    currentLastPlayedGte = val;
-    emit lastPlayedGteChanged();
-    fetch();
-}
-
-auto
-OnlineRankingModel::getLastPlayedLte() const -> qint64
-{
-    return currentLastPlayedLte;
-}
-void
-OnlineRankingModel::setLastPlayedLte(qint64 val)
-{
-    if (currentLastPlayedLte == val)
-        return;
-    currentLastPlayedLte = val;
-    emit lastPlayedLteChanged();
     fetch();
 }
 
@@ -1310,6 +1230,7 @@ OnlineRankingModel::setProvider(Provider provider)
         return;
     }
     currentProvider = provider;
+    setGameId({});
     if (provider == Provider::Tachi) {
         setChartId("");
     } else {
@@ -1343,6 +1264,7 @@ void
 OnlineRankingModel::cancelPending()
 {
     ++currentFetchGeneration;
+    pendingTachiEntries.clear();
     emit cancelPendingRequested();
     setLoading(false);
 }
@@ -1371,6 +1293,12 @@ auto
 OnlineRankingModel::getChartId() const -> QString
 {
     return chartId;
+}
+
+auto
+OnlineRankingModel::getGameId() const -> QString
+{
+    return gameId;
 }
 
 } // namespace qml_components

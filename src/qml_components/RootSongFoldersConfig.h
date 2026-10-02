@@ -72,6 +72,8 @@ class RootSongFolders final : public QAbstractListModel
     Q_INVOKABLE void remove(int index);
     Q_INVOKABLE QVariant at(int index) const;
 
+    auto containing(const QString& path) const -> RootSongFolder*;
+
   signals:
     void chartSetMutationCommitted();
 };
@@ -100,6 +102,7 @@ class ScanningQueue final : public QAbstractListModel
     void scanImpl(const QString& which);
     void saveStatus(const QString& folder, RootSongFolder::Status status);
     void setCurrentScannedFolder(QString folder);
+    void performTask();
 
   public:
     void clear(const QString& which);
@@ -111,7 +114,6 @@ class ScanningQueue final : public QAbstractListModel
     explicit ScanningQueue(db::SqliteCppDb* db,
                            resource_managers::SongDbScanner scanner,
                            QObject* parent = nullptr);
-    Q_INVOKABLE void performTask();
     Q_INVOKABLE void remove(int index);
     Q_INVOKABLE QVariant at(int index) const;
     Q_INVOKABLE bool scan(RootSongFolder* which);
@@ -137,6 +139,9 @@ class RootSongFoldersConfig final : public QObject
                                    QObject* parent = nullptr);
     auto getFolders() const -> RootSongFolders*;
     auto getScanningQueue() const -> ScanningQueue*;
+    /** Requests a scan of the configured root containing a local path or URL.
+     */
+    Q_INVOKABLE bool rescan(const QString& path);
 };
 
 } // namespace qml_components

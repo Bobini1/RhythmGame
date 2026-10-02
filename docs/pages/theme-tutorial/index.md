@@ -20,18 +20,18 @@ ZIP download on the generated documentation site. You can install any lesson
 on its own. Each ZIP contains a single theme folder, including its manifest,
 QML files and any assets it uses.
 
-| Lesson                               | Installable folder | What you will see                                  |
-|--------------------------------------|--------------------|----------------------------------------------------|
+| Lesson                               | Installable folder | What you will see                                    |
+|--------------------------------------|--------------------|------------------------------------------------------|
 | \subpage theme_tutorial_first_screen | `01-main`          | An image with Song select, Settings and Quit buttons |
-| \subpage theme_tutorial_qml          | `02-qml`           | Reusable buttons and a color change                |
-| \subpage theme_tutorial_rg           | `03-profile`       | A profile greeting with a saved color setting      |
-| \subpage theme_tutorial_translations | `04-translations`  | The same menu in English or Polish                 |
-| \subpage theme_tutorial_select       | `05-select`        | A list of folders, charts and courses              |
-| \subpage theme_tutorial_decide       | `06-decide`        | A confirmation screen before play                  |
-| \subpage theme_tutorial_gameplay     | `07-gameplay`      | Notes, long notes, mines and a live score          |
-| \subpage theme_tutorial_results      | `08-results`       | Chart results and a separate course summary        |
-| \subpage theme_tutorial_assets       | `09-assets`        | Chart images, preview audio and saved score counts |
-| \subpage theme_tutorial_shipping     | `10-complete`      | The screens combined into one theme                |
+| \subpage theme_tutorial_qml          | `02-qml`           | Reusable buttons and a color change                  |
+| \subpage theme_tutorial_rg           | `03-profile`       | A profile greeting with a saved color setting        |
+| \subpage theme_tutorial_translations | `04-translations`  | The same menu in English or Polish                   |
+| \subpage theme_tutorial_select       | `05-select`        | A list of folders, charts and courses                |
+| \subpage theme_tutorial_decide       | `06-decide`        | A confirmation screen before play                    |
+| \subpage theme_tutorial_gameplay     | `07-gameplay`      | Notes, long notes, mines and a live score            |
+| \subpage theme_tutorial_results      | `08-results`       | Chart results and a separate course summary          |
+| \subpage theme_tutorial_assets       | `09-assets`        | Images, previews, saved scores and online rankings   |
+| \subpage theme_tutorial_shipping     | `10-complete`      | The screens combined into one theme                  |
 
 Start with [the first menu](01-first-screen.md), even if you plan to work on
 gameplay. It explains how to install, select and reload an example. Later
@@ -59,3 +59,36 @@ API uses optional components inside each screen.
 The examples describe the current source API. Builds from before the screen
 context changes cannot load the later lessons. See the
 [maintenance notes](authoring.md) for the checks used when updating the tutorial.
+
+## If you get stuck {#theme_tutorial_stuck}
+
+It is perfectly possible to create a theme that breaks the game and will leave you unable to even go to settings.
+If that ever happens go to:
+
+| Platform | Theme config file                                                               |
+|----------|---------------------------------------------------------------------------------|
+| Windows  | `%APPDATA%/RhythmGame/profiles/<profile>/theme_config.json`                     |
+| Linux    | `~/.local/share/RhythmGame/profiles/<profile>/theme_config.json`                |
+| macOS    | `~/Library/Application Support/RhythmGame/profiles/<profile>/theme_config.json` |
+
+You can edit its contents to change the selected theme for each screen. This is the default setup with no custom themes:
+
+```json
+{
+  "courseResult": "Default",
+  "decide": "Default",
+  "k10": "Default",
+  "k14": "Default",
+  "k5": "Default",
+  "k5battle": "Default",
+  "k7": "Default",
+  "k7battle": "Default",
+  "main": "Default",
+  "multiplayer": "Default",
+  "result": "Default",
+  "select": "Default",
+  "settings": "Default"
+}
+```
+
+You will need to restart the game to see the changes.

@@ -148,6 +148,7 @@ set(RHYTHM_GAME_QML_SOURCES
 )
 
 set(RHYTHM_GAME_QML_FILES
+        ScoreDetails.qml
         ContentFrame.qml
         Log.qml
         ColorChanger.qml
@@ -161,6 +162,8 @@ set(RHYTHM_GAME_QML_FILES
         TransientInputFocus.qml
         TransientInputFocusDismissLayer.qml
         PendingReplyGroup.qml
+        StandardRanking.qml
+        StandardSelectOptions.qml
         StandardSelectState.qml
         StandardSelectReload.qml
         StandardSelectSession.qml
@@ -170,8 +173,10 @@ set(RHYTHM_GAME_QML_FILES
         StandardSelectInput.qml
         StandardSelectShortcuts.qml
         StandardSelectController.qml
+        StandardSelectPreview.qml
         StandardInputKeys.qml
         StandardMainActions.qml
+        StandardMainController.qml
         StandardMultiplayerFlow.qml
         StandardArenaOverlay.qml
         StandardArenaSelectOverlay.qml
@@ -181,6 +186,7 @@ set(RHYTHM_GAME_QML_FILES
         StandardResultInput.qml
         StandardChartRetry.qml
         StandardGameplayFlow.qml
+        StandardGameplayTarget.qml
         GameplaySession.qml
         StandardGameplayInput.qml
         StandardGameplayAttemptState.qml
@@ -198,7 +204,8 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaOverlayResizeHandle.qml
 )
 
-set_source_files_properties(TransientInputFocus.qml StandardInputKeys.qml PROPERTIES
+set_source_files_properties(TransientInputFocus.qml StandardInputKeys.qml
+        StandardSelectOptions.qml PROPERTIES
         QT_QML_SINGLETON_TYPE TRUE
 )
 set_source_files_properties(GameplaySession.qml PROPERTIES QT_QML_INTERNAL_TYPE TRUE)

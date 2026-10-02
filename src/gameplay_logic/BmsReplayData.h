@@ -22,8 +22,12 @@ class BmsReplayData final : public QObject
      * @brief The list of hit events that occurred during the score.
      */
     Q_PROPERTY(QList<HitEvent> hitEvents READ getHitEvents CONSTANT)
+    /** Timing buckets: Perfect, Great, Good, Bad, Poor, EmptyPoor.
+     * Negative deviation is early; zero and positive deviation are late.
+     * Calculated from the loaded replay, not stored in the score database. */
     Q_PROPERTY(QList<int> earlyTimingCounts READ getEarlyTimingCounts CONSTANT)
     Q_PROPERTY(QList<int> lateTimingCounts READ getLateTimingCounts CONSTANT)
+    /** Totals include only Perfect through Bad (the first four buckets). */
     Q_PROPERTY(int totalEarly READ getTotalEarly CONSTANT)
     Q_PROPERTY(int totalLate READ getTotalLate CONSTANT)
     /**
@@ -64,6 +68,7 @@ class BmsReplayData final : public QObject
     auto toJsonArray() const -> QJsonArray;
     static auto fromJsonArray(const QJsonArray& array) -> QList<HitEvent>;
     void updateTimingCounts();
+    auto clone() const -> std::unique_ptr<BmsReplayData>;
 };
 
 } // namespace gameplay_logic

@@ -668,7 +668,7 @@ ArenaSession::getRoomPhase() const -> RoomPhase
     return m_roomPhase;
 }
 auto
-ArenaSession::getCanSelect() const -> bool
+ArenaSession::canParticipateInSelection() const -> bool
 {
     return m_state == State::InRoom && m_roundsAvailable &&
            m_roomPhase == RoomPhase::Selecting && !m_round &&
@@ -680,13 +680,15 @@ ArenaSession::getCanSelect() const -> bool
            m_selfAvailabilityAppliedRevision == m_roomAvailabilityRevision;
 }
 auto
+ArenaSession::getCanSelect() const -> bool
+{
+    return canParticipateInSelection();
+}
+auto
 ArenaSession::getCanReady() const -> bool
 {
-    return getCanSelect() && m_selection.has_value() && !m_selfReady &&
-           m_selfInventoryState == InventoryState::Ready &&
-           m_selfInventoryRevision > 0 && m_roomAvailabilityRevision > 0 &&
-           m_availability.revision() == m_roomAvailabilityRevision &&
-           m_selfAvailabilityAppliedRevision == m_roomAvailabilityRevision;
+    return canParticipateInSelection() && m_selection.has_value() &&
+           !m_selfReady;
 }
 auto
 ArenaSession::getReady() const -> bool

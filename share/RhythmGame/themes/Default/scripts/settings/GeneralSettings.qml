@@ -129,7 +129,7 @@ Item {
                     destination: root.generalVars
                     id_: "noteScreenTimeMillis"
                     name: qsTr("Note Screen Time (ms)")
-                    min: 0
+                    min: 1
                     default_: 1000
                     sliderMax: 1500
                     Layout.fillWidth: true
@@ -304,8 +304,8 @@ Item {
                 Choice {
                     destination: root.generalVars
                     id_: "replayType"
-                    choices: [0, 1, 2, 3]
-                    displayStrings: qsTr("Newest;Best Score;Best Clear;Best Combo").split(";")
+                    choices: StandardSelectOptions.replayOptions.map(option => option.value)
+                    displayStrings: StandardSelectOptions.replayOptions.map(option => option.text)
                     name: qsTr("Replay Type")
                     default_: 0
                     Layout.fillWidth: true

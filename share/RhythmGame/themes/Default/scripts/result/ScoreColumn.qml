@@ -25,13 +25,14 @@ Column {
     property alias totalEntries: rankingPosition.totalEntries
     property alias loading: rankingPosition.loading
     property alias scoreSubmissionFailed: rankingPosition.scoreSubmissionFailed
-    property string rankingUrl
+    property bool rankingAvailable: false
     property string rankingSource: "rhythmGame"
     property var provider
     property string importedSource: ""
 
     signal leftClicked()
     signal rightClicked()
+    signal rankingClicked()
 
     Score {
         height: 150
@@ -127,12 +128,9 @@ Column {
                 MouseArea {
                     anchors.fill: parent
                     anchors.margins: 14
-                    cursorShape: scoreColumn.rankingUrl ? Qt.PointingHandCursor : undefined
-                    enabled: scoreColumn.rankingUrl !== ""
-
-                    onClicked: {
-                        Qt.openUrlExternally(scoreColumn.rankingUrl);
-                    }
+                    cursorShape: enabled ? Qt.PointingHandCursor : undefined
+                    enabled: scoreColumn.rankingAvailable
+                    onClicked: scoreColumn.rankingClicked()
                 }
             }
         }

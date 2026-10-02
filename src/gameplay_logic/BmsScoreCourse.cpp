@@ -4,6 +4,23 @@
 
 #include "BmsScoreCourse.h"
 namespace gameplay_logic {
+auto
+BmsScoreCourse::clone(QObject* parent) const -> std::unique_ptr<BmsScoreCourse>
+{
+    auto owner = QObject{};
+    QList<BmsScore*> stages;
+    for (auto* stage : scores)
+        stages.append(stage->clone(&owner).release());
+    return std::make_unique<BmsScoreCourse>(
+      result->clone(),
+      gaugeHistory ? std::make_unique<BmsGaugeHistory>(
+                       gaugeHistory->getGaugeInfo(), gaugeHistory->getGuid())
+                   : nullptr,
+      replayData ? replayData->clone() : nullptr,
+      stages,
+      parent);
+}
+
 BmsScoreCourse::BmsScoreCourse(std::unique_ptr<BmsResultCourse> resultCourse,
                                std::unique_ptr<BmsGaugeHistory> gaugeHistory,
                                std::unique_ptr<BmsReplayData> replayData,
@@ -16,8 +33,10 @@ BmsScoreCourse::BmsScoreCourse(std::unique_ptr<BmsResultCourse> resultCourse,
   , scores(std::move(scores))
 {
     this->result->setParent(this);
-    this->gaugeHistory->setParent(this);
-    this->replayData->setParent(this);
+    if (this->gaugeHistory)
+        this->gaugeHistory->setParent(this);
+    if (this->replayData)
+        this->replayData->setParent(this);
     for (auto* score : this->scores) {
         score->setParent(this);
     }
@@ -69,9 +88,14 @@ BmsScoreCourse::fromScores(std::unique_ptr<BmsResultCourse> resultCourse,
     auto hitEvents = QList<HitEvent>{};
     auto gaugeHistories = QHash<QString, QList<rules::GaugeHistoryEntry>>{};
     auto offset = 0LL;
+    bool hasReplay = !scores.isEmpty();
+    bool hasGauges = !scores.isEmpty();
     for (const auto* score : scores) {
         const auto* replayData = score->getReplayData();
-        const auto& scoreHitEvents = replayData->getHitEvents();
+        hasReplay = hasReplay && replayData;
+        hasGauges = hasGauges && score->getGaugeHistory();
+        const auto& scoreHitEvents =
+          replayData ? replayData->getHitEvents() : QList<HitEvent>{};
         for (const auto& event : scoreHitEvents) {
             hitEvents.append(HitEvent(event.getColumn(),
                                       event.getKeyOptional(),
@@ -81,7 +105,9 @@ BmsScoreCourse::fromScores(std::unique_ptr<BmsResultCourse> resultCourse,
                                       event.getAction(),
                                       event.getNoteRemoved()));
         }
-        for (const auto& info : score->getGaugeHistory()->getGaugeInfo()) {
+        for (const auto& info : score->getGaugeHistory()
+                                  ? score->getGaugeHistory()->getGaugeInfo()
+                                  : QList<BmsGaugeInfo>{}) {
             auto& gaugeHistory = gaugeHistories[info.name];
             for (const auto& entry : info.gaugeHistory) {
                 gaugeHistory.append(rules::GaugeHistoryEntry(
@@ -90,14 +116,19 @@ BmsScoreCourse::fromScores(std::unique_ptr<BmsResultCourse> resultCourse,
         }
         offset += score->getResult()->getLength();
     }
-    auto infos = scores[0]->getGaugeHistory()->getGaugeInfo();
+    auto infos = hasGauges ? scores[0]->getGaugeHistory()->getGaugeInfo()
+                           : QList<BmsGaugeInfo>{};
     for (auto& info : infos) {
         info.gaugeHistory = gaugeHistories[info.name];
     }
     auto gaugeHistory =
-      std::make_unique<BmsGaugeHistory>(infos, resultCourse->getGuid());
-    auto replayData = std::make_unique<BmsReplayData>(std::move(hitEvents),
-                                                      resultCourse->getGuid());
+      hasGauges
+        ? std::make_unique<BmsGaugeHistory>(infos, resultCourse->getGuid())
+        : nullptr;
+    auto replayData =
+      hasReplay ? std::make_unique<BmsReplayData>(std::move(hitEvents),
+                                                  resultCourse->getGuid())
+                : nullptr;
     return std::make_unique<BmsScoreCourse>(std::move(resultCourse),
                                             std::move(gaugeHistory),
                                             std::move(replayData),

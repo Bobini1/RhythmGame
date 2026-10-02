@@ -13,10 +13,10 @@ namespace qml_components {
 
 /**
  * @brief The class that provides the Input attached property.
- * @details QML components that wish to react to game key events, like scratch or
- * buttons, should use Input.
+ * @details QML components that wish to react to game key events, like scratch
+ * or buttons, should use Input.
  */
-class InputAttached final : public QObject
+class InputAttached : public QObject
 {
     Q_OBJECT
     QML_ATTACHED(InputAttached)
@@ -109,6 +109,7 @@ class InputAttached final : public QObject
     void select1Ticked(int tickNumber, input::InputTranslator::TickType type);
     void start2Ticked(int tickNumber, input::InputTranslator::TickType type);
     void select2Ticked(int tickNumber, input::InputTranslator::TickType type);
+
   public:
 #define KEY(name, uppercase)                                                   \
     auto name() const -> bool                                                  \

@@ -52,7 +52,40 @@ PendingReply::isSuccessful() const
 QVariant
 PendingReply::value() const
 {
+    retainOwnedResult();
     return result;
+}
+
+void
+PendingReply::retainOwnedResult() const
+{
+    if (!ownedResult || !resultAnchor.isUndefined())
+        return;
+    if (auto* engine = qjsEngine(this)) {
+        resultAnchor = engine->newQObject(ownedResult);
+        if (ownedResult->parent() == this) {
+            QQmlEngine::setObjectOwnership(ownedResult,
+                                           QQmlEngine::JavaScriptOwnership);
+            ownedResult->setParent(nullptr);
+        }
+    }
+}
+
+bool
+PendingReply::settleOwned(QVariant value, std::unique_ptr<QObject> object)
+{
+    if (resultAvailable)
+        return false;
+    if (object) {
+        object->setParent(this);
+        ownedResult = object.release();
+        connect(ownedResult, &QObject::destroyed, this, [this] {
+            result.clear();
+            resultAnchor = {};
+        });
+        retainOwnedResult();
+    }
+    return settle(true, std::move(value), false);
 }
 
 void
@@ -146,7 +179,7 @@ PendingReply::invokeCallback(QJSValue callback)
 
     QJSManagedValue managedCallback(std::move(callback), engine);
     if (replySuccessful)
-        managedCallback.call({ engine->toScriptValue(result) });
+        managedCallback.call({ engine->toScriptValue(value()) });
     else
         managedCallback.call();
 }

@@ -47,8 +47,6 @@ Item {
         the component.
     */
     property var screen: root.parent
-    /*! Reports whether Arena manages this play. */
-    readonly property bool arenaManagedRunner: root.gameplay ? root.gameplay.isArena : false
     /*! Allows ready audio and startup when true. Bind it to the completion of your intro. */
     property bool startReady: true
     /*!
@@ -64,6 +62,10 @@ Item {
     property bool exitEnabled: true
     /*! Controls whether quick retry and the Start+Select gesture are accepted. */
     property alias retryEnabled: input.retryEnabled
+    /*! Whether a supported retry can be requested from a button or gesture. */
+    readonly property bool retryAvailable: input.retryAvailable
+    /*! Calls retryAction(samePattern) instead of the standard restart. */
+    property alias retryAction: input.retryAction
     /*! Start+Select hold time in milliseconds. */
     property alias retryHoldDurationMillis: input.retryHoldDurationMillis
     /*! Sets the exit sound for an attempted play. Use an empty URL to disable it. */
@@ -77,10 +79,6 @@ Item {
     readonly property bool retryChoosing: input.retryChoosing
     /*! Reports whether the current stage has received a scoring hit. */
     readonly property bool attempted: attemptState.attempted
-    /*! Current stage data, including the last stage after course completion. */
-    readonly property var chartData: root.gameplay ? root.gameplay.chartData : null
-    /*! Reports whether this runner contains a course. */
-    readonly property bool isCourse: root.gameplay ? root.gameplay.isCourse : false
     /*! Reports whether this component owns the currently presented screen. */
     readonly property bool active: root.enabled && !!root.screen
         && globalRoot.currentScreen === root.screen
@@ -115,14 +113,14 @@ Item {
         if (typeof root.dismissOverlayAction === "function" && root.dismissOverlayAction()) {
             return true;
         }
-        if (root.arenaManagedRunner && Rg.arenaSession.chatOpen) {
+        if (root.gameplay.isArena && Rg.arenaSession.chatOpen) {
             Rg.arenaSession.setChatOpen(false);
             return true;
         }
         if (session.retryTransition()) {
             return true;
         }
-        if (!root.attempted && !root.arenaManagedRunner && root.gameplay.status !== ChartRunner.Finished) {
+        if (!root.attempted && !root.gameplay.isArena && root.gameplay.status !== ChartRunner.Finished) {
             return session.leave();
         }
         if (!session.complete()) {
@@ -147,6 +145,8 @@ Item {
             Qt.callLater(startup.begin);
         }
         onFinishRequested: root.finishRequested()
+        onReadyChanged: Qt.callLater(startup.begin)
+        onPlayingChanged: Qt.callLater(startup.begin)
         onClosing: {
             startup.reset();
             root.closing();
@@ -165,7 +165,7 @@ Item {
             readySound.stop();
         }
         function begin() {
-            if (!root.active || !root.startReady || root.arenaManagedRunner
+            if (!root.active || !root.startReady || root.gameplay?.isArena
                     || !session.playing || !session.ready || startup.armed || startup.complete) {
                 return;
             }
@@ -190,7 +190,7 @@ Item {
 
     AudioPlayer {
         id: readySound
-        source: root.arenaManagedRunner ? "" : root.readySoundSource
+        source: root.gameplay?.isArena ? "" : root.readySoundSource
         onPlayingChanged: if (!readySound.playing) startup.delay()
     }
     AudioPlayer {

@@ -1,7 +1,7 @@
 # How theme behavior is organized {#theme_architecture}
 
 Themes choose standard behavior separately for each screen. A menu can use
-`StandardMainActions`, a selector can use `StandardSelectController`, and
+`StandardMainController`, a selector can use `StandardSelectController`, and
 gameplay can use `StandardGameplayFlow`. Each component handles common
 behavior while the theme draws its own screen.
 
@@ -90,7 +90,7 @@ available for authors who need to replace one responsibility.
 
 | Screen                 | Starting component         | What the theme supplies                                           |
 |------------------------|----------------------------|------------------------------------------------------------------|
-| Main menu              | `StandardMainActions`      | Buttons, labels and images                                       |
+| Main menu              | `StandardMainController`   | Buttons, labels and images                                       |
 | Multiplayer browser    | `StandardMultiplayerFlow`  | Room list, join and create controls                              |
 | Song selection         | `StandardSelectController` | List or wheel, focus movement and optional preview or ranking UI |
 | Decide                 | `StandardDecideFlow`       | Chart or course details and optional buttons                     |
@@ -155,7 +155,8 @@ do not supply separate copies of that state.
 Theme authors do not need to assemble it themselves.
 
 Inactive screens cannot start gameplay or navigate through the standard flow.
-The theme still stops its own audio and disables its own shortcuts. Arena
+Standard controllers stop their audio and shortcuts when disabled. The theme
+does the same for any players or shortcuts it adds itself. Arena
 controls its own startup and play object lifetime, and standard quick retry
 is unavailable there.
 
@@ -170,6 +171,16 @@ would make that interface harder to use, let the LR2 adapter use a different
 implementation. Check LR2 separately when shared behavior changes.
 
 ## Maintain the interfaces together
+
+Keep properties supplied by a screen context on that context. For example,
+read `gameplay.chartData` and `gameplay.isCourse` directly instead of adding
+copies to `StandardGameplayFlow`. Helpers that only coordinate a component's
+own state belong inside its implementation object.
+
+Add a switch when it avoids work or lets a theme replace behavior. Ranking
+downloads and preview discovery can be disabled, while cached results remain
+available without a separate switch. Use existing signals for custom feedback
+instead of adding callbacks for the same events.
 
 Prefer a specific option or notification over replacing an entire action.
 Document every replacement's responsibility. A `try...Action` callback

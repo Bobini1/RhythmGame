@@ -101,6 +101,10 @@ gameplay_logic::BmsScore::BmsScore(
   , source(source)
   , longNoteMode(longNoteMode)
 {
+    this->result->setStoredData(this->replayData != nullptr,
+                                this->gaugeHistory != nullptr,
+                                source != Source::RhythmGame,
+                                getSourceName());
     this->result->setParent(this);
     if (this->replayData != nullptr) {
         this->replayData->setParent(this);
@@ -132,9 +136,7 @@ gameplay_logic::BmsScore::clone(QObject* parent) const
 {
     auto copy = std::make_unique<BmsScore>(
       result->clone(),
-      replayData ? std::make_unique<BmsReplayData>(replayData->getHitEvents(),
-                                                   replayData->getGuid())
-                 : nullptr,
+      replayData ? replayData->clone() : nullptr,
       gaugeHistory ? std::make_unique<BmsGaugeHistory>(
                        gaugeHistory->getGaugeInfo(), gaugeHistory->getGuid())
                    : nullptr,
@@ -167,6 +169,11 @@ gameplay_logic::BmsScore::getLongNoteMode() const -> LongNoteMode
 auto
 gameplay_logic::BmsScore::getSourceName() const -> QString
 {
+    return sourceName(source);
+}
+auto
+gameplay_logic::BmsScore::sourceName(Source source) -> QString
+{
     switch (source) {
         case Source::Lr2:
             return QStringLiteral("LR2");
@@ -177,7 +184,7 @@ gameplay_logic::BmsScore::getSourceName() const -> QString
         case Source::RhythmGame:
             return QStringLiteral("RhythmGame");
     }
-    Q_UNREACHABLE_RETURN(QString{});
+    return {};
 }
 auto
 gameplay_logic::BmsScore::isImported() const -> bool

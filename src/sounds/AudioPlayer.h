@@ -28,6 +28,9 @@ class AudioPlayer : public QObject
     Q_OBJECT
     QML_ELEMENT
 
+    /** Local path, file URL, or song asset URL. Resolve relative theme files
+     * with Qt.resolvedUrl(). Clearing the source unloads it and resets length.
+     */
     Q_PROPERTY(QString source READ getSource WRITE setSource RESET resetSource
                  NOTIFY sourceChanged)
     Q_PROPERTY(float volume READ getVolume WRITE setVolume NOTIFY volumeChanged)
@@ -38,6 +41,7 @@ class AudioPlayer : public QObject
     Q_PROPERTY(
       bool playing READ isPlaying WRITE setPlaying NOTIFY playingChanged)
     Q_PROPERTY(bool loaded READ isLoaded NOTIFY loadedChanged)
+    /** Loaded audio duration in seconds; zero when no source is loaded. */
     Q_PROPERTY(float length READ getLength NOTIFY lengthChanged)
 
     struct OverlappingSound

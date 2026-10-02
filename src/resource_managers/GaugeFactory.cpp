@@ -28,7 +28,7 @@ selectGauges(
         const auto bottomGauge = vars->getBottomShiftableGauge();
         bottomIt = std::ranges::find_if(gauges, [&](const auto& elem) {
             return elem->getName() == bottomGauge ||
-                   equivalents[elem->getName()] == selectedGauge;
+                   equivalents[elem->getName()] == bottomGauge;
         });
         if (bottomIt != std::ranges::end(gauges) &&
             selectedIt != std::ranges::end(gauges) && bottomIt != selectedIt) {

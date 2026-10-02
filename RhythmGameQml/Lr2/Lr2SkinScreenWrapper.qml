@@ -11,7 +11,7 @@ Item {
     required property string screenKey
     property GameplayContext gameplay: null
     property QtObject resultContext: null
-    readonly property var chart: root.gameplay ? root.gameplay._runner : null
+    readonly property var chart: ScreenContexts.legacyRunner(root.gameplay)
     readonly property var scores: root.resultContext
         ? Array.from(root.resultContext.players, player => player.score) : []
     readonly property var profiles: root.resultContext
@@ -206,8 +206,8 @@ Item {
     property var gameplayBestSavedScoreCache: null
     property var gameplayLastSavedScoreCache: null
     property int gameplayScoresRevision: 0
-    property int gameplayScoreRequest: 0
-    property var pendingGameplayScoreDbReply: null
+    property bool gameplayScoresLoading: false
+    property var gameplayPendingReplayHits: []
     property var gameplayHeldButtonTimerStarts: ({})
     property var gameplayOffButtonTimerStarts: ({})
     property var gameplayPreviousPressedTimers: ({})
@@ -250,7 +250,6 @@ Item {
     property alias lr2SceneUptimeSeconds: wallClockState.uptimeSeconds
     property alias resultOldScores1: resultState.resultOldScores1
     property alias resultOldScores2: resultState.resultOldScores2
-    property alias resultOldScoresRequest: resultState.resultOldScoresRequest
     property alias resultTimer151SkinTime: resultState.resultTimer151SkinTime
     property alias resultTimer152SkinTime: resultState.resultTimer152SkinTime
     property alias resultGraphStartSkinTime: resultState.resultGraphStartSkinTime
@@ -2631,7 +2630,6 @@ Item {
     function resultScoreImproved(side: var) : var { return resultState.resultScoreImproved(side); }
     function resultComboImproved(side: var) : var { return resultState.resultComboImproved(side); }
     function resultBadPoorImproved(side: var) : var { return resultState.resultBadPoorImproved(side); }
-    function updateResultOldScores() : void { resultState.updateResultOldScores(); }
 
     function resultScreenshotRankLabel(result: var) : var {
         switch (root.resultRawRank(result)) {
@@ -2996,7 +2994,7 @@ Item {
     }
 
     function gameplaySavedScorePoints(score: var) : var {
-        return score && score.result ? Math.floor(score.result.points || 0) : 0;
+        return Math.floor((score?.result || score)?.points || 0);
     }
 
     function gameplayScoreRateInteger(points: var, score: var) : var {
@@ -3010,7 +3008,7 @@ Item {
     }
 
     function gameplayBestSavedScore() : var {
-        return root.gameplayBestSavedScoreCache;
+        return gameplayBestDetails.score;
     }
 
     function updateGameplaySavedScoreCaches(scores: var) : void {
@@ -3029,7 +3027,7 @@ Item {
     }
 
     function gameplayLastSavedScore() : var {
-        return root.gameplayLastSavedScoreCache;
+        return gameplayLastDetails.score;
     }
 
     function nextRankTargetPoints(savedPoints: var, maxPoints: var) : var {
@@ -3079,7 +3077,7 @@ Item {
         if (max <= 0) {
             return 0;
         }
-        let saved = root.gameplaySavedScorePoints(root.gameplayBestSavedScore());
+        let saved = root.gameplaySavedScorePoints(root.gameplayBestSavedScoreCache);
         return root.nextRankTargetPoints(saved, max) / max;
     }
 
@@ -3089,7 +3087,7 @@ Item {
     }
 
     function gameplayHighScoreFinalPoints() : var {
-        return root.gameplaySavedScorePoints(root.gameplayBestSavedScore());
+        return root.gameplaySavedScorePoints(root.gameplayBestSavedScoreCache);
     }
 
     function arenaOpponentTargetAvailable() : bool {
@@ -3145,7 +3143,7 @@ Item {
         }
         if (root.gameplayScoreTargetMode() === ScoreTarget.NextRank) {
             return root.nextRankTargetPoints(
-                root.gameplaySavedScorePoints(root.gameplayBestSavedScore()),
+                root.gameplaySavedScorePoints(root.gameplayBestSavedScoreCache),
                 score.maxPoints || 0);
         }
         return Math.floor((score.maxPoints || 0) * root.gameplayTargetFraction());
@@ -3192,69 +3190,56 @@ Item {
         gameplayBestScoreReplayer.resetPoints();
     }
 
-    function trackGameplayScoreDbReply(reply: var) : var {
-        if (!reply || reply.resultAvailable) {
-            return reply;
-        }
-        pendingGameplayScoreDbReply = reply;
-        let forget = function() {
-            reply.finished.disconnect(forget);
-            if (pendingGameplayScoreDbReply === reply) {
-                pendingGameplayScoreDbReply = null;
-            }
-        };
-        reply.finished.connect(forget);
-        return reply;
+    ScoreDetails {
+        id: gameplayBestDetails
+        result: root.gameplayBestSavedScoreCache
+        profile: root.gameplayPlayer(1)?.profile || null
+        enabled: root.gameplayScreenActive
+        onLoadingChanged: Qt.callLater(root.finishGameplayScores)
     }
 
-    function cancelGameplayScoreDbReply() {
-        let reply = pendingGameplayScoreDbReply;
-        pendingGameplayScoreDbReply = null;
-        if (reply && !reply.resultAvailable) {
-            reply.cancel();
-        }
+    ScoreDetails {
+        id: gameplayLastDetails
+        result: root.gameplayLastSavedScoreCache
+        profile: root.gameplayPlayer(1)?.profile || null
+        enabled: root.gameplayScreenActive
+        onLoadingChanged: Qt.callLater(root.finishGameplayScores)
     }
 
-    function updateGameplaySavedScores() : var {
-        cancelGameplayScoreDbReply();
-        root.gameplayScoreRequest += 1;
-        let request = root.gameplayScoreRequest;
-        root.gameplayScores1 = [];
+    function finishGameplayScores() : void {
+        if (!root.gameplayScoresLoading || gameplayBestDetails.loading || gameplayLastDetails.loading) return;
+        root.resetGameplayScoreReplayers();
+        for (const hit of root.gameplayPendingReplayHits) {
+            gameplayTargetScoreReplayer.notifyHit(hit);
+            gameplayBestScoreReplayer.notifyHit(hit);
+        }
+        root.gameplayPendingReplayHits = [];
+        root.gameplayScoresLoading = false;
+        root.gameplayScoresRevision++;
+        root.refreshGameplayNumbers(root.gameplayNumberScoresDependency);
+    }
+
+    function updateGameplaySavedScores() : void {
+        root.gameplayPendingReplayHits = [];
+        root.gameplayScoresLoading = true;
+        const md5 = root.gameplayChartData()?.md5 || "";
+        const scoreDb = root.gameplayPlayer(1)?.profile.scoreDb;
+        root.gameplayScores1 = root.gameplayScreenActive && scoreDb && md5
+            ? scoreDb.chartResults[md5.toUpperCase()] || [] : [];
         root.updateGameplaySavedScoreCaches(root.gameplayScores1);
-        root.gameplayScoresRevision += 1;
+        root.gameplayScoresRevision++;
         root.refreshGameplayNumbers(root.gameplayNumberScoresDependency);
         root.resetGameplayScoreReplayers();
-
-        if (!root.gameplayScreenActive) {
-            return;
-        }
-
-        let chartData = root.gameplayChartData();
-        let player = root.gameplayPlayer(1);
-        let scoreDb = player && player.profile ? player.profile.scoreDb : null;
-        let md5 = chartData && chartData.md5 ? String(chartData.md5).toUpperCase() : "";
-        if (!scoreDb || md5.length === 0) {
-            return;
-        }
-
-        trackGameplayScoreDbReply(scoreDb.getScoresForMd5([md5])).then(result => {
-            if (request !== root.gameplayScoreRequest) {
-                return;
-            }
-            let scores = result && result.scores
-                ? (result.scores[md5] || result.scores[md5.toLowerCase()] || [])
-                : [];
-            root.gameplayScores1 = scores;
-            root.updateGameplaySavedScoreCaches(scores);
-            root.gameplayScoresRevision += 1;
-            root.refreshGameplayNumbers(root.gameplayNumberScoresDependency);
-            root.resetGameplayScoreReplayers();
-        });
+        Qt.callLater(root.finishGameplayScores);
     }
 
     function notifyGameplayReplayHit(side: var, hit: var) : void {
         root.appendGameplayGraphHit(side, hit);
         if (side !== 1) {
+            return;
+        }
+        if (root.gameplayScoresLoading) {
+            if (hit.noteRemoved) root.gameplayPendingReplayHits.push(hit);
             return;
         }
         if (root.gameplayTargetSavedScore()) {
@@ -4990,7 +4975,7 @@ Item {
     readonly property var selectedCourseStages: {
         if (root.effectiveScreenKey === "courseResult") {
             if (root.chartDatas && root.chartDatas.length > 0) {
-                return root.chartDatas;
+                return root.chartDatas.map((chart, index) => chart || root.course.chartIds[index]);
             }
             if (root.course && root.course.loadCharts) {
                 return root.course.loadCharts();
@@ -5160,7 +5145,6 @@ Item {
             root.resultTimer151SkinTime = -1;
             root.resultTimer152SkinTime = -1;
             selectContext.refreshPlayerStats();
-            root.updateResultOldScores();
         }
         root.updateGameplaySavedScores();
         root.handleScreenContextChanged();
@@ -5191,12 +5175,10 @@ Item {
         if (root.resultScreenActive) {
             selectContext.refreshPlayerStats();
         }
-        root.updateResultOldScores();
         root.queueResolvedTextRefresh();
         Qt.callLater(root.playScreenEntrySound);
     }
     onProfilesChanged: {
-        root.updateResultOldScores();
         root.queueResolvedTextRefresh();
     }
     onChartDataChanged: {
@@ -5204,14 +5186,11 @@ Item {
         if (root.effectiveScreenKey !== "select") {
             root.refreshSelectRuntimeActiveOptions();
         }
-        root.updateResultOldScores();
     }
     onChartDatasChanged: {
-        root.updateResultOldScores();
         root.queueResolvedTextRefresh();
     }
     onCourseChanged: {
-        root.updateResultOldScores();
         root.queueResolvedTextRefresh();
     }
     Connections {
@@ -5760,7 +5739,6 @@ Item {
     }
 
     Component.onDestruction: {
-        root.cancelGameplayScoreDbReply();
     }
 
     function pauseScreenActivity() : void {
@@ -6285,9 +6263,6 @@ Item {
         if (root.handleDecideButtonPress(key)) {
             return;
         }
-        if (root.selectInputReady() && selectContext.actions.handleStartPress(key)) {
-            return;
-        }
         if (root.handleLr2GameplayOptionKey(key)) {
             return;
         }
@@ -6487,14 +6462,14 @@ Item {
     }
 
     StandardArenaSelectOverlay {
-        readyShortcutDescription: selectContext.actions.readyShortcutDescription
+        readyShortcutEnabled: screenState.selectInputReady
         active: root.effectiveScreenKey === "select" && root.arenaSeated
         z: 2000000
         enabled: root.screenUpdatesActive
         customizeMode: root.customizeMode
         navigationFocusTarget: root
         themeVars: root.lr2SettingDestinationForScreen("select")
-        viewport: root
+
     }
 
     StandardArenaGameplayOverlay {
@@ -6504,7 +6479,7 @@ Item {
         enabled: root.screenUpdatesActive
         customizeMode: root.customizeMode
         themeVars: root.lr2SettingDestinationForScreen(root.effectiveScreenKey)
-        viewport: root
+
     }
 
     StandardArenaResultOverlay {
@@ -6514,7 +6489,7 @@ Item {
         enabled: root.screenUpdatesActive
         customizeMode: root.customizeMode
         themeVars: root.lr2SettingDestinationForScreen("result")
-        viewport: root
+
     }
 
     Loader {

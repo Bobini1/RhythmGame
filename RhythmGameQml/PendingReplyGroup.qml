@@ -24,7 +24,7 @@ import QtQuick
         function refreshScores() {
             scoreReplies.cancelAll();
             scoreReplies.track(
-                Rg.profileList.mainProfile.scoreDb.getScores("")
+                Rg.profileList.mainProfile.scoreDb.getScoreSummary("")
             ).then(result => console.info(result));
         }
     }

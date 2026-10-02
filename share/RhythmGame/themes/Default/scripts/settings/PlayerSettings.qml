@@ -206,9 +206,7 @@ Item {
                                 horizontalAlignment: Text.AlignLeft
                                 verticalAlignment: Text.AlignVCenter
 
-                                onTextChanged: {
-                                    Rg.profileList.mainProfile.vars.generalVars.name = text;
-                                }
+                                onTextEdited: Rg.profileList.mainProfile.vars.generalVars.name = text
                             }
 
                             ActionButton {

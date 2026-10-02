@@ -4,7 +4,7 @@
 <context>
     <name>ArenaBrowser</name>
     <message numerus="yes">
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="380"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="377"/>
         <source>%n player reconnecting</source>
         <translation>
             <numerusform>%n player reconnecting</numerusform>
@@ -83,7 +83,7 @@
 <context>
     <name>Select</name>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="687"/>
+        <location filename="../scripts/select/Select.qml" line="406"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>Found %n chart</numerusform>

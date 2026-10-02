@@ -27,7 +27,6 @@ QtObject {
     property var lastScores: null
     readonly property int finishedStatus: ChartRunner.Finished
     property QtObject gameplay: QtObject {
-        readonly property QtObject _runner: root.runner
         readonly property int status: root.runner.status
         readonly property bool isCourse: root.course
         readonly property bool isArena: root.arenaManaged
@@ -38,6 +37,36 @@ QtObject {
         readonly property var chartData: root.course ? charts[stageIndex] : root.runner.chartData
         readonly property var players: root.runner.player2
             ? [root.runner.player1, root.runner.player2] : [root.runner.player1]
+        property var savedStage: null
+        property var savedCourse: null
+        function start() { root.runner.start(); return true; }
+        function finishStage() {
+            if (savedStage) return savedStage;
+            root.stageSaves++;
+            const score = root.course ? "stage " + stageIndex : "saved result";
+            let roundId = "";
+            if (isArena && root.arena.submitLocalResult(score))
+                roundId = root.arena.presentedResult.roundId;
+            savedStage = { players: players.map(p => ({ profile: p.profile, score })),
+                chartData, gameplay: this, stageIndex, stageCount, arenaRoundId: roundId };
+            root.runner.status = ChartRunner.Finished;
+            return savedStage;
+        }
+        function nextStage() {
+            if (!isCourse || !savedStage || stageIndex + 1 >= stageCount) return false;
+            savedStage = null;
+            root.runner.currentChartIndex++;
+            root.runner.player1 = { profile: "next player" };
+            root.runner.status = ChartRunner.Ready;
+            return true;
+        }
+        function finishCourse() {
+            if (!savedCourse) {
+                root.courseSaves++;
+                savedCourse = { players: players.map(p => ({ profile: p.profile, score: "saved result" })), charts, course };
+            }
+            return savedCourse;
+        }
     }
     property QtObject lastGameplay: null
     property string lastArenaRoundId: ""
@@ -81,45 +110,27 @@ QtObject {
         property var player2: null
 
         function start() { root.starts++; }
-        function proceed() {
-            const scores = ["stage " + root.runner.currentChartIndex];
-            root.stageSaves++;
-            root.runner.completedStages++;
-            // CourseRunner does not notify currentChartIndex on the final
-            // stage. Keep the index observed by QML bindings at that stage.
-            if (root.runner.completedStages < root.runner.chartDatas.length) {
-                root.runner.currentChartIndex = root.runner.completedStages;
-                root.runner.player1 = { profile: "next player" };
-                root.runner.status = ChartRunner.Ready;
-            }
-            return scores;
-        }
-        function finish() {
-            if (root.course) root.courseSaves++;
-            else root.stageSaves++;
-            root.runner.status = ChartRunner.Finished;
-            return ["saved result"];
-        }
+
     }
 
     property QtObject navigation: QtObject {
-        function openResult(scores, profiles, data, gameplay, arenaRoundId) {
+        function openResult(result) {
             root.results++;
-            root.lastScores = scores;
-            root.lastProfiles = profiles;
-            root.lastData = data;
-            root.lastGameplay = gameplay;
-            root.lastArenaRoundId = arenaRoundId;
+            root.lastScores = result.players.map(p => p.score);
+            root.lastProfiles = result.players.map(p => p.profile);
+            root.lastData = result.chartData;
+            root.lastGameplay = result.gameplay;
+            root.lastArenaRoundId = result.arenaRoundId;
             if (root.failPresentation) return null;
             root.active = false;
             root.lastResult = root.resultFactory.createObject(root);
             return root.lastResult;
         }
-        function openCourseResult(scores, profiles, data, course) {
+        function openCourseResult(result) {
             root.courseResults++;
-            root.lastScores = scores;
-            root.lastProfiles = profiles;
-            root.lastData = data;
+            root.lastScores = result.players.map(p => p.score);
+            root.lastProfiles = result.players.map(p => p.profile);
+            root.lastData = result.chartData;
             if (root.failPresentation) return null;
             root.active = false;
             return root.navigation;

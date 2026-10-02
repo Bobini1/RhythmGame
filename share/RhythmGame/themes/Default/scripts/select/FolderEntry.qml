@@ -94,7 +94,7 @@ Image {
             if (!modelData) {
                 return "- EMPTY -";
             }
-            return folder.QmlUtils.folderName(modelData);
+            return QmlUtils.folderName(modelData);
         }
         width: parent.width * 0.7
     }

@@ -1,6 +1,5 @@
-pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.FluentWinUI3
 import QtQuick.Layouts
 import RhythmGameQml
 
@@ -42,11 +41,12 @@ Pane {
             Repeater {
                 model: screen.gameplay.players
                 PlayerField {
-                    required property Player modelData
+                    required property int index
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.preferredWidth: 1
-                    player: modelData
+                    gameplay: screen.gameplay
+                    playerIndex: index
                 }
             }
             // [players]
@@ -58,18 +58,31 @@ Pane {
             text: qsTr("Release START for the same pattern, SELECT for a new pattern, or both to cancel.")
             wrapMode: Text.Wrap
         }
-        Button {
-            text: qsTr("Exit")
-            enabled: !flow.retryChoosing
-            onClicked: flow.exit()
+        // [retry-buttons]
+        RowLayout {
+            Button {
+                text: qsTr("Exit")
+                enabled: !flow.retryChoosing
+                onClicked: flow.exit()
+            }
+            Button {
+                text: qsTr("Retry")
+                enabled: flow.retryAvailable
+                onClicked: flow.retry(false)
+            }
+            Button {
+                text: qsTr("Same pattern")
+                enabled: flow.retryAvailable
+                onClicked: flow.retry(true)
+            }
         }
+        // [retry-buttons]
     }
 
     // [arena-gameplay]
     StandardArenaGameplayOverlay {
         parent: screen
         gameplay: screen.gameplay
-        z: 10
     }
     // [arena-gameplay]
 

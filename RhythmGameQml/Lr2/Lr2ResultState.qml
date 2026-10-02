@@ -9,10 +9,8 @@ QtObject {
     required property var host
     required property var selectContext
 
-    property var resultOldScores1: []
-    property var resultOldScores2: []
-    property int resultOldScoresRequest: 0
-    property var pendingResultScoreDbReplies: []
+    readonly property var resultOldScores1: previousResults(1)
+    readonly property var resultOldScores2: previousResults(2)
     property int resultTimer151SkinTime: -1
     property int resultTimer152SkinTime: -1
     property int resultGraphStartSkinTime: 500
@@ -24,32 +22,28 @@ QtObject {
     readonly property bool resultScreenActive: root.host ? root.host.resultScreenActive : false
     readonly property bool gameplayScreenActive: root.host ? root.host.gameplayScreenActive : false
 
-    function trackResultScoreDbReply(reply: var) : var {
-        if (!reply || reply.resultAvailable) {
-            return reply;
-        }
-        pendingResultScoreDbReplies.push(reply);
-        let forget = function() {
-            reply.finished.disconnect(forget);
-            let index = pendingResultScoreDbReplies.indexOf(reply);
-            if (index >= 0) {
-                pendingResultScoreDbReplies.splice(index, 1);
-                pendingResultScoreDbReplies =
-                    pendingResultScoreDbReplies.slice();
-            }
-        };
-        reply.finished.connect(forget);
-        return reply;
+    property ScoreDetails bestDetails1: ScoreDetails {
+        result: root.resultOldBestResult(1)
+        profile: root.resultProfile(1)
+        enabled: root.resultScreenActive
     }
 
-    function cancelResultScoreDbReplies() {
-        let replies = pendingResultScoreDbReplies;
-        pendingResultScoreDbReplies = [];
-        for (let reply of replies) {
-            if (reply && !reply.resultAvailable) {
-                reply.cancel();
-            }
-        }
+    property ScoreDetails targetDetails1: ScoreDetails {
+        result: root.resultTargetSavedResult(1)
+        profile: root.resultProfile(1)
+        enabled: root.resultScreenActive
+    }
+
+    property ScoreDetails bestDetails2: ScoreDetails {
+        result: root.resultOldBestResult(2)
+        profile: root.resultProfile(2)
+        enabled: root.resultScreenActive
+    }
+
+    property ScoreDetails targetDetails2: ScoreDetails {
+        result: root.resultTargetSavedResult(2)
+        profile: root.resultProfile(2)
+        enabled: root.resultScreenActive
     }
 
     function resultScore(side: var) : var {
@@ -587,7 +581,7 @@ QtObject {
         let bestRate = -1;
         let bestHasMaxPoints = false;
         for (let score of scores || []) {
-            let result = score && score.result ? score.result : null;
+            let result = score;
             if (!root.resultHasPlayedScore(result)) {
                 continue;
             }
@@ -609,7 +603,7 @@ QtObject {
     }
 
     function resultOldBestScore(side: var) : var {
-        return root.resultBestScoreByPoints(root.resultOldScores(side));
+        return side === 2 ? bestDetails2.score : bestDetails1.score;
     }
 
     function resultLastOldScore(side: var) : var {
@@ -617,17 +611,21 @@ QtObject {
         return scores.length > 0 ? scores[0] : null;
     }
 
-    function resultTargetSavedScore(side: var) : var {
+    function resultTargetSavedResult(side: var) : var {
         let profile = root.resultProfile(side);
         let vars = profile && profile.vars ? profile.vars.generalVars : null;
         switch (vars ? vars.scoreTarget : ScoreTarget.BestScore) {
         case ScoreTarget.LastScore:
             return root.resultLastOldScore(side);
         case ScoreTarget.BestScore:
-            return root.resultOldBestScore(side);
+            return root.resultBestScoreByPoints(root.resultOldScores(side));
         default:
             return null;
         }
+    }
+
+    function resultTargetSavedScore(side: var) : var {
+        return side === 2 ? targetDetails2.score : targetDetails1.score;
     }
 
     function resultUsesNextRankTarget(side: var) : var {
@@ -643,9 +641,9 @@ QtObject {
     }
 
     function resultTargetPoints(side: var) : var {
-        let targetScore = root.resultTargetSavedScore(side);
-        if (targetScore && targetScore.result) {
-            return root.resultExScore(targetScore.result);
+        let targetScore = root.resultTargetSavedResult(side);
+        if (targetScore) {
+            return root.resultExScore(targetScore);
         }
         let current = root.resultData(side);
         if (root.resultUsesNextRankTarget(side)) {
@@ -668,8 +666,7 @@ QtObject {
     }
 
     function resultOldBestResult(side: var) : var {
-        let score = root.resultOldBestScore(side);
-        return score && score.result ? score.result : null;
+        return root.resultBestScoreByPoints(root.resultOldScores(side));
     }
 
     function resultUpdatedBestResult(side: var) : var {
@@ -702,64 +699,15 @@ QtObject {
         return !!current && (!old || root.resultBadPoor(current) < root.resultBadPoor(old));
     }
 
-    function updateResultOldScores() : var {
-        cancelResultScoreDbReplies();
-        if (!root.resultScreenActive) {
-            return;
-        }
-
-        let request = ++root.resultOldScoresRequest;
-        root.resultOldScores1 = [];
-        root.resultOldScores2 = [];
-
-        for (let side = 1; side <= 2; ++side) {
-            let score = root.resultScore(side);
-            let profile = root.resultProfile(side);
-            let scoreDb = profile ? profile.scoreDb : null;
-            if (!score || !score.result || !scoreDb) {
-                continue;
-            }
-
-            let currentGuid = score.result.guid || "";
-            if (root.host.course && root.host.course.identifier) {
-                let courseId = root.host.course.identifier;
-                trackResultScoreDbReply(scoreDb.getScoresForCourseId([courseId])).then(result => {
-                    if (request !== root.resultOldScoresRequest) {
-                        return;
-                    }
-                    let list = result && result.scores ? (result.scores[courseId] || []) : [];
-                    let filtered = list.filter(oldScore => oldScore && oldScore.result
-                        && oldScore.result.guid !== currentGuid);
-                    if (side === 2) {
-                        root.resultOldScores2 = filtered;
-                    } else {
-                        root.resultOldScores1 = filtered;
-                    }
-                });
-            } else {
-                let chartData = root.resultChartData();
-                let md5 = chartData && chartData.md5 ? String(chartData.md5).toUpperCase() : "";
-                if (md5.length === 0) {
-                    continue;
-                }
-                trackResultScoreDbReply(scoreDb.getScoresForMd5([md5])).then(result => {
-                    if (request !== root.resultOldScoresRequest) {
-                        return;
-                    }
-                    let list = result && result.scores
-                        ? (result.scores[md5] || result.scores[md5.toLowerCase()] || [])
-                        : [];
-                    let filtered = list.filter(oldScore => oldScore && oldScore.result
-                        && oldScore.result.guid !== currentGuid);
-                    if (side === 2) {
-                        root.resultOldScores2 = filtered;
-                    } else {
-                        root.resultOldScores1 = filtered;
-                    }
-                });
-            }
-        }
+    function previousResults(side: int) : var {
+        if (!root.resultScreenActive) return [];
+        const score = root.resultScore(side);
+        const scoreDb = root.resultProfile(side)?.scoreDb;
+        if (!score || !scoreDb) return [];
+        const courseId = root.host.course?.identifier;
+        const md5 = root.resultChartData()?.md5 || "";
+        const results = courseId ? scoreDb.courseResults[courseId]
+            : scoreDb.chartResults[md5.toUpperCase()];
+        return (results || []).filter(result => result.guid !== score.result.guid);
     }
-
-    Component.onDestruction: cancelResultScoreDbReplies()
 }

@@ -15,6 +15,18 @@
 #include <zstd.h>
 
 namespace gameplay_logic {
+auto
+BmsReplayData::clone() const -> std::unique_ptr<BmsReplayData>
+{
+    auto copy = std::make_unique<BmsReplayData>(QList<HitEvent>{}, guid);
+    copy->hitEvents = hitEvents;
+    copy->earlyTimingCounts = earlyTimingCounts;
+    copy->lateTimingCounts = lateTimingCounts;
+    copy->totalEarly = totalEarly;
+    copy->totalLate = totalLate;
+    return copy;
+}
+
 namespace {
 
 constexpr quint32 replayBlobMagic = 0x52475032; // "RGP2"

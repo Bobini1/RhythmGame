@@ -3,6 +3,12 @@
 Translations are theme-specific.
 The C++ part of the game does not contain any translatable strings.
 
+The Default translation catalog also contains the shared Arena text and the
+sorting and replay labels from `RhythmGameQml/StandardSelectOptions.qml`.
+Those translations are available to all themes. Themes can use these labels,
+replace some in their own bindings or models, or supply all their own text.
+Custom text belongs in the theme's own translation catalog.
+
 In a theme, translatable string come in two forms:
 
 - Theme settings strings (used only in the settings screen)

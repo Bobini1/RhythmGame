@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstring>
 #include <qcolor.h>
 #include <qdir.h>
@@ -38,6 +39,9 @@ resource_managers::GeneralVars::getNoteScreenTimeMillis() const -> double
 void
 resource_managers::GeneralVars::setNoteScreenTimeMillis(double value)
 {
+    if (!std::isfinite(value) || value < 1) {
+        return;
+    }
     if (noteScreenTimeMillis == value) {
         return;
     }
@@ -1901,6 +1905,14 @@ equalWithinUlps(T x, T y, std::size_t n)
 }
 
 } // namespace
+
+void
+resource_managers::validateThemeSettings(
+  const std::filesystem::path& themePath,
+  const std::filesystem::path& settingsPath)
+{
+    populateScreenVars(themePath, settingsPath);
+}
 
 void
 resource_managers::Vars::populateThemePropertyMap(

@@ -86,6 +86,42 @@ RootSongFoldersConfig::RootSongFoldersConfig(RootSongFolders* folders,
   , scanningQueue(scanningQueue)
 {
 }
+
+auto
+RootSongFolders::containing(const QString& path) const -> RootSongFolder*
+{
+    if (path.isEmpty()) {
+        return nullptr;
+    }
+    const auto url = QUrl(path);
+    const auto target = QDir::cleanPath(
+      QDir::fromNativeSeparators(url.isLocalFile() ? url.toLocalFile() : path));
+#ifdef Q_OS_WIN
+    constexpr auto sensitivity = Qt::CaseInsensitive;
+#else
+    constexpr auto sensitivity = Qt::CaseSensitive;
+#endif
+    RootSongFolder* best = nullptr;
+    qsizetype bestLength = -1;
+    for (const auto& folder : folders) {
+        const auto root =
+          QDir::cleanPath(QDir::fromNativeSeparators(folder->getName()));
+        const auto prefix = root.endsWith('/') ? root : root + '/';
+        if ((target.compare(root, sensitivity) == 0 ||
+             target.startsWith(prefix, sensitivity)) &&
+            root.size() > bestLength) {
+            best = folder.get();
+            bestLength = root.size();
+        }
+    }
+    return best;
+}
+
+bool
+RootSongFoldersConfig::rescan(const QString& path)
+{
+    return scanningQueue->scan(folders->containing(path));
+}
 QVariant
 ScanningQueue::at(const int index) const
 {
