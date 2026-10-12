@@ -4,20 +4,21 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectNavigation
     \inqmlmodule RhythmGameQml
-    \brief Converts directional keys and scratch movement into row movement.
+    \brief Converts directional keys, scratch and mouse wheel input into row movement.
 
     Handle \l moveRequested to move your list or wheel. Negative \c steps means
     up, and positive means down. \c repeated is true after the first movement
     from a held key or classic scratch. \c analog identifies movement accumulated
-    from analog scratch ticks.
+    from analog scratch ticks or the mouse wheel.
 
     The theme keeps the focused row and chooses whether to wrap, stop at an end
     or animate the movement. The component only tracks held input and repeat timing.
 
     Use StandardSelectInput to add the standard selection actions. Call
     \l pressDirection, \l navigate and \l releaseDirection directly when adapting
-    another input source. Disabling the component calls \l reset to clear held
-    keys and accumulated scratch ticks.
+    another input source. Forward wheel events from your view to \l handleWheel.
+    Disabling the component calls \l reset to clear held keys and accumulated
+    scratch and wheel movement.
 */
 Item {
     id: root
@@ -31,7 +32,7 @@ Item {
 
     /*!
         Requests relative focus movement by \a steps. \a repeated identifies held input and \a
-        analog identifies analog-scratch input.
+        analog identifies analog scratch or mouse wheel input.
     */
     signal moveRequested(int steps, bool repeated, bool analog)
 
@@ -39,6 +40,7 @@ Item {
         id: navigationState
 
         property int analogBuffer: 0
+        property real wheelRemainder: 0
         property var lastKeys: []
         property double nextRepeatMillis: 0
         property int repeatDirection: 0
@@ -112,10 +114,29 @@ Item {
         navigationState.requestMove(direction, !!tickNumber);
     }
 
-    /*! Clears held keys, analog accumulation, and repeat timing. */
+    /*!
+        Converts a vertical wheel \a event into row movement. Accumulates small
+        deltas and moves one row per wheel notch. Returns true and accepts the
+        event when handled, including a partial step. Returns false when disabled
+        or when the event has no vertical movement.
+    */
+    function handleWheel(event) {
+        if (!root.enabled) return false;
+        const delta = event.angleDelta.y || event.pixelDelta.y;
+        if (delta === 0) return false;
+        navigationState.wheelRemainder += delta;
+        const steps = Math.trunc(navigationState.wheelRemainder / 120);
+        navigationState.wheelRemainder -= steps * 120;
+        event.accepted = true;
+        navigationState.requestMove(-steps, false, true);
+        return true;
+    }
+
+    /*! Clears held keys, accumulated scratch and wheel movement, and repeat timing. */
     function reset() {
         navigationState.lastKeys = [];
         navigationState.analogBuffer = 0;
+        navigationState.wheelRemainder = 0;
         navigationState.repeatDirection = 0;
         navigationState.nextRepeatMillis = 0;
     }

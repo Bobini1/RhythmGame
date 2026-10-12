@@ -60,8 +60,6 @@ RowLayout {
         selected: !root.chatOpen
         text: qsTr("Details")
         onClicked: {
-            if (root.session)
-                root.session.setChatOpen(false);
             root.tabSelected(false);
         }
     }
@@ -73,8 +71,6 @@ RowLayout {
         selected: root.chatOpen
         text: qsTr("Chat")
         onClicked: {
-            if (root.session)
-                root.session.setChatOpen(true);
             root.tabSelected(true);
         }
     }

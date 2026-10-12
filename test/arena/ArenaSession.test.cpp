@@ -1563,10 +1563,6 @@ TEST_CASE("ArenaSession anchors and preserves a held synchronized runner",
     REQUIRE(fixture.roundLoader.loads.size() == 1);
     const auto loadId = fixture.roundLoader.loads.front().first;
     runner->holdStart();
-    emit fixture.roundLoader.loadFinished(loadId, runner.get());
-    REQUIRE(messageObject(fixture.transport.textCalls.back().message)
-              .value(QStringLiteral("type"))
-              .toString() == QStringLiteral("round_load_result"));
 
     QVector<gameplay_logic::ChartRunner*> prepared;
     int runnerStarted = 0;
@@ -1578,9 +1574,8 @@ TEST_CASE("ArenaSession anchors and preserves a held synchronized runner",
                      [&](gameplay_logic::ChartRunner* value) {
                          prepared.push_back(value);
                          if (value != nullptr) {
-                             // Simulate expensive synchronous QML creation. The
-                             // release deadline must remain anchored to message
-                             // receipt.
+                             // Prepare the expensive screen before reporting
+                             // readiness to receive the shared start time.
                              fixture.scheduler.advanceBy(750);
                          }
                      });
@@ -1623,13 +1618,20 @@ TEST_CASE("ArenaSession anchors and preserves a held synchronized runner",
               } },
           }));
     };
-    schedule(2, 1'000);
+    const auto sentBeforeLoad = fixture.transport.textCalls.size();
+    emit fixture.roundLoader.loadFinished(loadId, runner.get());
     REQUIRE(prepared == QVector<gameplay_logic::ChartRunner*>{ runner.get() });
+    CHECK(fixture.transport.textCalls.size() == sentBeforeLoad);
+    runner->start();
+    REQUIRE(messageObject(fixture.transport.textCalls.back().message)
+              .value(QStringLiteral("type"))
+              .toString() == QStringLiteral("round_load_result"));
+    schedule(2, 1'000);
     CHECK(runner->getStatus() == gameplay_logic::ChartRunner::Ready);
 
-    SECTION("release stays anchored across prepared UI work")
+    SECTION("screen preparation does not consume the scheduled lead")
     {
-        fixture.scheduler.advanceBy(249);
+        fixture.scheduler.advanceBy(999);
         CHECK(runner->getStatus() == gameplay_logic::ChartRunner::Ready);
         fixture.scheduler.advanceBy(1);
         CHECK(runner->getStatus() == gameplay_logic::ChartRunner::Running);

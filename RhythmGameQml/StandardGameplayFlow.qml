@@ -7,10 +7,11 @@ import RhythmGameQml
     \brief Starts gameplay, handles exit and retry, and opens results.
 
     Place one instance inside the gameplay screen and bind \l gameplay to the
-    supplied context. The component uses its parent as the owning screen. Set
-    \l screen explicitly when you place it inside another item.
+    supplied context. It inherits enabled from its parent, including through a
+    Pane's content item or other containers. The host disables inactive screens.
 
-    The flow handles ready audio and startup, Escape, and Start+Select retry.
+    The flow handles ready audio and startup, Escape, Start+Select retry, and
+    standard speed and cover adjustments through StandardGameplaySpeedControls.
     It opens a normal result after every chart, including each course stage.
     Closing a stage result continues the course. After the last stage result,
     it opens the separate course summary. Closing that summary returns to selection.
@@ -28,8 +29,9 @@ import RhythmGameQml
     presentation before leaving. It can repeat if result creation fails, so the
     handler must tolerate another call and must not navigate away itself.
 
-    Inactive screens cannot start play or navigate. Arena controls its own startup
-    and does not allow quick retry. The flow submits Arena scores and ends the
+    Inactive screens cannot request a start or navigate. Arena runs this startup
+    sequence and holds the resulting request until the shared start time.
+    Arena does not allow quick retry. The flow submits Arena scores and ends the
     result presentation when its result screen closes. If result creation fails,
     \l presentationFailed is emitted and the saved scores are kept. Call \l retryTransition to try
     opening the result again without saving it twice.
@@ -42,11 +44,6 @@ Item {
 
     /*! Supplies the screen context for a single chart or a course. */
     property GameplayContext gameplay: null
-    /*!
-        Sets the owning screen. The default is the parent, so set it explicitly when nesting
-        the component.
-    */
-    property var screen: root.parent
     /*! Allows ready audio and startup when true. Bind it to the completion of your intro. */
     property bool startReady: true
     /*!
@@ -62,6 +59,8 @@ Item {
     property bool exitEnabled: true
     /*! Controls whether quick retry and the Start+Select gesture are accepted. */
     property alias retryEnabled: input.retryEnabled
+    /*! Enables standard Start, Select and scratch speed/cover controls. Disable for custom controls. */
+    property alias speedControlsEnabled: input.speedControlsEnabled
     /*! Whether a supported retry can be requested from a button or gesture. */
     readonly property bool retryAvailable: input.retryAvailable
     /*! Calls retryAction(samePattern) instead of the standard restart. */
@@ -79,9 +78,6 @@ Item {
     readonly property bool retryChoosing: input.retryChoosing
     /*! Reports whether the current stage has received a scoring hit. */
     readonly property bool attempted: attemptState.attempted
-    /*! Reports whether this component owns the currently presented screen. */
-    readonly property bool active: root.enabled && !!root.screen
-        && globalRoot.currentScreen === root.screen
 
     /*! Emitted once per active stage, before standard startup. */
     signal stageActivated()
@@ -107,7 +103,7 @@ Item {
 
     /*! Abandons untouched play, or completes an attempted play. */
     function exit() {
-        if (!root.active || !root.exitEnabled || root.retryChoosing || !root.gameplay) {
+        if (!root.enabled || !root.exitEnabled || root.retryChoosing || !root.gameplay) {
             return false;
         }
         if (typeof root.dismissOverlayAction === "function" && root.dismissOverlayAction()) {
@@ -118,6 +114,10 @@ Item {
             return true;
         }
         if (session.retryTransition()) {
+            return true;
+        }
+        if (root.gameplay.isArena && root.gameplay.status < ChartRunner.Running) {
+            Rg.arenaSession.abandonCurrentRound();
             return true;
         }
         if (!root.attempted && !root.gameplay.isArena && root.gameplay.status !== ChartRunner.Finished) {
@@ -136,7 +136,7 @@ Item {
         gameplay: root.gameplay
         navigation: globalRoot
         arenaSession: Rg.arenaSession
-        active: root.active && !root.retryChoosing
+        active: root.enabled && !root.retryChoosing
         startReady: startup.complete && root.startReady
         finishReady: root.finishReady
         onStageActivated: {
@@ -165,7 +165,7 @@ Item {
             readySound.stop();
         }
         function begin() {
-            if (!root.active || !root.startReady || root.gameplay?.isArena
+            if (!root.enabled || !root.startReady || session.startRequested
                     || !session.playing || !session.ready || startup.armed || startup.complete) {
                 return;
             }
@@ -177,7 +177,7 @@ Item {
             }
         }
         function delay() {
-            if (!startup.armed || !root.active) {
+            if (!startup.armed || !root.enabled) {
                 return;
             }
             if (root.startDelayMillis <= 0) {
@@ -190,7 +190,7 @@ Item {
 
     AudioPlayer {
         id: readySound
-        source: root.gameplay?.isArena ? "" : root.readySoundSource
+        source: root.readySoundSource
         onPlayingChanged: if (!readySound.playing) startup.delay()
     }
     AudioPlayer {
@@ -201,7 +201,7 @@ Item {
         id: startTimer
         interval: Math.max(1, root.startDelayMillis)
         onTriggered: {
-            if (startup.armed && root.active && root.startReady && session.playing && session.ready) {
+            if (startup.armed && root.enabled && root.startReady && session.playing && session.ready) {
                 startup.complete = true;
             }
         }
@@ -209,7 +209,6 @@ Item {
     StandardGameplayInput {
         id: input
         gameplay: root.gameplay
-        enabled: root.active
         exitEnabled: root.exitEnabled
         onExitRequested: root.exit()
     }
@@ -218,8 +217,8 @@ Item {
         gameplay: root.gameplay
     }
 
-    onActiveChanged: {
-        if (!root.active) {
+    onEnabledChanged: {
+        if (!root.enabled) {
             startup.reset();
             stopSound.stop();
         } else {

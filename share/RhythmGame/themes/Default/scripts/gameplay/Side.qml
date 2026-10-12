@@ -21,114 +21,14 @@ Item {
     readonly property real laneCoverNumber: Math.max(0, Math.min(1, profile.vars.generalVars.laneCoverRatio)) * 1000
     readonly property real liftNumber: Math.max(0, Math.min(1, profile.vars.generalVars.liftRatio)) * 1000
 
-    property bool start: Input[`start${index+1}`] || (dpSuffix && (Input.start1 || Input.start2))
-    property bool select: Input[`select${index+1}`] || (dpSuffix && (Input.select1 || Input.select2))
-    property bool coverChangeLift: true
-    property bool startSelectHeld: false
+    readonly property bool start: side.Input[`start${index+1}`] || (dpSuffix && (side.Input.start1 || side.Input.start2))
+    readonly property bool select: side.Input[`select${index+1}`] || (dpSuffix && (side.Input.select1 || side.Input.select2))
     property var pointTarget
     property bool pointTargetAvailable: true
     property real bestFinalPoints: 0
     property real bestMaxPoints: 0
     property real bestPoints: 0
     property real targetFinalPoints: 0
-
-    readonly property int laneCoverDoubleClickInterval: 500
-    property double lastStartPressTime: -1
-
-    property bool lastDirectionUp: false
-    function handleStartPress(time) {
-        if (side.lastStartPressTime >= 0
-                && time >= side.lastStartPressTime
-                && time - side.lastStartPressTime <= side.laneCoverDoubleClickInterval) {
-            side.lastStartPressTime = -1;
-            let vars = side.profile.vars.generalVars;
-            let visibleRatio = Math.max(0.001, 1 - Math.max(0, Math.min(1, vars.laneCoverRatio)));
-            let currentDuration = vars.noteScreenTimeMillis > 0 ? vars.noteScreenTimeMillis : 1000;
-            vars.noteScreenTimeMillis = Math.max(1, Math.min(10000,
-                vars.laneCoverOn ? currentDuration / visibleRatio : currentDuration * visibleRatio));
-            vars.laneCoverOn = !vars.laneCoverOn;
-        } else {
-            side.lastStartPressTime = time;
-        }
-    }
-    function updateCoverChangeTarget() {
-        let held = side.start && side.select;
-        if (held && !side.startSelectHeld) {
-            side.coverChangeLift = !side.coverChangeLift;
-        }
-        side.startSelectHeld = held;
-    }
-    onStartChanged: updateCoverChangeTarget()
-    onSelectChanged: updateCoverChangeTarget()
-    function modifyCoverValue(value) {
-        let vars = side.profile.vars.generalVars;
-        if (vars.laneCoverOn || (!vars.liftOn && !vars.hiddenOn)) {
-            vars.laneCoverRatio = Math.max(0, Math.min(1, vars.laneCoverRatio + value));
-        } else if (vars.liftOn && (!vars.hiddenOn || side.coverChangeLift)) {
-            vars.liftRatio = Math.max(0, Math.min(1, vars.liftRatio + value));
-        } else {
-            vars.hiddenRatio = Math.max(0, Math.min(1, vars.hiddenRatio + value));
-        }
-    }
-    function modifyGnWn(number, amount) {
-        if (amount > 0 && lastDirectionUp || amount < 0 && !lastDirectionUp) {
-            return;
-        }
-        let mult = 1 * amount;
-        if (number > 50 || side.index === 0 && Input.col1sUp && Input.col1sDown || side.index === 1 && Input.col2sUp && Input.col2sDown) {
-            mult = 10 * amount;
-        }
-        let vars = side.profile.vars.generalVars;
-        if (side.start && side.select) {
-            return;
-        } else if (side.start) {
-            vars.noteScreenTimeMillis += vars.noteScreenTimeMillis / 1000 * mult;
-        } else if (side.select) {
-            side.modifyCoverValue(0.0005 * mult);
-        }
-    }
-    Input.onStart1Pressed: time => {
-        if (side.index === 0) side.handleStartPress(time);
-    }
-    Input.onStart2Pressed: time => {
-        if (side.index === 1) side.handleStartPress(time);
-    }
-    Input.onCol1sUpTicked: (number, type) => {
-        if (side.index === 0) side.modifyGnWn(number, -1);
-    }
-    Input.onCol1sDownTicked: (number, type) => {
-        if (side.index === 0) side.modifyGnWn(number, 1);
-    }
-    Input.onCol2sUpTicked: (number, type) => {
-        if (side.index === 1) side.modifyGnWn(number, -1)
-    }
-    Input.onCol2sDownTicked: (number, type) => {
-        if (side.index === 1) side.modifyGnWn(number, 1)
-    }
-    Input.onCol1sUpPressed: {
-        if (side.index === 0) side.lastDirectionUp = true;
-    }
-    Input.onCol1sUpReleased: {
-        if (side.index === 0) side.lastDirectionUp = false;
-    }
-    Input.onCol1sDownPressed: {
-        if (side.index === 0) side.lastDirectionUp = false;
-    }
-    Input.onCol1sDownReleased: {
-        if (side.index === 0) side.lastDirectionUp = true;
-    }
-    Input.onCol2sUpPressed: {
-        if (side.index === 1) side.lastDirectionUp = true;
-    }
-    Input.onCol2sUpReleased: {
-        if (side.index === 1) side.lastDirectionUp = false;
-    }
-    Input.onCol2sDownPressed: {
-        if (side.index === 1) side.lastDirectionUp = false;
-    }
-    Input.onCol2sDownReleased: {
-        if (side.index === 1) side.lastDirectionUp = true;
-    }
 
     transform: Scale {
         xScale: side.mirrored ? -1 : 1; origin.x: side.width / 2
@@ -408,21 +308,6 @@ Item {
                 root.popup = popup;
             }
         }
-    }
-
-    Connections {
-        function onHit(tap) {
-            if (!tap.points) {
-                return;
-            }
-            let judgement = tap.points.judgement;
-            if (judgement === Judgement.Poor || judgement === Judgement.Bad) {
-                bga.poorVisible = true;
-                poorLayerTimer.restart();
-            }
-        }
-
-        target: side.score
     }
 
     // ── Hit Distribution ────────────────────────────────────────────────────

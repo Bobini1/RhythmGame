@@ -66,7 +66,6 @@ class PendingReplySource;
 class PendingReply final : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(bool valid READ isValid CONSTANT FINAL)
     Q_PROPERTY(
       bool resultAvailable READ isResultAvailable NOTIFY finished FINAL)
     Q_PROPERTY(bool success READ isSuccessful NOTIFY finished FINAL)
@@ -77,12 +76,6 @@ class PendingReply final : public QObject
      * @pre Destroyed on the application thread.
      */
     ~PendingReply() override;
-
-    /**
-     * @return Always true for a live PendingReply.
-     * @pre Called on the application thread.
-     */
-    [[nodiscard]] bool isValid() const;
 
     /**
      * @return Whether a success, failure, or cancellation has settled the

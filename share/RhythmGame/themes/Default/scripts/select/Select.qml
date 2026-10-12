@@ -106,7 +106,6 @@ FocusScope {
         StandardSelectController {
             id: selection
 
-            enabled: root.enabled
             inputEnabled: songList.enabled
             shortcutsEnabled: songList.enabled
             feedbackEnabled: songList.enabled
@@ -447,7 +446,7 @@ FocusScope {
                     acceptedButtons: Qt.NoButton
 
                     onWheel: wheel => {
-                        songList.handleWheel(wheel);
+                        wheel.accepted = selection.handleWheel(wheel);
                     }
                 }
             }
@@ -485,7 +484,7 @@ FocusScope {
                 anchors.leftMargin: 900
                 anchors.top: parent.top
                 anchors.topMargin: 20
-                generalVars: Rg.profileList.mainProfile.vars.generalVars
+                controller: selection
             }
             SortButton {
                 id: sortButton

@@ -28,27 +28,9 @@ FocusScope {
     }
     // [entry-labels]
 
-    function activateCurrent() {
-        if (selection.focusedItem != null) {
-            selection.goForward(selection.focusedItem);
-        }
-    }
-
     // [select-controller]
     StandardSelectController {
         id: selection
-
-        enabled: screen.enabled
-        preview.moving: songList.moving
-
-        onFocusRequested: index => songList.currentIndex = index
-        onMoveRequested: steps => {
-            if (songList.count > 0) {
-                const next = songList.currentIndex + steps;
-                songList.currentIndex =
-                    ((next % songList.count) + songList.count) % songList.count;
-            }
-        }
     }
     // [select-controller]
 
@@ -106,8 +88,7 @@ FocusScope {
                         autoExclusive: true
                         checked: selection.keymodeFilter === modelData.value
                         onClicked: {
-                            Rg.profileList.mainProfile.vars.generalVars.selectKeymodeFilter =
-                                keymodeButton.modelData.value;
+                            selection.setKeymodeFilter(keymodeButton.modelData.value);
                             songList.forceActiveFocus();
                         }
                     }
@@ -124,7 +105,8 @@ FocusScope {
             }
             // [select-empty]
 
-            ListView {
+            // [select-list]
+            StandardSelectListView {
                 id: songList
 
                 Layout.fillWidth: true
@@ -132,26 +114,8 @@ FocusScope {
                 Layout.minimumHeight: 60
                 clip: true
                 focus: true
-                keyNavigationEnabled: false
-                model: selection.entries
-                currentIndex: -1
+                controller: selection
                 ScrollBar.vertical: ScrollBar {}
-
-                // [select-focus]
-                onCurrentIndexChanged: {
-                    if (currentIndex >= 0 && currentIndex < count) {
-                        selection.setFocused(selection.entries[currentIndex]);
-                    }
-                }
-
-                Keys.onUpPressed: event => selection.handleUpPressed(event)
-                Keys.onDownPressed: event => selection.handleDownPressed(event)
-                Keys.onReleased: event => selection.handleReleased(event)
-                Keys.onReturnPressed: screen.activateCurrent()
-                Keys.onEnterPressed: screen.activateCurrent()
-                Keys.onRightPressed: screen.activateCurrent()
-                Keys.onLeftPressed: selection.goBack()
-                // [select-focus]
 
                 // [select-delegate]
                 delegate: ItemDelegate {
@@ -164,15 +128,11 @@ FocusScope {
                     text: screen.labelFor(modelData)
                     highlighted: ListView.isCurrentItem
 
-                    onClicked: {
-                        songList.forceActiveFocus();
-                        songList.currentIndex = row.index;
-                        selection.setFocused(row.modelData);
-                        screen.activateCurrent();
-                    }
+                    onClicked: songList.activate(row.index)
                 }
                 // [select-delegate]
             }
+            // [select-list]
 
             // [course-stages]
             CourseStages {

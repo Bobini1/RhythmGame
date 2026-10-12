@@ -64,7 +64,7 @@ But if you abuse this to create cross-screen or cross-theme shared settings, it 
 
 @note
 As a special case, if your theme does not define 5k/10k screens,
-the 7k/10k screens will be selectable for those key modes, and they *will* share settings across key modes,
+the 7k/10k screens will be selectable for those key modes, and they **will** share settings across key modes,
 automatically.
 
 ## Try the saved value
@@ -87,10 +87,9 @@ The \ref Rg page lists the full set of properties and their types.
 | Work with the song library               | `rootSongFoldersConfig`, `songFolderFactory`, `tables`                |
 | Load images, previews or local files     | `songAssets`, `songDirectoryFilePathFetcher`, `fileQuery`             |
 | Build device or audio settings           | `inputTranslator`, `gamepadManager`, `audioEngine`, `programSettings` |
-| Build online ranking or Arena UI         | `onlineScores`, `arenaSession`, `arenaRoomCount`               |
+| Build online ranking or Arena UI         | `onlineScores`, `arenaSession`, `arenaRoomCount`                      |
 
 Most screens won't need to use those objects directly. For example,
 [StandardSelectController](qml/qml-rhythmgameqml-standardselectcontroller.html) already handles ordinary browsing and
 chart activation through `chartLoader`. `globalRoot` is a separate object supplied
 by the game for navigation, such as `globalRoot.returnToPreviousScreen()`.
-Use its named operations rather than accessing the internal screen stack.

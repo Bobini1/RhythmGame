@@ -26,7 +26,6 @@ Rectangle {
     property var popup: null
     readonly property bool isDp: screen === "k14" || screen === "k10"
     readonly property bool isBattle: screen === "k7battle" || screen === "k5battle"
-    readonly property bool isCourse: root.gameplay.isCourse
     required property GameplayContext gameplay
     readonly property Player player1: root.gameplay.players[0]
     readonly property Player player2: root.gameplay.players[1] || null
@@ -70,7 +69,7 @@ Rectangle {
     function getColumnSizes(vars) {
         let sizes = [];
         for (let i = 0; i < 16; i++) {
-            if (i === 7 || i === 15) {
+            if (root.player1.isScratchColumn(i)) {
                 sizes.push(vars.scratchWidth);
             } else if (i % 2 === 0)
                 sizes.push(vars.whiteWidth);
@@ -83,34 +82,11 @@ Rectangle {
 
     color: "black"
 
-    Timer {
-        id: poorLayerTimer
-
-        interval: 400
-
-        onTriggered: {
-            bga.poorVisible = false;
-        }
-    }
     Connections {
-        function onStatusChanged() {
-            if (root.gameplay.status === ChartRunner.Ready || root.gameplay.status === ChartRunner.Running) {
-                bga.clearOutput();
-                gameplay.bga.layers[0].videoSink = bga.baseSink;
-                gameplay.bga.layers[1].videoSink = bga.layerSink;
-                gameplay.bga.layers[2].videoSink = bga.layer2Sink;
-                gameplay.bga.layers[3].videoSink = bga.poorSink;
-            } else if (root.gameplay.status === ChartRunner.Finished) {
-                bga.clearOutput();
-                root.closeActivePopup();
-                gameplay.bga.layers[0].videoSink = bga.baseSink;
-                gameplay.bga.layers[1].videoSink = bga.layerSink;
-                gameplay.bga.layers[2].videoSink = bga.layer2Sink;
-                gameplay.bga.layers[3].videoSink = bga.poorSink;
-            }
-        }
-
         target: root.gameplay
+        function onStatusChanged() {
+            if (root.gameplay.status === ChartRunner.Finished) root.closeActivePopup();
+        }
     }
     PlayAreaPopup {
         id: playAreaPopup
@@ -333,14 +309,14 @@ Rectangle {
             textFormat: Text.PlainText
         }
 
-        BgaRenderer {
+        StandardGameplayBga {
             id: bga
 
             readonly property Profile profile: root.player2 ? Rg.profileList.mainProfile : root.player1.profile
             readonly property var profileVars: profile.vars.themeVars[root.screen][root.themeName]
 
             height: profileVars.bgaSize
-            bgaVisible: profile.vars.generalVars.bgaOn
+            gameplay: root.gameplay
             width: profileVars.bgaSize
             x: profileVars.bgaX
             y: profileVars.bgaY

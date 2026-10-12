@@ -13,8 +13,10 @@ import RhythmGameQml
 
     Joining a room opens the configured selector on the ordinary screen stack.
     StandardSelectController returns to the browser when the room is left.
-    Scheduled rounds open gameplay even while another screen, such as Settings,
-    covers the selector. Closing gameplay returns to that retained screen.
+    Prepared charts open gameplay even while another screen, such as Settings,
+    covers the selector. The theme requests its start after its intro, and Arena
+    waits for every participant before releasing playback. Closing gameplay
+    returns to the retained screen.
 */
 Item {
     id: root

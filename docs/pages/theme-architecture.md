@@ -103,8 +103,10 @@ its included components, so adding those components beside it can handle
 the same input twice.
 
 `StandardSelectController` supports both Default's circular view and the
-tutorial's finite list. The controller tracks browsing state, while the theme
-chooses how movement wraps or animates. `StandardSelectReload` keeps the
+tutorial's finite list. `StandardSelectListView` handles current-row changes,
+keyboard and wheel navigation, and folder focus restoration for a finite list.
+A custom wheel can connect directly to the controller and choose how movement wraps
+or animates. `StandardSelectReload` keeps the
 selection reload rules with selection behavior instead of in the host.
 
 `StandardGameplayFlow` handles startup, retry, stage results and course
@@ -173,7 +175,7 @@ implementation. Check LR2 separately when shared behavior changes.
 ## Maintain the interfaces together
 
 Keep properties supplied by a screen context on that context. For example,
-read `gameplay.chartData` and `gameplay.isCourse` directly instead of adding
+read `gameplay.chartData` and `gameplay.course` directly instead of adding
 copies to `StandardGameplayFlow`. Helpers that only coordinate a component's
 own state belong inside its implementation object.
 

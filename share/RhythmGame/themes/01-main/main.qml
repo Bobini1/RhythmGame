@@ -10,7 +10,6 @@ Rectangle {
     // [main-actions]
     StandardMainController {
         id: actions
-        enabled: screen.enabled
     }
     // [main-actions]
 
@@ -53,6 +52,11 @@ Rectangle {
                 text: "Song select"
                 focus: true
                 onClicked: actions.openSelect()
+            }
+            Button {
+                Layout.fillWidth: true
+                text: "Multiplayer"
+                onClicked: actions.openArena()
             }
             Button {
                 Layout.fillWidth: true

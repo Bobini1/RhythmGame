@@ -4,12 +4,14 @@ import RhythmGameQml
 /*!
     \qmltype StandardGameplayInput
     \inqmlmodule RhythmGameQml
-    \brief Maps Escape and the Start+Select retry gesture for gameplay.
+    \brief Maps gameplay exit, retry, and speed and cover adjustments.
 
     Use StandardGameplayFlow for a complete gameplay screen. It already includes
     this component. Use StandardGameplayInput separately only when your theme
     supplies its own gameplay flow. Handle \l exitRequested to leave gameplay
     or finish the stage. This component does not save scores or open results.
+    It includes StandardGameplaySpeedControls. Set \l speedControlsEnabled to
+    false when supplying different speed or cover input handling.
 
     Hold Start+Select for \l retryHoldDurationMillis to enter \l retryChoosing.
     Release Start for the same pattern, Select for fresh randomization, or both
@@ -31,6 +33,8 @@ Item {
     property bool exitEnabled: true
     /*! Controls whether retry and the Start+Select gesture are enabled. */
     property bool retryEnabled: true
+    /*! Enables StandardGameplaySpeedControls. Disable when supplying your own speed/cover input. */
+    property bool speedControlsEnabled: true
     /*! Start+Select hold duration before choosing a retry, in milliseconds. */
     property int retryHoldDurationMillis: 1000
     /*! Calls \c retryAction(samePattern) in place of restarting. */
@@ -48,6 +52,11 @@ Item {
     StandardChartRetry {
         id: chartRetry
         gameplay: root.gameplay
+    }
+
+    StandardGameplaySpeedControls {
+        gameplay: root.gameplay
+        enabled: root.speedControlsEnabled && !root.retryChoosing
     }
 
     QtObject {

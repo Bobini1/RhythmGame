@@ -279,7 +279,7 @@ Item {
             continue;
         auto* control = child->property("control").value<QQuickItem*>();
         REQUIRE(control);
-        if (control->property("viewportReady").isValid()) {
+        if (control->property("heightMultiplier").isValid()) {
             playArea = control;
             playAreaEditor = child;
         } else if (control->property("fast").isValid()) {
@@ -298,6 +298,102 @@ Item {
     REQUIRE(fastslowEditor);
     REQUIRE(ghostEditor);
     REQUIRE(ghostScore->property("width").toDouble() > 0);
+
+    // Default consumes display. Hits must update it before notes are culled.
+    auto* state = runner->getPlayer1()->getState();
+    state->setVisiblePositionSpans(4, 4);
+    state->setPosition(39);
+    QCoreApplication::processEvents();
+    QQuickItem* drawnNote = nullptr;
+    auto noteItems = sceneItem->childItems();
+    for (qsizetype i = 0; i < noteItems.size(); ++i) {
+        auto* item = noteItems[i];
+        noteItems.append(item->childItems());
+        if (item->property("hitData").isValid())
+            drawnNote = item;
+    }
+    REQUIRE(drawnNote);
+    REQUIRE(drawnNote->isVisible());
+    state->getColumnStates().front()->onHitEvent(
+      { 0,
+        0,
+        0,
+        gameplay_logic::BmsPoints(2, gameplay_logic::Judgement::Perfect, 0),
+        gameplay_logic::HitEvent::Action::Press,
+        true });
+    QCoreApplication::processEvents();
+    CHECK_FALSE(drawnNote->isVisible());
+
+    // Exercise Default's actual LN image geometry, including an end at zero.
+    QQmlComponent columnComponent(&engine);
+    columnComponent.setData(
+      R"(
+import QtQuick
+import RhythmGameQml
+import "." as Gameplay
+Item {
+    id: root
+    required property Player player
+    required property var noteModel
+    required property var notes
+    property string iniImagesUrl: "image://test/"
+    Gameplay.NoteColumn {
+        width: 100
+        height: 600
+        player: root.player
+        columnState: root.noteModel
+        notes: root.notes
+        color: "white"
+        noteImage: "test"
+        mineImage: "test"
+        heightMultiplier: 100
+        noteHeight: 10
+        hideLnEnds: false
+        liftRatio: 1
+        flashing: false
+    }
+})",
+      QUrl::fromLocalFile(themePath + "/scripts/gameplay/NoteTest.qml"));
+    INFO(columnComponent.errorString().toStdString());
+    REQUIRE(columnComponent.isReady());
+    using namespace gameplay_logic;
+    for (const auto positions :
+         { std::pair{ 1.0, 3.0 }, { 3.0, 1.0 }, { 2.0, 0.0 } }) {
+        CAPTURE(positions.first, positions.second);
+        const QList<Note> notes{ { Time{ 0, positions.first, positions.first },
+                                   Snap{ 0, 1 },
+                                   Note::Type::LongNoteBegin },
+                                 { Time{
+                                     1, positions.second, positions.second },
+                                   Snap{ 0, 1 },
+                                   Note::Type::LongNoteEnd } };
+        ColumnState source(
+          { NoteState{ notes[0], 0 }, NoteState{ notes[1], 1 } });
+        Filter filter(&source);
+        filter.setVisibleRange(0, 4);
+        std::unique_ptr<QObject> columnScene(
+          columnComponent.createWithInitialProperties(
+            { { "player", QVariant::fromValue(runner->getPlayer1()) },
+              { "noteModel", QVariant::fromValue(&filter) },
+              { "notes", QVariant::fromValue(notes) } }));
+        INFO(columnComponent.errorString().toStdString());
+        REQUIRE(columnScene);
+        QCoreApplication::processEvents();
+        QQuickItem* body = nullptr;
+        auto bodyItems =
+          qobject_cast<QQuickItem*>(columnScene.get())->childItems();
+        for (qsizetype i = 0; i < bodyItems.size(); ++i) {
+            auto* item = bodyItems[i];
+            bodyItems.append(item->childItems());
+            if (item->property("bodyLength").isValid())
+                body = item;
+        }
+        INFO(warnings.join('\n').toStdString());
+        REQUIRE(body);
+        CHECK(body->height() == Catch::Approx(180));
+        CHECK(body->y() ==
+              Catch::Approx(positions.first < positions.second ? -180 : 20));
+    }
 
     for (const auto size :
          { QSizeF(800, 600), QSizeF(1920, 1080), QSizeF(900, 1200) }) {

@@ -143,7 +143,7 @@ Item {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.RightButton
-        enabled: root.enabled && root.pointerEnabled
+        enabled: root.pointerEnabled
 
         onPressed: mouse => {
             mouse.accepted = true;

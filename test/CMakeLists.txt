@@ -97,7 +97,9 @@ include(Catch)
 # them in an offscreen process, separate from the native tests' QCoreApplication.
 qt_add_executable(RhythmGame_flow_test
         qml/StandardFlows.test.cpp
+        qml/GameplayPresentation.test.cpp
         qml/ArenaOverlay.test.cpp
+        qml/ThemeAuthoring.test.cpp
         qml/DefaultThemeControls.test.cpp)
 target_link_libraries(RhythmGame_flow_test PRIVATE
         RhythmGame_lib RhythmGame_qml RhythmGame_qmlplugin
@@ -110,6 +112,7 @@ add_dependencies(RhythmGame_test RhythmGame_flow_test)
 add_test(NAME StandardGameplayFlowStartup COMMAND RhythmGame_flow_test "[StandardGameplayFlow]")
 add_test(NAME DefaultThemeControls COMMAND RhythmGame_flow_test "[DefaultTheme]")
 add_test(NAME ArenaOverlay COMMAND RhythmGame_flow_test "[ArenaOverlay]")
+add_test(NAME ThemeAuthoring COMMAND RhythmGame_flow_test "[ThemeAuthoring]")
 if (WIN32)
     add_custom_command(TARGET RhythmGame_flow_test POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:RhythmGame_flow_test>/platforms"

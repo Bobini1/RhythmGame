@@ -155,11 +155,6 @@ GameplayContext::keymode() const -> gameplay_logic::ChartData::Keymode
     return effectiveKeymode;
 }
 auto
-GameplayContext::isCourse() const -> bool
-{
-    return courseDefinition.isValid();
-}
-auto
 GameplayContext::isArena() const -> bool
 {
     return arenaManaged;
@@ -237,7 +232,7 @@ GameplayContext::runner() const -> QObject*
 bool
 GameplayContext::start()
 {
-    if (lifecycleBusy || isArena() || stageResult ||
+    if (lifecycleBusy || stageResult ||
         status() != gameplay_logic::ChartRunner::Ready)
         return false;
     QScopedValueRollback busy(lifecycleBusy, true);
@@ -355,7 +350,7 @@ ResultContext::ResultContext(const QList<gameplay_logic::BmsScore*>& scores,
                 this,
                 &ResultContext::arenaActiveChanged);
     }
-    if (gameplay && gameplay->isCourse()) {
+    if (gameplay && gameplay->course().isValid()) {
         completedCourse = gameplay->course();
         completedStageIndex =
           static_cast<int>(gameplay->charts().indexOf(chartData));
@@ -372,7 +367,6 @@ ResultContext::arenaActive() const -> bool
 {
     return session && !completedArenaRoundId.isEmpty() &&
            session->resultPresentationActive() &&
-           session->presentedResult()->valid() &&
            session->presentedResult()->roundId() == completedArenaRoundId;
 }
 auto
@@ -421,7 +415,7 @@ ScreenContexts::canRetry(GameplayContext* gameplay,
                          qml_components::ChartLoader* loader) const
 {
     return gameplay && loader && !gameplay->isArena() &&
-           !gameplay->isCourse() &&
+           !gameplay->course().isValid() &&
            loader->canRetry(
              qobject_cast<gameplay_logic::ChartRunner*>(gameplay->runner()));
 }

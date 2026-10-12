@@ -4,7 +4,7 @@
 
 Install `docs/examples/theme-tutorial/08-results/` and select it for both Result
 and Course Result. The folder contains separate entry files for the two roles,
-plus a shared score display. You can also enable just one role and keep another
+plus shared displays for scores, judgements and graphs. You can also enable just one role and keep another
 theme for the other.
 
 [Download 08-results](examples/theme-tutorial/08-results.zip) or
@@ -30,6 +30,86 @@ The score's `result` property holds totals such as points and clear type.
 The surrounding [BmsScore](@ref gameplay_logic::BmsScore) also provides replay and gauge history. A completed
 score has fixed totals, although its online submission state can still change.
 
+## Show judgement counts
+
+`ResultStats.qml` displays the judgement counts and both graphs for one player.
+The normal result and course summary pass their scores to the same component.
+
+\snippet 08-results/Result.qml result-stats
+
+Read the counts from `score.result.judgementCounts`, using a `Judgement` value
+as the index. The example chooses a label and color for each displayed judgement.
+PGREAT uses `Judgement.Perfect`, while EMPTY POOR counts presses that were too
+far from a note. MINE counts mines the player hit. Internal events such as
+`LnEndSkip` don't need rows in the list.
+
+\snippet 08-results/ResultStats.qml judgement-counts
+
+The totals come from the saved result, so they remain available when a score
+has no replay or gauge history. The graph components handle their own missing data.
+
+## Group hits by timing
+
+`HitDistribution.qml` draws a histogram, which groups hits with similar timing
+into bars. Early hits appear on the left, and late hits appear on the right.
+The middle bar contains hits close to zero deviation. Taller bars contain
+more hits.
+
+The graph reads `score.replayData.hitEvents`. It includes Perfect, Great, Good
+and Bad judgements. Poor and Empty Poor events don't measure a successful note
+hit, so the graph excludes them, along with mines and internal long-note events.
+The `deviation` value is in nanoseconds, and dividing it by one million gives
+milliseconds.
+
+\snippet 08-results/HitDistribution.qml timing-buckets
+
+The binding builds 41 buckets, with one centered on zero. The outer bucket
+centers start at 100 milliseconds early and late. If a hit falls farther away,
+the range expands in steps of 50 milliseconds. The label shows the bucket width,
+and all included hits fit in the graph.
+
+\snippet 08-results/HitDistribution.qml timing-bars
+
+The graph scales bar heights against the largest count. Its buckets are
+calculated when the replay data changes, so resizing only changes the rectangles.
+A missing replay shows "Replay data unavailable". A replay with no included
+hits shows "No replay data".
+
+## Draw gauge history
+
+`LifeGraph.qml` reads `score.gaugeHistory.gaugeInfo`. Each entry describes one
+gauge, including its name, maximum value, clear threshold and history. The
+dropdown lets the player inspect each gauge. It starts with the gauge whose
+name matches the clear type, or the last gauge in the list if none matches.
+
+\snippet 08-results/LifeGraph.qml gauge-selection
+
+Each history entry records a gauge value and its `offsetFromStart` in
+nanoseconds. The value stays constant until the next change, so the graph
+uses horizontal segments followed by vertical steps. The time axis covers
+the score's recorded length and any later gauge change.
+
+\snippet 08-results/LifeGraph.qml gauge-points
+
+The points use coordinates from zero to one. A
+[Canvas](https://doc.qt.io/qt-6/qml-qtquick-canvas.html) draws the line at the
+current width and height. It repaints when the points or dimensions change,
+while resizing keeps the same list of points. The horizontal reference line
+marks the clear threshold,
+and the label gives the gauge's range. A score without gauge history shows
+"Gauge history unavailable".
+
+\snippet 08-results/LifeGraph.qml gauge-path
+
+## Keep the result usable in a small window
+
+The statistics use three columns when there is enough width, and stack
+vertically in a narrow window. A `ScrollView` holds the player displays, so
+battle results can show both players without shrinking the graphs. Retry and
+Continue stay outside the scroll area.
+
+During Arena play, the normal result uses the left half of the screen, leaving
+room for the Arena panel's default position on the right.
 
 ## Show each player's online rank
 
@@ -40,9 +120,17 @@ with the result's chart and that player's profile and score.
 
 \snippet 08-results/Result.qml result-ranking
 
-The component follows the profile's chosen provider and refreshes when the
-score's submission state changes. The label reads its current position,
-and the button opens the provider's website. `previousPosition` is also
+The dropdown beside the rank shows the provider's name and lets the player
+choose RhythmGame, Bokutachi or LR2IR. Its `currentValue` follows
+`playerRanking.provider`, and `onActivated` saves the choice in that player's
+`profile.vars.generalVars.rankingProvider`. The component follows the saved
+choice and refreshes when the score's submission state changes.
+
+The controls use two columns in a narrow window, with Open ranking below
+the provider and rank. Wider windows keep all three controls on one row.
+
+The label reads the current position, and Open ranking opens the selected
+provider's website. `previousPosition` is also
 available if you want to compare the earlier best score with the current
 opponents. It is not a historical snapshot of everyone else's ranks.
 
@@ -72,10 +160,19 @@ Keep the two root properties typed separately. The game doesn't send a course
 summary to a normal result screen as a fallback. Default shares a private
 view between its two result files, but another theme can draw them differently.
 
-Both saved score types expose the totals used by `ScoreLine.qml`, so the
-example shares that small helper. The roots still receive distinct types.
+Both saved score types expose the totals used by `ScoreLine.qml` and
+`ResultStats.qml`. A course score also combines its stages' hit events and
+gauge history, so the graphs work without changing their bindings. The course
+timing graph includes hits from all recorded stages, and its life graph uses
+the combined course timeline. The roots still receive distinct types.
 
 \include{lineno} 08-results/ScoreLine.qml
+
+\include{lineno} 08-results/ResultStats.qml
+
+\include{lineno} 08-results/HitDistribution.qml
+
+\include{lineno} 08-results/LifeGraph.qml
 
 ## Close a result through the same input handler
 
@@ -91,7 +188,7 @@ For supported single charts, keys 5 and 7 retry with fresh randomization and
 the same pattern respectively. The component gets the originating play from
 the result context. A course summary has no single-chart retry.
 
-The example's retry buttons call the same method with a pattern choice.
+The Retry and Same random buttons call the same method with a pattern choice.
 `retryAvailable` includes the input delay and the restrictions on courses,
 autoplay, replay, battle and Arena, so the theme doesn't repeat those checks.
 
@@ -101,11 +198,10 @@ autoplay, replay, battle and Arena, so the theme doesn't repeat those checks.
 
 The normal result screen adds [StandardArenaResultOverlay](qml/qml-rhythmgameqml-standardarenaresultoverlay.html). Its context
 identifies the completed Arena round, so the panel can display the matching
-standings and chat. Local results stay unchanged. The result input above
-disables confirmation while chat is open, so Enter only sends the message.
-The condition uses `result.arenaActive`, which matches the session to this
-result without depending on the overlay. Keep the condition when replacing
-the panel with your own presentation.
+standings and chat. Local results stay unchanged. StandardResultInput
+disables confirmation while this result's chat is open, so Enter only sends
+the message. This works with custom Arena panels too. Override `confirmEnabled`
+only when your theme needs another confirmation rule.
 
 \snippet 08-results/Result.qml arena-result
 
@@ -116,7 +212,11 @@ The course summary does not need an Arena overlay. See the
 
 \include{lineno} 08-results/CourseResult.qml
 
-Finish a chart and check the title, player name and score. Then play a course
+Finish a chart and check the title, player name, score and judgement counts.
+Compare the timing graph with a few deliberately early and late hits, then
+switch gauges in the life graph. Resize the window and scroll through the
+statistics. Open an imported score to check the messages for missing graph data.
+Then play a course
 and check that every stage shows a normal result. After closing the last stage
 result, the course summary opens. If you use battle, check
 that both players appear. The game owns the supplied data, so the theme must

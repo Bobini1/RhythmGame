@@ -20,8 +20,10 @@ import RhythmGameQml
     selector, including its Arena room. \l openResult chooses the correct result
     role for a saved chart or course score.
 
-    Use \l setSortMode or \l cycleSortMode to save the profile's sort choice.
-    Overriding \l sortMode directly supplies a theme-specific sort binding.
+    The \l sortMode, \l keymodeFilter and \l replayType properties follow the
+    active profile and are read-only. Use \l setSortMode, \l setKeymodeFilter
+    and \l setReplayType to save a player choice. The \l cycleSortMode and
+    \l cycleReplayType actions choose the next option and save it in the same way.
     Search history keeps each query, so \l goBack can restore a search after
     \l showAllChartsForCurrentSong opens a chart directory.
 
@@ -144,9 +146,9 @@ Item {
     property bool folderClearStatsEnabled: true
     /*! Controls whether construction automatically opens the root selection folder. */
     property bool autoInitialize: true
-    /*! Sort mode used to prepare logical entries. */
-    property int sortMode: selectionState.generalVars.selectSortMode
-    /*! Order used by cycleSortMode(). Replace the list to choose another order. */
+    /*! Active profile's sort choice. Change it with setSortMode() or cycleSortMode(). */
+    readonly property int sortMode: selectionState.generalVars.selectSortMode
+    /*! Modes listed in sortOptions and visited by cycleSortMode(). Does not restrict setSortMode(). */
     property list<int> sortModes: StandardSelectOptions.sortOptions.map(option => option.value)
     /*! Sort choices in \l sortModes order, with stable \c value and translated \c text roles. */
     readonly property var sortOptions: root.sortModes.map(value => ({
@@ -154,9 +156,9 @@ Item {
     }))
     /*! Optional translated label for the current sort mode. */
     readonly property string sortModeText: StandardSelectOptions.sortText(root.sortMode)
-    /*! Key-mode filter used to prepare logical entries. */
-    property int keymodeFilter: selectionState.generalVars.selectKeymodeFilter
-    /*! Difficulty filter used to prepare logical entries. */
+    /*! Active profile's keymode choice. Change it with setKeymodeFilter(). */
+    readonly property int keymodeFilter: selectionState.generalVars.selectKeymodeFilter
+    /*! Additional difficulty filter for this view. Does not change profile settings. */
     property int difficultyFilter: 0
     /*! Controls whether items without scores sort after scored items. */
     property bool unscoredItemsLast: true
@@ -181,8 +183,7 @@ Item {
         or \l cycleReplayType. Named values such as
         \c StandardSelectState.BestScore can be used instead of numbers.
     */
-    readonly property int replayType: selectionState.normalizedReplayType(
-        selectionState.generalVars.replayType)
+    readonly property int replayType: selectionState.generalVars.replayType
     /*! Replay choices with stable \c value and translated \c text roles. */
     readonly property var replayOptions: StandardSelectOptions.replayOptions
     /*! Optional translated label for the current replay choice. */
@@ -236,11 +237,6 @@ Item {
                 const index = selectionState.indexOfEntry(folder, old);
                 selectionState.requestFocus(index >= 0 ? index : 0);
             }
-        }
-
-        function normalizedReplayType(value) {
-            const number = Math.floor(Number(value));
-            return isFinite(number) ? ((number % 4) + 4) % 4 : 0;
         }
 
         function clearPriority(clear) {
@@ -525,16 +521,39 @@ Item {
         return root.autoplayAvailable && root.openPlayable(root.focusedItem, true);
     }
 
-    /*! Saves the selected sort \a mode in the active profile. */
+    /*!
+        Saves \a mode in the active profile and updates \l sortMode.
+        Accepts any supported SelectSortMode value, regardless of \l sortModes.
+        Returns false for an unknown value or inactive screen, without changing the choice.
+    */
     function setSortMode(mode) {
-        if (!root.enabled || root.sortModes.indexOf(mode) < 0) return false;
+        if (!root.enabled || !StandardSelectOptions.sortOptions.some(option => option.value === mode))
+            return false;
         selectionState.generalVars.selectSortMode = mode;
         return true;
     }
 
-    /*! Cycles the profile's sort choice by \a delta, or calls the custom action. */
+    /*!
+        Saves \a filter in the active profile and updates \l keymodeFilter.
+        Returns false for an unknown value or inactive screen, without changing the choice.
+    */
+    function setKeymodeFilter(filter) {
+        if (!root.enabled || ![SelectKeymodeFilter.All, SelectKeymodeFilter.Single,
+                SelectKeymodeFilter.Double, SelectKeymodeFilter.K5, SelectKeymodeFilter.K7,
+                SelectKeymodeFilter.K10, SelectKeymodeFilter.K14].includes(filter))
+            return false;
+        selectionState.generalVars.selectKeymodeFilter = filter;
+        return true;
+    }
+
+    /*!
+        Moves through \l sortModes by the integer \a delta and saves the choice,
+        or calls the custom action. Wraps at either end. Returns false when
+        inactive or delta is not an integer. The default action also returns
+        false if the list is empty or the next value is unsupported.
+    */
     function cycleSortMode(delta = 1) {
-        if (!root.enabled) return false;
+        if (!root.enabled || !Number.isInteger(delta)) return false;
         if (typeof root.tryCycleSortModeAction === "function"
                 && root.tryCycleSortModeAction(delta)) return true;
         const count = root.sortModes.length;
@@ -601,10 +620,16 @@ Item {
         return best;
     }
 
-    /*! Saves \a type as the active profile's replay choice. */
+    /*!
+        Saves \a type in the active profile and updates \l replayType.
+        Returns false for an unknown value or inactive screen, without changing the choice.
+        Use \l cycleReplayType to advance to the next option and wrap at the end.
+    */
     function setReplayType(type) {
-        if (!root.enabled) return;
-        selectionState.generalVars.replayType = selectionState.normalizedReplayType(type);
+        if (!root.enabled || !root.replayOptions.some(option => option.value === type))
+            return false;
+        selectionState.generalVars.replayType = type;
+        return true;
     }
 
     /*! Cycles newest, best score, best clear and best combo, or calls the replacement action. */
@@ -612,10 +637,11 @@ Item {
         if (!root.enabled) return false;
         if (typeof root.cycleReplayTypeAction === "function") {
             root.cycleReplayTypeAction();
-        } else {
-            root.setReplayType(root.replayType + 1);
+            return true;
         }
-        return true;
+        const options = root.replayOptions;
+        const index = options.findIndex(option => option.value === root.replayType);
+        return options.length > 0 && root.setReplayType(options[(index + 1) % options.length].value);
     }
 
     /*!

@@ -204,7 +204,7 @@ TEST_CASE(
             { ArenaStandingsModel::RankRole, "rank" },
             { ArenaStandingsModel::HasScoreRole, "hasScore" },
             { ArenaStandingsModel::ExScoreRole, "exScore" },
-            { ArenaStandingsModel::ProgressPermilleRole, "progressPermille" },
+            { ArenaStandingsModel::ProgressRole, "progress" },
             { ArenaStandingsModel::MaxComboRole, "maxCombo" },
             { ArenaStandingsModel::BadPoorCountRole, "badPoorCount" },
             { ArenaStandingsModel::PerfectRole, "perfect" },
@@ -214,7 +214,7 @@ TEST_CASE(
             { ArenaStandingsModel::PoorRole, "poor" },
             { ArenaStandingsModel::EmptyPoorRole, "emptyPoor" },
             { ArenaStandingsModel::GaugeTypeRole, "gaugeType" },
-            { ArenaStandingsModel::GaugeValueMilliRole, "gaugeValueMilli" },
+            { ArenaStandingsModel::GaugeValueRole, "gaugeValue" },
             { ArenaStandingsModel::ClearTypeRole, "clearType" },
             { ArenaStandingsModel::LobbyWinsAfterRole, "lobbyWinsAfter" },
             { ArenaStandingsModel::DnfReasonRole, "dnfReason" },
@@ -249,6 +249,10 @@ TEST_CASE("ArenaCompetitionModels: standings owns and replaces complete live "
     frozenIdentities[QStringLiteral("member-a")].displayName =
       QStringLiteral("Mutated");
 
+    CHECK(model.data(model.index(0, 0), ArenaStandingsModel::ProgressRole)
+            .toDouble() == 0.5);
+    CHECK(model.data(model.index(0, 0), ArenaStandingsModel::GaugeValueRole)
+            .toDouble() == 65.0);
     CHECK(resets == 1);
     CHECK(snapshotChanges == 1);
     CHECK(model.roundId() == QStringLiteral("round-1"));
@@ -282,9 +286,8 @@ TEST_CASE("ArenaCompetitionModels: standings owns and replaces complete live "
     CHECK(
       model.data(model.index(2, 0), ArenaStandingsModel::CompetitionStateRole)
         .toString() == QStringLiteral("finished"));
-    CHECK(
-      model.data(model.index(2, 0), ArenaStandingsModel::ProgressPermilleRole)
-        .toLongLong() == 1000);
+    CHECK(model.data(model.index(2, 0), ArenaStandingsModel::ProgressRole)
+            .toDouble() == 1.0);
     CHECK(model.data(model.index(2, 0), ArenaStandingsModel::ClearTypeRole)
             .toString() == QStringLiteral("hard"));
     CHECK(
@@ -296,6 +299,11 @@ TEST_CASE("ArenaCompetitionModels: standings owns and replaces complete live "
             .toLongLong() == -1);
 
     const auto firstRow = model.index(0, 0);
+    CHECK(model.data(firstRow, ArenaStandingsModel::ProgressRole).typeId() ==
+          QMetaType::Double);
+    CHECK(model.data(firstRow, ArenaStandingsModel::GaugeValueRole).typeId() ==
+          QMetaType::Double);
+
     for (const auto role : { ArenaStandingsModel::MemberIdRole,
                              ArenaStandingsModel::DisplayNameRole,
                              ArenaStandingsModel::AvatarUrlRole,
@@ -312,7 +320,6 @@ TEST_CASE("ArenaCompetitionModels: standings owns and replaces complete live "
     CHECK(model.data(firstRow, ArenaStandingsModel::RankRole).typeId() ==
           QMetaType::Int);
     for (const auto role : { ArenaStandingsModel::ExScoreRole,
-                             ArenaStandingsModel::ProgressPermilleRole,
                              ArenaStandingsModel::MaxComboRole,
                              ArenaStandingsModel::BadPoorCountRole,
                              ArenaStandingsModel::PerfectRole,
@@ -321,7 +328,6 @@ TEST_CASE("ArenaCompetitionModels: standings owns and replaces complete live "
                              ArenaStandingsModel::BadRole,
                              ArenaStandingsModel::PoorRole,
                              ArenaStandingsModel::EmptyPoorRole,
-                             ArenaStandingsModel::GaugeValueMilliRole,
                              ArenaStandingsModel::LobbyWinsAfterRole }) {
         CHECK(model.data(firstRow, role).typeId() == QMetaType::LongLong);
     }
@@ -453,7 +459,7 @@ TEST_CASE("ArenaCompetitionModels: result transitions from pending to final "
                              QStringLiteral("Competition chart"),
                              summary,
                              false));
-    CHECK(model.valid());
+    CHECK_FALSE(model.roundId().isEmpty());
     CHECK_FALSE(model.finalized());
     CHECK(model.resultRevision() == 0);
     CHECK(model.participantCount() == 2);
@@ -491,9 +497,8 @@ TEST_CASE("ArenaCompetitionModels: result transitions from pending to final "
     CHECK(changes == 3);
 
     model.clear();
-    CHECK_FALSE(model.valid());
-    CHECK_FALSE(model.finalized());
     CHECK(model.roundId().isEmpty());
+    CHECK_FALSE(model.finalized());
     CHECK(model.standings()->rowCount() == 0);
     CHECK(changes == 4);
 }
@@ -536,9 +541,8 @@ TEST_CASE("ArenaCompetitionModels: reentrant cleanup wins over final result "
     REQUIRE(model.replaceFinal(
       finalSnapshot(), QStringLiteral("member-a"), QStringLiteral("options")));
     REQUIRE(cleaned);
-    CHECK_FALSE(model.valid());
-    CHECK_FALSE(model.finalized());
     CHECK(model.roundId().isEmpty());
+    CHECK_FALSE(model.finalized());
     CHECK(model.standings()->rowCount() == 0);
 }
 
@@ -561,7 +565,6 @@ TEST_CASE(
                      active(QStringLiteral("member-c"), std::nullopt),
                      dnf(QStringLiteral("member-d")) });
     target.update(first, u"self", frozenIdentities);
-    CHECK(target.available());
     CHECK(target.memberId() == QStringLiteral("member-b"));
     CHECK(target.displayName() == QStringLiteral("Bob"));
     CHECK(target.exScore() == 210);
@@ -609,13 +612,12 @@ TEST_CASE("ArenaCompetitionModels: target handles zero no-data DNF new rounds "
                      active(QStringLiteral("member-a"), std::nullopt),
                      dnf(QStringLiteral("member-b")) });
     target.update(noScores, u"self", frozenIdentities);
-    CHECK_FALSE(target.available());
+    CHECK(target.memberId().isEmpty());
 
     auto zero = noScores;
     zero.standingsRevision = 2;
     zero.entries[1] = active(QStringLiteral("member-a"), telemetry(0));
     target.update(zero, u"self", frozenIdentities);
-    CHECK(target.available());
     CHECK(target.memberId() == QStringLiteral("member-a"));
     CHECK(target.exScore() == 0);
 
@@ -623,19 +625,19 @@ TEST_CASE("ArenaCompetitionModels: target handles zero no-data DNF new rounds "
     lostScore.standingsRevision = 3;
     lostScore.entries[1] = active(QStringLiteral("member-a"), std::nullopt);
     target.update(lostScore, u"self", frozenIdentities);
-    CHECK_FALSE(target.available());
+    CHECK(target.memberId().isEmpty());
 
     auto restored = lostScore;
     restored.standingsRevision = 4;
     restored.entries[1] = active(QStringLiteral("member-a"), telemetry(5));
     target.update(restored, u"self", frozenIdentities);
-    REQUIRE(target.available());
+    REQUIRE_FALSE(target.memberId().isEmpty());
 
     auto becameDnf = restored;
     becameDnf.standingsRevision = 5;
     becameDnf.entries[1] = dnf(QStringLiteral("member-a"));
     target.update(becameDnf, u"self", frozenIdentities);
-    CHECK_FALSE(target.available());
+    CHECK(target.memberId().isEmpty());
 
     auto newRound =
       liveSnapshot(1,
@@ -647,7 +649,6 @@ TEST_CASE("ArenaCompetitionModels: target handles zero no-data DNF new rounds "
     CHECK(target.memberId() == QStringLiteral("member-b"));
 
     target.clear();
-    CHECK_FALSE(target.available());
     CHECK(target.memberId().isEmpty());
     CHECK(target.displayName().isEmpty());
     CHECK(target.exScore() == 0);

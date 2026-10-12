@@ -32,12 +32,6 @@ PendingReply::~PendingReply()
 }
 
 bool
-PendingReply::isValid() const
-{
-    return true;
-}
-
-bool
 PendingReply::isResultAvailable() const
 {
     return resultAvailable;

@@ -15,7 +15,7 @@ Rectangle {
     }
     // [binding]
 
-    StandardMainController { id: actions; enabled: screen.enabled }
+    StandardMainController { id: actions }
 
     // [layout]
     ColumnLayout {
@@ -69,6 +69,11 @@ Rectangle {
                 label: "Song select"
                 focus: true
                 onClicked: actions.openSelect()
+            }
+            MenuButton {
+                Layout.fillWidth: true
+                label: "Multiplayer"
+                onClicked: actions.openArena()
             }
             MenuButton {
                 Layout.fillWidth: true

@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import RhythmGameQml
 import QtQml.Models
+import "PopupEditorColors.js" as PopupColors
 
 Popup {
     id: popup
@@ -22,10 +23,6 @@ Popup {
     readonly property real headerHeight: (headerLoader.active ? headerLoader.implicitHeight + 1 : 0)
     readonly property real maxPopupHeight: Math.max(240, contentContainer.height / scaledRoot.scale - visualMargin * 2)
     readonly property real scrollHeight: Math.min(Math.max(90, column.contentHeight + contentBottomPadding), Math.max(120, maxPopupHeight - headerHeight))
-
-    PopupEditorColors {
-        id: popupColors
-    }
 
     function closeTransientPopups() {
         for (let child of column.contentItem.children) {
@@ -53,9 +50,9 @@ Popup {
     onAboutToHide: closeTransientPopups()
 
     background: Rectangle {
-        border.color: popupColors.panelBorder
+        border.color: PopupColors.panelBorder
         border.width: 1
-        color: popupColors.panel
+        color: PopupColors.panel
         radius: 8
     }
 
@@ -75,7 +72,7 @@ Popup {
                     spacing: 3
 
                     Text {
-                        color: popupColors.text
+                        color: PopupColors.text
                         elide: Text.ElideRight
                         font.bold: true
                         font.pixelSize: 18
@@ -85,7 +82,7 @@ Popup {
                     }
 
                     Text {
-                        color: popupColors.mutedText
+                        color: PopupColors.mutedText
                         elide: Text.ElideRight
                         font.pixelSize: 12
                         text: popup.panelSubtitle
@@ -100,7 +97,7 @@ Popup {
         Rectangle {
             Layout.preferredHeight: headerLoader.active ? 1 : 0
             Layout.fillWidth: true
-            color: popupColors.divider
+            color: PopupColors.divider
         }
 
         ScrollView {

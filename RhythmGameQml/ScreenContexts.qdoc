@@ -28,18 +28,15 @@
 /*!
     \qmlproperty var GameplayContext::course
     \readonly
-    Contains the course definition when isCourse is true. It is undefined for a single chart.
-*/
-/*!
-    \qmlproperty bool GameplayContext::isCourse
-    \readonly
-    Reports whether the play is a course. Use it when adding course details
-    to the display. The current chart uses the same interface in either case.
+    Contains the course definition, or undefined for a single chart.
+    Check \c {if (gameplay.course)} before using course details.
+    The current chart uses the same interface in either case.
 */
 /*!
     \qmlproperty bool GameplayContext::isArena
     \readonly
-    Reports whether the play belongs to Arena. The game handles its startup and lifetime.
+    Reports whether the play belongs to Arena. Call start() after presentation
+    is ready. Arena holds the request until the shared start time and owns the runner.
 */
 /*!
     \qmlproperty list<ChartData> GameplayContext::charts

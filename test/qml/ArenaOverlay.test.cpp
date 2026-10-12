@@ -380,8 +380,9 @@ TEST_CASE("Only the presented Arena overlay restores chat preferences",
     h.checkWarnings();
 }
 
-TEST_CASE("Arena expand buttons keep following saved preferences",
-          "[qml][ArenaOverlay]")
+TEST_CASE(
+  "Arena panel buttons change chat and keep following saved preferences",
+  "[qml][ArenaOverlay]")
 {
     struct Panel
     {
@@ -405,6 +406,7 @@ TEST_CASE("Arena expand buttons keep following saved preferences",
                    textFontFamily: "Arial"
                    expanded: overlay.expanded
                    onExpandedChangeRequested: expanded => overlay.setExpanded(expanded)
+                   onChatSelected: chat => overlay.setChatOpen(chat)
                }
            )",
                                       "arenaNativeResultExpand",
@@ -430,6 +432,45 @@ TEST_CASE("Arena expand buttons keep following saved preferences",
         REQUIRE(QMetaObject::invokeMethod(button, "clicked"));
         settle();
         CHECK(h.settings->value(panel.setting).toBool());
+        for (const bool chatOpen : { true, false }) {
+            auto* tab = h.frame->findChild<QObject*>(
+              chatOpen ? "arenaChatTab" : "arenaDetailsTab");
+            REQUIRE(tab);
+            REQUIRE(QMetaObject::invokeMethod(tab, "clicked"));
+            settle();
+            CHECK(h.session->property("chatOpen").toBool() == chatOpen);
+            CHECK(h.frame->property("chatSelected").toBool() == chatOpen);
+        }
         h.checkWarnings();
     }
+}
+
+TEST_CASE(
+  "A custom Arena panel changes chat and saves the preference in one action",
+  "[qml][ArenaOverlay]")
+{
+    OverlayHarness h;
+    h.load(R"(
+        StandardArenaOverlay {
+            id: overlay
+            objectName: "overlay"
+            themeVars: screen.settings
+            session: screen.session
+            layoutVariant: "k7"
+            active: true
+            panelComponent: Item {}
+        }
+    )");
+    h.action("setChatOpen", true);
+    CHECK(h.session->property("chatOpen").toBool());
+    CHECK(h.settings->value("arenaOverlayK7ChatSelected").toBool());
+    h.frame->setEnabled(false);
+    h.action("setChatOpen", false);
+    CHECK(h.session->property("chatOpen").toBool());
+    CHECK(h.settings->value("arenaOverlayK7ChatSelected").toBool());
+    h.frame->setEnabled(true);
+    h.action("setChatOpen", false);
+    CHECK_FALSE(h.session->property("chatOpen").toBool());
+    CHECK_FALSE(h.settings->value("arenaOverlayK7ChatSelected").toBool());
+    h.checkWarnings();
 }

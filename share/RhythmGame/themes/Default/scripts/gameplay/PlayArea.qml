@@ -16,7 +16,6 @@ Item {
         ? Math.max(0, Math.min(1, playArea.generalVars.laneCoverRatio))
         : 0
     readonly property real laneCoverHeightRatio: (1 - playArea.activeLiftRatio) * playArea.activeLaneCoverRatio
-    readonly property real visibleHeightRatio: (1 - playArea.activeLiftRatio) * (1 - playArea.activeLaneCoverRatio)
     readonly property real hiddenCoverHeightRatio: playArea.generalVars.hiddenOn
         ? (1 - playArea.activeLiftRatio) * Math.max(0, Math.min(1, playArea.generalVars.hiddenRatio))
         : 0
@@ -27,30 +26,7 @@ Item {
         }
         return mapping;
     }
-    readonly property double heightMultiplier: {
-        let bpmMode = profile.vars.generalVars.hiSpeedFix;
-        const bpm = (() => {
-            switch (bpmMode) {
-                case HiSpeedFix.Off:
-                    return 120;
-                case HiSpeedFix.Main:
-                    return chartData.mainBpm;
-                case HiSpeedFix.Start:
-                    return chartData.initialBpm;
-                case HiSpeedFix.Min:
-                    return chartData.minBpm;
-                case HiSpeedFix.Max:
-                    return chartData.maxBpm;
-                case HiSpeedFix.Avg:
-                    return chartData.avgBpm;
-                default:
-                    console.error("Invalid HiSpeedFix mode: " + bpmMode);
-                    return 120;
-            }
-        })();
-        let baseSpeed = ((1 / profile.vars.generalVars.noteScreenTimeMillis) || 0) * 60000 * vars.playAreaHeight / bpm;
-        return baseSpeed * playArea.visibleHeightRatio;
-    }
+    readonly property double heightMultiplier: viewport.pixelsPerBeat
     required property Player player
     required property ChartData chartData
     readonly property Profile profile: player.profile
@@ -68,20 +44,14 @@ Item {
     readonly property list<real> columnSizes: root.getColumnSizes(vars)
     property var pointTarget
     property bool pointTargetAvailable: true
-    property bool viewportReady: false
 
-    function updateVisiblePositionSpans() {
-        if (!viewportReady)
-            return;
-        player.state.setVisiblePositionSpans(
-                    playfield.height / heightMultiplier,
-                    barLinePositioner.height / heightMultiplier);
-    }
-
-    onHeightMultiplierChanged: updateVisiblePositionSpans()
-    Component.onCompleted: {
-        viewportReady = true;
-        updateVisiblePositionSpans();
+    StandardGameplayViewport {
+        id: viewport
+        player: playArea.player
+        chartData: playArea.chartData
+        noteHeight: judgeLine.y + judgeLine.height
+        visibleHeight: barLinePositioner.height
+        barLineHeight: barLinePositioner.height
     }
 
     Item {
@@ -170,7 +140,6 @@ Item {
                 topMargin: parent.height * playArea.laneCoverHeightRatio
                 bottom: parent.bottom
             }
-            onHeightChanged: playArea.updateVisiblePositionSpans()
             z: 2
         }
         Playfield {
@@ -190,7 +159,6 @@ Item {
             hideLnEnds: playArea.vars.hideLnEnds
             player: playArea.player
             liftRatio: playArea.activeLiftRatio
-            onHeightChanged: playArea.updateVisiblePositionSpans()
             z: 4
         }
         Row {

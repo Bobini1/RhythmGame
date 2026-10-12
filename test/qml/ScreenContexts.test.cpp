@@ -238,7 +238,8 @@ struct ContextFixture
         return std::make_unique<BmsScore>(
           live->getResult(), live->getReplayData(), live->getGaugeHistory());
     }
-    void ready(CourseRunner* runner)
+    template<typename Runner>
+    void ready(Runner* runner)
     {
         bgas.back()->addResult(std::unique_ptr<qml_components::BgaContainer>(
           new qml_components::BgaContainer({}, {}, {})));
@@ -257,7 +258,23 @@ TEST_CASE("Gameplay contexts cover single charts and courses for every "
           "[ScreenContexts]")
 {
     ensureContextApplication();
+    registerContextTestTypes();
     ContextFixture fixture;
+    QQmlEngine engine;
+    QQmlComponent component(&engine);
+    component.setData(R"(
+        import QtQml
+        import ScreenContractsTest
+        QtObject {
+            required property GameplayContext gameplay
+            readonly property bool courseVisible: !!gameplay.course
+            readonly property string title: gameplay.course
+                ? gameplay.course.name : gameplay.chartData.title
+        }
+    )",
+                      QUrl());
+    INFO(component.errorString().toStdString());
+    REQUIRE(component.isReady());
     for (const auto keys : { ChartData::Keymode::K5,
                              ChartData::Keymode::K7,
                              ChartData::Keymode::K10,
@@ -276,14 +293,40 @@ TEST_CASE("Gameplay contexts cover single charts and courses for every "
                 CHECK(context->players()[0]->getProfile() ==
                       fixture.first.get());
                 CHECK(context->keymode() == keys);
+                for (auto* player : context->players()) {
+                    const auto columns = player->getColumns();
+                    const int keyCount = static_cast<int>(keys);
+                    CHECK(columns.size() == keyCount + (keyCount > 7 ? 2 : 1));
+                    CHECK(columns.first() == 7);
+                    CHECK(columns.last() == (keyCount > 7 ? 15 : keyCount - 1));
+                    CHECK(player->isScratchColumn(columns.first()));
+                    CHECK_FALSE(player->isScratchColumn(0));
+                    if (keys == ChartData::Keymode::K5 ||
+                        keys == ChartData::Keymode::K10) {
+                        CHECK_FALSE(columns.contains(5));
+                        CHECK_FALSE(columns.contains(6));
+                        CHECK_FALSE(columns.contains(13));
+                        CHECK_FALSE(columns.contains(14));
+                    }
+                }
                 CHECK(context->chartData());
                 CHECK(context->stageIndex() == 0);
                 CHECK(context->stageCount() ==
                       (runner == course.get() ? 2 : 1));
-                CHECK(context->isCourse() == (runner == course.get()));
-                CHECK(context->course().isValid() == context->isCourse());
+                CHECK(context->course().isValid() == (runner == course.get()));
                 CHECK(context->coursePlayers().size() ==
-                      (context->isCourse() ? context->players().size() : 0));
+                      (context->course().isValid() ? context->players().size()
+                                                   : 0));
+                std::unique_ptr<QObject> view(
+                  component.createWithInitialProperties(
+                    { { "gameplay", QVariant::fromValue(context) } }));
+                REQUIRE(view);
+                CHECK(view->property("courseVisible").toBool() ==
+                      (runner == course.get()));
+                CHECK(view->property("title").toString() ==
+                      (runner == course.get()
+                         ? QStringLiteral("Two stages")
+                         : context->chartData()->getTitle()));
                 CHECK(context->metaObject()->indexOfProperty("runner") == -1);
                 CHECK(context->runner() == runner);
                 CHECK(runner->parent() == context);
@@ -364,12 +407,34 @@ TEST_CASE("Gameplay owns local runners and safely outlives Arena runners",
     {
         auto runner = fixture.chart(
           ChartData::Keymode::K14, false, "Chart", ChartData::Keymode::K7);
+        runner->holdStart();
         auto* context = fixture.gameplay(runner.get(), &fixture.arenaSession);
+        // Columns follow the effective play mode, not the source chart's mode.
+        CHECK(context->chartData()->getKeymode() == ChartData::Keymode::K7);
+        CHECK(context->players()[0]->getColumns().size() == 16);
         auto mapping = context->inputMapping();
         std::swap(mapping[0], mapping[1]);
         context->setInputMapping(mapping);
         CHECK(runner->getInputMapping() == mapping);
+        fixture.ready(runner.get());
+        int pendingChanges = 0;
+        QObject::connect(runner.get(),
+                         &ChartRunner::startPendingChanged,
+                         context,
+                         [&] { ++pendingChanges; });
+        CHECK_FALSE(runner->startPending());
+        CHECK(context->start());
+        CHECK(context->start());
+        CHECK(runner->startPending());
+        CHECK(runner->getStatus() == ChartRunner::Ready);
+        CHECK(pendingChanges == 1);
+        runner->releaseStart();
+        CHECK_FALSE(runner->startPending());
+        CHECK(runner->getStatus() == ChartRunner::Running);
+        CHECK(pendingChanges == 2);
+        runner->releaseStart();
         CHECK_FALSE(context->start());
+        CHECK(pendingChanges == 2);
         int changes = 0;
         QObject::connect(
           context, &GameplayContext::stageChanged, [&] { ++changes; });

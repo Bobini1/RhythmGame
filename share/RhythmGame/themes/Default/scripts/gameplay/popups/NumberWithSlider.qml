@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import RhythmGameQml
+import "PopupEditorColors.js" as PopupColors
 
 Item {
     id: numberWithSlider
@@ -17,10 +18,6 @@ Item {
     height: Math.max(48, row.implicitHeight + 10)
     width: ListView.view ? ListView.view.width : 414
 
-    PopupEditorColors {
-        id: popupColors
-    }
-
     RowLayout {
         id: row
 
@@ -33,7 +30,7 @@ Item {
             id: label
 
             Layout.fillWidth: true
-            color: popupColors.text
+            color: PopupColors.text
             elide: Text.ElideRight
             font.bold: true
             font.pixelSize: 14

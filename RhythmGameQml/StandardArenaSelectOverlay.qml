@@ -116,6 +116,6 @@ StandardArenaOverlay {
         readyDisabledReason: root.readyDisabledReason
         session: root.session
         onReadyToggleRequested: root.toggleReady()
-        onChatSelected: chat => root.setChatSelected(chat)
+        onChatSelected: chat => root.setChatOpen(chat)
     }
 }

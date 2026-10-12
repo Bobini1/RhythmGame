@@ -13,7 +13,9 @@ import RhythmGameQml
     Actions wait until \l acceptsInput is true. Escape then closes the result
     regardless of \l confirmEnabled. Return and calls to \l confirm also require
     \l confirmEnabled. \l controllerEnabled controls bound controller input
-    without disabling keyboard or pointer confirmation.
+    without disabling keyboard or pointer confirmation. By default, confirmEnabled
+    follows the matching Arena round's chat state, so Return can send a message
+    without closing the result. Override it to supply another confirmation rule.
 
     Controller button handling first calls \l tryHandleButtonAction. If it doesn't
     handle the button, the component tries retry, then closes for a standard play
@@ -54,8 +56,9 @@ Item {
     /*! Reports whether result input currently accepts actions. */
     readonly property bool acceptsInput: inputDelayMillis <= 0
         || inputState.delayElapsed
-    /*! Controls whether semantic keyboard or pointer confirmation is active. */
-    property bool confirmEnabled: true
+    /*! Enables keyboard and pointer confirmation. Defaults to false while this result's Arena chat is open. */
+    property bool confirmEnabled: !((root.result as ResultContext)?.arenaActive
+        && Rg.arenaSession.chatOpen)
     /*! Controls whether BMS-controller input is active. */
     property bool controllerEnabled: true
     /*! Controls retries from both buttons and bound controller input. */

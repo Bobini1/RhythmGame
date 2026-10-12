@@ -582,11 +582,6 @@ ArenaSession::getLoginRequired() const -> bool
     return m_loginRequired;
 }
 auto
-ArenaSession::getReconnecting() const -> bool
-{
-    return m_state == State::Reconnecting;
-}
-auto
 ArenaSession::getDirectoryReady() const -> bool
 {
     return m_directoryReady;
@@ -1944,7 +1939,7 @@ ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
       sameFrozenRound(*m_round, *snapshot.round);
     const auto resumesFinalizedPresentedRound =
       resumesSameSeat && snapshot.lastRoundResult &&
-      m_resultPresentationActive && m_presentedResult.valid() &&
+      m_resultPresentationActive &&
       m_presentedResult.roundId() == snapshot.lastRoundResult->roundId;
     if (!resumesSameCompetitionRound) {
         m_round.reset();
@@ -2037,7 +2032,7 @@ ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
         return;
     }
     if (snapshot.lastRoundResult) {
-        if (m_lastResult.valid() &&
+        if (!m_lastResult.roundId().isEmpty() &&
             m_lastResult.roundId() != snapshot.lastRoundResult->roundId) {
             m_lastResult.clear();
             if (lifecycle != m_lifecycleGeneration) {
@@ -2051,8 +2046,7 @@ ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
         if (lifecycle != m_lifecycleGeneration) {
             return;
         }
-        if (m_presentedResult.valid() &&
-            m_presentedResult.roundId() == snapshot.lastRoundResult->roundId) {
+        if (m_presentedResult.roundId() == snapshot.lastRoundResult->roundId) {
             (void)m_presentedResult.replaceFinal(
               *snapshot.lastRoundResult,
               m_selfMemberId,
@@ -2110,6 +2104,7 @@ ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
     }
     requestInventorySnapshot();
     flushCompetitionMessages();
+    reportPreparedRound();
 
     if (!resumesSamePreparedRound || !m_round ||
         m_round->stage != FrozenRoundStage::Playing ||
@@ -2119,6 +2114,13 @@ ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
     const auto roundId = m_round->roundId;
     const auto launchAttemptId = m_round->launchAttemptId;
     const auto guardedRunner = m_preparedRunner;
+    if (!m_preparedGameplayExposed ||
+        guardedRunner->getStatus() < gameplay_logic::ChartRunner::Running) {
+        // A missed shared start cannot be recovered by starting at chart time
+        // zero after reconnecting.
+        abandonCurrentRound();
+        return;
+    }
     if (guardedRunner->getStatus() == gameplay_logic::ChartRunner::Finished &&
         !m_gameplaySourceAttached) {
         return;
@@ -2127,26 +2129,6 @@ ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
         sendAbandon(DnfReason::ResultUnavailable);
         cancelPreparedRound(false, true);
         return;
-    }
-    if (lifecycle != m_lifecycleGeneration || m_state != State::InRoom ||
-        !m_round || m_round->roundId != roundId ||
-        m_round->launchAttemptId != launchAttemptId ||
-        guardedRunner == nullptr || guardedRunner != m_preparedRunner) {
-        return;
-    }
-    if (!m_preparedGameplayExposed) {
-        m_preparedGameplayExposed = true;
-        emit preparedGameplayChanged(guardedRunner);
-        if (lifecycle != m_lifecycleGeneration || m_state != State::InRoom ||
-            !m_round || m_round->roundId != roundId ||
-            m_round->launchAttemptId != launchAttemptId ||
-            guardedRunner == nullptr || guardedRunner != m_preparedRunner) {
-            return;
-        }
-    }
-    if (guardedRunner->getStatus() == gameplay_logic::ChartRunner::Ready) {
-        guardedRunner->start();
-        guardedRunner->releaseStart();
     }
     if (lifecycle != m_lifecycleGeneration || m_state != State::InRoom ||
         !m_round || m_round->roundId != roundId ||
@@ -2699,7 +2681,8 @@ ArenaSession::handleLoadRequested(const RoundLoadRequested& requested)
     }
     if (requested.connectionGeneration != m_connectionGeneration ||
         m_roomPhase != RoomPhase::Loading || m_roundLoader == nullptr ||
-        !m_round || requested.round.stage != FrozenRoundStage::Loading ||
+        m_localRoundAbandoned || !m_round ||
+        requested.round.stage != FrozenRoundStage::Loading ||
         (m_round->stage != FrozenRoundStage::Probing &&
          m_round->stage != FrozenRoundStage::Loading) ||
         !sameFrozenRound(requested.round, *m_round)) {
@@ -2711,6 +2694,12 @@ ArenaSession::handleLoadRequested(const RoundLoadRequested& requested)
     if (!m_probeResultRequestId.isEmpty()) {
         m_pendingCommands.remove(m_probeResultRequestId);
         m_probeResultRequestId.clear();
+    }
+    if (m_loadRequestRound &&
+        sameFrozenRound(requested.round, *m_loadRequestRound) &&
+        m_roundLoaderOperation == RoundLoaderOperation::Load) {
+        reportPreparedRound();
+        return;
     }
     cancelPreparedRound(false);
     const auto& selection = requested.round.selection;
@@ -2824,10 +2813,38 @@ ArenaSession::handleLoadFinished(quint64 requestId,
         }
         return;
     }
+    const auto lifecycle = m_lifecycleGeneration;
+    m_preparedRunner = runner;
+    m_preparedStartConnection =
+      connect(runner,
+              &gameplay_logic::ChartRunner::startPendingChanged,
+              this,
+              &ArenaSession::reportPreparedRound);
+    m_preparedGameplayExposed = true;
+    emit preparedGameplayChanged(runner);
+    if (lifecycle == m_lifecycleGeneration && m_preparedRunner == runner) {
+        reportPreparedRound();
+    }
+}
+
+void
+ArenaSession::reportPreparedRound()
+{
+    if (m_state != State::InRoom || !m_protocolReady || !m_round ||
+        m_round->stage != FrozenRoundStage::Loading || !m_loadRequestRound ||
+        !m_preparedRunner || !m_preparedGameplayExposed ||
+        m_localRoundAbandoned || !m_loadResultRequestId.isEmpty() ||
+        !sameFrozenRound(*m_round, *m_loadRequestRound) ||
+        m_preparedRunner->getStatus() != gameplay_logic::ChartRunner::Ready ||
+        !m_preparedRunner->startPending()) {
+        return;
+    }
+    const auto runner = m_preparedRunner;
+    constexpr qint64 NanosecondsPerMillisecond = 1'000'000;
+    const auto chartLengthNs = runner->getPlayer1()->getChartLength();
     const auto chartLengthMs =
       chartLengthNs / NanosecondsPerMillisecond +
       (chartLengthNs % NanosecondsPerMillisecond == 0 ? 0 : 1);
-    m_preparedRunner = runner;
     const auto& round = *m_loadRequestRound;
     const auto inventoryRevision =
       frozenInventoryRevision(round, m_selfMemberId);
@@ -2923,7 +2940,9 @@ ArenaSession::handleRoundStartScheduled(const RoundStartScheduled& scheduled)
         !m_loadRequestRound || m_preparedRunner == nullptr ||
         scheduled.roundId != m_round->roundId ||
         scheduled.launchAttemptId != m_round->launchAttemptId ||
-        m_preparedRunner->getStatus() != gameplay_logic::ChartRunner::Ready) {
+        m_preparedRunner->getStatus() != gameplay_logic::ChartRunner::Ready ||
+        !m_preparedGameplayExposed || !m_preparedRunner->startPending() ||
+        m_localRoundAbandoned) {
         return;
     }
     const auto lifecycle = m_lifecycleGeneration;
@@ -2953,17 +2972,6 @@ ArenaSession::handleRoundStartScheduled(const RoundStartScheduled& scheduled)
         guardedRunner == nullptr || guardedRunner != m_preparedRunner) {
         return;
     }
-    if (!m_preparedGameplayExposed) {
-        m_preparedGameplayExposed = true;
-        emit preparedGameplayChanged(guardedRunner);
-    }
-    if (lifecycle != m_lifecycleGeneration || guardedRunner == nullptr ||
-        guardedRunner != m_preparedRunner || !m_round ||
-        m_round->roundId != scheduled.roundId ||
-        m_round->launchAttemptId != scheduled.launchAttemptId) {
-        return;
-    }
-    guardedRunner->start();
     const auto roundId = scheduled.roundId;
     const auto launchAttemptId = scheduled.launchAttemptId;
     const auto releaseAtMs =
@@ -2981,7 +2989,8 @@ ArenaSession::handleRoundStartScheduled(const RoundStartScheduled& scheduled)
           if (lifecycle != m_lifecycleGeneration || !m_round ||
               m_round->roundId != roundId ||
               m_round->launchAttemptId != launchAttemptId ||
-              guardedRunner == nullptr || guardedRunner != m_preparedRunner) {
+              guardedRunner == nullptr || guardedRunner != m_preparedRunner ||
+              !guardedRunner->startPending()) {
               return;
           }
           guardedRunner->releaseStart();
@@ -3002,6 +3011,8 @@ ArenaSession::cancelPreparedRound(bool notify, bool preserveScoreGuid)
 {
     const auto lifecycle = m_lifecycleGeneration;
     const auto hadExposedGameplay = m_preparedGameplayExposed;
+    QObject::disconnect(m_preparedStartConnection);
+    m_preparedStartConnection = {};
     cancelTask(m_roundStartTask);
     stopTelemetrySampling();
     detachGameplaySource(preserveScoreGuid);
@@ -3038,6 +3049,8 @@ void
 ArenaSession::retainPreparedGameplayUntilReleased()
 {
     const auto hadExposedGameplay = m_preparedGameplayExposed;
+    QObject::disconnect(m_preparedStartConnection);
+    m_preparedStartConnection = {};
     cancelTask(m_roundStartTask);
     stopTelemetrySampling();
     detachGameplaySource();
@@ -3383,11 +3396,12 @@ ArenaSession::sendOrQueueTelemetry(TelemetrySnapshot telemetry)
 void
 ArenaSession::flushCompetitionMessages()
 {
-    if (m_state != State::InRoom || !m_protocolReady || !m_round ||
-        m_round->stage != FrozenRoundStage::Playing) {
+    if (m_state != State::InRoom || !m_protocolReady || !m_round) {
         return;
     }
-    if (m_pendingTerminal) {
+    if (m_pendingTerminal &&
+        (m_round->stage == FrozenRoundStage::Playing ||
+         std::holds_alternative<RoundAbandon>(m_pendingTerminal->message))) {
         std::visit(
           [&](auto& message) {
               message.connectionGeneration = m_connectionGeneration;
@@ -3397,7 +3411,8 @@ ArenaSession::flushCompetitionMessages()
         std::visit([this](const auto& message) { (void)sendMessage(message); },
                    outbound);
     }
-    if (m_pendingTelemetry && m_pendingTelemetry->roundId == m_round->roundId &&
+    if (m_round->stage == FrozenRoundStage::Playing && m_pendingTelemetry &&
+        m_pendingTelemetry->roundId == m_round->roundId &&
         m_pendingTelemetry->launchAttemptId == m_round->launchAttemptId) {
         m_pendingTelemetry->connectionGeneration = m_connectionGeneration;
         if (sendMessage(*m_pendingTelemetry)) {
@@ -3415,12 +3430,7 @@ ArenaSession::sendTerminal(
     }
     m_localTerminalSubmitted = true;
     m_pendingTerminal = PendingTerminal{ .message = std::move(message) };
-    if (m_state == State::InRoom && m_protocolReady && m_round &&
-        m_round->stage == FrozenRoundStage::Playing) {
-        const auto outbound = m_pendingTerminal->message;
-        std::visit([this](const auto& value) { (void)sendMessage(value); },
-                   outbound);
-    }
+    flushCompetitionMessages();
 }
 
 void
@@ -3475,7 +3485,9 @@ ArenaSession::sendAbandon(DnfReason reason)
         !currentCompetitionRound(roundId, launchAttemptId)) {
         return;
     }
-    showPendingResult(true);
+    if (m_round->stage == FrozenRoundStage::Playing) {
+        showPendingResult(true);
+    }
 }
 
 auto
@@ -3599,7 +3611,7 @@ ArenaSession::handleRoundFinalized(const RoundFinalized& finalized)
         failProtocol(ProtocolFailureCode::MalformedMessage);
         return;
     }
-    if (m_lastResult.valid() &&
+    if (!m_lastResult.roundId().isEmpty() &&
         m_lastResult.roundId() != finalized.result.roundId) {
         m_lastResult.clear();
         if (lifecycle != m_lifecycleGeneration ||
@@ -3619,8 +3631,7 @@ ArenaSession::handleRoundFinalized(const RoundFinalized& finalized)
         failProtocol(ProtocolFailureCode::MalformedMessage);
         return;
     }
-    if (m_presentedResult.valid() &&
-        m_presentedResult.roundId() == finalized.result.roundId) {
+    if (m_presentedResult.roundId() == finalized.result.roundId) {
         (void)m_presentedResult.replaceFinal(
           finalized.result, selfMemberId, summary);
         if (lifecycle != m_lifecycleGeneration ||
@@ -3927,6 +3938,10 @@ ArenaSession::releasePreparedGameplay(gameplay_logic::ChartRunner* runner)
     // necessary. The loader uses deleteLater(), keeping the runner valid for
     // the remainder of QML component destruction.
     m_preparedGameplayExposed = false;
+    if (runner->getStatus() < gameplay_logic::ChartRunner::Running) {
+        abandonCurrentRound();
+        return;
+    }
     cancelPreparedRound(false);
 }
 
@@ -3941,8 +3956,11 @@ ArenaSession::abandonCurrentRound()
     m_localRoundAbandoned = true;
     stopTelemetrySampling();
     setChatOpen(false);
+    const auto preparing =
+      m_preparedRunner &&
+      m_preparedRunner->getStatus() < gameplay_logic::ChartRunner::Running;
     sendAbandon(DnfReason::Aborted);
-    cancelPreparedRound(false, true);
+    cancelPreparedRound(preparing, true);
 }
 
 void
@@ -3982,7 +4000,7 @@ ArenaSession::clearChatActivity()
 void
 ArenaSession::endResultPresentation(const QString& roundId)
 {
-    if (!m_resultPresentationActive || !m_presentedResult.valid() ||
+    if (!m_resultPresentationActive || roundId.isEmpty() ||
         m_presentedResult.roundId() != roundId) {
         return;
     }

@@ -100,34 +100,34 @@ QtObject {
             .arg(names.join(", "));
     }
 
-    function gaugeText(gaugeType, gaugeValueMilli): string {
-        return qsTr("%1 · %2%").arg(gaugeTypeText(gaugeType)).arg((Number(gaugeValueMilli) / 1000).toFixed(1));
+    function gaugeText(gaugeType, gaugeValue): string {
+        return qsTr("%1 · %2%").arg(gaugeTypeText(gaugeType)).arg(Number(gaugeValue).toFixed(1));
     }
 
-    function gaugeValueText(gaugeValueMilli): string {
-        return (Number(gaugeValueMilli) / 1000).toFixed(1) + "%";
+    function gaugeValueText(gaugeValue): string {
+        return Number(gaugeValue).toFixed(1) + "%";
     }
 
-    function gaugePasses(gaugeType, gaugeValueMilli): bool {
-        const value = Number(gaugeValueMilli);
+    function gaugePasses(gaugeType, gaugeValue): bool {
+        const value = Number(gaugeValue);
         switch (String(gaugeType || "")) {
         case "fc":
-            return value > 2000;
+            return value > 2;
         case "exhard":
             return value > 0;
         case "hard":
-            return value > 2000;
+            return value > 2;
         case "normal":
         case "easy":
-            return value > 80000;
+            return value > 80;
         case "aeasy":
-            return value > 60000;
+            return value > 60;
         default:
             return false;
         }
     }
 
-    function liveAchievementText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli): string {
+    function liveAchievementText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValue): string {
         const pg = Math.max(0, Number(perfect));
         const gr = Math.max(0, Number(great));
         const gd = Math.max(0, Number(good));
@@ -140,7 +140,7 @@ QtObject {
         if (gd + bd + pr + ep === 0) {
             return "PERFECT";
         }
-        if (String(gaugeType || "") === "fc" && gaugePasses(gaugeType, gaugeValueMilli)) {
+        if (String(gaugeType || "") === "fc" && gaugePasses(gaugeType, gaugeValue)) {
             return "FC";
         }
         const judgedNotes = pg + gr + gd + bd + pr + ep;
@@ -150,21 +150,21 @@ QtObject {
         return "";
     }
 
-    function liveClearLabel(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli): string {
-        const achievement = liveAchievementText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli);
+    function liveClearLabel(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValue): string {
+        const achievement = liveAchievementText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValue);
         return achievement.length > 0 ? achievement : gaugeTypeText(gaugeType);
     }
 
-    function liveClearShowsGaugeValue(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli): bool {
-        return liveAchievementText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli).length === 0;
+    function liveClearShowsGaugeValue(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValue): bool {
+        return liveAchievementText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValue).length === 0;
     }
 
-    function liveClearText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli): string {
-        const label = liveClearLabel(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli);
-        if (!liveClearShowsGaugeValue(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli)) {
+    function liveClearText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValue): string {
+        const label = liveClearLabel(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValue);
+        if (!liveClearShowsGaugeValue(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValue)) {
             return label;
         }
-        return qsTr("%1 %2").arg(label).arg(gaugeValueText(gaugeValueMilli));
+        return qsTr("%1 %2").arg(label).arg(gaugeValueText(gaugeValue));
     }
 
     function outcomeText(clearType, lobbyWinsAfter, dnfReason): string {

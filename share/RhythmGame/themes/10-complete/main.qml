@@ -14,7 +14,7 @@ Rectangle {
         screen.profile.vars.themeVars["main"][QmlUtils.themeName]
     // [profile]
 
-    StandardMainController { id: actions; enabled: screen.enabled }
+    StandardMainController { id: actions }
 
     ColumnLayout {
         anchors.centerIn: parent
@@ -39,7 +39,7 @@ Rectangle {
         // [arena-menu]
         Button {
             Layout.fillWidth: true
-            text: qsTr("Arena")
+            text: qsTr("Multiplayer")
             onClicked: actions.openArena()
         }
         // [arena-menu]

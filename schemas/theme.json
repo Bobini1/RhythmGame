@@ -4,12 +4,6 @@
   "type": "object",
   "required": ["scripts"],
   "properties": {
-    "apiVersion": {
-      "type": "string",
-      "pattern": "^[0-9]+\\.[0-9]+$",
-      "default": "1.0",
-      "description": "Required theme API major and minimum minor version. Omission means 1.0."
-    },
     "scripts": {
       "type": "object",
       "additionalProperties": { "type": "string" }

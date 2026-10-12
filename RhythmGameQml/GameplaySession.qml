@@ -16,10 +16,10 @@ QtObject {
     readonly property bool ready: root.gameplay?.status === ChartRunner.Ready
     readonly property bool finished: root.gameplay?.status === ChartRunner.Finished
     readonly property bool arenaManaged: root.gameplay?.isArena ?? false
-    readonly property bool isCourse: root.gameplay?.isCourse ?? false
     readonly property int stageIndex: root.gameplay?.stageIndex ?? 0
     readonly property var chartData: root.gameplay ? root.gameplay.chartData : null
     readonly property bool playing: state.phase === "playing"
+    readonly property bool startRequested: state.started
 
     signal stageActivated()
     signal finishRequested()
@@ -160,7 +160,7 @@ QtObject {
             return;
         }
         if (state.phase === "stageResult" && state.returned) {
-            if (root.isCourse && root.stageIndex + 1 < root.gameplay.stageCount) {
+            if (root.gameplay.course && root.stageIndex + 1 < root.gameplay.stageCount) {
                 if (!root.gameplay.nextStage()) {
                     console.warn("Cannot continue the course; returning to selection");
                     root.leave();
@@ -170,7 +170,7 @@ QtObject {
                 state.started = false;
                 state.waitForFinish = true;
                 state.stageResult = null;
-            } else if (root.isCourse) {
+            } else if (root.gameplay.course) {
                 root.presentCourseResult();
                 return;
             } else {
@@ -190,9 +190,8 @@ QtObject {
                     state.announcedStage = root.stageIndex;
                     root.stageActivated();
                 }
-                if (root.ready && root.startReady && !root.arenaManaged && !state.started) {
-                    state.started = true;
-                    root.gameplay.start();
+                if (root.ready && root.startReady && !state.started) {
+                    state.started = root.gameplay.start();
                 }
             }
         }

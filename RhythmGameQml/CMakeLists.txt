@@ -173,6 +173,7 @@ set(RHYTHM_GAME_QML_FILES
         StandardSelectInput.qml
         StandardSelectShortcuts.qml
         StandardSelectController.qml
+        StandardSelectListView.qml
         StandardSelectPreview.qml
         StandardInputKeys.qml
         StandardMainActions.qml
@@ -186,7 +187,10 @@ set(RHYTHM_GAME_QML_FILES
         StandardResultInput.qml
         StandardChartRetry.qml
         StandardGameplayFlow.qml
+        StandardGameplayBga.qml
+        StandardGameplaySpeedControls.qml
         StandardGameplayTarget.qml
+        StandardGameplayViewport.qml
         GameplaySession.qml
         StandardGameplayInput.qml
         StandardGameplayAttemptState.qml

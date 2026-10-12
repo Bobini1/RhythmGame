@@ -2,9 +2,8 @@
 
 [Tutorial](index.md) | [Next: QML basics](02-qml.md)
 
-Install `docs/examples/theme-tutorial/01-main/` to replace the main menu with an
-image and three buttons. Song select opens the selection screen already chosen
-in your profile. Settings opens the game's settings, and Quit closes the game.
+Install `docs/examples/theme-tutorial/01-main/` to replace the main menu with a
+simple example main screen with four navigation buttons and a background image.
 
 [Download 01-main](examples/theme-tutorial/01-main.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/01-main).
@@ -71,11 +70,13 @@ This can be a good idea if you want super custom controls,
 but I recommend checking out the [Imagine style](https://doc.qt.io/qt-6/qtquickcontrols-imagine.html) first, it's very
 customizable.
 
-[StandardMainController](qml/qml-rhythmgameqml-standardmaincontroller.html) handles menu actions, the START button and background music.
+[StandardMainController](qml/qml-rhythmgameqml-standardmaincontroller.html) handles menu actions, the START button and
+background music.
 It draws nothing, so the theme needs to create its own buttons. Their `onClicked` handlers call
-`openSelect()`, `openSettings()` and `quit()` for the three menu actions.
+`openSelect()`, `openArena()`, `openSettings()` and `quit()` for the four menu actions.
 The component is optional. You can call `globalRoot.openSelect()`,
-`globalRoot.openSettings()` and `globalRoot.quitApplication()` directly.
+`globalRoot.openArenaBrowser()`, `globalRoot.openSettings()` and
+`globalRoot.quitApplication()` directly.
 If you omit the component, make sure you give controller users some way to enter song select without using their mouse.
 [StandardMainController](qml/qml-rhythmgameqml-standardmaincontroller.html) binds the START button to `openSelect()`.
 
@@ -84,12 +85,6 @@ You can make a main menu theme that does give the user any way to go to song sel
 But this breaks the contract. It doesn't matter what UX you choose exactly but each screen has some roles.
 
 \snippet 01-main/main.qml main-actions
-
-The controller plays the main-menu track from the active profile's BGM set.
-Its `enabled` binding stops the music when another screen opens and starts it
-again when you return. You don't need to add an audio player to this example.
-To change the music, set the controller's `backgroundMusic.source` to a local
-audio file path. Set `backgroundMusic: null` if your menu should have no music.
 
 \snippet 01-main/main.qml buttons
 
@@ -111,8 +106,8 @@ choose `01-main` as its theme. Leave the other screens on Default or your
 existing themes, then go back to see the newly selected main menu.
 
 Click Song select or press your bound START button. The chosen selection
-screen should open. The other buttons do what you would expect -
-Settings opens settings, Quit closes the game.
+screen should open. Multiplayer opens the configured Multiplayer screen, where
+you can join an Arena room. Settings opens settings, and Quit closes the game.
 
 Third, edit the title or background color in `main.qml`, save the file, and
 restart the game.
@@ -124,5 +119,5 @@ Press F10 to inspect the log if the screen fails to load. `log.txt` is in the
 game's data directory, next to `themes`.
 
 Resize the window to a square, a 4:3 rectangle and a wide rectangle. The menu
-should stay centered with all three buttons visible. The next lesson explains the
+should stay centered with all four buttons visible. The next lesson explains the
 sizing and adds controls you can reuse.

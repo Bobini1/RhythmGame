@@ -21,9 +21,9 @@ Image {
         fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
-    readonly property int difficulty: root.gameplay.isCourse ? 0 : root.gameplay.chartData.difficulty
+    readonly property int difficulty: root.gameplay.course ? 0 : root.gameplay.chartData.difficulty
     readonly property string titleString: {
-        if (root.gameplay.isCourse) {
+        if (root.gameplay.course) {
             return root.gameplay.course.name;
         }
         let title = root.gameplay.chartData.title;
@@ -33,9 +33,9 @@ Image {
         title = title.replace(/\r\n|\n|\r/g, " ");
         return title;
     }
-    readonly property string genreString: root.gameplay.isCourse ? "Course" : root.gameplay.chartData.genre
-    readonly property string artistString: root.gameplay.isCourse ? "" : root.gameplay.chartData.artist
-    readonly property string subartistString: root.gameplay.isCourse ? "" : root.gameplay.chartData.subartist
+    readonly property string genreString: root.gameplay.course ? "Course" : root.gameplay.chartData.genre
+    readonly property string artistString: root.gameplay.course ? "" : root.gameplay.chartData.artist
+    readonly property string subartistString: root.gameplay.course ? "" : root.gameplay.chartData.subartist
     source: "images/bg.png"
 
     readonly property string diffColor: {
@@ -251,7 +251,7 @@ Image {
             duration: 1000
             easing.type: Easing.OutCubic
         }
-        source: root.gameplay.isCourse ? "" : root.gameplay.chartData.stageFileSource
+        source: root.gameplay.course ? "" : root.gameplay.chartData.stageFileSource
 
         Rectangle {
             anchors.fill: parent

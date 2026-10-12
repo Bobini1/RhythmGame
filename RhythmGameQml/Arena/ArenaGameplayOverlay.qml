@@ -324,16 +324,16 @@ Rectangle {
                 required property int poor
                 required property int emptyPoor
                 required property string gaugeType
-                required property int gaugeValueMilli
+                required property real gaugeValue
                 required property string clearType
                 required property int lobbyWinsAfter
                 required property string dnfReason
 
                 readonly property bool localMember: memberId === String(root.session.selfMemberId || "")
                 readonly property bool focusIndicatorVisible: activeFocus || (ListView.isCurrentItem && standingsView.activeFocus)
-                readonly property string currentClearLabel: competitionText.liveClearLabel(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli)
-                readonly property bool currentClearShowsGaugeValue: competitionText.liveClearShowsGaugeValue(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli)
-                readonly property string currentClear: competitionText.liveClearText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli)
+                readonly property string currentClearLabel: competitionText.liveClearLabel(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValue)
+                readonly property bool currentClearShowsGaugeValue: competitionText.liveClearShowsGaugeValue(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValue)
+                readonly property string currentClear: competitionText.liveClearText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValue)
                 objectName: "arenaStandingRow" + index
                 color: index % 2 === 0 ? "#241b2230" : "#141b2230"
                 activeFocusOnTab: false
@@ -514,7 +514,7 @@ Rectangle {
                                 color: "#d8ffffff"
                                 font.pixelSize: typography.bodyPixelSize
                                 horizontalAlignment: Text.AlignRight
-                                text: competitionText.gaugeValueText(standingDelegate.gaugeValueMilli)
+                                text: competitionText.gaugeValueText(standingDelegate.gaugeValue)
                                 textFormat: Text.PlainText
                                 visible: standingDelegate.currentClearShowsGaugeValue
 

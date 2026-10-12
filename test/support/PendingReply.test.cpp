@@ -64,11 +64,11 @@ TEST_CASE("PendingReply exposes one terminal result", "[PendingReply]")
     QObject owner;
     support::PendingReplySource<int> source(&owner);
     auto* reply = source.reply();
+    REQUIRE(reply);
     int finishedCount = 0;
     QObject::connect(
       reply, &support::PendingReply::finished, [&] { ++finishedCount; });
 
-    CHECK(reply->isValid());
     CHECK_FALSE(reply->isResultAvailable());
     CHECK_FALSE(reply->isSuccessful());
     CHECK_FALSE(reply->value().isValid());

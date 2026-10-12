@@ -17,21 +17,21 @@ You don't construct a [GameplayContext](qml/qml-rhythmgameqml-gameplaycontext.ht
 
 \snippet 06-decide/Decide.qml context
 
-`gameplay.chartData` describes the current chart. `gameplay.isCourse` tells
-you whether the play belongs to a course, and `gameplay.course` provides its
-definition. Check `isCourse` before using the course data.
+`gameplay.chartData` describes the current chart. `gameplay.course` contains
+the course definition when playing a course and is `undefined` for a single
+chart. Check `if (gameplay.course)` before using its name or other course data.
 
 \snippet 06-decide/Decide.qml title
 
-Decide and gameplay receive the same context object. The context gives each
-screen access to the play data without exposing the object that runs a chart
-or course. In a course, the current chart and players change as stages advance.
+Decide and gameplay receive the same context object.
+In a course, the current chart and players change as stages advance.
 
 ## Accept or cancel with the standard flow
 
-Pass the supplied context to [StandardDecideFlow](qml/qml-rhythmgameqml-standarddecideflow.html). Its default timeout starts
-play after five seconds. Enter or a bound play key also starts, while Escape
-or START+SELECT cancels.
+Pass the supplied context to [StandardDecideFlow](qml/qml-rhythmgameqml-standarddecideflow.html).
+Its default timeout starts
+gameplay after five seconds. Enter or a bound play key also starts,
+while Escape or START+SELECT cancels.
 
 \snippet 06-decide/Decide.qml decide-flow
 
@@ -53,15 +53,15 @@ current folder and focus. Starting play replaces decide with gameplay.
 The game later shows a result above gameplay, then resumes gameplay after
 the result closes so the flow can advance or return to selection.
 
-Arena rounds open gameplay directly, without decide. [StandardMultiplayerFlow](qml/qml-rhythmgameqml-standardmultiplayerflow.html)
+Arena rounds open gameplay directly, without decide.
+[StandardMultiplayerFlow](qml/qml-rhythmgameqml-standardmultiplayerflow.html)
 handles that transition when the session prepares a round.
 
 \image html theme-lifetime.svg "Screen lifetime during a single chart"
 
-The game disables an inactive screen's input, but screen code must still
-stop its own audio and disable its own shortcuts. `enabled` is supplied by
-the game, so bind behavior to it rather than assigning it yourself. The
-assets lesson demonstrates the same rule for preview audio.
+If you add shortcuts or audio players yourself, bind their behavior to the
+screen's `enabled` state. They don't inherit it like child Items do. The
+assets lesson shows how to disable a custom shortcut.
 
 Try starting once by button and once by waiting for the timeout. Then select
 another chart and cancel. Check a course too, if one is available in your

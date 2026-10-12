@@ -48,8 +48,6 @@ Image {
 
     StandardMainController {
         id: mainActions
-
-        enabled: screen.enabled
     }
 
     Dialog {

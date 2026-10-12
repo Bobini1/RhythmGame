@@ -58,10 +58,7 @@ Item {
 
     StandardResultInput {
         result: root.resultData
-        enabled: root.enabled
         tryHandleButtonAction: key => root.cycleGaugeForKey(key)
-        confirmEnabled: !(root.arenaResultMatches
-                          && Rg.arenaSession.chatOpen)
     }
 
     Image {
@@ -271,14 +268,14 @@ Item {
             panelComponent: ArenaResultPanel {
                 anchors.fill: parent
                 localMemberId: String(Rg.arenaSession.selfMemberId || "")
-                result: root.arenaResult
+                result: Rg.arenaSession.presentedResult
                 session: Rg.arenaSession
                 statsFontFamily: resultStatsFont.fontFamily
                 textFontFamily: resultTitleFont.fontFamily
                 expanded: arenaResultOverlay.expanded
 
                 onChatSelected: chat => {
-                    arenaResultOverlay.setChatSelected(chat);
+                    arenaResultOverlay.setChatOpen(chat);
                 }
                 onExpandedChangeRequested: expanded => arenaResultOverlay.setExpanded(expanded)
             }

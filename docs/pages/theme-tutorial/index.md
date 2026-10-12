@@ -22,7 +22,7 @@ QML files and any assets it uses.
 
 | Lesson                               | Installable folder | What you will see                                    |
 |--------------------------------------|--------------------|------------------------------------------------------|
-| \subpage theme_tutorial_first_screen | `01-main`          | An image with Song select, Settings and Quit buttons |
+| \subpage theme_tutorial_first_screen | `01-main`          | An image with Song select, Multiplayer, Settings and Quit buttons |
 | \subpage theme_tutorial_qml          | `02-qml`           | Reusable buttons and a color change                  |
 | \subpage theme_tutorial_rg           | `03-profile`       | A profile greeting with a saved color setting        |
 | \subpage theme_tutorial_translations | `04-translations`  | The same menu in English or Polish                   |

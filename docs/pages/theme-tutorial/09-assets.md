@@ -3,8 +3,10 @@
 [Previous](08-results.md) | [Tutorial](index.md) | [Next: Share a theme](10-shipping.md)
 
 Install `docs/examples/theme-tutorial/09-assets/` and choose it for Select.
-It extends the earlier list with a chart image, an online rank
-and a button that shows saved results and timing statistics for the focused chart.
+It extends the earlier list with a chart image, an online rank and saved-score
+information. The score count, best clear and best score stay visible with the
+image as you move between charts. A hit distribution beside them shows the
+last score.
 
 [Download 09-assets](examples/theme-tutorial/09-assets.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/09-assets).
@@ -65,9 +67,19 @@ run. They do not hold hit events or gauge histories. The game keeps results in
 memory for each profile and updates them after saves and imports. Opening a
 folder or changing the sort order can use them straight away.
 
-The example passes `selection.results[screen.chartData?.md5] || []` to
-`OptionalDetails`. The binding follows the focused chart and the active profile.
+The example binds `screen.chartResults` to
+`selection.results[selection.focusedItem?.md5] || []` and uses its length for the
+score count. The binding follows the focused chart and the active profile.
 The ranking and replay controls use the same cached results.
+
+The controller's [StandardRanking](qml/qml-rhythmgameqml-standardranking.html)
+already provides `bestClearTypeResult` and `bestPointsResult` from the local
+results. They can refer to different runs. The best score is the run with the
+highest percentage of available points. The labels read each result's
+`clearType` or `points`, using `NOPLAY` and zero when there are no saved results.
+Reading these values doesn't load a recording or wait for an online response.
+
+\snippet 09-assets/Select.qml saved-results
 
 For a screen without a selection controller, bind to
 `profile.scoreDb.chartResults[md5.toUpperCase()] || []` or
@@ -80,42 +92,58 @@ If a run is removed from the database, it disappears from the maps. An already
 held result stays readable until the profile closes, but loading its full score
 will fail if that run is no longer stored.
 
-## Load a recording when you need it
+## Load a recording for a hit distribution
 
-[ScoreDetails](qml/qml-rhythmgameqml-scoredetails.html) takes a saved result and
-loads its full score. It uses the main profile by default; set `profile` when
-showing another player's history. The example loads the latest run only while
-the details panel is open.
+The hit distribution needs the individual hit events from a full score.
+[ScoreDetails](qml/qml-rhythmgameqml-scoredetails.html) loads that score from a
+saved result. The example uses the first result in `screen.chartResults`, which
+is the latest run. It may differ from the runs behind the best clear and score.
 
-\snippet 09-assets/OptionalDetails.qml score-details
+\snippet 09-assets/Select.qml score-details
 
-`score` is null while loading or after an error. Once ready, it is a `BmsScore`
-for a chart or a `BmsScoreCourse` for a course. Imported scores may have no
-recording or gauge history, so check those properties before using them.
-Course scores provide the individual stages in `scores` and combined
-`replayData` and `gaugeHistory` for drawing a graph across the course.
+ScoreDetails uses the active profile by default. Changing its result or profile
+cancels the previous request, so moving to another chart won't show the old
+recording. It inherits the screen's `enabled` state and releases its score
+when the screen becomes inactive.
 
-Changing the result or profile cancels this component's old request. Disabling
-or destroying it also cancels the request and releases its score. Another
-component loading the same run keeps its own request. The game shares decoded
-data and keeps a limited cache for reuse.
+The example uses the same `HitDistribution.qml` as the [result lesson](08-results.md).
+It passes the loaded score's `replayData` to the graph. The heading identifies
+the last score and shows the chart's judge rank. The graph keeps its
+space while loading, so the song list doesn't move when the recording arrives.
 
-You can calculate statistics in JavaScript from the loaded events. This example
-counts early hits that removed a note. `deviation` is in nanoseconds: negative
-means early, positive means late. Choose the judgements and events that make
-sense for your display.
+\snippet 09-assets/Select.qml recording-graph
 
-\snippet 09-assets/OptionalDetails.qml score-statistics
+The judge rank describes the chart's timing difficulty. `ChartData.rank` uses
+25 for Very hard, 50 for Hard, 75 for Normal and 100 for Easy. Other values
+appear as "Custom" with the number. The rank comes from the selected chart's
+metadata because saved results don't store it separately. Without that
+metadata, the label shows "Unknown".
 
-The normal replay and saved-result actions handle loading themselves. Pass a
-result to `selection.openResult(item, result)` to open it; themes do not need a
-separate ScoreDetails for that action.
+\snippet 09-assets/Select.qml judge-rank
+
+A saved score doesn't always have a recording. For example, an imported score
+may only contain the result. The graph shows a separate message for a missing
+recording, a loading error or a chart with no saved scores. An available
+recording with no timed hits shows "No replay data".
+
+The helper calculates the distribution in JavaScript from the loaded events.
+PGREAT, GREAT, GOOD and BAD contribute to the graph. Negative deviations are
+early hits and positive deviations are late hits.
+
+\snippet 09-assets/HitDistribution.qml timing-buckets
+
+The normal replay and saved-result actions load their own full scores. You
+don't need a separate ScoreDetails component for those actions.
 
 ## Show the online ranking
 
 The controller's `ranking` follows the focused chart and the profile's chosen
 provider. Bind a label to its `loading`, `position` and `playerCount` properties.
 The display updates when a request finishes or the selection changes.
+The dropdown beside the label shows the provider's name and lets the player
+choose RhythmGame, Bokutachi or LR2IR. It saves the choice in
+`selection.ranking.profile.vars.generalVars.rankingProvider`, so the next
+screen uses the same provider.
 
 \snippet 09-assets/Select.qml select-ranking
 
@@ -135,20 +163,8 @@ to use a particular provider, or set `ranking.entriesEnabled` to false when
 you only want to open links. `openInternetRankingAction` replaces the
 controller's website action, for example with a panel supplied by your theme.
 
-## Load optional content when it is opened
-
-`OptionalDetails.qml` uses a checkable button to keep track of whether the
-details are open. The `Loader` binds `active` to the button's `checked` state
-and the screen's `enabled` state. Closing the details or leaving the screen
-destroys the panel and its ScoreDetails. `Connections` unchecks the button when the main profile
-changes.
-
-\include{lineno} 09-assets/OptionalDetails.qml
-
-F7 toggles the details. The shortcut explicitly follows `enabled`, because
-shortcuts don't automatically stop when a retained screen loses input.
-
 Browse quickly between charts, then enter gameplay while a preview is playing.
-The preview should stop, and details should show the newly focused chart's
-score and statistics when you return. Also check a folder and a chart without an image
-or preview. Their absence should leave the list usable.
+The preview should stop, and the saved-score labels and hit distribution should
+follow the focused chart when you return. Also check an imported score without
+a recording, a chart without saved scores and a folder. Missing data should
+leave the list usable.

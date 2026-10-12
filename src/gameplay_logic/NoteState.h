@@ -13,6 +13,7 @@
 
 #include <limits>
 #include <optional>
+#include <utility>
 
 namespace gameplay_logic {
 class NoteState
@@ -89,10 +90,9 @@ class ColumnState final : public QAbstractListModel
     auto getNotes() const -> const QList<NoteState>& { return notes; }
     auto getNotes() -> QList<NoteState>& { return notes; }
     auto mapTimeIndexToPositionIndex(int64_t timeIndex) const -> int;
-    /**
-     * @brief Helper for getting the lowest lnbegin in lnbodies
-     */
-    auto getLnBottomPositionIndex(double position) const -> std::optional<int>;
+    /** First and last LN begin rows whose bodies cross this position. */
+    auto getLnBeginBounds(double position) const
+      -> std::optional<std::pair<int, int>>;
 
   signals:
     void pressedChanged();
@@ -152,21 +152,20 @@ class Filter : public QAbstractProxyModel
     double topPosition = 0.0;
     double bottomPosition = 0.0;
     int bottomRow = 0;
-    int topRow = 0;
-    int effectiveBottomRow = 0;
+    int firstRow = 0;
+    int endRow = 0;
     bool pressed = false;
     bool holdingLongNote = false;
     void setPressed(bool pressed);
     void setHoldingLongNote(bool holdingLongNote);
     ColumnState* columnState;
-    std::optional<double> getEffectiveBottomRow(double position) const;
+    void setRows(int first, int end);
 
   public:
     explicit Filter(ColumnState* columnState, QObject* parent = nullptr);
 
     auto getTopPosition() const -> double { return topPosition; }
     void setTopPosition(double value);
-    void setEffectiveBottomRow(int newEffectiveBottomRow);
     auto getBottomPosition() const -> double { return bottomPosition; }
     void setBottomPosition(double value);
     Q_INVOKABLE void setVisibleRange(double bottom, double top);

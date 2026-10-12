@@ -13,8 +13,8 @@ Main Menu, Decide and gameplay. Open Song select to see the new list.
 
 [StandardSelectController](qml/qml-rhythmgameqml-standardselectcontroller.html) loads folders and tables, remembers the
 path back, and opens charts or courses. It also supplies input mappings and selection
-shortcuts, background music and chart previews. The theme draws the list and
-tells the controller which entry is current.
+shortcuts, background music and chart previews. The theme draws the rows, and
+`StandardSelectListView` connects the current row to the controller.
 
 \snippet 05-select/Select.qml select-controller
 
@@ -29,7 +29,7 @@ You can use those constituent components instead of the controller if you want s
 
 The controller plays the selection track from the active profile's BGM set.
 When a focused chart's preview starts, the background music stops. The
-`preview.moving` binding holds a pending preview until the list stops scrolling.
+standard list holds a pending preview until scrolling stops.
 Disabling the controller stops both kinds of audio, including while gameplay
 is open. The [assets lesson](09-assets.md) explains the preview settings.
 
@@ -46,7 +46,7 @@ one of them as `modelData`. Check its type before reading properties such as
 | Missing table chart            | `item instanceof entry`     | `title`, `subtitle`, `artist`, `level`, `md5`, `url`, `urlDiff`                         | Does nothing. The table describes the chart, but the chart was not found in the song database.                            |
 | Difficulty table or collection | `item instanceof table`     | `name`, `symbol`, `levels`, `courses`, `identifier`                                     | Opens its levels and courses.                                                                                             |
 | Table level                    | `item instanceof level`     | `name`, `entries`                                                                       | Opens its charts. Installed charts become `ChartData`; missing charts remain `entry`.                                     |
-| Course                         | `item instanceof course`    | `name`, `chartIds`, `constraints`, `unavailableReason`                                      | Requests course play. The course must be supported and all stages must be installed. Course play is unavailable in Arena. |
+| Course                         | `item instanceof course`    | `name`, `chartIds`, `constraints`, `unavailableReason`                                  | Requests course play. The course must be supported and all stages must be installed. Course play is unavailable in Arena. |
 
 `ChartData` starts with a capital letter. The names `entry`, `table`, `level`
 and `course` are lowercase QML value types. The example has
@@ -100,7 +100,7 @@ stage. A missing stage is a string containing its MD5 or `sha256/<hash>`
 identifier. Those strings are not folder paths.
 
 Pass either form of identifier to
-[Rg.tables.search()](classresource__managers_1_1_tables.html). It searches
+[Rg.tables.search ()](classresource__managers_1_1_tables.html). It searches
 downloaded tables and external collections without needing the chart installed.
 Matching ignores letter case, and an unknown identifier returns an empty list.
 
@@ -109,52 +109,38 @@ title and subtitle. If no title is known, it displays the identifier.
 
 \include{lineno} 05-select/CourseStages.qml
 
-## Keep the current row and controller in sync
+## Connect a list to the controller
 
-The theme sets `songList.currentIndex` and draws the current row's highlight.
-The controller stores the corresponding entry in `focusedItem`, which it
-uses for actions such as opening a chart. The controller has no reference to
-`songList`, so the theme connects the view to the controller.
+[StandardSelectListView](qml/qml-rhythmgameqml-standardselectlistview.html)
+extends `ListView` with the navigation needed by a song selector. Set its
+`controller` and supply a delegate for each row.
 
-For example, pressing Down moves the current row through these steps:
+\snippet 05-select/Select.qml select-list
 
-1. The list forwards the key event to `selection.handleDownPressed(event)`.
-   The controller emits `moveRequested` with a step of `1`.
-2. The theme's `onMoveRequested` handler changes `songList.currentIndex`.
-   The modulo calculation wraps from the last row to the first.
-3. The list's `onCurrentIndexChanged` handler calls `selection.setFocused()`
-   with the entry at the new index. The controller now uses that entry for
-   its actions.
+The list keeps its current row and the controller's focused entry together.
+Up, Down and the mouse wheel move between rows, wrapping at either end.
+Return, Enter and Right open the current entry, and Left goes back. Bound
+controller input uses the same selection. Going back from a folder restores
+its row automatically.
 
-The controller can also choose an entry when browsing changes the list.
-For example, going back from a folder restores the entry for that folder.
-The controller updates its `focusedItem` and emits `focusRequested(index)`.
-The theme's `onFocusRequested` handler sets `songList.currentIndex` to match.
+Wheel input works while the pointer is over the list and changes the selected
+entry. The controller accumulates small wheel movements, so a fine scroll wheel
+also works without extra code in the theme.
 
-The controller snippet above handles both movement requests and requests for
-a specific row. The list supplies the other half of the connection:
-
-\snippet 05-select/Select.qml select-focus
+A row's click handler calls `songList.activate(row.index)`. That method selects
+the row, gives the list keyboard focus and opens the entry. The list also pauses
+preview startup while it is moving.
 
 ## Give the list keyboard focus
 
-The controller's `focusedItem`, `setFocused()` and `focusRequested` refer to
-the chosen entry. Qt's keyboard focus determines which item receives key
-events. The theme manages keyboard focus too.
+Set `focus: true` on the list and its enclosing `Pane`, as the example does.
+This tells Qt where to send keyboard events when the screen becomes active.
+The chosen row and keyboard focus are separate: another button can have
+keyboard focus while the same song remains selected.
 
-The example sets `focus: true` on the `Pane` and `ListView` so key events
-reach the list when the screen is active. Clicking a row calls
-`songList.forceActiveFocus()` to return keyboard input to the list. The
-separate assignment to `songList.currentIndex` chooses the clicked row.
-
-The list forwards Up and Down presses and releases to the controller through
-its `Keys` handlers. The controller accepts the arrow events, and
-`keyNavigationEnabled: false` disables the list's built-in arrow navigation.
-
-Input is disabled for screens that are inactive.
-For example, select does not receive any input while gameplay is active above it.
-This is tracked by the property [`enabled`](https://doc.qt.io/qt-6/qml-qtquick-item.html#enabled-prop).
-It cascades down to all child items when set to false.
+For a custom wheel, use `StandardSelectController` directly. Handle its
+`moveRequested` and `focusRequested` signals, then call `setFocused()` when
+your wheel chooses an entry. The controller reference describes that interface.
 
 ## Draw the current row's highlight
 
@@ -181,10 +167,14 @@ Each button's `checked` state follows the controller's
 `checkable` and `autoExclusive` keep one button selected. The `Flow` wraps the
 buttons onto another row when the window is narrow.
 
-Clicking a button saves `selectKeymodeFilter` in the active profile. The
-controller follows that setting and filters its entries again. Writing to the
-profile keeps the controller's binding intact, so the buttons also follow
-profile changes. The handler then returns keyboard focus to the song list.
+Clicking a button calls `selection.setKeymodeFilter()`, which saves the choice
+in the active profile and updates `selection.keymodeFilter`. Switching profiles
+updates the filter to that profile's choice. Sorting and replay choices work
+the same way through `setSortMode()` and `setReplayType()`.
+
+The three properties are read-only. Bind your controls to them and use the
+methods to change the choice. A setter returns `false` for an unknown value
+or an inactive controller, and leaves the saved choice unchanged.
 
 ## Use the same actions from buttons and keys
 
@@ -247,6 +237,12 @@ action continue.
 
 ## Include the Arena room panel
 
+Open Multiplayer from the main menu, then join an Arena room. The game opens
+your configured selector, so the same example serves local and multiplayer play.
+Keep Default selected for the `multiplayer` role when using this example.
+Use Leave selection to leave the room and return to the browser. Closing the
+browser returns to the main menu.
+
 The selector also adds [StandardArenaSelectOverlay](qml/qml-rhythmgameqml-standardarenaselectoverlay.html).
 The panel appears when
 you join an Arena room and supplies ready controls, the double-Start ready
@@ -266,7 +262,6 @@ Arena panel and how you can change its appearance.
 Enter a song folder, choose a chart, and play it using your existing gameplay
 theme. After closing the result, the list should still show the folder you
 left. Use Back or Left to go up a folder, and Leave selection to leave the screen.
-In Arena, Leave selection and Escape leave the room and return to the lobby browser.
 
 Bound controller keys 1 and 3 activate an entry, key 5 starts autoplay, and
 scratch moves the selection. F2 reloads the current folder or table, F3 opens

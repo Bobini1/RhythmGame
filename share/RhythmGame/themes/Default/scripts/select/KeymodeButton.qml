@@ -5,8 +5,8 @@ import QtQuick 2.0
 Image {
     id: keymodeButton
 
-    required property var generalVars
-    readonly property int selectedFilter: generalVars ? generalVars.selectKeymodeFilter : SelectKeymodeFilter.All
+    required property StandardSelectController controller
+    readonly property int selectedFilter: controller.keymodeFilter
     property var options: Rg.profileList.battleActive
         ? [
             { text: QT_TR_NOOP("SINGLE"), value: SelectKeymodeFilter.Single },
@@ -51,7 +51,7 @@ Image {
         if (next < 0) {
             next += keymodeButton.options.length;
         }
-        keymodeButton.generalVars.selectKeymodeFilter = keymodeButton.options[next].value;
+        keymodeButton.controller.setKeymodeFilter(keymodeButton.options[next].value);
     }
 
     enabled: options.length > 1

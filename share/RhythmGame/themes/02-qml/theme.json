@@ -1,5 +1,4 @@
 {
-  "apiVersion": "1.0",
   "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/master/schemas/theme.json",
   "scripts": {
     "main": "main.qml"

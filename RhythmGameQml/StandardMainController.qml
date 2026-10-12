@@ -6,8 +6,8 @@ import RhythmGameQml
     \inqmlmodule RhythmGameQml
     \brief Supplies main-menu actions, Start input and background music.
 
-    Use this component once in a main screen and bind enabled to the screen's
-    enabled state. It includes StandardMainActions, so buttons can call
+    Place this component inside the main screen. It inherits the screen's
+    enabled state and includes StandardMainActions, so buttons can call
     openSelect(), openArena(), openSettings() and quit().
 
     The included \l backgroundMusic plays the active profile's main-menu track

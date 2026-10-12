@@ -1,22 +1,10 @@
-# Theme API and compatibility {#theme_api_compatibility}
+# Theme API {#theme_api}
 
 The theme API covers QML screens and the game objects they use. It does not
 provide a C++ plugin ABI. Start with [the tutorial](theme-tutorial/index.md) or
 [the screen contracts](../../DEV_THEME.md).
 
-## Declare the required version
-
-Add `"apiVersion": "1.0"` to `theme.json`. This is the first supported theme API.
-Omitting the field also requests 1.0. A malformed version or an unsupported
-version excludes the theme during discovery, with a message in `log.txt`.
-Malformed settings exclude that theme too. Other themes can still load.
-
-The major number identifies a compatible family. The minor number is the
-minimum set of additions a theme needs. A game supporting 1.3 can load a theme
-requiring 1.2; a game supporting 1.1 cannot. Another major version is rejected
-unless the game explicitly implements it. The current implementation supports
-1.0 only. This version is separate from the game's release number and from Qt's
-version. A QML module import does not replace the manifest requirement.
+## Screen roles
 
 Each screen role is selected independently. A theme can omit roles and use
 Default for them. `result` and `courseResult` are separate roles; a missing
@@ -51,12 +39,6 @@ panel and placement implementation, `FontResolver`, and every LR2 implementation
 type are private. So are files inside Default. A type appearing in generated
 documentation or being reachable from QML does not make its internals supported.
 Do not import another theme's files as a game API.
-
-The API snapshot in `docs/api/theme-api-1.0.json` records the type declarations,
-documented QML members and model role names. The behavior and lifetime rules in
-this document and `DEV_THEME.md` are part of the contract too. The snapshot helps
-review declarations; it does not check native enum numeric values, and it cannot
-establish that behavior remains compatible.
 
 ## Data and lifetime
 
@@ -93,7 +75,7 @@ A theme can supply its own text for any entry without changing shared state.
 Translated text is never a stable identifier. Clear type strings remain data,
 with presentation controlled by the theme.
 
-New options may appear within a compatible API version. A theme can show all
+New options may be added to the game. A theme can show all
 provided options, or offer a deliberate subset. Do not reset a saved option
 merely because a screen does not offer it. Show its shared label when available
 or an appropriate unknown-value presentation. A user action selects the next
@@ -111,13 +93,12 @@ only the first four buckets. These values are calculated from the loaded replay,
 not cached in the score database. Themes can calculate different statistics from
 `hitEvents` in JavaScript.
 
-Arena standings keep their explicit units: `progressPermille` ranges from 0 to
-1000 and `gaugeValueMilli` is one thousandth of a gauge point. Divide each by
-1000 before using ordinary fractions or gauge points. `hasScore` distinguishes
-missing telemetry from a valid zero score. `Rg.arenaRoomCount` is -1 when the
-directory is unavailable. The passive directory's session object is private.
-Use `canSelect` and `canReady` independently; readiness does not promise that the
-user may select a song under every future room policy.
+Arena standings expose `progress` as a fraction from 0 to 1 and `gaugeValue`
+as gauge points from 0 to 100. Protocol scaling stays inside the engine.
+`hasScore` distinguishes missing telemetry from a valid zero score.
+`Rg.arenaRoomCount` is -1 when the directory is unavailable. The passive
+directory's session object is private. Use `canSelect` and `canReady`
+independently; readiness does not promise song-selection permission.
 
 `OnlineRankingModel` filters and sorts before applying `offset` and `limit`.
 Limit 0 means no limit. `rankingEntries` and `clearCounts` describe the filtered
@@ -146,15 +127,9 @@ beginning with `arenaOverlay` for saved placement, size and chat preferences.
 Use another prefix for unrelated settings. Its drag and resize working state is
 private. The panel component remains replaceable.
 
-## Reviewing a change after the freeze
+## Reviewing API changes
 
-Compatible additions receive a minor version. Removing or renaming supported
-members, changing units or ownership rules, or changing a screen's required
-input needs a major version or an explicitly maintained compatibility path.
-Bug fixes that restore the documented behavior do not need a major version.
-
-Build the QML module, then run `python test/api/check_theme_api.py --qmltypes
-build/dev-rel/RhythmGameQml/RhythmGame_qml.qmltypes`. Review differences before
-using `--update` to record an intentional API change. Run the lifetime, model and
-screen-flow tests as well. New sorting modes, clear types and Arena policies
-also need consumer checks in Default and the installable tutorial examples.
+Check how changes to documented members, units, ownership or screen inputs
+affect themes. Run the lifetime, model and screen-flow tests. Check new sorting
+modes, clear types and Arena policies in Default and the installable tutorial
+examples too.

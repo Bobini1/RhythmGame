@@ -28,12 +28,11 @@ QtObject {
     readonly property int finishedStatus: ChartRunner.Finished
     property QtObject gameplay: QtObject {
         readonly property int status: root.runner.status
-        readonly property bool isCourse: root.course
         readonly property bool isArena: root.arenaManaged
         readonly property int stageIndex: root.runner.currentChartIndex
         readonly property int stageCount: root.course ? charts.length : 1
         readonly property var charts: root.runner.chartDatas || [root.runner.chartData]
-        readonly property var course: root.runner.course
+        readonly property var course: root.course ? root.runner.course : undefined
         readonly property var chartData: root.course ? charts[stageIndex] : root.runner.chartData
         readonly property var players: root.runner.player2
             ? [root.runner.player1, root.runner.player2] : [root.runner.player1]
@@ -53,7 +52,7 @@ QtObject {
             return savedStage;
         }
         function nextStage() {
-            if (!isCourse || !savedStage || stageIndex + 1 >= stageCount) return false;
+            if (!course || !savedStage || stageIndex + 1 >= stageCount) return false;
             savedStage = null;
             root.runner.currentChartIndex++;
             root.runner.player1 = { profile: "next player" };

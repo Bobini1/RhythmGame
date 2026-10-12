@@ -10,9 +10,7 @@ and Multiplayer because it doesn't provide those roles.
 [Download 10-complete](examples/theme-tutorial/10-complete.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/10-complete).
 
-The example manifest requires theme API 1.0. Keep `apiVersion` at the oldest
-version that provides the features your theme uses. See
-[API compatibility](../theme-api.md) for supported interfaces and update rules.
+See [Theme API](../theme-api.md) for the supported interfaces and data contracts.
 
 ## Choose the screens in the manifest
 
@@ -25,8 +23,8 @@ two result roles keep separate files.
 Choose `10-complete` for the roles you want to replace, then restart the game.
 The menu has the profile greeting and saved color setting from lesson 3.
 The menu and its setting include the Polish translations from lesson 4.
-Later screens still use their English source text, so you can add their
-translations by following the same steps.
+The Multiplayer button and later screens still use their English source text,
+so you can add their translations by following the same steps.
 
 You can remove a role from the manifest when sharing a theme for just that
 screen. Include every helper and asset that the remaining files use. A theme
@@ -35,9 +33,9 @@ assumptions about which selector opened your gameplay screen.
 
 ## Add Arena panels to the screens
 
-The complete example has an Arena button that opens the configured Multiplayer
-screen. The example keeps Default for that role, then uses its own selector
-after you join a room. A custom Multiplayer screen can use
+The complete example opens the configured Multiplayer screen from the main
+menu's Multiplayer button. The example keeps Default for that role, then uses
+its own selector after you join a room. A custom Multiplayer screen can use
 [StandardMultiplayerFlow](qml/qml-rhythmgameqml-standardmultiplayerflow.html) to connect, enter a room and open scheduled rounds.
 The browser and selector are ordinary screens on the same stack. Leaving the
 room returns to the browser; closing the browser disconnects from Arena.
@@ -119,9 +117,10 @@ assets, any required fonts and compiled `.qm` translations. Keep profiles,
 databases, songs, logs and editor output out of the package. State which game
 build you tested and which screen roles the theme provides in a README.
 
-The note renderer is a starting point for a theme, with no BGA, gauge display
-or speed controls. Add the presentation features you need before distributing
-it as your regular gameplay theme, then repeat the play checks.
+The gameplay screen includes BGA, gauges, lane cover, lift and hidden cover.
+Standard components supply the saved note speed and START/SELECT adjustments.
+The note artwork is deliberately simple. Try the field sizes and cover settings
+you use before distributing your theme, then repeat the play checks.
 
 ## Keep shared behavior in the standard components
 

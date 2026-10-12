@@ -460,7 +460,8 @@ loadingStarted(bool twoPlayers = false) -> QString
 }
 
 auto
-loadRequested(bool twoPlayers = false) -> QString
+loadRequested(bool twoPlayers = false, qint64 connectionGeneration = 3)
+  -> QString
 {
     return compact({
       { QStringLiteral("type"), QStringLiteral("round_load_requested") },
@@ -468,7 +469,7 @@ loadRequested(bool twoPlayers = false) -> QString
         QJsonObject{
           { QStringLiteral("roomId"), QStringLiteral("room-1") },
           { QStringLiteral("roomGeneration"), 2 },
-          { QStringLiteral("connectionGeneration"), 3 },
+          { QStringLiteral("connectionGeneration"), connectionGeneration },
           { QStringLiteral("round"),
             frozenRound(QStringLiteral("loading"), twoPlayers) },
         } },
@@ -832,14 +833,21 @@ struct Fixture
         REQUIRE(session.getState() == arena::ArenaSession::State::InRoom);
     }
 
-    void loadRound(gameplay_logic::ChartRunner* runner, bool twoPlayers = false)
+    void loadRound(gameplay_logic::ChartRunner* runner,
+                   bool twoPlayers = false,
+                   bool requestStart = true)
     {
         const auto generation = transport.connectCalls.back().generation;
         transport.injectText(generation, loadingStarted(twoPlayers));
         transport.injectText(generation, loadRequested(twoPlayers));
         REQUIRE(roundLoader.loads.size() == 1);
         emit roundLoader.loadFinished(roundLoader.loads.front().first, runner);
-        REQUIRE(messagesOfType(transport, u"round_load_result").size() == 1);
+        REQUIRE(messagesOfType(transport, u"round_load_result").isEmpty());
+        if (requestStart) {
+            runner->start();
+            REQUIRE(messagesOfType(transport, u"round_load_result").size() ==
+                    1);
+        }
     }
 
     void startRound(qint64 startAfterMs = 250)
@@ -1001,6 +1009,151 @@ TEST_CASE("ArenaSessionCompetition: negotiates competition and permits one "
     }
 }
 
+TEST_CASE("ArenaSessionCompetition: presents gameplay before reporting ready",
+          "[arena][ArenaSessionCompetition]")
+{
+    ensureCoreApplication();
+    auto runner = makeReadyRunner();
+    runner.runner->holdStart();
+    Fixture fixture;
+    fixture.enterRoom();
+    QVector<gameplay_logic::ChartRunner*> prepared;
+    QObject observer;
+    QObject::connect(&fixture.session,
+                     &arena::ArenaSession::preparedGameplayChanged,
+                     &observer,
+                     [&](auto* value) { prepared.push_back(value); });
+    fixture.loadRound(runner.runner.get(), false, false);
+    REQUIRE(prepared ==
+            QVector<gameplay_logic::ChartRunner*>{ runner.runner.get() });
+    CHECK_FALSE(runner.runner->startPending());
+
+    const auto generation = fixture.transport.connectCalls.back().generation;
+    // A schedule cannot manufacture the theme's missing start request.
+    fixture.transport.injectText(generation, startScheduled());
+    fixture.scheduler.advanceBy(5'000);
+    CHECK(runner.runner->getStatus() == gameplay_logic::ChartRunner::Ready);
+    CHECK(messagesOfType(fixture.transport, u"round_load_result").isEmpty());
+    CHECK(fixture.gameplaySource.attachCount == 0);
+
+    runner.runner->start();
+    CHECK(runner.runner->startPending());
+    CHECK(runner.runner->getStatus() == gameplay_logic::ChartRunner::Ready);
+    REQUIRE(messagesOfType(fixture.transport, u"round_load_result").size() ==
+            1);
+    runner.runner->start();
+    fixture.transport.injectText(generation, loadRequested());
+    CHECK(messagesOfType(fixture.transport, u"round_load_result").size() == 1);
+    CHECK(prepared.size() == 1);
+    CHECK(fixture.roundLoader.loads.size() == 1);
+    fixture.startRound();
+    CHECK(runner.runner->getStatus() == gameplay_logic::ChartRunner::Running);
+    CHECK_FALSE(runner.runner->startPending());
+}
+
+TEST_CASE("ArenaSessionCompetition: reconnect preserves presentation readiness",
+          "[arena][ArenaSessionCompetition]")
+{
+    ensureCoreApplication();
+    auto runner = makeReadyRunner();
+    runner.runner->holdStart();
+    Fixture fixture;
+    fixture.enterRoom();
+    int presentations = 0;
+    QObject observer;
+    QObject::connect(&fixture.session,
+                     &arena::ArenaSession::preparedGameplayChanged,
+                     &observer,
+                     [&](auto* value) {
+                         if (value)
+                             ++presentations;
+                     });
+    fixture.loadRound(runner.runner.get(), false, false);
+
+    SECTION("intro finishes while disconnected")
+    {
+        fixture.transport.injectDisconnected(
+          fixture.transport.connectCalls.back().generation);
+        runner.runner->start();
+        CHECK(
+          messagesOfType(fixture.transport, u"round_load_result").isEmpty());
+        fixture.identityProvider.succeedTicket(
+          fixture.identityProvider.ticketRequests.back(),
+          QStringLiteral("resume-ticket"));
+        const auto generation =
+          fixture.transport.connectCalls.back().generation;
+        fixture.transport.injectConnected(generation);
+        fixture.transport.injectText(
+          generation,
+          competitionHello(
+            true,
+            roomData(
+              QStringLiteral("loading"), QStringLiteral("loading"), false, 4)));
+        REQUIRE(
+          messagesOfType(fixture.transport, u"round_load_result").size() == 1);
+        fixture.transport.injectText(generation, loadRequested(false, 4));
+        CHECK(messagesOfType(fixture.transport, u"round_load_result").size() ==
+              1);
+        CHECK(fixture.roundLoader.loads.size() == 1);
+        CHECK(presentations == 1);
+        CHECK(fixture.roundLoader.cancellations.isEmpty());
+        fixture.transport.injectText(generation, startScheduled(4, 250));
+        fixture.scheduler.advanceBy(250);
+        CHECK(runner.runner->getStatus() ==
+              gameplay_logic::ChartRunner::Running);
+    }
+
+    SECTION("missed shared start abandons without starting at zero")
+    {
+        runner.runner->start();
+        fixture.transport.injectText(
+          fixture.transport.connectCalls.back().generation, startScheduled());
+        fixture.reconnectWithPlayingRoom();
+        fixture.scheduler.advanceBy(1'000);
+        CHECK(runner.runner->getStatus() == gameplay_logic::ChartRunner::Ready);
+        CHECK(messagesOfType(fixture.transport, u"round_abandon").size() == 1);
+        CHECK_FALSE(fixture.session.arenaGameplayActive());
+        CHECK(presentations == 1);
+    }
+}
+
+TEST_CASE("ArenaSessionCompetition: closing prepared gameplay cancels in place",
+          "[arena][ArenaSessionCompetition]")
+{
+    ensureCoreApplication();
+    auto runner = makeReadyRunner();
+    runner.runner->holdStart();
+    Fixture fixture;
+    fixture.enterRoom();
+    fixture.loadRound(runner.runner.get(), false, false);
+    const auto generation = fixture.transport.connectCalls.back().generation;
+    SECTION("exit during the intro")
+    {
+        fixture.session.abandonCurrentRound();
+    }
+    SECTION("screen removal during the scheduled lead")
+    {
+        runner.runner->start();
+        fixture.transport.injectText(generation, startScheduled());
+        fixture.session.releasePreparedGameplay(runner.runner.get());
+    }
+    fixture.session.abandonCurrentRound();
+    REQUIRE(messagesOfType(fixture.transport, u"round_abandon").size() == 1);
+    CHECK(messagesOfType(fixture.transport, u"room_leave").isEmpty());
+    CHECK(fixture.session.getState() == arena::ArenaSession::State::InRoom);
+    CHECK(fixture.session.presentedResult()->roundId().isEmpty());
+    CHECK(fixture.roundLoader.cancellations.size() == 1);
+    const auto reports =
+      messagesOfType(fixture.transport, u"round_load_result").size();
+    runner.runner->start();
+    fixture.transport.injectText(generation, loadRequested());
+    fixture.scheduler.advanceBy(1'000);
+    CHECK(runner.runner->getStatus() == gameplay_logic::ChartRunner::Ready);
+    CHECK(messagesOfType(fixture.transport, u"round_load_result").size() ==
+          reports);
+    CHECK(fixture.roundLoader.loads.size() == 1);
+}
+
 TEST_CASE("ArenaSessionCompetition: reports exact length and attaches before "
           "synchronized start",
           "[arena][ArenaSessionCompetition]")
@@ -1048,8 +1201,8 @@ TEST_CASE("ArenaSessionCompetition: reports exact length and attaches before "
       QStringLiteral("0123456789abcdef")));
 }
 
-TEST_CASE("ArenaSessionCompetition: missing gameplay source fails closed "
-          "before exposing the runner",
+TEST_CASE("ArenaSessionCompetition: missing gameplay source cancels "
+          "before starting the runner",
           "[arena][ArenaSessionCompetition]")
 {
     ensureCoreApplication();
@@ -1066,8 +1219,6 @@ TEST_CASE("ArenaSessionCompetition: missing gameplay source fails closed "
     CHECK(fixture.session.arenaRunner() == nullptr);
     CHECK_FALSE(fixture.session.arenaGameplayActive());
     CHECK(runner.runner->getStatus() == gameplay_logic::ChartRunner::Ready);
-    CHECK(messagesOfType(fixture.transport, u"round_abandon").isEmpty());
-    fixture.transport.injectText(generation, roundStarted());
     const auto abandons = messagesOfType(fixture.transport, u"round_abandon");
     REQUIRE(abandons.size() == 1);
     CHECK(fixture.transport.connectCalls.size() == connectionCount);
@@ -1134,7 +1285,7 @@ TEST_CASE("ArenaSessionCompetition: samples at anchored 200 ms cadence and "
     const auto generation = fixture.transport.connectCalls.back().generation;
     fixture.transport.injectText(generation, standingsEvent(1, 100, 200));
     REQUIRE(fixture.session.liveStandings()->rowCount() == 2);
-    CHECK(fixture.session.opponentTarget()->available());
+    CHECK_FALSE(fixture.session.opponentTarget()->memberId().isEmpty());
     CHECK(fixture.session.opponentTarget()->memberId() ==
           QStringLiteral("member-2"));
     CHECK(fixture.session.opponentTarget()->exScore() == 200);
@@ -1248,7 +1399,7 @@ TEST_CASE("ArenaSessionCompetition: retries one immutable terminal and "
     CHECK(fixture.gameplaySource.attachedRunner == nullptr);
     CHECK(fixture.session.arenaRunner() == nullptr);
     REQUIRE(fixture.session.resultPresentationActive());
-    CHECK(fixture.session.presentedResult()->valid());
+    CHECK_FALSE(fixture.session.presentedResult()->roundId().isEmpty());
     CHECK_FALSE(fixture.session.presentedResult()->finalized());
     CHECK(fixture.session.presentedResult()->selectionTitle() ==
           QStringLiteral("Competition chart"));
@@ -1301,8 +1452,8 @@ TEST_CASE("ArenaSessionCompetition: retries one immutable terminal and "
     fixture.session.endResultPresentation(QStringLiteral("round-1"));
     CHECK_FALSE(fixture.session.resultPresentationActive());
     CHECK_FALSE(fixture.session.chatOpen());
-    CHECK_FALSE(fixture.session.presentedResult()->valid());
-    CHECK(fixture.session.lastResult()->valid());
+    CHECK(fixture.session.presentedResult()->roundId().isEmpty());
+    CHECK_FALSE(fixture.session.lastResult()->roundId().isEmpty());
     CHECK(fixture.roundLoader.cancellations.isEmpty());
 
     fixture.session.releasePreparedGameplay(runner.runner.get());
@@ -1331,7 +1482,7 @@ TEST_CASE("ArenaSessionCompetition: resume preserves a result presentation "
     auto score = std::unique_ptr<gameplay_logic::BmsScore>{ scores.front() };
     REQUIRE(fixture.session.submitLocalResult(score.get()));
     REQUIRE(fixture.session.resultPresentationActive());
-    REQUIRE(fixture.session.presentedResult()->valid());
+    REQUIRE_FALSE(fixture.session.presentedResult()->roundId().isEmpty());
     CHECK_FALSE(fixture.session.presentedResult()->finalized());
 
     const auto oldGeneration = fixture.transport.connectCalls.back().generation;
@@ -1355,7 +1506,7 @@ TEST_CASE("ArenaSessionCompetition: resume preserves a result presentation "
 
     REQUIRE(fixture.session.getState() == arena::ArenaSession::State::InRoom);
     CHECK(fixture.session.resultPresentationActive());
-    REQUIRE(fixture.session.presentedResult()->valid());
+    REQUIRE_FALSE(fixture.session.presentedResult()->roundId().isEmpty());
     CHECK(fixture.session.presentedResult()->finalized());
     CHECK(fixture.session.presentedResult()->roundId() ==
           QStringLiteral("round-1"));
@@ -1405,8 +1556,8 @@ TEST_CASE("ArenaSessionCompetition: profile cleanup during final model reset "
 
     REQUIRE(changedProfile);
     CHECK(fixture.session.getRoomId().isEmpty());
-    CHECK_FALSE(fixture.session.lastResult()->valid());
-    CHECK_FALSE(fixture.session.presentedResult()->valid());
+    CHECK(fixture.session.lastResult()->roundId().isEmpty());
+    CHECK(fixture.session.presentedResult()->roundId().isEmpty());
     CHECK_FALSE(fixture.session.resultPresentationActive());
 }
 
@@ -1665,9 +1816,9 @@ TEST_CASE("ArenaSessionCompetition: cleanup paths synchronously clear "
         CHECK_FALSE(fixture.session.arenaGameplayActive());
         CHECK_FALSE(fixture.session.chatOpen());
         CHECK_FALSE(fixture.session.resultPresentationActive());
-        CHECK_FALSE(fixture.session.presentedResult()->valid());
+        CHECK(fixture.session.presentedResult()->roundId().isEmpty());
         CHECK(fixture.session.liveStandings()->rowCount() == 0);
-        CHECK_FALSE(fixture.session.opponentTarget()->available());
+        CHECK(fixture.session.opponentTarget()->memberId().isEmpty());
         CHECK(fixture.gameplaySource.detachCount >= 1);
         fixture.scheduler.advanceBy(1'000);
         CHECK(fixture.gameplaySource.sampledSequences.size() == samples);
@@ -1735,7 +1886,7 @@ TEST_CASE("ArenaSessionCompetition: cleanup paths synchronously clear "
           });
 
         CHECK_FALSE(fixture.session.resultPresentationActive());
-        CHECK_FALSE(fixture.session.presentedResult()->valid());
+        CHECK(fixture.session.presentedResult()->roundId().isEmpty());
     }
 }
 

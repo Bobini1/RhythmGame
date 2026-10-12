@@ -3,8 +3,8 @@
 [Previous](01-first-screen.md) | [Tutorial](index.md) | [Next: Profiles and settings](03-profile.md)
 
 Install `docs/examples/theme-tutorial/02-qml/` and choose it for Main Menu. You
-will see Song select, Settings and Quit buttons, plus a checkbox that changes the
-menu's colors.
+will see Song select, Multiplayer, Settings and Quit buttons, plus a checkbox
+that changes the menu's colors.
 
 [Download 02-qml](examples/theme-tutorial/02-qml.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/02-qml).
@@ -48,12 +48,12 @@ it creates the button.
 
 \include{lineno} 02-qml/MenuButton.qml
 
-The menu uses the component three times. Each instance gets its own label and click
+The menu uses the component four times. Each instance gets its own label and click
 handler, while the shared file supplies its appearance.
 
 \snippet 02-qml/main.qml use-component
 
-Change the font size in `MenuButton.qml` and restart. All three buttons should
+Change the font size in `MenuButton.qml` and restart. All four buttons should
 change. Keep helpers in your theme folder rather than importing another theme's
 private files, since a user may not have that other theme installed.
 Don't depend on the Default skin either, it can change.
@@ -143,7 +143,7 @@ the spacers. Its maximum width is 400, and its children stay 12 pixels apart.
 
 \snippet 02-qml/main.qml menu-layout
 
-The image prefers a height of 120 and can shrink when the menu has less room.
+The image has a preferred height of 120 and can shrink when the menu has less room.
 `Layout.fillHeight` lets the layout reduce its height while the controls keep
 their usual sizes.
 

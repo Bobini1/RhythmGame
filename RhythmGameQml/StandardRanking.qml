@@ -28,8 +28,9 @@ import RhythmGameQml
     disabling the component, cancels a pending open request.
 
     Override \l provider or \l url for a different source, or \l openUrlAction
-    to present the link yourself. Advanced themes can use OnlineRankingModel
-    directly when they need different queries or sorting.
+    to present the link yourself. Overrides configure this component without
+    changing the profile's saved provider. Advanced themes can use
+    OnlineRankingModel directly when they need different queries or sorting.
 */
 Item {
     id: root

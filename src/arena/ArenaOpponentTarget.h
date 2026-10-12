@@ -13,7 +13,7 @@ struct PublicIdentity;
 class ArenaOpponentTarget : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(bool available READ available NOTIFY changed FINAL)
+    /** Empty when no opponent has a score to use as the target. */
     Q_PROPERTY(QString memberId READ memberId NOTIFY changed FINAL)
     Q_PROPERTY(QString displayName READ displayName NOTIFY changed FINAL)
     Q_PROPERTY(qint64 exScore READ exScore NOTIFY changed FINAL)
@@ -22,7 +22,6 @@ class ArenaOpponentTarget : public QObject
   public:
     explicit ArenaOpponentTarget(QObject* parent = nullptr);
 
-    auto available() const -> bool;
     auto memberId() const -> const QString&;
     auto displayName() const -> const QString&;
     auto exScore() const -> qint64;
@@ -37,7 +36,6 @@ class ArenaOpponentTarget : public QObject
     void changed();
 
   private:
-    bool m_available{};
     QString m_memberId{};
     QString m_displayName{};
     qint64 m_exScore{};

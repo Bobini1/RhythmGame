@@ -28,7 +28,7 @@
         \header \li Screen \li Component \li What the theme draws
         \row \li Main menu \li \l StandardMainController \li Buttons, labels and images
         \row \li Multiplayer \li \l StandardMultiplayerFlow \li Room list and room controls
-        \row \li Song selection \li \l StandardSelectController \li List or wheel and focus movement
+        \row \li Song selection \li \l StandardSelectController \li Row delegates with StandardSelectListView, or a custom wheel
         \row \li Decide \li \l StandardDecideFlow \li Chart or course details
         \row \li Gameplay \li \l StandardGameplayFlow \li Notes, BGA and scores
         \row \li Results \li \l StandardResultInput \li Chart results or a course summary
@@ -69,13 +69,18 @@
     with StandardSelectState and supply your own controls. For custom browsing
     behavior, use the smaller components listed below.
 
+    \l StandardSelectListView connects a finite list to the controller. Supply
+    a delegate and call its activate(index) method from row clicks. It handles
+    keyboard, wheel and controller navigation, current-row changes, folder focus
+    restoration and preview movement. The theme still supplies keyboard focus.
+
     \table
         \header \li Component \li Responsibility
         \row \li \l StandardSelectState \li Browsing, focus, sorting, filtering and activation
         \row \li \l StandardSelectSession \li Folder loading, history storage and cached result lists
         \row \li \l StandardSelectActions \li Chart and course activation, saved results and leaving selection
         \row \li \l StandardSelectModelAdapter \li Repeated entries for a circular view
-        \row \li \l StandardSelectNavigation \li Directional keys and scratch movement
+        \row \li \l StandardSelectNavigation \li Directional keys, scratch and mouse wheel movement
         \row \li \l StandardSelectInput \li Navigation plus activation, replay, autoplay and back actions
         \row \li \l StandardSelectShortcuts \li Selection's F2, F3, F11 and F12 actions
         \row \li \l StandardSelectReload \li Table reload and root folder scans
@@ -93,8 +98,9 @@
     of the profile, and imported changes update their properties in place.
 
     \l ScoreDetails takes a result and profile and loads one full score.
-    Bind enabled to the screen or panel that needs it. The component cancels
-    obsolete requests and exposes score, status and loading. Course scores
+    Place it inside the screen or panel that needs it so it inherits the
+    enabled state. The component cancels obsolete requests and exposes score,
+    status and loading. Course scores
     retain combined events and gauges as well as their individual stage scores.
     Themes can calculate statistics in JavaScript from the loaded events.
 
@@ -117,7 +123,8 @@
     plays. Both controllers stop their music when disabled.
 
     Customize the players' properties, or set either property to null to omit
-    that player. Bind \c preview.moving to a list's movement state. Set
+    that player. StandardSelectListView binds \c preview.moving automatically;
+    for another view, bind it to that view's movement state. Set
     \c preview.chartAudioEnabled to false to use preview files only.
 
     For a custom selector, StandardSelectPreview also works on its own with a
@@ -130,6 +137,24 @@
     loads saved scores for each stage and supplies the profile's chosen target,
     including recorded progress, battle opponents and Arena targets. Themes
     draw the points and personal-best values. The helper is optional.
+
+    \section1 Follow the player's note speed
+
+    \l StandardGameplayViewport reads noteScreenTimeMillis and HiSpeedFix
+    from the current player's profile. Bind the player, chart metadata and
+    field height, then use pixelsPerBeat to draw notes. It updates the filtered
+    note and bar-line models as settings, dimensions or course stages change.
+    Fields with lane cover or lift also supply their remaining visible height.
+
+    \section1 Add speed controls and BGA
+
+    \l StandardGameplaySpeedControls supplies Start/Select and scratch adjustments
+    for note speed, lane cover, lift and hidden. It follows each player's profile
+    and the current course stage. StandardGameplayFlow and StandardGameplayInput
+    include it automatically; set speedControlsEnabled to false for custom controls.
+
+    \l StandardGameplayBga draws the current stage's base, overlay and miss layers.
+    It is optional. Bind its gameplay context and choose its size and placement.
 
     \section1 Build a custom gameplay flow
 
@@ -159,6 +184,7 @@
 
     These components share \l StandardArenaOverlay for saved placement and
     chat input. Replace its \c panelComponent to supply different visuals,
-    or change \c chatShortcut to use another key. ContentFrame does not create
+    call \c setChatOpen(open) from custom chat tabs, or change \c chatShortcut
+    to use another key. ContentFrame does not create
     a panel or call presentation methods on the screen.
 */

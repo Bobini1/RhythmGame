@@ -113,13 +113,12 @@ TEST_CASE("Theme scanner preserves source languages and canonicalizes locales",
     CHECK_FALSE(translations.contains(QStringLiteral("zh_Hant_TW")));
 }
 
-TEST_CASE("Theme discovery isolates invalid settings and API requirements",
-          "[themes]")
+TEST_CASE("Theme discovery isolates invalid settings", "[themes]")
 {
     QTemporaryDir directory;
     const auto root = makeThemesRoot(directory);
     writeLr2SkinBytes(root / "Default" / "theme.json",
-                      R"({"scripts":{"main":"main.qml"},"apiVersion":"1.0"})");
+                      R"({"scripts":{"main":"main.qml"}})");
     writeLr2SkinBytes(
       root / "Broken" / "theme.json",
       R"({"scripts":{"main":"main.qml"},"settings":{"main":"settings.json"}})");
@@ -132,11 +131,6 @@ TEST_CASE("Theme discovery isolates invalid settings and API requirements",
         writeLr2SkinBytes(
           root / "Broken" / "settings.json",
           R"({"items":[{"id":"choice","name":{"en":"Choice"},"type":"choice","default":"absent","choices":[{"name":{"en":"Present"},"value":"present"}]}]})");
-    }
-    for (const auto& version : { "1.1", "2.0", "garbage", "1.0extra" }) {
-        writeLr2SkinBytes(root / version / "theme.json",
-                          QByteArray("{\"apiVersion\":\"") + version +
-                            "\",\"scripts\":{\"main\":\"main.qml\"}}");
     }
     const auto themes = resource_managers::scanThemes(root);
     REQUIRE(themes.contains("Default"));

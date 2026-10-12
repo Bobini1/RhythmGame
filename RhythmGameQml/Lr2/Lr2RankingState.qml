@@ -290,7 +290,7 @@ QtObject {
             return false;
         }
         let pending = Rg.onlineScores.getScoreByGuid(webApiUrl, key);
-        if (!pending || !pending.valid) {
+        if (!pending) {
             return false;
         }
         if (pending.resultAvailable && !pending.success) {

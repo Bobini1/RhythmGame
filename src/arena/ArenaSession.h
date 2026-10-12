@@ -41,7 +41,6 @@ class ArenaSession final : public QObject
                  authenticatedChanged FINAL)
     Q_PROPERTY(bool loginRequired READ getLoginRequired NOTIFY
                  loginRequiredChanged FINAL)
-    Q_PROPERTY(bool reconnecting READ getReconnecting NOTIFY stateChanged FINAL)
     Q_PROPERTY(bool directoryReady READ getDirectoryReady NOTIFY
                  directoryReadyChanged FINAL)
     Q_PROPERTY(bool admissionPending READ getAdmissionPending NOTIFY
@@ -144,7 +143,6 @@ class ArenaSession final : public QObject
     [[nodiscard]] auto getActive() const -> bool;
     [[nodiscard]] auto getAuthenticated() const -> bool;
     [[nodiscard]] auto getLoginRequired() const -> bool;
-    [[nodiscard]] auto getReconnecting() const -> bool;
     [[nodiscard]] auto getDirectoryReady() const -> bool;
     [[nodiscard]] auto getAdmissionPending() const -> bool;
     [[nodiscard]] auto getErrorCode() const -> QString;
@@ -405,6 +403,7 @@ class ArenaSession final : public QObject
     std::optional<RoundProbeRequested> m_probeRequest;
     std::optional<FrozenRound> m_loadRequestRound;
     QPointer<gameplay_logic::ChartRunner> m_preparedRunner;
+    QMetaObject::Connection m_preparedStartConnection;
     QPointer<gameplay_logic::ChartRunner> m_retainedGameplayRunner;
     quint64 m_retainedGameplayLoadRequestId{};
     bool m_preparedGameplayExposed{};
@@ -534,6 +533,7 @@ class ArenaSession final : public QObject
     void handleProbeFinished(quint64 requestId, ArenaProbeResult result);
     void handleLoadFinished(quint64 requestId,
                             gameplay_logic::ChartRunner* runner);
+    void reportPreparedRound();
     void handleLoadFailed(quint64 requestId, ArenaLoadFailure failure);
     void handleRoundStartScheduled(const RoundStartScheduled& scheduled);
     void cancelPreparedRound(bool notify, bool preserveScoreGuid = false);

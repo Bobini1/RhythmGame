@@ -11,19 +11,17 @@ import RhythmGameQml
     list or wheel, its current row and its highlight. Don't add the included
     components separately to the same screen.
 
-    Use inherited \l entries for a list with one row per item. For a circular
-    wheel that needs repeated rows, use \l presentationEntries and set
-    \l minimumEntryCount. Handle \l moveRequested to move the view's current row.
-    Call \l setFocused whenever the current entry changes in the view.
-    When browsing changes the controller's current entry, \l focusRequested
-    asks the theme to show that entry in its view.
+    \l StandardSelectListView connects a finite list to this controller. Supply its
+    delegate and call its activate(index) method from row clicks. It handles
+    current-row changes, arrows, mouse wheel input and preview movement.
 
-    The theme also manages keyboard focus, which determines where key events
-    are delivered. The item receiving those events must forward Up and Down
-    presses and releases to \l handleUpPressed, \l handleDownPressed and
-    \l handleReleased. The
-    \l {../theme_tutorial_select.html}{selection lesson} contains an installable
-    list with the focus and keyboard handling in place.
+    A custom list or circular wheel can use the controller directly. Use
+    entries for one row per item, or presentationEntries with minimumEntryCount
+    for repeated rows. Handle moveRequested and focusRequested in your view,
+    and call setFocused when its current entry changes. Forward Up, Down and
+    release key events to handleUpPressed, handleDownPressed and handleReleased.
+    Forward wheel events from the view to handleWheel.
+    The theme manages keyboard focus in either approach.
 
     Browsing initializes when the component is completed. To choose the timing,
     set \l autoInitialize to false and call \l initialize after the view is ready.
@@ -42,8 +40,9 @@ import RhythmGameQml
     its Arena room. Disable Escape with \l exitEnabled.
     StandardArenaSelectOverlay supplies the Arena ready controls and shortcut.
 
-    The included \l preview follows the focused chart. Bind preview.moving to
-    your view's movement state to wait until scrolling stops. Background music
+    The included \l preview follows the focused chart. StandardSelectListView
+    binds preview.moving automatically. For another view, bind it to the view's
+    movement state to wait until scrolling stops. Background music
     stops while a preview is playing and returns after \l backgroundMusicDelayMillis.
     Customize the \l preview and \l backgroundMusic properties, or set either to
     null to omit it. Don't add a second StandardSelectPreview alongside the controller.
@@ -156,7 +155,7 @@ StandardSelectState {
     /*!
         Requests that the theme move its current row by \a steps. The theme
         chooses whether movement wraps or stops at the end of the list.
-        \a repeated identifies held input and \a analog identifies analog-scratch input.
+        \a repeated identifies held input and \a analog identifies analog scratch or wheel input.
     */
     signal moveRequested(int steps, bool repeated, bool analog)
 
@@ -259,7 +258,12 @@ StandardSelectState {
         return input.handleReleased(event);
     }
 
-    /*! Clears held directions, analog accumulation, and repeat timing. */
+    /*! Handles a wheel \a event from the theme's view. Returns true when accepted. */
+    function handleWheel(event) {
+        return input.handleWheel(event);
+    }
+
+    /*! Clears held directions, accumulated scratch and wheel movement, and repeat timing. */
     function resetNavigation() {
         input.reset();
     }

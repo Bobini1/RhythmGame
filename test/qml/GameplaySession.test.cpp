@@ -88,12 +88,17 @@ TEST_CASE("Gameplay starts only the active ready stage",
     h.check("h.starts === 1 && h.activations === 1");
 }
 
-TEST_CASE("Arena retains control of gameplay startup", "[qml][GameplaySession]")
+TEST_CASE("Arena requests startup after its presentation is ready",
+          "[qml][GameplaySession]")
 {
     ensureCoreApplication();
     GameplayHarness h;
-    h.run("h.arenaManaged = true; h.active = true;");
+    h.run("h.arenaManaged = true; h.startReady = false; h.active = true;");
     h.check("h.starts === 0 && h.activations === 1");
+    h.run("h.startReady = true;");
+    h.check("h.starts === 1 && h.session.startRequested");
+    h.run("h.active = false; h.active = true;");
+    h.check("h.starts === 1 && h.activations === 1");
     h.run("h.runner.status = h.finishedStatus;");
     h.check("h.stageSaves === 1 && h.results === 1");
     h.check("h.arena.submissions === 1 && "

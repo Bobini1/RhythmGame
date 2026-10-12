@@ -4,8 +4,8 @@
 
 Install `docs/examples/theme-tutorial/04-translations/` and choose it for Main
 Menu. It contains the previous menu with Polish translations for the greeting,
-buttons and color setting. The compiled translation is included, so you can
-try it before installing any translation tools.
+most buttons and the color setting. The compiled translation is included, so
+you can try it before installing any translation tools.
 
 [Download 04-translations](examples/theme-tutorial/04-translations.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/04-translations).
@@ -40,8 +40,9 @@ The editable `.ts` file contains the source strings and translations.
 \include 04-translations/translations/tutorial_pl.ts
 
 Open Settings > General > Language, choose Polish, and return to the menu.
-The buttons should read "Wybór utworu", "Ustawienia" and "Wyjdź". Choose English again
-to return to the source text. The language preference belongs to the profile,
+Song select, Settings and Quit should read "Wybór utworu", "Ustawienia" and "Wyjdź".
+Multiplayer has no translation yet, so it keeps its English label. Choose English
+again to return to the source text. The language preference belongs to the profile,
 so other screens with Polish translations will change too.
 
 Settings labels use translations stored directly in JSON. They don't pass

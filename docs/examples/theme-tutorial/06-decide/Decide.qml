@@ -13,7 +13,6 @@ Pane {
     // [decide-flow]
     StandardDecideFlow {
         id: flow
-        enabled: screen.enabled
         gameplay: screen.gameplay
         pointerEnabled: false
     }
@@ -27,7 +26,7 @@ Pane {
         // [title]
         Label {
             Layout.fillWidth: true
-            text: screen.gameplay.isCourse
+            text: screen.gameplay.course
                 ? screen.gameplay.course.name : screen.gameplay.chartData.title
             font.pixelSize: 32
             wrapMode: Text.Wrap

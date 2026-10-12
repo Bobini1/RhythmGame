@@ -32,7 +32,6 @@ PathView {
     property int scrollDirection: 0
     property double barMoveStartMs: 0
     property double barMoveEndMs: 0
-    property real wheelRemainder: 0
     property int suppressedCurrentItemSoundChanges: 0
     readonly property bool visualMoveActive: listTopbarFixed !== nowBarFixed
 
@@ -187,20 +186,6 @@ PathView {
         scrollByKey(steps, repeated);
     }
 
-    function handleWheel(wheel) {
-        let delta = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.pixelDelta.y;
-        if (delta === 0) {
-            return;
-        }
-        wheelRemainder += delta / 120.0;
-        let steps = wheelRemainder > 0 ? Math.floor(wheelRemainder) : Math.ceil(wheelRemainder);
-        if (steps !== 0) {
-            wheelRemainder -= steps;
-            queueWheelSteps(steps);
-        }
-        wheel.accepted = true;
-    }
-
     function scrollBy(entries, durationMs) {
         if (count === 0 || entries === 0) return;
         let now = Date.now();
@@ -353,7 +338,7 @@ PathView {
         acceptedButtons: Qt.NoButton
 
         onWheel: wheel => {
-            pathView.handleWheel(wheel);
+            wheel.accepted = pathView.controller.handleWheel(wheel);
         }
     }
 }

@@ -12,13 +12,15 @@ import RhythmGameQml
     its default content. Place the overlay directly inside the screen root,
     or set its visual parent to the item whose coordinates it should use.
 
-    Replace \l panelComponent to draw another panel. Its root item must expose
-    an Item property named \c dragHandle, or you can set \c moveHandle yourself.
-    Bind the panel to \l session and \c expanded. Call \c setExpanded() when the
-    user changes its size mode, and \c setChatSelected() after changing the
-    session's chat tab. \l toggleChat handles both chat and its saved preference.
-    The \c expanded, \c overlayVisible and \c chatSelected properties are read-only
-    views of the settings. Bind to them and use their setter methods for edits.
+    Replace \l panelComponent to draw another panel. Bind the panel to session
+    and expanded. Call setExpanded() when the user changes its size mode.
+    Call setChatOpen() to change chat and save the choice in one action;
+    toggleChat() switches to the other tab. Inactive overlays ignore chat actions.
+    An optional Item property named dragHandle supplies a move handle. You can
+    also set moveHandle explicitly. Without either, the panel has no drag handle.
+
+    The expanded, overlayVisible and chatSelected properties are read-only
+    views of the settings. Bind to them and use the overlay's actions for edits.
 
     The inherited \c defaultPixelRectHint sets the initial position and size.
     Players can move and resize the panel, and \c customizeMode shows its edit
@@ -53,17 +55,20 @@ ArenaOverlayPlacementFrame {
         const vars = profile.vars.themeVars[root.layoutVariant];
         return vars ? vars[profile.themeConfig[root.layoutVariant]] : null;
     }
-    moveHandle: root.panel ? root.panel.dragHandle : null
+    moveHandle: root.panel?.dragHandle ?? null
     visible: root.active && (root.overlayVisible || root.customizeMode)
 
-    /*! Toggles chat and saves the choice, when the overlay is presented. */
-    function toggleChat() {
+    /*! Opens chat when \a open is true, or closes it otherwise. Inactive overlays ignore the action. */
+    function setChatOpen(open) {
         if (!root.presentationActive || !root.session) {
             return;
         }
-        root.session.toggleChat();
-        root.setChatSelected(root.session.chatOpen === true);
+        root.session.setChatOpen(open);
+        root.setChatSelected(open);
     }
+
+    /*! Toggles chat and saves the choice, when the overlay is presented. */
+    function toggleChat() { root.setChatOpen(!root.session?.chatOpen); }
 
     onPresentationActiveChanged: Qt.callLater(panelLoader.restorePresentation)
     onChatSelectedChanged: Qt.callLater(panelLoader.restorePresentation)

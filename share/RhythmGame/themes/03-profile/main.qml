@@ -14,7 +14,7 @@ Rectangle {
         screen.profile.vars.themeVars["main"][QmlUtils.themeName]
     // [profile]
 
-    StandardMainController { id: actions; enabled: screen.enabled }
+    StandardMainController { id: actions }
 
     ColumnLayout {
         anchors.centerIn: parent
@@ -35,6 +35,11 @@ Rectangle {
             text: "Song select"
             focus: true
             onClicked: actions.openSelect()
+        }
+        Button {
+            Layout.fillWidth: true
+            text: "Multiplayer"
+            onClicked: actions.openArena()
         }
         Button {
             Layout.fillWidth: true

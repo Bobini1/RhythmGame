@@ -148,10 +148,9 @@ subtags. See [DEV_LANG.md](DEV_LANG.md) for matching and compatibility details.
 ## Theme loading
 
 The game validates manifests and settings at startup. It skips themes with
-invalid settings or an unsupported API version and reports the theme and file
-in `log.txt`. Other themes remain available. Restart after changing a manifest
-or QML file. See [API compatibility](docs/pages/theme-api.md) for the supported
-surface and version policy.
+invalid settings and reports the theme and file in `log.txt`. Other themes
+remain available. Restart after changing a manifest or QML file.
+See [Theme API](docs/pages/theme-api.md) for the supported interfaces.
 
 The part of the game that manages the theme most directly is
 [RhythmGameQml/ContentFrame.qml](https://github.com/Bobini1/RhythmGame/blob/master/RhythmGameQml/ContentFrame.qml).
@@ -260,12 +259,18 @@ shape as a single chart; the theme does not receive different runner types.
 - `players`: one `Player` for solo or double play, two for local battle. Each
   supplies `profile`, live `score`, `notes`, `state`, timing and position.
 - `bga`, `status`, `keymode`, and writable `inputMapping` for presentation.
-- `isCourse`, `course` (undefined for a single chart), `charts`, zero-based `stageIndex`, and
+- `course` (undefined for a single chart), `charts`, zero-based `stageIndex`, and
   `stageCount`. Single charts have one stage. `coursePlayers` supplies the
   course-wide combo state in participant order and is empty for single charts.
 - `isArena`: whether this play belongs to Arena. Runner ownership remains internal.
 - `arenaActive`: whether the session still presents this gameplay round. Use it
   to choose Arena targets or standings, independently of any overlay.
+
+`Player.columns` supplies playable column indices in the default visual order.
+The left scratch comes first and the right scratch comes last. Five-key modes
+omit unused columns. Use `player.isScratchColumn(index)` for lane styling.
+Themes can supply their own order, and keep using `player.state.columnStates[index]`
+for the corresponding note model. Changing visual order does not change input mapping.
 
 Bind through `gameplay.players` and `gameplay.chartData`; they change together
 when a course installs its next stage. Do not retain an old stage's `Player`.
@@ -333,7 +338,10 @@ the screen is inactive (Shortcuts are not disabled automatically).
 Song preview should not play during gameplay. You can use the
 [enabled](https://doc.qt.io/qt-6/qml-qtquick-item.html#enabled-prop) property of `Item`
 to detect when a screen is not active.
-This property propagates to all child components.
+Disabling an Item also disables its child Items, including Standard controllers,
+so they need no explicit binding to the parent's `enabled` property. Standard
+components handle their own shortcuts, timers and audio internally. Objects
+such as `Shortcut` and `Connections` do not inherit the disabled state.
 
 For note and lane feedback during gameplay, use
 [columnState.pressed](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ColumnState.html#a116fbd7d8aec0c9ebad00828b7564ab6).
@@ -369,6 +377,18 @@ The entries are folder-path strings, `ChartData` objects, or the QML value types
 not found in the local song database. It has table metadata such as `title` and
 `url`, but no playable chart path. `table`, `level` and `course` use `name` for
 their labels. Check the type before choosing fields or a delegate.
+
+Use `setSortMode()`, `setReplayType()` and `setKeymodeFilter()` for player choices.
+These methods save in the active profile and update the corresponding read-only
+property. Switching profiles updates all three properties. Unknown values and
+calls from an inactive controller return `false` without changing the choice.
+Only the cycling actions wrap around the available options.
+Properties such as `difficultyFilter` and `unscoredItemsLast` configure the
+view itself and do not save profile settings.
+
+For a separate view that should not change profile settings, use
+`ChartFolderModel` to filter and sort its entries. Its writable properties
+configure that model alone. The standard selector always uses the saved choices.
 
 An empty folder or a filter that removes every entry leaves `entries` empty.
 `focusedItem` is then `null`, and `focusedIndex` is `-1`. The same applies before
@@ -430,8 +450,8 @@ Browsing and activation:
 
 Interaction policies:
 
-- `StandardSelectNavigation` converts directional key and scratch input into
-  semantic `moveRequested(steps, repeated, analog)` signals. The theme remains
+- `StandardSelectNavigation` converts directional keys, scratch and mouse wheel
+  input into `moveRequested(steps, repeated, analog)` signals. The theme remains
   responsible for positioning and animating its list or wheel.
 - `StandardSelectInput` adds the standard activation, replay, autoplay,
   sorting and back-button mappings by extending `StandardSelectNavigation`. A
@@ -468,11 +488,23 @@ Shared asynchronous lifetime:
   lifetime. It can be reused by custom selection enrichment or other theme
   state that starts cancellable operations.
 
-The controller has no required list interface. Keyboard `Keys` handlers stay on
+For a finite list, use `StandardSelectListView` with `controller: selection`.
+Supply a delegate and call `activate(index)` from its click handler. It handles
+arrow, wheel and controller navigation, current-row synchronization and preview
+movement.
+The theme still sets keyboard focus on the list and its enclosing focus scopes.
+
+The controller also works without that list component. Keyboard `Keys` handlers stay on
 the focused visual item and can forward up/down/release events to the
 controller's `handleUpPressed`, `handleDownPressed` and `handleReleased`
-methods. Set `enterFeedbackSource` and `leaveFeedbackSource` to choose folder
-sounds, or use an empty URL to omit one. For custom feedback, set
+methods. Forward wheel events from the view to `handleWheel(event)`. It converts
+each notch into a row movement and accumulates smaller deltas. Wheel movement
+sets `analog` to true in `moveRequested`, like analog scratch input, so the view
+can use the same scrolling animation. `StandardSelectListView` forwards wheel
+events automatically.
+
+Set `enterFeedbackSource` and `leaveFeedbackSource` to choose folder sounds,
+or use an empty URL to omit one. For custom feedback, set
 `feedbackEnabled: false` and handle `enteredFolder` and `leftFolder` yourself.
 
 Application-owned F1 and F4 behavior is internal to `ContentFrame`. F12 belongs
@@ -495,8 +527,9 @@ from a song's chart directory.
 
 `StandardSelectController.preview` is a `StandardSelectPreview` for the focused
 chart. It delays playback, uses chart audio when no preview file exists, and
-clears both players when disabled. Bind `preview.moving` to the list's movement
-state. Set `preview.chartAudioEnabled: false` to use preview files only, or
+clears both players when disabled. `StandardSelectListView` binds `preview.moving`
+automatically. For another view, bind it to that view's movement state.
+Set `preview.chartAudioEnabled: false` to use preview files only, or
 `preview: null` to omit previews.
 
 The controller's `backgroundMusic` is an `AudioPlayer` for the profile's
@@ -580,10 +613,12 @@ A custom Ready button binds to the selection overlay's `ready` and
 `canToggleReady`, displays `readyDisabledReason` when useful, and calls
 `toggleReady()`. The standard panel and double-Start gesture use the same
 action. Disabling `readyShortcutEnabled` only disables the gesture.
-On a result screen, disable confirmation while its Arena chat is open.
+On a result screen, `StandardResultInput` disables confirmation while the
+matching Arena chat is open. Themes can still override `confirmEnabled`.
 
 Replace `panelComponent` to keep the standard placement and input with your
-own visuals. Default's result screen uses its own `ArenaResultPanel` this way.
+own visuals. Call the overlay's `setChatOpen(open)` for chat tabs; it updates
+the session and saves the preference together. Default's result screen uses its own `ArenaResultPanel` this way.
 The [complete tutorial theme](docs/pages/theme-tutorial/10-shipping.md) shows
 the standard overlays in installable select, gameplay and result screens.
 
@@ -606,7 +641,8 @@ under selection, and removing the browser disconnects from Arena. The standard
 selector returns to it when the room is left or lost. If Settings or a result
 covers selection, that return waits until selection becomes active again.
 
-The multiplayer flow opens scheduled gameplay directly, without decide. If a
+The multiplayer flow opens loaded gameplay directly, without decide. The theme
+finishes its intro and requests a start before Arena reports readiness. If a
 round starts while Settings is open, gameplay returns to Settings afterward.
 Neither Arena navigation nor its panels require a nested stack or shell.
 
@@ -619,9 +655,9 @@ for the main menu, selection, decide, gameplay and both result roles.
 | Component              | What it handles                                             | How to use it                                                                    |
 |------------------------|-------------------------------------------------------------|----------------------------------------------------------------------------------|
 | `StandardMainController` | Song selection, Arena, Settings, quit and main-menu music | Call its methods from buttons. Bound START opens selection by default.           |
-| `StandardMultiplayerFlow` | Arena connection, room selection and scheduled gameplay | Place it inside the multiplayer screen and use its `session`. |
+| `StandardMultiplayerFlow` | Arena connection, room selection and prepared gameplay | Place it inside the multiplayer screen and use its `session`. |
 | `StandardDecideFlow`   | Timeout, accept, cancel and duplicate requests              | Bind `gameplay`. Set `pointerEnabled: false` if your screen has its own buttons. |
-| `StandardGameplayFlow` | Startup, exit, retry, stage results and course continuation | Bind `gameplay` and put the component directly inside the screen root.           |
+| `StandardGameplayFlow` | Startup, exit, retry, stage results and course continuation | Place it inside the gameplay screen and bind `gameplay`.                        |
 | `StandardResultInput`  | Delayed result confirmation and supported retry             | Bind `result` and call `confirm()` from your Continue button.                    |
 
 `StandardMainController` includes `StandardMainActions` and a `backgroundMusic`
@@ -633,9 +669,9 @@ Decide starts by replacing itself with gameplay. Its replacement `startAction`
 or `cancelAction` handles the whole transition, and the standard action does
 not run afterward. The game controls play object lifetime in either case.
 
-The gameplay flow uses its parent as the owning screen. Set `screen` if you
-nest it inside another item. `stageActivated` is emitted before each stage
-starts, so it is a suitable place to reset visuals or request score targets.
+The gameplay flow inherits `enabled` through its parents. The host disables
+inactive screens, including their nested controls. `stageActivated` is emitted
+before each stage starts, so it is a suitable place to reset visuals or request score targets.
 `closing` lets the theme clean up before leaving.
 
 Bind `startReady` to delay the ready sequence for an intro. Start an outro
@@ -646,8 +682,12 @@ when ready audio is available and 1000 milliseconds otherwise.
 
 `dismissOverlayAction()` can close a popup and return true to consume Escape.
 If a result fails to load, `presentationFailed` is emitted and the saved
-scores are kept. `retryTransition()` tries to open the result again. Arena
-controls its own startup and runner ownership. `StandardMultiplayerFlow`
+scores are kept. `retryTransition()` tries to open the result again. Arena runs
+the same intro, ready audio and delay, then holds the start request until every
+participant is ready and the shared start time arrives. Asset loading and theme
+preparation share the server's 60-second loading timeout. Exiting before play
+cancels the round without saving a score and keeps everyone in the room.
+Arena retains runner ownership. `StandardMultiplayerFlow`
 releases the prepared runner when its gameplay screen leaves the stack.
 Don't add `StandardGameplayInput` beside the complete flow or duplicate
 runner start, finish or proceed calls.
@@ -677,15 +717,70 @@ pattern. The result component includes its input delay in availability.
 `retryEnabled` disables both button and controller retries. The result's
 `tryRetryAction(samePattern)` can handle a request before the standard retry.
 
+### Gameplay note speed and visible models
+
+`StandardGameplayViewport` takes the current `player`, `chartData` and
+`noteHeight`. It reads the player's `noteScreenTimeMillis` and `hiSpeedFix`
+settings and supplies `pixelsPerBeat`. Use that value with `player.position`
+and each note's position to place notes and size long notes. Main, Start, Min,
+Max and Avg select chart metadata; Off uses 120 BPM. Live BPM and scroll
+changes remain part of the player's position.
+
+The helper owns `player.state.setVisiblePositionSpans()` for that player.
+It updates both note and bar-line models when settings, dimensions or the
+current stage change. Fields sharing a player share its filtered models, so
+their visible position spans must agree. For separate clipping of bar lines,
+set `barLineHeight`; it defaults to `noteHeight`.
+
+`visibleHeight` defaults to `noteHeight`. With lane cover or lift, set it to
+the remaining distance from the lane cover to the judgement line. `noteHeight`
+is the distance from the top note clipping edge to that line. Hidden cover
+doesn't change the speed calculation. All dimensions use the same local
+coordinates as the renderer. Default and the tutorial use this helper.
+The native filter keeps long-note beginnings when their bodies cross either
+edge of the visible range, including reverse scroll. Note changes notify both
+the named roles and `display`, so either form can be used in a delegate.
+
+### Gameplay speed and cover controls
+
+`StandardGameplayFlow` and `StandardGameplayInput` include
+`StandardGameplaySpeedControls`. Hold START and turn the scratch to change
+`noteScreenTimeMillis`; hold SELECT and turn it to adjust a cover. Lane cover
+takes priority when on, followed by lift or hidden. When both lift and hidden
+are on, a short START+SELECT press switches between them. With all covers off,
+SELECT changes the saved lane-cover ratio. Double-press START within 500 ms to
+toggle lane cover while preserving note speed within the duration limits.
+
+Each battle side uses its own player's profile. In double play, either side
+changes the same profile, and either side's START/SELECT modifies either scratch.
+The controls follow replacement players between stages and stop while the
+screen is inactive or retry is being chosen. Holding both START and SELECT
+also suspends adjustments. Set `speedControlsEnabled: false` on the flow or
+input component to supply your own controls. Don't add a second instance of
+the speed controls beside either component.
+
+### Gameplay BGA
+
+`StandardGameplayBga` is an optional visual component. Bind `gameplay` and
+give it a size. It follows the current stage's four BGA layers, preserves their
+relative sizes and treats black as transparent in the two overlay layers.
+Bad and Poor judgements show the miss layer for 400 ms. Its visibility follows
+`bgaOn` on the player's profile, or the main profile in battle. Override
+`visible` to choose differently. A custom renderer can connect the layers to
+its own video sinks instead.
+
 ### Components for custom gameplay flows
 
-`StandardGameplayInput` maps Escape and the START+SELECT retry gesture.
+`StandardGameplayInput` maps Escape, the START+SELECT retry gesture, and speed
+and cover controls.
 Bind `gameplay` and handle `exitRequested` in your flow. The component does
 not save scores or open results. A custom flow owns startup, completion,
 course continuation and the return to selection.
 Use the context's lifecycle methods:
 
-- `gameplay.start()` starts a ready local stage. Arena starts its own round.
+- `gameplay.start()` requests a ready stage's start after the screen and its intro
+  are ready. Local play starts immediately. Arena holds the request until the
+  shared start time, so `status` remains Ready while waiting for other players.
 - `gameplay.finishStage()` saves once and returns its `ResultContext`. Repeated
   calls return that same result. It returns null while loading and does not
   advance a course.
@@ -702,7 +797,11 @@ wait for loading; call `start()` only once the stage is Ready. Closing the
 course summary returns to selection. `StandardGameplayFlow` handles this
 sequence and result-creation retries already.
 
-For Arena, `finishStage()` submits the local result as part of completion.
+For Arena, call `start()` once after preparation and retain the same screen while
+waiting or reconnecting. Closing a prepared screen cancels the round; a start
+request cannot be withdrawn to replay the intro. Before play, a custom exit
+action must call `Rg.arenaSession.abandonCurrentRound()` rather than save a result.
+Once play begins, `finishStage()` submits the local result as part of completion.
 A custom flow must call `Rg.arenaSession.endResultPresentation(result.arenaRoundId)`
 when its result screen closes, if the ID is nonempty. Preserve that exact ID;
 a later round may already exist. `StandardGameplayFlow` handles this cleanup.

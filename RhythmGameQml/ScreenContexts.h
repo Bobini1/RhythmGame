@@ -30,7 +30,6 @@ class GameplayContext final : public QObject
                  statusChanged)
     Q_PROPERTY(gameplay_logic::ChartData::Keymode keymode READ keymode NOTIFY
                  stageChanged)
-    Q_PROPERTY(bool isCourse READ isCourse CONSTANT)
     Q_PROPERTY(bool isArena READ isArena CONSTANT)
     Q_PROPERTY(bool arenaActive READ arenaActive NOTIFY arenaActiveChanged)
     Q_PROPERTY(QVariant course READ course CONSTANT)
@@ -50,7 +49,6 @@ class GameplayContext final : public QObject
     auto bga() const -> qml_components::BgaContainer*;
     auto status() const -> gameplay_logic::ChartRunner::Status;
     auto keymode() const -> gameplay_logic::ChartData::Keymode;
-    auto isCourse() const -> bool;
     auto isArena() const -> bool;
     auto arenaActive() const -> bool;
     auto arenaSession() const -> arena::ArenaSession* { return session; }
@@ -65,7 +63,8 @@ class GameplayContext final : public QObject
     auto inputMapping() const -> QList<int>;
     void setInputMapping(const QList<int>& mapping);
     auto runner() const -> QObject*;
-    /** Starts the ready local stage. Arena controls its own synchronized start.
+    /** Requests the ready stage's start after presentation is prepared.
+     * Arena holds accepted requests until the synchronized start.
      */
     Q_INVOKABLE bool start();
     /** Saves this stage once. Returns null while it is still loading. */

@@ -1,6 +1,7 @@
 import RhythmGameQml
 import QtQuick
 import "../../common/helpers.js" as Helpers
+import "PopupEditorColors.js" as PopupColors
 
 Item {
     id: imageSelection
@@ -17,10 +18,6 @@ Item {
     readonly property int rowCount: Math.ceil(selection.files.length / columnCount)
     readonly property int visibleRows: Math.min(2, rowCount)
 
-    PopupEditorColors {
-        id: popupColors
-    }
-
     Column {
         id: content
 
@@ -33,7 +30,7 @@ Item {
         Text {
             id: propertyLabel
 
-            color: popupColors.text
+            color: PopupColors.text
             elide: Text.ElideRight
             font.bold: true
             font.pixelSize: 14
@@ -66,9 +63,9 @@ Item {
                 required property int index
                 required property string modelData
 
-                border.color: selection.currentIndex === index ? popupColors.accent : popupColors.divider
+                border.color: selection.currentIndex === index ? PopupColors.accent : PopupColors.divider
                 border.width: selection.currentIndex === index ? 2 : 1
-                color: selection.currentIndex === index ? popupColors.accentFill : popupColors.preview
+                color: selection.currentIndex === index ? PopupColors.accentFill : PopupColors.preview
                 height: selection.cellHeight - selection.columnSpacing
                 radius: 6
                 width: selection.cellWidth - selection.columnSpacing

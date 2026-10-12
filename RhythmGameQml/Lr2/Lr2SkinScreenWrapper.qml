@@ -2462,7 +2462,7 @@ Item {
     }
 
     function startGameplayFadeoutTransition() : void {
-        if (!root.gameplayFinishTransitionPending || !gameplayInput.active) {
+        if (!root.gameplayFinishTransitionPending || !gameplayInput.enabled) {
             return;
         }
         if (root.gameplayFadeoutSkinTime < 0) {
@@ -3092,9 +3092,7 @@ Item {
 
     function arenaOpponentTargetAvailable() : bool {
         return root.arenaGameplayOwned
-            && root.arenaSession.opponentTarget !== undefined
-            && root.arenaSession.opponentTarget !== null
-            && root.arenaSession.opponentTarget.available === true;
+            && !!root.arenaSession.opponentTarget?.memberId;
     }
 
     function gameplayTargetScorePoints(side: var) : var {
@@ -5624,6 +5622,8 @@ Item {
 
     StandardGameplayFlow {
         id: gameplayInput
+        // LR2 handles its own option gestures through Lr2OptionState.
+        speedControlsEnabled: false
         gameplay: root.gameplayScreenActive ? root.gameplay : null
         enabled: root.screenUpdatesActive && root.gameplayScreenActive
         startReady: root.gameplayReadySkinTime >= 0

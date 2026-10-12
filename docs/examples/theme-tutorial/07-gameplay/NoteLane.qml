@@ -7,9 +7,8 @@ Rectangle {
     id: lane
     required property Player player
     required property var columnState
-    required property real visibleBeats
+    required property real pixelsPerBeat
     required property bool scratch
-    readonly property real pixelsPerBeat: lane.height / lane.visibleBeats
     color: lane.scratch ? "#30232d" : "#18232e"
     clip: true
 

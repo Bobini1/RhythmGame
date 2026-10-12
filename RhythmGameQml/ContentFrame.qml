@@ -214,7 +214,10 @@ ApplicationWindow {
         readonly property Item currentScreen: sceneStack.currentItem
 
         function returnToPreviousScreen(): var {
-            return sceneStack.pop();
+            const removed = sceneStack.pop();
+            if (removed) removed.enabled = false;
+            sceneStack.updateEnabledStates();
+            return removed;
         }
 
         function quitApplication(): void {

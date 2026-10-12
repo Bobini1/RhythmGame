@@ -14,7 +14,8 @@ import RhythmGameQml
 
     Battle uses the other player's current score. Arena uses the session's
     opponent target, and \l available is false until that target is available.
-    Local play uses \l mode and \l fraction, which can be overridden.
+    Local play uses \l mode and \l fraction. Overriding either changes this
+    target display without changing the player's saved settings.
 
     Bind a graph or label to \l points and \l finalPoints. The \l bestPoints,
     \l bestFinalPoints and \l bestMaxPoints properties describe the personal
@@ -36,7 +37,7 @@ Item {
     readonly property bool loading: state.loading
     /*! Whether the current target can be displayed. */
     readonly property bool available: enabled && !!state.player
-        && (!gameplay.isArena || (gameplay.arenaActive && !!state.arenaTarget?.available))
+        && (!gameplay.isArena || (gameplay.arenaActive && !!state.arenaTarget?.memberId))
     /*! Current target points, at the player's progress through the chart. */
     readonly property real points: {
         if (!available) return 0;

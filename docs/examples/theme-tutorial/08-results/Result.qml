@@ -14,14 +14,13 @@ Pane {
     StandardResultInput {
         id: resultInput
         result: screen.result
-        enabled: screen.enabled
-        confirmEnabled: !(screen.result.arenaActive && Rg.arenaSession.chatOpen)
     }
     // [result-input]
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 24
+        anchors.rightMargin: arenaOverlay.visible ? screen.width / 2 : 24
         spacing: 16
 
         Label {
@@ -31,55 +30,86 @@ Pane {
             wrapMode: Text.Wrap
         }
 
-        // [score-delegate]
-        Repeater {
-            model: screen.result.players
+        ScrollView {
+            id: resultsScroll
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            contentWidth: availableWidth
 
             ColumnLayout {
-                id: playerResult
-                required property int index
-                required property ResultPlayer modelData
+                width: resultsScroll.availableWidth
+                spacing: 24
 
-                Layout.fillWidth: true
+                // [score-delegate]
+                Repeater {
+                    model: screen.result.players
 
-                ScoreLine {
-                    Layout.fillWidth: true
-                    playerLabel: playerResult.modelData.profile.vars.generalVars.name
-                    score: playerResult.modelData.score
-                }
+                    ColumnLayout {
+                        id: playerResult
+                        required property int index
+                        required property ResultPlayer modelData
 
-                // [result-ranking]
-                StandardRanking {
-                    id: playerRanking
-                    chartData: screen.result.chartData
-                    profile: playerResult.modelData.profile
-                    score: playerResult.modelData.score
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    Label {
                         Layout.fillWidth: true
-                        elide: Text.ElideRight
-                        text: playerRanking.loading ? qsTr("Loading ranking...")
-                            : playerRanking.position > 0
-                                ? qsTr("Rank %1 of %2").arg(playerRanking.position)
-                                    .arg(playerRanking.playerCount)
-                                : qsTr("No online rank")
-                    }
-                    Button {
-                        text: qsTr("Open ranking")
-                        enabled: playerRanking.available && !playerRanking.opening
-                        onClicked: playerRanking.open()
+
+                        ScoreLine {
+                            Layout.fillWidth: true
+                            playerLabel: playerResult.modelData.profile.vars.generalVars.name
+                            score: playerResult.modelData.score
+                        }
+
+                        // [result-ranking]
+                        StandardRanking {
+                            id: playerRanking
+                            chartData: screen.result.chartData
+                            profile: playerResult.modelData.profile
+                            score: playerResult.modelData.score
+                        }
+
+                        GridLayout {
+                            id: rankingControls
+                            Layout.fillWidth: true
+                            columns: width < 400 ? 2 : 3
+                            ComboBox {
+                                model: [
+                                    { value: OnlineRankingModel.RhythmGame, text: "RhythmGame" },
+                                    { value: OnlineRankingModel.Tachi, text: "Bokutachi" },
+                                    { value: OnlineRankingModel.LR2IR, text: "LR2IR" }
+                                ]
+                                textRole: "text"
+                                valueRole: "value"
+                                currentValue: playerRanking.provider
+                                onActivated: playerRanking.profile.vars.generalVars.rankingProvider = currentValue
+                                Accessible.name: qsTr("Ranking provider")
+                            }
+                            Label {
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                                text: playerRanking.loading ? qsTr("Loading ranking...")
+                                    : playerRanking.position > 0
+                                        ? qsTr("Rank %1 of %2").arg(playerRanking.position)
+                                            .arg(playerRanking.playerCount)
+                                        : qsTr("No online rank")
+                            }
+                            Button {
+                                Layout.columnSpan: rankingControls.columns === 2 ? 2 : 1
+                                Layout.alignment: Qt.AlignRight
+                                text: qsTr("Open ranking")
+                                enabled: playerRanking.available && !playerRanking.opening
+                                onClicked: playerRanking.open()
+                            }
+                        }
+                        // [result-ranking]
+
+                        // [result-stats]
+                        ResultStats {
+                            Layout.fillWidth: true
+                            score: playerResult.modelData.score
+                        }
+                        // [result-stats]
                     }
                 }
-                // [result-ranking]
+                // [score-delegate]
             }
-        }
-        // [score-delegate]
-
-        Item {
-            Layout.fillHeight: true
         }
 
         // [result-retry]
@@ -90,7 +120,7 @@ Pane {
                 onClicked: resultInput.retry(false)
             }
             Button {
-                text: qsTr("Same pattern")
+                text: qsTr("Same random")
                 enabled: resultInput.retryAvailable
                 onClicked: resultInput.retry(true)
             }

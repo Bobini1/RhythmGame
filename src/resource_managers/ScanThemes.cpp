@@ -16,7 +16,6 @@
 #include <QJsonObject>
 #include <QUrl>
 #include <QVariant>
-#include <QVersionNumber>
 #include <spdlog/spdlog.h>
 
 #include <exception>
@@ -45,20 +44,6 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                 continue;
             }
             const auto config = QJsonDocument::fromJson(file.readAll());
-            const auto requirement = config["apiVersion"].isUndefined()
-                                       ? QStringLiteral("1.0")
-                                       : config["apiVersion"].toString();
-            qsizetype suffix{};
-            const auto version =
-              QVersionNumber::fromString(requirement, &suffix);
-            if (suffix != requirement.size() || version.segmentCount() != 2 ||
-                version.majorVersion() != 1 || version.minorVersion() > 0) {
-                spdlog::error("Theme {} requires unsupported API '{}'; this "
-                              "game supports 1.0",
-                              path.string(),
-                              requirement.toStdString());
-                continue;
-            }
             const auto& scripts = config["scripts"];
             if (!scripts.isObject() || scripts.toObject().isEmpty()) {
                 continue;

@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import RhythmGameQml
 import "../../common"
 import "../../common/helpers.js" as Helpers
+import "PopupEditorColors.js" as PopupColors
 
 Item {
     id: fontSelection
@@ -81,10 +82,6 @@ Item {
     height: fontControls.implicitHeight + 16
     width: ListView.view ? ListView.view.width : 414
 
-    PopupEditorColors {
-        id: popupColors
-    }
-
     ThemeFont {
         id: selectedFont
         fileName: fontSelection.currentValue
@@ -102,7 +99,7 @@ Item {
         Text {
             id: propertyLabel
 
-            color: popupColors.text
+            color: PopupColors.text
             elide: Text.ElideRight
             font.bold: true
             font.pixelSize: 14
@@ -120,9 +117,9 @@ Item {
         }
 
         Rectangle {
-            border.color: popupColors.controlBorder
+            border.color: PopupColors.controlBorder
             border.width: 1
-            color: popupColors.preview
+            color: PopupColors.preview
             height: 32
             radius: 4
             width: parent.width
@@ -131,7 +128,7 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: 8
                 anchors.rightMargin: 8
-                color: popupColors.text
+                color: PopupColors.text
                 elide: Text.ElideRight
                 font: selectedFont.uiFont({
                     italic: selectedFont.italic,

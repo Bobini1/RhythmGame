@@ -30,7 +30,7 @@ StandardArenaOverlay {
     panelComponent: ArenaGameplayOverlay {
         session: root.session
         expanded: root.expanded
-        onChatSelected: chat => root.setChatSelected(chat)
+        onChatSelected: chat => root.setChatOpen(chat)
         onExpandedChangeRequested: expanded => root.setExpanded(expanded)
     }
 }
