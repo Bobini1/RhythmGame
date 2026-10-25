@@ -1,8 +1,8 @@
 # 08-results
 
 Copy the whole `08-results` directory into your game's `themes` directory and restart the game.
-In Settings > Themes, choose `08-results` for the screen roles listed in `theme.json`.
-Keep Default selected for roles the example does not provide.
+In Settings > Themes, choose `08-results` for the screens listed in `theme.json`.
+Keep Default selected for screens the example does not provide.
 
 Read the lesson
 at [the tutorial source](https://github.com/Bobini1/RhythmGame/blob/master/docs/pages/theme-tutorial/08-results.md).

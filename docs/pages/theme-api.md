@@ -4,17 +4,17 @@ The theme API covers QML screens and the game objects they use. It does not
 provide a C++ plugin ABI. Start with [the tutorial](theme-tutorial/index.md) or
 [the screen contracts](../../DEV_THEME.md).
 
-## Screen roles
+## Screens
 
-Each screen role is selected independently. A theme can omit roles and use
-Default for them. `result` and `courseResult` are separate roles; a missing
+Each screen is selected independently. A theme can omit screens and use
+Default for them. `result` and `courseResult` are separate screens; a missing
 course result does not fall back to a normal result.
 
 ## What is supported
 
 The supported surface consists of:
 
-- The manifest and settings schemas, screen role names, and required screen
+- The manifest and settings schemas, screen names, and required screen
   inputs described in `DEV_THEME.md`.
 - The documented properties, signals and methods of `Standard*`, `ScoreDetails`
   and `PendingReplyGroup`. These components are optional. Their internal child

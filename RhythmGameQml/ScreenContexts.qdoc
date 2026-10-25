@@ -153,7 +153,7 @@
 
     Declare \c {required property CourseResultContext result} on a course result
     screen. The game selects the course result separately from the normal result.
-    A theme can provide either role or both, with a separate contract for each.
+    A theme can provide one screen or both, with a separate contract for each.
 
     StandardResultInput can close a course summary. Single-chart retry is
     unavailable because the result describes the whole course.

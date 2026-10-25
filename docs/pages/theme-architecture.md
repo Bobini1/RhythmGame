@@ -9,8 +9,8 @@ The game keeps screen creation, navigation and local play object lifetime in
 `ContentFrame`. A theme calls named operations through `globalRoot` when it
 needs to navigate. It does not manage the underlying screen stack.
 
-`ContentFrame` loads the screen configured for each role. It does not try other
-roles or call theme methods by name. Standard components handle actions such as
+`ContentFrame` loads the configured implementation for each screen. It does not try other
+screens or call theme methods by name. Standard components handle actions such as
 folder reloads and Arena score submission. An Arena result receives its round
 ID in the result context before the screen is created.
 
@@ -31,7 +31,7 @@ The multiplayer flow releases each prepared Arena runner when its gameplay
 screen leaves the stack. The host only pushes or replaces screens and keeps
 local runners alive for them. Decide calls `replaceGameplay`; Arena calls
 `openGameplay`, which always pushes.
-LR2 has internal entry files for each screen role. They configure its shared
+LR2 has internal entry files for each screen. They configure its shared
 renderer, which reads the selected CSV and settings itself. LR2 also creates
 its customization editor there and derives legacy result fields from the
 supplied context. ContentFrame uses the same screen inputs for LR2 and QML themes.
@@ -68,7 +68,7 @@ those rules wherever the rules are common to themes.
 | Each screen has a complete standard component, with smaller parts available | Common screens need little wiring, while custom behavior remains possible | The reference must distinguish included parts from optional additions                            | Use this approach                     |
 
 Automatic behavior would hide too much in the host. A manifest flag or global
-`StandardTheme` object would have to find the current role, data and settings.
+`StandardTheme` object would have to find the current screen, data and settings.
 A handler added by the theme could then duplicate an invisible handler. Adding
 a standard feature could also change a custom theme without an explicit choice
 in that screen's source.
@@ -114,7 +114,7 @@ continuation. `startReady` and `finishReady` let a theme delay transitions for
 animations while keeping standard saving and navigation. `stageActivated`
 and `closing` let it update or clean up its presentation.
 
-## Supply data for the screen's role
+## Supply data for the current screen
 
 Decide and gameplay receive `GameplayContext`. It gives both single charts
 and courses the same current-chart interface. The context remains the same

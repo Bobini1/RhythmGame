@@ -35,7 +35,7 @@ QML files and any assets it uses.
 
 Start with [the first menu](01-first-screen.md), even if you plan to work on
 gameplay. It explains how to install, select and reload an example. Later
-lessons use the same steps for other screen roles.
+lessons use the same steps for other screens.
 
 ## Read the code alongside the game
 

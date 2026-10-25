@@ -29,7 +29,7 @@ Here is an example of a minimal `theme.json` file:
 ```
 
 A theme can replace any subset of the game's screens. Players choose a theme
-for each role, so you can share just a result screen or a whole set of screens.
+for each screen, so you can share just a result screen or a whole set of screens.
 
 ### Persistent settings
 
@@ -234,7 +234,7 @@ Keep the following in mind when writing screens with initial state:
 
 Each data-bearing screen declares one typed input:
 
-| Screen role       | Required declaration                           |
+| Screen            | Required declaration                           |
 |-------------------|------------------------------------------------|
 | `settings`        | `required property string initialSection`     |
 | `decide`          | `required property GameplayContext gameplay`   |
@@ -291,10 +291,10 @@ saved result. Read the matching identifier from `course.chartIds[index]`.
 `Rg.tables.search(identifier)` can supply a title even when the chart is absent.
 Chart identifiers are MD5 hashes or `sha256/<hash>`. Installed metadata in a
 result is retained by that context, independently of the runner or song list.
-Normal results and course summaries are independently selected screen roles.
+Normal results and course summaries are independently selected screens.
 There is no fallback from `courseResult` to a theme's normal `result`.
-The profile selects each role separately, with Default providing unconfigured
-roles. Default shares its private presentation through separate typed entry points.
+The profile selects each screen separately, with Default providing any
+unconfigured screens. Default shares its private presentation through separate typed entry points.
 
 `ResultContext.arenaRoundId` identifies an Arena result and is empty for local
 play or saved-score views. Standard gameplay submits the Arena score before
@@ -603,7 +603,7 @@ and chat input. Set `defaultPixelRectHint` to choose an initial position,
 The visual parent is the viewport. Place the overlay directly inside the
 screen root, or set `parent` to the item whose bounds it should use.
 The read-only `viewport` property reports that parent. `themeVars`
-defaults to the active profile's settings for the overlay's screen role.
+defaults to the active profile's settings for the overlay's screen.
 
 Gameplay and result panels use F8 to toggle chat. The selector's chat shortcut
 is disabled by default because a selector may already use F8. Change
@@ -650,7 +650,7 @@ Neither Arena navigation nor its panels require a nested stack or shell.
 
 Choose the component for the screen you are writing. The
 [tutorial](docs/pages/theme-tutorial/index.md) contains installable examples
-for the main menu, selection, decide, gameplay and both result roles.
+for the main menu, selection, decide, gameplay and both result screens.
 
 | Component              | What it handles                                             | How to use it                                                                    |
 |------------------------|-------------------------------------------------------------|----------------------------------------------------------------------------------|

@@ -3,9 +3,9 @@
 [Previous](07-gameplay.md) | [Tutorial](index.md) | [Next: Assets and saved scores](09-assets.md)
 
 Install `docs/examples/theme-tutorial/08-results/` and select it for both Result
-and Course Result. The folder contains separate entry files for the two roles,
-plus shared displays for scores, judgements and graphs. You can also enable just one role and keep another
-theme for the other.
+and Course Result. The folder contains separate entry files for the two screens,
+plus shared displays for scores, judgements and graphs. You can also enable just one screen and keep another
+theme for the other screen.
 
 [Download 08-results](examples/theme-tutorial/08-results.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/08-results).

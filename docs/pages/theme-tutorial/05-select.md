@@ -210,7 +210,7 @@ uses [replayOptions](qml/qml-rhythmgameqml-standardselectstate.html#replayOption
 Each option has a `text` label and a stable `value`. The two role properties tell
 the combo box which field to display and which field to select.
 `currentValue` follows `selection.replayType`, and `setReplayType(currentValue)`
-saves the player's choice. A value is not a position in the list.
+saves the player's choice.
 
 \snippet 05-select/Select.qml select-replay
 
@@ -239,7 +239,7 @@ action continue.
 
 Open Multiplayer from the main menu, then join an Arena room. The game opens
 your configured selector, so the same example serves local and multiplayer play.
-Keep Default selected for the `multiplayer` role when using this example.
+Keep Default selected for the `multiplayer` screen when using this example.
 Use Leave selection to leave the room and return to the browser. Closing the
 browser returns to the main menu.
 

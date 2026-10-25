@@ -46,7 +46,7 @@
 
     Normal results declare \c {required property ResultContext result}.
     Course summaries declare \c {required property CourseResultContext result}.
-    Both can pass the value to StandardResultInput::result. The roles remain
+    Both can pass the value to StandardResultInput::result. The screens remain
     separate, even when a theme shares some display components between them.
 
     The game owns the contexts and their data. See \l GameplayContext,

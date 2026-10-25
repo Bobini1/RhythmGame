@@ -3,7 +3,7 @@
 [Previous](06-decide.md) | [Tutorial](index.md) | [Next: Results](08-results.md)
 
 Install `docs/examples/theme-tutorial/07-gameplay/` and choose it for the gameplay
-roles you use in Settings > Themes. It provides 5k, 7k, their battle variants,
+screens you use in Settings > Themes. It provides 5k, 7k, their battle variants,
 10k and 14k. Keep an existing result theme selected for now.
 
 [Download 07-gameplay](examples/theme-tutorial/07-gameplay.zip) or
@@ -117,7 +117,7 @@ scratch last. Five-key modes omit unused columns. `player.isScratchColumn(index)
 identifies scratch lanes for their colors.
 
 The example keeps the default input mapping. A theme can arrange the columns
-differently; their indices still refer to the same note models and inputs.
+differently, for example to flip the scratch lane in 5k mode.
 
 \snippet 07-gameplay/PlayerField.qml columns
 
@@ -248,9 +248,9 @@ works during autoplay and replay.
 \snippet 07-gameplay/PlayerField.qml judgement-feedback
 
 The example maps the displayed judgements to text and colors. It ignores
-events absent from the map, including releases without a judgement, avoided
-mines and internal long-note events. A displayed judgement restarts a half-second timer, even
-when it matches the previous one.
+events absent from the map, like "mine avoided" events.
+A displayed judgement restarts a half-second timer,
+even when it matches the previous one.
 
 The label becomes transparent when the timer stops, so the lanes keep the
 same height. Changing the player, including when a course advances, changes

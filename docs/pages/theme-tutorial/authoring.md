@@ -56,7 +56,7 @@ Automated syntax or lifecycle checks do not replace play checks.
 
 Teach ordinary QML themes through their context objects and Standard components.
 LR2 is an internal adapter and does not define the public API. Keep the
-normal-result and course-result roles distinct even if a theme shares their
+normal-result and course-result screens distinct even if a theme shares their
 presentation.
 
 Link component and context names in lesson prose to their generated reference

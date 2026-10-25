@@ -5,7 +5,7 @@
 Install `docs/examples/theme-tutorial/10-complete/` to try the tutorial screens
 together. The folder contains its own copies of every helper it uses, so it
 doesn't depend on the earlier lesson folders. It keeps Default for Settings
-and Multiplayer because it doesn't provide those roles.
+and Multiplayer because it doesn't provide those screens.
 
 [Download 10-complete](examples/theme-tutorial/10-complete.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/10-complete).
@@ -15,18 +15,18 @@ See [Theme API](../theme-api.md) for the supported interfaces and data contracts
 ## Choose the screens in the manifest
 
 The manifest combines the main menu, enhanced selector, decide, gameplay and
-both result roles. The same gameplay file serves several keymodes, while the
-two result roles keep separate files.
+both result screens. The same gameplay file serves several keymodes, while the
+two result screens keep separate files.
 
 \include 10-complete/theme.json
 
-Choose `10-complete` for the roles you want to replace, then restart the game.
+Choose `10-complete` for the screens you want to replace, then restart the game.
 The menu has the profile greeting and saved color setting from lesson 3.
 The menu and its setting include the Polish translations from lesson 4.
 The Multiplayer button and later screens still use their English source text,
 so you can add their translations by following the same steps.
 
-You can remove a role from the manifest when sharing a theme for just that
+You can remove a screen from the manifest when sharing a theme for just that
 screen. Include every helper and asset that the remaining files use. A theme
 must work with other authors' screens, so avoid imports from Default or
 assumptions about which selector opened your gameplay screen.
@@ -34,7 +34,7 @@ assumptions about which selector opened your gameplay screen.
 ## Add Arena panels to the screens
 
 The complete example opens the configured Multiplayer screen from the main
-menu's Multiplayer button. The example keeps Default for that role, then uses
+menu's Multiplayer button. The example keeps Default for that screen, then uses
 its own selector after you join a room. A custom Multiplayer screen can use
 [StandardMultiplayerFlow](qml/qml-rhythmgameqml-standardmultiplayerflow.html) to connect, enter a room and open scheduled rounds.
 The browser and selector are ordinary screens on the same stack. Leaving the
@@ -115,7 +115,7 @@ folder name is also its settings identity.
 Zip the theme folder with `theme.json` directly inside it. Include source
 assets, any required fonts and compiled `.qm` translations. Keep profiles,
 databases, songs, logs and editor output out of the package. State which game
-build you tested and which screen roles the theme provides in a README.
+build you tested and which screens the theme provides in a README.
 
 The gameplay screen includes BGA, gauges, lane cover, lift and hidden cover.
 Standard components supply the saved note speed and START/SELECT adjustments.

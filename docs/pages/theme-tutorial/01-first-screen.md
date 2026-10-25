@@ -41,7 +41,7 @@ themes/
 ## Register the screen
 
 The game reads `theme.json` to find the screens a theme provides. The `scripts`
-object maps each screen role to a QML file, using paths relative to the theme's
+object maps each screen to a QML file, using paths relative to the theme's
 folder. The first example provides only `main`.
 
 \include 01-main/theme.json
@@ -81,8 +81,8 @@ If you omit the component, make sure you give controller users some way to enter
 [StandardMainController](qml/qml-rhythmgameqml-standardmaincontroller.html) binds the START button to `openSelect()`.
 
 In short, the rule is that each screen has a "contract".
-You can make a main menu theme that does give the user any way to go to song select.
-But this breaks the contract. It doesn't matter what UX you choose exactly but each screen has some roles.
+You can make a main menu theme that does not give the user a way to open song select.
+But that breaks the main screen contract. Each screen has a specific job.
 
 \snippet 01-main/main.qml main-actions
 
