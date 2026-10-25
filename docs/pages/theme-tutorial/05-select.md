@@ -30,8 +30,8 @@ You can use those constituent components instead of the controller if you want s
 The controller plays the selection track from the active profile's BGM set.
 When a focused chart's preview starts, the background music stops. The
 standard list holds a pending preview until scrolling stops.
-Disabling the controller stops both kinds of audio, including while gameplay
-is open. The [assets lesson](09-assets.md) explains the preview settings.
+Disabling the controller stops both kinds of audio, for example it happens automatically when gameplay is open.
+The [assets lesson](09-assets.md) explains the preview settings.
 
 ## Recognize the entry types {#theme_tutorial_select_entry_types}
 
