@@ -9,7 +9,7 @@ if (RhythmGame_USE_BACKBEAT)
 endif ()
 project(
         RhythmGame
-        VERSION 1.3.18
+        VERSION 1.4.0
         DESCRIPTION "A customizable BMS player for Windows and Linux. "
         HOMEPAGE_URL "https://github.com/Bobini1/RhythmGame"
         LANGUAGES C CXX
