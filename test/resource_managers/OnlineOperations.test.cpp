@@ -10,6 +10,7 @@
 #include "gameplay_logic/BmsScoreCourse.h"
 #include "Rg.h"
 #include "support/QStringToPath.h"
+#include "support/Version.h"
 
 #include <catch2/catch_test_macros.hpp>
 #include <QCoreApplication>
@@ -733,6 +734,75 @@ TEST_CASE("Profile destruction flushes delayed settings changes",
           QString::number(i));
     fixture.profile.reset();
     CHECK(resource_managers::readJsonConfig(path)["name"].toString() == "99");
+}
+
+TEST_CASE("Profiles migrate the table list URL only at version 1.4.0",
+          "[Profile][config]")
+{
+    ensureApplication();
+    constexpr auto oldUrl = "https://old.example.invalid/table-list";
+    constexpr auto migratedUrl = "https://rhythmgame.eu/table-list";
+    constexpr auto customUrl = "https://custom.example.invalid/table-list";
+
+    QTemporaryDir directory;
+    db::SqliteCppDb songs{ support::qStringToPath(
+      directory.filePath("songs.sqlite")) };
+    resource_managers::defineDb(songs);
+    const auto folder = directory.filePath("profile");
+    REQUIRE(QDir().mkpath(folder));
+    const auto profilePath = support::qStringToPath(folder + "/profile.sqlite");
+    resource_managers::writeJsonConfig(
+      support::qStringToPath(folder + "/generalVars.json"),
+      { { "tableListUrl", oldUrl } });
+    {
+        db::SqliteCppDb profileDb(profilePath);
+        profileDb.execute("CREATE TABLE properties (key TEXT UNIQUE, value);");
+        auto statement = profileDb.createStatement(
+          "INSERT INTO properties (key, value) VALUES ('version', ?);");
+        statement.bind(1, static_cast<int64_t>(support::packVersion(1, 3, 18)));
+        statement.execute();
+    }
+
+    Network network;
+    resource_managers::SongAssetStore assets;
+    const auto createProfile = [&] {
+        return std::make_unique<resource_managers::Profile>(
+          support::qStringToPath(directory.filePath("songs.sqlite")),
+          profilePath,
+          QMap<QString, qml_components::ThemeFamily>{},
+          QList<QString>{},
+          &network,
+          &assets);
+    };
+
+    auto profile = createProfile();
+    CHECK(profile->getVars()->getGeneralVars()->getTableListUrl() ==
+          migratedUrl);
+    profile.reset();
+    CHECK(resource_managers::readJsonConfig(support::qStringToPath(
+            folder + "/generalVars.json"))["tableListUrl"]
+            .toString() == migratedUrl);
+
+    {
+        db::SqliteCppDb profileDb(profilePath);
+        auto statement = profileDb.createStatement(
+          "UPDATE properties SET value = ? WHERE key = 'version';");
+        statement.bind(1, static_cast<int64_t>(support::packVersion(1, 4, 0)));
+        statement.execute();
+    }
+    profile = createProfile();
+    profile->getVars()->getGeneralVars()->setTableListUrl(customUrl);
+    profile.reset();
+    {
+        db::SqliteCppDb profileDb(profilePath);
+        auto statement = profileDb.createStatement(
+          "UPDATE properties SET value = ? WHERE key = 'version';");
+        statement.bind(1, static_cast<int64_t>(support::packVersion(1, 4, 0)));
+        statement.execute();
+    }
+
+    profile = createProfile();
+    CHECK(profile->getVars()->getGeneralVars()->getTableListUrl() == customUrl);
 }
 
 TEST_CASE("Leaderboard filters and paging expose a consistent model",

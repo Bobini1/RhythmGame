@@ -430,7 +430,7 @@ class GeneralVars final : public QObject
     /**
      * @brief The URL used to fetch the community table list in the Browse
      * panel of Table Settings.
-     * @details Defaults to the darksabun table list endpoint.
+     * @details Defaults to the RhythmGame table list endpoint.
      */
     Q_PROPERTY(QString tableListUrl READ getTableListUrl WRITE setTableListUrl
                  NOTIFY tableListUrlChanged RESET resetTableListUrl)
@@ -474,15 +474,8 @@ class GeneralVars final : public QObject
     QString websiteBaseUrl = "https://rhythmgame.eu";
     QString bgmPath;
     QString soundsetPath;
-    // Default darksabun community table-list endpoint.
-    inline static const QString defaultTableListUrl = QStringLiteral(
-      "https://script.googleusercontent.com/macros/echo?user_content_key="
-      "AWDtjMUPqG3VGAp2E2nnIIN6ai0Im_ai4lD3Kb998b5zNu881oh8U93tiKchKmz0"
-      "CiU21TRk2FbhTVDg_UeCGlGKMiMeQ2jJXOzkMeAz4QdAqiTffivqe9OiSxrfIS"
-      "ozhZnz1LxSk6vfXCbm-Wt6eKqKBffTcCdUrrkIDQyRLK00pAHNTLiK4899SSycq"
-      "Urh6huo4gENgokERvbeHrT8OUrVVTq1gEtFMtpGurM9HXC037qo1SMe5CSsOXb0"
-      "UfYy-14dlRmOHb-v3Nbin-Pr5pU9nApG7zcoJfqB6bEut33v"
-      "&lib=MZGF-rpGWT28d9kh49MlyleOKhrMb7MMj");
+    inline static const QString defaultTableListUrl =
+      QStringLiteral("https://rhythmgame.eu/table-list");
     QString tableListUrl = defaultTableListUrl;
     qml_components::OnlineRankingModel::Provider rankingProvider =
       qml_components::OnlineRankingModel::Provider::RhythmGame;

@@ -37,6 +37,7 @@ namespace resource_managers {
 
 namespace {
 constexpr auto replayDataMigrationVersion = std::tuple{ 1, 3, 1 };
+constexpr auto tableListUrlMigrationVersion = std::tuple{ 1, 4, 0 };
 
 auto
 createDb(const std::filesystem::path& dbPath) -> db::SqliteCppDb
@@ -577,6 +578,9 @@ Profile::Profile(
       "ON score_course(identifier, unix_timestamp DESC);");
     if (version && *version < replayDataMigrationVersion) {
         gameplay_logic::BmsReplayData::migrateStoredReplayData(db);
+    }
+    if (!version || *version < tableListUrlMigrationVersion) {
+        vars.getGeneralVars()->resetTableListUrl();
     }
     db.execute("CREATE TABLE IF NOT EXISTS gauge_history ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
