@@ -106,9 +106,6 @@ vertically in a narrow window. A `ScrollView` holds the player displays, so
 battle results can show both players without shrinking the graphs. Retry and
 Continue stay outside the scroll area.
 
-During Arena play, the normal result uses the left half of the screen, leaving
-room for the Arena panel's default position on the right.
-
 ## Show each player's online rank
 
 The result uses the same

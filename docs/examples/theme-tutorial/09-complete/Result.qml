@@ -20,7 +20,6 @@ Pane {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 24
-        anchors.rightMargin: arenaOverlay.visible ? screen.width / 2 : 24
         spacing: 16
 
         Label {
