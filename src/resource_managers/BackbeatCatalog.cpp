@@ -10,6 +10,7 @@
 #include <QSet>
 #include <QtConcurrent>
 #include <chrono>
+#include <cstdint>
 #include <spdlog/spdlog.h>
 
 namespace resource_managers {
@@ -186,7 +187,7 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
         database.execute(
           "DELETE FROM folder_charts WHERE directory IN "
           "(SELECT id FROM parent_dir WHERE dir GLOB 'backbeat:/packs/*')");
-        qint64 directory = -1;
+        std::int64_t directory = -1;
         if (!parsed.empty()) {
             auto insert =
               database.createStatement("INSERT OR IGNORE INTO parent_dir "
@@ -196,7 +197,7 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
             auto query = database.createStatement(
               "SELECT id FROM parent_dir WHERE dir = ?");
             query.bind(1, BackbeatSource::rootPath().toStdString());
-            directory = query.executeAndGet<qint64>().value();
+            directory = query.executeAndGet<std::int64_t>().value();
         }
         for (auto it = indexed.cbegin(); it != indexed.cend(); ++it) {
             if (installed.contains(it.key())) {
@@ -247,7 +248,8 @@ BackbeatCatalog::synchronize(std::optional<qint64> previousRevision) -> Update
                      QString::fromLatin1(QUrl::toPercentEncoding(pack.name)));
             saveFolder.reset();
             saveFolder.bind(1, path.toStdString());
-            const auto folderId = saveFolder.executeAndGet<qint64>().value();
+            const auto folderId =
+              saveFolder.executeAndGet<std::int64_t>().value();
             for (const auto& bundle : pack.bundles) {
                 saveMembership.reset();
                 saveMembership.bind(1, folderId);
