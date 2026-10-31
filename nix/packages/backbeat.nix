@@ -10,17 +10,17 @@
 }:
 rustPlatform.buildRustPackage rec {
   pname = "backbeat";
-  version = "0.5.1";
+  version = "1.0.0";
 
   # Keep the SDK revision in sync with vcpkgOverlayPorts/backbeat/portfile.cmake.
   src = fetchFromGitHub {
     owner = "zkldi";
     repo = "backbeat";
-    rev = "3ed0c353d912cfcb671920c6d88f5281ce85a49f";
-    hash = "sha256-YJ6N3/cXBNinzcssIAdSas2YL82+8sMCJa0OpniP024=";
+    rev = "5df6f7630e099e8693b6427c27d6c3e98576b8e0";
+    hash = "sha256-/9l6SHjNEAAd/s0AIi9XdbcxrsozxbNkutZHFqdnpJs=";
   };
 
-  cargoHash = "sha256-wOH0/7DE/yi/hk6wYwfcKbCslK/P4P0BfcJJe52aHAA=";
+  cargoHash = "sha256-CrMFFor4Oa4A+2B2wCmwLP7L+Z5ObVfQR1tlVbHAr5U=";
   cargoBuildFlags = ["--package" "backbeat_c_sdk" "--lib"];
   cargoTestFlags = ["--package" "backbeat_c_sdk" "--lib"];
 
