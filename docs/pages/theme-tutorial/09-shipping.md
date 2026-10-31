@@ -14,7 +14,7 @@ See [Theme API](../theme-api.md) for the supported interfaces and data contracts
 
 ## Choose the screens in the manifest
 
-The manifest combines the main menu, enhanced selector, decide, gameplay and
+The manifest combines the main menu, enhanced select screen, decide, gameplay and
 both result screens. The same gameplay file serves several keymodes, while the
 two result screens keep separate files.
 
@@ -26,27 +26,24 @@ The menu and its setting include the Polish translations from lesson 4.
 The Multiplayer button and later screens still use their English source text,
 so you can add their translations by following the same steps.
 
-You can remove a screen from the manifest when sharing a theme for just that
-screen. Include every helper and asset that the remaining files use. A theme
-must work with other authors' screens, so avoid imports from Default or
-assumptions about which selector opened your gameplay screen.
-
 ## Add Arena panels to the screens
 
 The complete example opens the configured Multiplayer screen from the main
 menu's Multiplayer button. The example keeps Default for that screen, then uses
-its own selector after you join a room. A custom Multiplayer screen can use
-[StandardMultiplayerFlow](qml/qml-rhythmgameqml-standardmultiplayerflow.html) to connect, enter a room and open scheduled rounds.
-The browser and selector are ordinary screens on the same stack. Leaving the
+its own select screen after you join a room. A custom Multiplayer screen can use
+[StandardMultiplayerFlow](qml/qml-rhythmgameqml-standardmultiplayerflow.html) to connect, enter a room and open
+scheduled rounds.
+The browser and select screen are ordinary screens on the same stack. Leaving the
 room returns to the browser; closing the browser disconnects from Arena.
 
 \snippet 09-complete/main.qml arena-menu
 
-Each screen adds its own panel. [StandardArenaSelectOverlay](qml/qml-rhythmgameqml-standardarenaselectoverlay.html) shows the room,
+Each screen adds its own panel. [StandardArenaSelectOverlay](qml/qml-rhythmgameqml-standardarenaselectoverlay.html)
+shows the room,
 ready controls and chat while you are in a room. Its `navigationFocusTarget`
 returns keyboard focus to the song list after chat closes. The earlier
-selector examples include the same component. The overlay also handles the
-double-Start ready gesture. Set its `readyShortcutEnabled` to false to provide
+select screen examples include the same component. The overlay also handles the
+double-Start ready shortcut. Set its `readyShortcutEnabled` to false to provide
 your own shortcut. The controller handles leaving the room and proposing charts.
 
 For a custom Ready button, use the overlay's `ready`, `canToggleReady` and
@@ -56,7 +53,8 @@ becoming ready, so it isn't enough to enable a button that also cancels readines
 
 \snippet 09-complete/Select.qml arena-select
 
-Gameplay binds its overlay to the same context as [StandardGameplayFlow](qml/qml-rhythmgameqml-standardgameplayflow.html).
+Gameplay binds its overlay to the same context
+as [StandardGameplayFlow](qml/qml-rhythmgameqml-standardgameplayflow.html).
 The overlay shows standings for that Arena play and stays hidden during
 local play or a course. F8 switches between standings and chat.
 
@@ -96,7 +94,7 @@ to selection keeps the folder and focus, and that preview audio stops during pla
 Second, check a course through a normal result after every stage, including
 the last stage, followed by the course summary. Try each
 keymode you advertise, including battle if it is in the manifest. Check normal
-play, autoplay and replay where the chosen selector offers them. Standard
+play, autoplay and replay where the chosen select screen offers them. Standard
 components supply shared behavior, but your layout still needs to display the
 corresponding data.
 

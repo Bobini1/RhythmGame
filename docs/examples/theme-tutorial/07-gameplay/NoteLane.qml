@@ -33,7 +33,6 @@ Rectangle {
             required property bool staticLongNoteCandidate
 
             readonly property bool longNote: drawnNote.noteType === note.Type.LongNoteBegin
-                && isFinite(drawnNote.longNoteEndPosition)
             readonly property real bottomPosition: drawnNote.staticLongNoteCandidate
                 && drawnNote.longNoteEndPosition > lane.player.position
                     ? lane.player.position : drawnNote.notePosition

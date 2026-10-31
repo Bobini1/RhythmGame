@@ -21,8 +21,8 @@ stay fixed even if the gameplay context has already advanced to the next stage.
 \snippet 08-results/Result.qml result-contract
 
 Use `result.players` to show the participants. Each [ResultPlayer](qml/qml-rhythmgameqml-resultplayer.html) pairs a
-profile with a saved [BmsScore](@ref gameplay_logic::BmsScore), so you don't have to match separate profile
-and score arrays. The list contains one or two entries, with no null padding.
+profile with a saved [BmsScore](@ref gameplay_logic::BmsScore).
+The list contains one or two entries, with no null padding.
 
 \snippet 08-results/Result.qml score-delegate
 
@@ -70,8 +70,6 @@ included hit fits inside the graph.
 
 \snippet 08-results/HitDistribution.qml timing-bars
 
-The graph scales bar heights against the largest count. Its buckets are
-calculated when the replay data changes, so resizing only changes the rectangles.
 A missing replay shows "Replay data unavailable". A replay with no included
 hits shows "No replay data".
 

@@ -117,7 +117,7 @@ title and subtitle. If no title is known, it displays the identifier.
 ## Connect a list to the controller
 
 [StandardSelectListView](qml/qml-rhythmgameqml-standardselectlistview.html)
-extends `ListView` with the navigation needed by a song selector. Set its
+extends `ListView` with the navigation needed by a song select screen. Set its
 `controller` and supply a delegate for each row.
 
 \snippet 05-select/Select.qml select-list
@@ -224,7 +224,7 @@ the same controller actions. To change one caption, choose your text in a
 binding or derive your own model. Compare the option's `value`, rather than its
 position in the list. The
 [StandardSelectOptions reference](qml/qml-rhythmgameqml-standardselectoptions.html)
-has an example and explains how to use the labels outside a selector.
+has an example and explains how to use the labels outside a select screen.
 
 The button calls [openReplay ()](qml/qml-rhythmgameqml-standardselectstate.html#openReplay-method),
 which is also the action used by bound key 7. Bound key 6 cycles the replay
@@ -289,12 +289,12 @@ changes or the screen closes.
 ## Include the Arena room panel
 
 Open Multiplayer from the main menu, then join an Arena room. The game opens
-your configured selector, so the same example serves local and multiplayer play.
+your configured select screen, so the same example serves local and multiplayer play.
 Keep Default selected for the `multiplayer` screen when using this example.
 Use Leave selection to leave the room and return to the browser. Closing the
 browser returns to the main menu.
 
-The selector also adds [StandardArenaSelectOverlay](qml/qml-rhythmgameqml-standardarenaselectoverlay.html).
+The select screen also adds [StandardArenaSelectOverlay](qml/qml-rhythmgameqml-standardarenaselectoverlay.html).
 The panel appears when
 you join an Arena room and supplies ready controls, the double-Start ready
 shortcut and chat. Closing chat

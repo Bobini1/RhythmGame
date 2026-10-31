@@ -54,8 +54,7 @@ ColumnLayout {
         Layout.fillHeight: true
         color: "#243341"
 
-        readonly property real liftRatio: field.vars.liftOn
-            ? Math.max(0, Math.min(1, field.vars.liftRatio)) : 0
+        readonly property real liftRatio: field.vars.liftOn ? field.vars.liftRatio : 0
 
         RowLayout {
             id: lanes
@@ -98,15 +97,13 @@ ColumnLayout {
             id: laneCover
             anchors.top: lanes.top
             width: lanes.width
-            height: field.vars.laneCoverOn
-                ? lanes.height * Math.max(0, Math.min(1, field.vars.laneCoverRatio)) : 0
+            height: field.vars.laneCoverOn ? lanes.height * field.vars.laneCoverRatio : 0
             color: "#243341"
         }
         Rectangle {
             anchors.bottom: lanes.bottom
             width: lanes.width
-            height: field.vars.hiddenOn
-                ? lanes.height * Math.max(0, Math.min(1, field.vars.hiddenRatio)) : 0
+            height: field.vars.hiddenOn ? lanes.height * field.vars.hiddenRatio : 0
             color: "#243341"
         }
         Rectangle {
