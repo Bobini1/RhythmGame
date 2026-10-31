@@ -154,10 +154,6 @@ The course's recorded stages and combined graph data are still available.
 
 \snippet 08-results/CourseResult.qml course-players
 
-Keep the two root properties typed separately. The game doesn't send a course
-summary to a normal result screen as a fallback. Default shares a private
-view between its two result files, but another theme can draw them differently.
-
 Both saved score types expose the totals used by `ScoreLine.qml` and
 `ResultStats.qml`. A course score also combines its stages' hit events and
 gauge history, so the graphs work without changing their bindings. The course
