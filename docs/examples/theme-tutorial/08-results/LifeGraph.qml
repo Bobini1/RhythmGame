@@ -28,7 +28,7 @@ ColumnLayout {
     // [gauge-selection]
 
     // [gauge-points]
-    readonly property var points: {
+    readonly property var lifePoints: {
         if (history.length === 0 || !gauge || gauge.maxGauge <= 0) return [];
         const points = [];
         let previous = 1 - history[0].gauge / gauge.maxGauge;
@@ -63,20 +63,20 @@ ColumnLayout {
             id: curve
             anchors.fill: parent
             anchors.margins: 1
-            readonly property var points: life.points
-            onPointsChanged: requestPaint()
+            readonly property var lifePoints: life.lifePoints
+            onLifePointsChanged: requestPaint()
             onWidthChanged: requestPaint()
             onHeightChanged: requestPaint()
 
             onPaint: {
                 const context = getContext("2d");
                 context.reset();
-                if (points.length === 0) return;
+                if (lifePoints.length === 0) return;
                 context.strokeStyle = "#a8dcc9";
                 context.lineWidth = 2;
                 context.beginPath();
-                context.moveTo(points[0].x * width, points[0].y * height);
-                for (const point of points)
+                context.moveTo(lifePoints[0].x * width, lifePoints[0].y * height);
+                for (const point of lifePoints)
                     context.lineTo(point.x * width, point.y * height);
                 context.stroke();
             }
