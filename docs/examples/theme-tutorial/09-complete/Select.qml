@@ -15,16 +15,16 @@ FocusScope {
     // [assets-state]
 
     // [judge-rank]
-    readonly property string judgeRankText: {
-        const rank = screen.chartData?.rank;
-        const names = {
-            25: qsTr("Very hard"),
-            50: qsTr("Hard"),
-            75: qsTr("Normal"),
-            100: qsTr("Easy")
-        };
-        return rank === undefined ? qsTr("Unknown")
-            : names[rank] ?? qsTr("Custom (%1)").arg(rank);
+    function judgeRankText(rank) {
+        if (rank < 25) return qsTr("OVER HARD");
+        if (rank === 25) return qsTr("VERY HARD");
+        if (rank < 50) return qsTr("MORE HARD");
+        if (rank === 50) return qsTr("HARD");
+        if (rank < 75) return qsTr("LITTLE HARD");
+        if (rank === 75) return qsTr("NORMAL");
+        if (rank < 100) return qsTr("LITTLE EASY");
+        if (rank === 100) return qsTr("EASY");
+        return qsTr("OVER EASY");
     }
     // [judge-rank]
 
@@ -140,22 +140,24 @@ FocusScope {
                     // [saved-results]
                 }
 
-                // [recording-graph]
+                // [replay-graph]
                 HitDistribution {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.preferredWidth: 320
                     Layout.preferredHeight: 180
-                    title: qsTr("Last score, rank: %1").arg(screen.judgeRankText)
+                    title: screen.chartData
+                        ? qsTr("Last score, rank: %1").arg(screen.judgeRankText(screen.chartData.rank))
+                        : qsTr("Last score")
                     replayData: scoreDetails.score?.replayData ?? null
                     timingWindows: screen.chartData?.timingWindows ?? []
                     unavailableText: !scoreDetails.result ? qsTr("No saved score")
-                        : scoreDetails.loading ? qsTr("Loading recording...")
+                        : scoreDetails.loading ? qsTr("Loading replay...")
                         : scoreDetails.status === ScoreDetails.Error
-                            ? qsTr("Could not load this recording")
-                            : qsTr("This score has no recording")
+                            ? qsTr("Could not load this replay")
+                            : qsTr("This score has no replay")
                 }
-                // [recording-graph]
+                // [replay-graph]
             }
 
             // [select-ranking]

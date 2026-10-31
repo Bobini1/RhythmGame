@@ -230,9 +230,9 @@ The button calls [openReplay ()](qml/qml-rhythmgameqml-standardselectstate.html#
 which is also the action used by bound key 7. Bound key 6 cycles the replay
 choice. No extra handler is needed on the controller.
 
-`replayAvailable` keeps the button disabled until a usable recording is loaded.
+`replayAvailable` keeps the button disabled until a usable replay is loaded.
 Scores imported without replay data can still be viewed as results, but cannot
-be played back. A course replay needs recordings for all its stages.
+be played back. A course replay needs replay data for all its stages.
 Replay playback uses the main profile alone and is unavailable in Arena.
 
 For a custom replay picker, set the controller's `tryReplayAction` to a function
@@ -257,7 +257,7 @@ of constructing a `file:///` URL yourself.
 \snippet 05-select/Select.qml chart-image
 
 The controller's `results` map holds lightweight [BmsResult](@ref gameplay_logic::BmsResult)
-summaries. Reading the map does not load a recording. The map updates after a
+summaries. Reading the map does not load replay data. The map updates after a
 score is saved or imported, so the labels follow the selected chart and active
 profile without imperative refresh code. `StandardRanking` derives the best
 clear and best score from the same results. They can be different runs.
@@ -267,17 +267,17 @@ clear and best score from the same results. They can be different runs.
 Use [ScoreDetails](qml/qml-rhythmgameqml-scoredetails.html) when the panel needs
 a full score, such as replay hit events or gauge history. The example loads the
 latest saved result. Changing the selected result cancels the previous load, so
-the graph cannot show a recording for the chart you just left.
+the graph cannot show replay data for the chart you just left.
 
 \snippet 05-select/Select.qml score-details
 
 The graph receives the full score's replay data and the selected chart's timing
 windows. It keeps the same fixed scale that the [result lesson](08-results.md)
-uses. A saved result can exist without a recording, so the panel distinguishes
-no saved score, a recording that is loading, a failed load and a score without
+uses. A saved result can exist without a replay, so the panel distinguishes
+no saved score, a replay that is loading, a failed load and a score without
 replay data.
 
-\snippet 05-select/Select.qml recording-graph
+\snippet 05-select/Select.qml replay-graph
 
 `selection.ranking` follows the selected chart and the provider saved in the
 profile. The provider picker is optional. `openInternetRanking()` is the same

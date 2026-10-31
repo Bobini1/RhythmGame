@@ -101,8 +101,8 @@ target points in a label.
 \snippet 07-gameplay/PlayerField.qml score-target
 
 The target follows the player's profile setting: a score fraction, best run,
-latest run or next rank. Saved recordings supply the target's progress through
-the chart. A saved score without a recording uses its score rate instead.
+latest run or next rank. Saved replays supply the target's progress through
+the chart. A saved score without a replay uses its score rate instead.
 The component loads new scores for each course stage and cancels old requests.
 
 Battle targets follow the other player. Arena targets follow the opponent
