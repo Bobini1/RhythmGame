@@ -26,12 +26,11 @@ QML files and any assets it uses.
 | \subpage theme_tutorial_qml          | `02-qml`           | Reusable buttons and a color change                  |
 | \subpage theme_tutorial_rg           | `03-profile`       | A profile greeting with a saved color setting        |
 | \subpage theme_tutorial_translations | `04-translations`  | The same menu in English or Polish                   |
-| \subpage theme_tutorial_select       | `05-select`        | A list of folders, charts and courses                |
+| \subpage theme_tutorial_select       | `05-select`        | Browse charts, then show saved scores and rankings   |
 | \subpage theme_tutorial_decide       | `06-decide`        | A confirmation screen before play                    |
 | \subpage theme_tutorial_gameplay     | `07-gameplay`      | Notes, long notes, mines and a live score            |
 | \subpage theme_tutorial_results      | `08-results`       | Chart results and a separate course summary          |
-| \subpage theme_tutorial_assets       | `09-assets`        | Images, previews, saved scores and online rankings   |
-| \subpage theme_tutorial_shipping     | `10-complete`      | The screens combined into one theme                  |
+| \subpage theme_tutorial_shipping     | `09-complete`      | The screens combined into one theme                  |
 
 Start with [the first menu](01-first-screen.md), even if you plan to work on
 gameplay. It explains how to install, select and reload an example. Later

@@ -88,10 +88,22 @@ But that breaks the main screen contract. Each screen has a specific job.
 
 \snippet 01-main/main.qml buttons
 
-The image path is relative to `main.qml`. `sourceSize` sets the size used to
-render the SVG, while the layout controls the space it occupies on screen.
+The image is a file in the theme's `images` folder, and its path is relative to
+`main.qml`. Qt's [Image documentation](https://doc.qt.io/qt-6/qml-qtquick-image.html)
+explains image sizing, fitting and cropping.
 
 \snippet 01-main/main.qml image
+
+## Keep theme assets in the theme
+
+Keep the images, fonts and sounds used by your interface in the theme folder,
+then copy them with the QML files when you install or publish the theme.
+`images`, `fonts` and `sounds` are useful folder names, but the game does not
+require a particular layout.
+
+Use a relative URL from the QML file that uses the asset, such as
+`images/notes.svg`. To use a custom font, load its file with
+[FontLoader](https://doc.qt.io/qt-6/qml-qtquick-fontloader.html).
 
 The complete screen is short enough to read before making a change.
 

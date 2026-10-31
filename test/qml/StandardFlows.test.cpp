@@ -507,7 +507,7 @@ Item {
     currentPlayer->getState()->setVisiblePositionSpans(64, 64);
     auto* column = currentPlayer->getState()->getColumnFilters().front();
     REQUIRE(column->rowCount({}) > 0);
-    for (const auto* laneLesson : { "07-gameplay", "10-complete" }) {
+    for (const auto* laneLesson : { "07-gameplay", "09-complete" }) {
         const auto path = QString::fromUtf8(RHYTHMGAME_SOURCE_DIR) +
                           "/docs/examples/theme-tutorial/" + laneLesson +
                           "/NoteLane.qml";
@@ -531,13 +531,13 @@ Item {
 TEST_CASE("StandardGameplayFlow inherits screen activation through containers",
           "[qml][StandardGameplayFlow]")
 {
-    checkGameplayFlow(GENERATE("", "07-gameplay", "10-complete"), false);
+    checkGameplayFlow(GENERATE("", "07-gameplay", "09-complete"), false);
 }
 
 TEST_CASE("tutorial gameplay supports double play and battle",
           "[qml][StandardGameplayFlow]")
 {
-    checkGameplayFlow(GENERATE("07-gameplay", "10-complete"),
+    checkGameplayFlow(GENERATE("07-gameplay", "09-complete"),
                       false,
                       GENERATE("double", "battle"));
 }

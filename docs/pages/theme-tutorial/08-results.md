@@ -1,6 +1,6 @@
 # 8. Show chart results and course summaries {#theme_tutorial_results}
 
-[Previous](07-gameplay.md) | [Tutorial](index.md) | [Next: Assets and saved scores](09-assets.md)
+[Previous](07-gameplay.md) | [Tutorial](index.md) | [Next: Combine and share](09-shipping.md)
 
 Install `docs/examples/theme-tutorial/08-results/` and select it for both Result
 and Course Result. The folder contains separate entry files for the two screens,
@@ -41,7 +41,7 @@ Read the counts from `score.result.judgementCounts`, using a `Judgement` value
 as the index. The example chooses a label and color for each displayed judgement.
 PGREAT uses `Judgement.Perfect`, while EMPTY POOR counts presses that were too
 far from a note. MINE counts mines the player hit. Internal events such as
-`LnEndSkip` don't need rows in the list.
+`LnEndSkip` (ln ends where the beginning of the ln was not hit) don't need rows in the list.
 
 \snippet 08-results/ResultStats.qml judgement-counts
 
@@ -57,16 +57,16 @@ more hits.
 
 The graph reads `score.replayData.hitEvents`. It includes Perfect, Great, Good
 and Bad judgements. Poor and Empty Poor events don't measure a successful note
-hit, so the graph excludes them, along with mines and internal long-note events.
+hit, so the graph excludes them, along with mines and the special long-note events.
 The `deviation` value is in nanoseconds, and dividing it by one million gives
 milliseconds.
 
 \snippet 08-results/HitDistribution.qml timing-buckets
 
-The binding builds 41 buckets, with one centered on zero. The outer bucket
-centers start at 100 milliseconds early and late. If a hit falls farther away,
-the range expands in steps of 50 milliseconds. The label shows the bucket width,
-and all included hits fit in the graph.
+The graph uses the `Bad` window from `ChartData.timingWindows` as its outer
+limit. It builds 41 fixed buckets, with one centered on zero and 20 on each
+side. Every saved score for the same chart uses the same scale, and every
+included hit fits inside the graph.
 
 \snippet 08-results/HitDistribution.qml timing-bars
 
@@ -140,9 +140,12 @@ separate from online rankings and use the overlay described below.
 
 ## Read a completed course
 
-`CourseResult.qml` receives [CourseResultContext](qml/qml-rhythmgameqml-courseresultcontext.html) for the overall summary.
+`CourseResult.qml` receives [CourseResultContext](qml/qml-rhythmgameqml-courseresultcontext.html) for the overall
+summary.
 Its `course` describes the course, and `charts` contains the chart metadata in
 stage order. Its players have [BmsScoreCourse](@ref gameplay_logic::BmsScoreCourse) scores that aggregate the course.
+The combined hit graph uses the widest available Bad window from the course's
+stages, so it can show every included hit on one fixed scale.
 
 For a saved course result, a chart may have been removed from the library.
 `result.charts[index]` is then null, while `result.course.chartIds[index]` still
@@ -176,7 +179,8 @@ the combined course timeline. The roots still receive distinct types.
 
 ## Close a result through the same input handler
 
-Pass either result context to [StandardResultInput](qml/qml-rhythmgameqml-standardresultinput.html). It delays confirmation
+Pass either result context to [StandardResultInput](qml/qml-rhythmgameqml-standardresultinput.html). It delays
+confirmation
 briefly after the screen opens, then handles the standard keys. Your own
 Continue button calls `confirm()` and uses the same delay.
 
@@ -196,8 +200,8 @@ autoplay, replay, battle and Arena, so the theme doesn't repeat those checks.
 
 ## Include Arena standings
 
-The normal result screen adds [StandardArenaResultOverlay](qml/qml-rhythmgameqml-standardarenaresultoverlay.html). Its context
-identifies the completed Arena round, so the panel can display the matching
+The normal result screen adds [StandardArenaResultOverlay](qml/qml-rhythmgameqml-standardarenaresultoverlay.html). Its
+context identifies the completed Arena round, so the panel can display the matching
 standings and chat. Local results stay unchanged. StandardResultInput
 disables confirmation while this result's chat is open, so Enter only sends
 the message. This works with custom Arena panels too. Override `confirmEnabled`
@@ -206,7 +210,7 @@ only when your theme needs another confirmation rule.
 \snippet 08-results/Result.qml arena-result
 
 The course summary does not need an Arena overlay. See the
-[complete example](10-shipping.md) for placement and chat options.
+[complete example](09-shipping.md) for placement and chat options.
 
 \include{lineno} 08-results/Result.qml
 

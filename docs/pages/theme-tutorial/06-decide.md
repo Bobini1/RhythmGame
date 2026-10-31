@@ -60,8 +60,7 @@ handles that transition when the session prepares a round.
 \image html theme-lifetime.svg "Screen lifetime during a single chart"
 
 If you add shortcuts or audio players yourself, bind their behavior to the
-screen's `enabled` state. They don't inherit it like child Items do. The
-assets lesson shows how to disable a custom shortcut.
+screen's `enabled` state. They don't inherit it like child Items do.
 
 Try starting once by button and once by waiting for the timeout. Then select
 another chart and cancel. Check a course too, if one is available in your

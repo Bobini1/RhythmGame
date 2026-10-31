@@ -6,6 +6,7 @@ import RhythmGameQml
 GridLayout {
     id: stats
     required property var score
+    property var timingWindows: []
     columns: width < 720 ? 1 : 3
     columnSpacing: 24
     rowSpacing: 24
@@ -52,6 +53,7 @@ GridLayout {
         Layout.preferredWidth: 1
         Layout.alignment: Qt.AlignTop
         replayData: stats.score.replayData
+        timingWindows: stats.timingWindows
     }
 
     LifeGraph {

@@ -10,6 +10,19 @@ Pane {
     required property CourseResultContext result
     // [course-contract]
 
+    readonly property var courseTimingWindows: {
+        let limitNs = 0;
+        for (const chart of screen.result.charts ?? []) {
+            const windows = chart?.timingWindows ?? [];
+            const outerWindow = windows.find(window => window.judgement === "Bad")
+                ?? windows[0];
+            limitNs = Math.max(limitNs, Number(outerWindow?.lateNs ?? 0));
+        }
+        return limitNs > 0
+            ? [{ judgement: "Bad", lateNs: limitNs }]
+            : [];
+    }
+
     StandardResultInput {
         id: resultInput
         result: screen.result
@@ -55,6 +68,7 @@ Pane {
                         ResultStats {
                             Layout.fillWidth: true
                             score: playerResult.modelData.score
+                            timingWindows: screen.courseTimingWindows
                         }
                     }
                 }

@@ -18,10 +18,10 @@ Keep visible strings as plain English text in lessons 1 to 3. Introduce
 `qsTr()` and numbered placeholders in lesson 4, then use them in the later
 examples.
 
-When an example changes, update its copy in `10-complete` if that screen is
+When an example changes, update its copy in `09-complete` if that screen is
 included there. The deliberate duplication lets readers copy any folder into
 the game without installing a shared tutorial package. Keep lesson 4's `.ts`
-and compiled `.qm` files together, including their copies in `10-complete`.
+and compiled `.qm` files together, including their copies in `09-complete`.
 
 The `docs` target creates a ZIP for each lesson folder and copies the source
 folders into the generated site. Download links point to those archives.
@@ -34,7 +34,7 @@ directory. Check links, snippet contents and figures, then open a downloaded
 archive to confirm it contains the entire theme folder.
 
 Use `import QtQuick.Controls.FluentWinUI3` in each tutorial QML file that uses
-controls, including reusable components and copies in `10-complete`.
+controls, including reusable components and copies in `09-complete`.
 
 Render tutorial screenshots with FluentWinUI3 and the game's color scheme and
 font. Prefer in-game captures. A standalone preview must also import

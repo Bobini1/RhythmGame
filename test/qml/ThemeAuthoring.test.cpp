@@ -38,8 +38,8 @@ TEST_CASE("Tutorial result graphs use loaded chart and course score data",
                                             { Judgement::Perfect, 0 },
                                             { Judgement::Great, -15 },
                                             { Judgement::Good, 25 },
-                                            { Judgement::Bad, -180 },
-                                            { Judgement::Bad, 200 },
+                                            { Judgement::Bad, -140 },
+                                            { Judgement::Bad, 150 },
                                             { Judgement::Poor, 300 },
                                             { Judgement::EmptyPoor, -300 },
                                             { Judgement::MineHit, 0 },
@@ -85,7 +85,12 @@ TEST_CASE("Tutorial result graphs use loaded chart and course score data",
       std::make_unique<BmsReplayData>(QList<HitEvent>{}, "empty"),
       std::make_unique<BmsGaugeHistory>(QList<BmsGaugeInfo>{}, "empty"));
 
-    for (const auto* lesson : { "08-results", "10-complete" }) {
+    const QVariantList timingWindows{
+        QVariantMap{ { "judgement", "Bad" },
+                     { "earlyNs", 150'000'000LL },
+                     { "lateNs", 150'000'000LL } }
+    };
+    for (const auto* lesson : { "08-results", "09-complete" }) {
         CAPTURE(lesson);
         QQmlEngine engine;
         QStringList warnings;
@@ -102,7 +107,8 @@ TEST_CASE("Tutorial result graphs use loaded chart and course score data",
         INFO(component.errorString().toStdString());
         REQUIRE(component.isReady());
         std::unique_ptr<QObject> view(component.createWithInitialProperties(
-          { { "score", QVariant::fromValue(score.get()) } }));
+          { { "score", QVariant::fromValue(score.get()) },
+            { "timingWindows", timingWindows } }));
         REQUIRE(view);
         QObject* histogram = nullptr;
         QObject* life = nullptr;
@@ -125,9 +131,11 @@ TEST_CASE("Tutorial result graphs use loaded chart and course score data",
             CHECK(value.toBool());
         };
         check("histogram.histogram.total === 8 && histogram.histogram.limit "
-              "=== 200");
+              "=== 150");
         check("histogram.histogram.counts[20] === 4 && "
-              "histogram.histogram.counts[2] === 1 && "
+              "histogram.histogram.counts[1] === 1 && "
+              "histogram.histogram.counts[18] === 1 && "
+              "histogram.histogram.counts[23] === 1 && "
               "histogram.histogram.counts[40] === 1");
         check("life.gauge.name === 'NORMAL' && life.duration === 12000000000");
         check("life.points[0].x === 0 && life.points[0].y === 0.5");

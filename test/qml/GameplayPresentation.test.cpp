@@ -310,7 +310,7 @@ TEST_CASE("Gameplay controls and BGA follow players and replacement stages",
         CHECK_FALSE(layer->getVideoSink());
 
     for (const auto* stage : { solo.get(), courseStage.get() }) {
-        for (const auto* lesson : { "07-gameplay", "10-complete" }) {
+        for (const auto* lesson : { "07-gameplay", "09-complete" }) {
             QQmlComponent gaugeComponent(
               &engine,
               QUrl::fromLocalFile(QString::fromUtf8(RHYTHMGAME_SOURCE_DIR) +

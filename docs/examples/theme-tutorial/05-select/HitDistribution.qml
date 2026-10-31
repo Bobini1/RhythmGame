@@ -6,27 +6,33 @@ import RhythmGameQml
 ColumnLayout {
     id: distribution
     required property var replayData
+    property var timingWindows: []
     property string title: qsTr("Hit timing")
     property string unavailableText: qsTr("Replay data unavailable")
 
     // [timing-buckets]
+    readonly property real timingLimit: {
+        const windows = distribution.timingWindows ?? [];
+        const outerWindow = windows.find(window => window.judgement === "Bad") ?? windows[0];
+        const limitNs = Number(outerWindow?.lateNs ?? 0);
+        return (limitNs > 0 ? limitNs : 200000000) / 1000000;
+    }
     readonly property var histogram: {
-        const offsets = [];
         const judgements = [Judgement.Perfect, Judgement.Great, Judgement.Good, Judgement.Bad];
-        let largest = 0;
+        const limit = distribution.timingLimit;
+        const step = limit / 20;
+        const counts = Array(41).fill(0);
+        let total = 0;
         for (const hit of replayData?.hitEvents ?? []) {
             if (!judgements.includes(hit.judgement)) continue;
             const millis = hit.deviation / 1000000;
-            offsets.push(millis);
-            largest = Math.max(largest, Math.abs(millis));
+            const index = Math.max(0, Math.min(counts.length - 1,
+                Math.round(millis / step) + 20));
+            counts[index]++;
+            total++;
         }
-        const limit = Math.max(100, Math.ceil(largest / 50) * 50);
-        const step = limit / 20;
-        const counts = Array(41).fill(0);
-        for (const millis of offsets)
-            counts[Math.round(millis / step) + 20]++;
         return { counts: counts, limit: limit, step: step,
-            total: offsets.length, peak: Math.max(1, ...counts) };
+            total: total, peak: Math.max(1, ...counts) };
     }
     // [timing-buckets]
 

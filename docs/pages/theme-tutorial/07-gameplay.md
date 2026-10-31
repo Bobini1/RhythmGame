@@ -249,11 +249,9 @@ works during autoplay and replay.
 
 The example maps the displayed judgements to text and colors. It ignores
 events absent from the map, like "mine avoided" events.
-A displayed judgement restarts a half-second timer,
-even when it matches the previous one.
+A displayed judgement restarts a half-second timer.
 
-The label becomes transparent when the timer stops, so the lanes keep the
-same height. Changing the player, including when a course advances, changes
+Changing the chart when a course advances changes
 the connection's target and stops the timer. The next stage starts with no
 judgement showing.
 

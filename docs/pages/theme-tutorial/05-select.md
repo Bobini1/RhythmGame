@@ -4,7 +4,8 @@
 
 Install `docs/examples/theme-tutorial/05-select/` and choose it for Select.
 The folder provides only song selection, so keep your current choices for
-Main Menu, Decide and gameplay. Open Song select to see the new list.
+Main Menu, Decide and gameplay. The first sections explain browsing. The later
+sections add an optional panel for the selected chart.
 
 [Download 05-select](examples/theme-tutorial/05-select.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/05-select).
@@ -31,7 +32,11 @@ The controller plays the selection track from the active profile's BGM set.
 When a focused chart's preview starts, the background music stops. The
 standard list holds a pending preview until scrolling stops.
 Disabling the controller stops both kinds of audio, for example it happens automatically when gameplay is open.
-The [assets lesson](09-assets.md) explains the preview settings.
+The preview waits 300 milliseconds before starting. Change `preview.delayMillis`
+or `preview.volume` when your theme needs a different setting. Set
+`preview.chartAudioEnabled` to false when you only want dedicated preview
+files. [StandardSelectPreview](qml/qml-rhythmgameqml-standardselectpreview.html)
+documents the available settings.
 
 ## Recognize the entry types {#theme_tutorial_select_entry_types}
 
@@ -41,7 +46,7 @@ one of them as `modelData`. Check its type before reading properties such as
 
 | Entry                          | Type check                  | Useful fields for a delegate                                                            | What `selection.goForward(item)` does                                                                                     |
 |--------------------------------|-----------------------------|-----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| Song folder                    | `typeof item === "string"`  | The value is the folder path. Use its last path segment as a label.                     | Opens the folder.                                                                                                         |
+| Song folder                    | `typeof item === "string"`  | The value is the folder path. You can use its last path segment as a label.             | Opens the folder.                                                                                                         |
 | Installed chart                | `item instanceof ChartData` | `title`, `subtitle`, `artist`, `playLevel`, `keymode`, `md5`, `path`, `stageFileSource` | Starts play, or proposes the chart in Arena.                                                                              |
 | Missing table chart            | `item instanceof entry`     | `title`, `subtitle`, `artist`, `level`, `md5`, `url`, `urlDiff`                         | Does nothing. The table describes the chart, but the chart was not found in the song database.                            |
 | Difficulty table or collection | `item instanceof table`     | `name`, `symbol`, `levels`, `courses`, `identifier`                                     | Opens its levels and courses.                                                                                             |
@@ -124,8 +129,7 @@ controller input uses the same selection. Going back from a folder restores
 its row automatically.
 
 Wheel input works while the pointer is over the list and changes the selected
-entry. The controller accumulates small wheel movements, so a fine scroll wheel
-also works without extra code in the theme.
+entry.
 
 A row's click handler calls `songList.activate(row.index)`. That method selects
 the row, gives the list keyboard focus and opens the entry. The list also pauses
@@ -235,6 +239,53 @@ For a custom replay picker, set the controller's `tryReplayAction` to a function
 that returns true when it handles the request. Returning false lets the standard
 action continue.
 
+## Show details for the selected chart
+
+The panel separates data that is already in memory from a full score that the
+game must load from the score database.
+
+The binding below is null for folders, courses and missing table entries. It
+also keeps the selected chart's saved results in one place.
+
+\snippet 05-select/Select.qml selected-chart-state
+
+`ChartData.stageFileSource` is ready to use as an `Image` URL, including for a
+chart inside an archive. The example shows a small placeholder when a chart has
+no image. For a raw local path, use `Rg.fileQuery.localFileUrl(path)` instead
+of constructing a `file:///` URL yourself.
+
+\snippet 05-select/Select.qml chart-image
+
+The controller's `results` map holds lightweight [BmsResult](@ref gameplay_logic::BmsResult)
+summaries. Reading the map does not load a recording. The map updates after a
+score is saved or imported, so the labels follow the selected chart and active
+profile without imperative refresh code. `StandardRanking` derives the best
+clear and best score from the same results. They can be different runs.
+
+\snippet 05-select/Select.qml saved-results
+
+Use [ScoreDetails](qml/qml-rhythmgameqml-scoredetails.html) when the panel needs
+a full score, such as replay hit events or gauge history. The example loads the
+latest saved result. Changing the selected result cancels the previous load, so
+the graph cannot show a recording for the chart you just left.
+
+\snippet 05-select/Select.qml score-details
+
+The graph receives the full score's replay data and the selected chart's timing
+windows. It keeps the same fixed scale that the [result lesson](08-results.md)
+uses. A saved result can exist without a recording, so the panel distinguishes
+no saved score, a recording that is loading, a failed load and a score without
+replay data.
+
+\snippet 05-select/Select.qml recording-graph
+
+`selection.ranking` follows the selected chart and the provider saved in the
+profile. The provider picker is optional. `openInternetRanking()` is the same
+action as F11, and the controller cancels an unfinished request when selection
+changes or the screen closes.
+
+\snippet 05-select/Select.qml select-ranking
+
 ## Include the Arena room panel
 
 Open Multiplayer from the main menu, then join an Arena room. The game opens
@@ -252,7 +303,7 @@ The panel is only visible in multiplayer mode.
 
 \snippet 05-select/Select.qml arena-select
 
-The [complete example](10-shipping.md) explains how each screen adds its own
+The [complete example](09-shipping.md) explains how each screen adds its own
 Arena panel and how you can change its appearance.
 
 \include{lineno} 05-select/Select.qml
@@ -273,7 +324,7 @@ you have played before, then use key 6 or the combo box to choose another run.
 The controller's `ranking` is a
 [StandardRanking](qml/qml-rhythmgameqml-standardranking.html). It follows the
 focused chart and supplies entries, the player's position and loading state.
-[Lesson 9](09-assets.md) adds a small display using those properties. A button
+The optional panel above shows one way to display those properties. A button
 can call `selection.openInternetRanking()` to use the same action as F11.
 
 If you have a difficulty table with courses, open it and choose a course.

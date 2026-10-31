@@ -104,6 +104,7 @@ Pane {
                         ResultStats {
                             Layout.fillWidth: true
                             score: playerResult.modelData.score
+                            timingWindows: screen.result.chartData.timingWindows
                         }
                         // [result-stats]
                     }
