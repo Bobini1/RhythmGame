@@ -619,7 +619,7 @@ matching Arena chat is open. Themes can still override `confirmEnabled`.
 Replace `panelComponent` to keep the standard placement and input with your
 own visuals. Call the overlay's `setChatOpen(open)` for chat tabs; it updates
 the session and saves the preference together. Default's result screen uses its own `ArenaResultPanel` this way.
-The [complete tutorial theme](docs/pages/theme-tutorial/10-shipping.md) shows
+The [complete tutorial theme](docs/pages/theme-tutorial/09-shipping.md) shows
 the standard overlays in installable select, gameplay and result screens.
 
 `ContentFrame` does not create these panels. Screens no longer declare

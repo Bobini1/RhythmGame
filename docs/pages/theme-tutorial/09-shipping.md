@@ -1,134 +1,30 @@
-# 9. Combine and share your screens {#theme_tutorial_shipping}
+# 9. Complete theme example {#theme_tutorial_shipping}
 
 [Previous](08-results.md) | [Tutorial](index.md)
 
-Install `docs/examples/theme-tutorial/09-complete/` to try the tutorial screens
-together. The folder contains its own copies of every helper it uses, so it
-doesn't depend on the earlier lesson folders. It keeps Default for Settings
-and Multiplayer because it doesn't provide those screens.
+The earlier lesson folders are deliberately independent. `09-complete` is the
+one self-contained theme that combines their screens and helpers in one folder.
+It is a working reference rather than a new feature lesson: lessons 1 through 8
+explain the behavior of each screen.
 
 [Download 09-complete](examples/theme-tutorial/09-complete.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/09-complete).
 
-See [Theme API](../theme-api.md) for the supported interfaces and data contracts.
-
-## Choose the screens in the manifest
-
-The manifest combines the main menu, enhanced select screen, decide, gameplay and
-both result screens. The same gameplay file serves several keymodes, while the
-two result screens keep separate files.
+Its manifest registers the main menu, enhanced select screen, decide, gameplay,
+chart result and course result screens. One gameplay file serves several
+keymodes; the chart and course result screens have separate files.
 
 \include 09-complete/theme.json
 
-Choose `09-complete` for the screens you want to replace, then restart the game.
-The menu has the profile greeting and saved color setting from lesson 3.
-The menu and its setting include the Polish translations from lesson 4.
-The Multiplayer button and later screens still use their English source text,
-so you can add their translations by following the same steps.
+The main menu retains the profile greeting and saved color setting from lesson 3,
+and the Polish translation from lesson 4. The normal path runs from selection
+through decide, gameplay and result; courses show a chart result after each
+stage, then the course result.
 
-## Add Arena panels to the screens
+It does not implement Settings or Multiplayer. Default's Multiplayer browser
+will open this theme's Select screen after joining an Arena room. The Select,
+Gameplay and Result screens use the Arena panels from the [selection](05-select.md),
+[gameplay](07-gameplay.md) and [result](08-results.md) lessons.
 
-The complete example opens the configured Multiplayer screen from the main
-menu's Multiplayer button. The example keeps Default for that screen, then uses
-its own select screen after you join a room. A custom Multiplayer screen can use
-[StandardMultiplayerFlow](qml/qml-rhythmgameqml-standardmultiplayerflow.html) to connect, enter a room and open
-scheduled rounds.
-The browser and select screen are ordinary screens on the same stack. Leaving the
-room returns to the browser; closing the browser disconnects from Arena.
-
-\snippet 09-complete/main.qml arena-menu
-
-Each screen adds its own panel. [StandardArenaSelectOverlay](qml/qml-rhythmgameqml-standardarenaselectoverlay.html)
-shows the room,
-ready controls and chat while you are in a room. Its `navigationFocusTarget`
-returns keyboard focus to the song list after chat closes. The earlier
-select screen examples include the same component. The overlay also handles the
-double-Start ready shortcut. Set its `readyShortcutEnabled` to false to provide
-your own shortcut. The controller handles leaving the room and proposing charts.
-
-For a custom Ready button, use the overlay's `ready`, `canToggleReady` and
-`readyDisabledReason` properties, then call `toggleReady()` when clicked.
-The same method handles double-Start. `session.canReady` only describes
-becoming ready, so it isn't enough to enable a button that also cancels readiness.
-
-\snippet 09-complete/Select.qml arena-select
-
-Gameplay binds its overlay to the same context
-as [StandardGameplayFlow](qml/qml-rhythmgameqml-standardgameplayflow.html).
-The overlay shows standings for that Arena play and stays hidden during
-local play or a course. F8 switches between standings and chat.
-
-\snippet 09-complete/Gameplay.qml arena-gameplay
-
-The result overlay uses `result.arenaActive` to show the matching Arena result.
-The context checks the round ID and session state, so the theme doesn't need
-to repeat those checks. The overlay stays hidden for local results and saved
-scores. Course summaries have their own result type and do not include it.
-
-\snippet 09-complete/Result.qml arena-result
-
-The result input disables confirmation while Arena chat is open, so pressing
-Enter to send a message does not also close the result screen. It checks
-`result.arenaActive`, which tells it whether the context belongs to the current
-Arena result presentation. Removing the overlay does not change that state.
-
-\snippet 09-complete/Result.qml result-input
-
-Set an overlay's `defaultPixelRectHint` to choose its initial position and
-size. Players can then move and resize it, and their profile keeps those
-settings for the chosen theme. Set `customizeMode` to show its editing controls.
-The overlays are declared after the screen content, so they appear on top.
-
-The overlays also allow a different chat shortcut or a replacement
-`panelComponent`. See the
-[overlay reference](qml/qml-rhythmgameqml-standardarenaoverlay.html) for the
-properties that a custom panel uses. Default's result screen supplies its own
-panel this way, while keeping the standard placement and chat behavior.
-
-## Check a complete play
-
-First, follow the path from the main menu through selection, decide, gameplay
-and result. Cancel from decide once, then finish a chart. Confirm that returning
-to selection keeps the folder and focus, and that preview audio stops during play.
-
-Second, check a course through a normal result after every stage, including
-the last stage, followed by the course summary. Try each
-keymode you advertise, including battle if it is in the manifest. Check normal
-play, autoplay and replay where the chosen select screen offers them. Standard
-components supply shared behavior, but your layout still needs to display the
-corresponding data.
-
-Third, change the window size and the profile. Inspect long titles, an empty
-song list, missing images and a chart with no saved scores. Use F10 to look for
-errors naming your QML files. A successful load alone doesn't show whether
-notes, sound or transitions behave correctly during play.
-
-## Package the folder
-
-Rename a copy of the folder to the name you want players to select. Run it
-under that name to check that settings use `QmlUtils.themeName` and all paths
-stay relative. The renamed copy can have fresh setting values because its
-folder name is also its settings identity.
-
-Zip the theme folder with `theme.json` directly inside it. Include source
-assets, any required fonts and compiled `.qm` translations. Keep profiles,
-databases, songs, logs and editor output out of the package. State which game
-build you tested and which screens the theme provides in a README.
-
-The gameplay screen includes BGA, gauges, lane cover, lift and hidden cover.
-Standard components supply the saved note speed and START/SELECT adjustments.
-The note artwork is deliberately simple. Try the field sizes and cover settings
-you use before distributing your theme, then repeat the play checks.
-
-## Keep shared behavior in the standard components
-
-Change visual properties first, then a specific behavior option if needed.
-A full action replacement makes your theme responsible for that operation.
-For example, `startAction` on decide replaces the transition itself, while
-changing the title or timeout keeps the standard transition.
-
-\image html theme-responsibilities.svg "Responsibilities of a theme and the game"
-
-The [architecture notes](../theme-architecture.md) explain the alternatives.
-The [theme reference](../../../DEV_THEME.md) and [QML reference](qml/qml-api.html)
-describe the interfaces to check when updating your theme for another game build.
+For supported contracts and customization points, see the [Theme API](../theme-api.md),
+[theme reference](../../../DEV_THEME.md) and [QML reference](qml/qml-api.html).

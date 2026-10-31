@@ -303,9 +303,6 @@ The panel is only visible in multiplayer mode.
 
 \snippet 05-select/Select.qml arena-select
 
-The [complete example](09-shipping.md) explains how each screen adds its own
-Arena panel and how you can change its appearance.
-
 \include{lineno} 05-select/Select.qml
 
 ## Try a complete browsing cycle

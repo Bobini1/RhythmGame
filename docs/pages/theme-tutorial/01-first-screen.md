@@ -12,7 +12,7 @@ simple example main screen with four navigation buttons and a background image.
 
 First, close the game and copy the whole `01-main` folder into a `themes`
 directory. A regular installation reads themes from its installation folder (the Default theme)
-and your user data directory.
+and your user data directory, which gets created automatically when the game is run for the first time.
 The usual locations are listed below. Linux uses `$XDG_DATA_HOME` in place of
 `~/.local/share` when that variable is set. Windows uses the roaming AppData
 directory if it has been moved from its usual location.

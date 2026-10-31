@@ -1,6 +1,6 @@
 # 8. Show chart results and course summaries {#theme_tutorial_results}
 
-[Previous](07-gameplay.md) | [Tutorial](index.md) | [Next: Combine and share](09-shipping.md)
+[Previous](07-gameplay.md) | [Tutorial](index.md) | [Next: Complete theme example](09-shipping.md)
 
 Install `docs/examples/theme-tutorial/08-results/` and select it for both Result
 and Course Result. The folder contains separate entry files for the two screens,
@@ -207,8 +207,7 @@ only when your theme needs another confirmation rule.
 
 \snippet 08-results/Result.qml arena-result
 
-The course summary does not need an Arena overlay. See the
-[complete example](09-shipping.md) for placement and chat options.
+The course summary does not need an Arena overlay.
 
 \include{lineno} 08-results/Result.qml
 
