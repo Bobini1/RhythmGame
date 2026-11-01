@@ -85,11 +85,10 @@ TEST_CASE("Tutorial result graphs use loaded chart and course score data",
       std::make_unique<BmsReplayData>(QList<HitEvent>{}, "empty"),
       std::make_unique<BmsGaugeHistory>(QList<BmsGaugeInfo>{}, "empty"));
 
-    const QVariantList timingWindows{
-        QVariantMap{ { "judgement", "Bad" },
-                     { "earlyNs", 150'000'000LL },
-                     { "lateNs", 150'000'000LL } }
-    };
+    const QVariantList timingWindows{ QVariantMap{
+      { "judgement", "Bad" },
+      { "earlyNs", 150'000'000LL },
+      { "lateNs", 150'000'000LL } } };
     for (const auto* lesson : { "08-results", "09-complete" }) {
         CAPTURE(lesson);
         QQmlEngine engine;

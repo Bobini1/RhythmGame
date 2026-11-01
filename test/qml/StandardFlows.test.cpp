@@ -85,9 +85,9 @@ checkGameplayFlow(const char* lesson,
       [](auto) { return 1; });
     resource_managers::ChartFactory::PlayerSpecificData player{
         .profile = profile,
-        .gauges = *lesson
-          ? resource_managers::GaugeFactory{}.getStandardGauges(profile, 200, 1)
-          : QList<gameplay_logic::rules::BmsGauge*>{},
+        .gauges = *lesson ? resource_managers::GaugeFactory{}.getStandardGauges(
+                              profile, 200, 1)
+                          : QList<gameplay_logic::rules::BmsGauge*>{},
         .hitRules =
           gameplay_logic::rules::HitRules{
             gameplay_logic::rules::lr2_timing_windows::judgeNormal(),
@@ -148,7 +148,8 @@ checkGameplayFlow(const char* lesson,
         auto speedChart = resource_managers::ChartDataFactory{}.loadChartData(
           "#TITLE Speed\n#BPM 180\n#BPM01 60\n#BPM02 300\n"
           "#00108:01\n#00208:02\n#01011:01\n",
-          root / "speed.bms", [](auto) { return 1; });
+          root / "speed.bms",
+          [](auto) { return 1; });
         auto* chart = speedChart.chartData.get();
         auto* currentPlayer = gameplay->players().front();
         auto* column = currentPlayer->getState()->getColumnFilters().front();
@@ -156,17 +157,19 @@ checkGameplayFlow(const char* lesson,
         auto* vars = profile->getVars()->getGeneralVars();
         vars->setNoteScreenTimeMillis(1000);
         QQmlComponent viewportComponent(&engine);
-        viewportComponent.loadFromModule("RhythmGameQml", "StandardGameplayViewport");
+        viewportComponent.loadFromModule("RhythmGameQml",
+                                         "StandardGameplayViewport");
         INFO(viewportComponent.errorString().toStdString());
         REQUIRE(viewportComponent.isReady());
-        std::unique_ptr<QObject> viewport(viewportComponent.createWithInitialProperties(
-          { { "player", QVariant::fromValue(currentPlayer) },
-            { "chartData", QVariant::fromValue(chart) },
-            { "noteHeight", 600 } }));
+        std::unique_ptr<QObject> viewport(
+          viewportComponent.createWithInitialProperties(
+            { { "player", QVariant::fromValue(currentPlayer) },
+              { "chartData", QVariant::fromValue(chart) },
+              { "noteHeight", 600 } }));
         REQUIRE(viewport);
         using resource_managers::HiSpeedFix;
-        for (const auto& [mode, bpm] : {
-               std::pair{ HiSpeedFix::Off, 120.0 },
+        for (const auto& [mode, bpm] :
+             { std::pair{ HiSpeedFix::Off, 120.0 },
                std::pair{ HiSpeedFix::Main, chart->getMainBpm() },
                std::pair{ HiSpeedFix::Start, chart->getInitialBpm() },
                std::pair{ HiSpeedFix::Min, chart->getMinBpm() },
@@ -174,12 +177,12 @@ checkGameplayFlow(const char* lesson,
                std::pair{ HiSpeedFix::Avg, chart->getAvgBpm() } }) {
             CAPTURE(mode, bpm);
             vars->setHiSpeedFix(mode);
-            CHECK(viewport->property("pixelsPerBeat").toDouble()
-                  == Catch::Approx(36000 / bpm));
-            CHECK(column->getTopPosition() - column->getBottomPosition()
-                  == Catch::Approx(bpm / 60));
-            CHECK(bars->getTopPosition() - bars->getBottomPosition()
-                  == Catch::Approx(bpm / 60));
+            CHECK(viewport->property("pixelsPerBeat").toDouble() ==
+                  Catch::Approx(36000 / bpm));
+            CHECK(column->getTopPosition() - column->getBottomPosition() ==
+                  Catch::Approx(bpm / 60));
+            CHECK(bars->getTopPosition() - bars->getBottomPosition() ==
+                  Catch::Approx(bpm / 60));
         }
         vars->setHiSpeedFix(HiSpeedFix::Off);
         vars->setNoteScreenTimeMillis(500);
@@ -202,17 +205,22 @@ checkGameplayFlow(const char* lesson,
         CHECK(column->getTopPosition() == column->getBottomPosition());
         viewport->setProperty("visibleHeight", 150);
 
-        // A new course stage can have the same BPM and still needs its models set.
-        auto nextStage = factory.createChart(std::move(speedChart), player, std::nullopt, 2.0);
+        // A new course stage can have the same BPM and still needs its models
+        // set.
+        auto nextStage =
+          factory.createChart(std::move(speedChart), player, std::nullopt, 2.0);
         auto* nextPlayer = nextStage->getPlayer1();
         viewport->setProperty("player", QVariant::fromValue(nextPlayer));
         auto* nextColumn = nextPlayer->getState()->getColumnFilters().front();
-        CHECK(nextColumn->getTopPosition() - nextColumn->getBottomPosition() == 2);
+        CHECK(nextColumn->getTopPosition() - nextColumn->getBottomPosition() ==
+              2);
         vars->setHiSpeedFix(HiSpeedFix::Max);
         CHECK(viewport->property("pixelsPerBeat").toDouble() == 60);
-        viewport->setProperty("chartData", QVariant::fromValue(gameplay->chartData()));
+        viewport->setProperty("chartData",
+                              QVariant::fromValue(gameplay->chartData()));
         CHECK(viewport->property("pixelsPerBeat").toDouble() == 150);
-        CHECK(nextColumn->getTopPosition() - nextColumn->getBottomPosition() == 2);
+        CHECK(nextColumn->getTopPosition() - nextColumn->getBottomPosition() ==
+              2);
         viewport.reset();
         vars->resetHiSpeedFix();
         vars->resetNoteScreenTimeMillis();

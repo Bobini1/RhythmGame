@@ -475,16 +475,15 @@ TEST_CASE("Backbeat chart paths preserve bundle IDs produced by the SDK",
         "chart": "H4sIAAAAAAACCg3MwQqDMAwA0Hu+IpB7SXbcrUI3Cg7EBsVjt3UyBiprnft8fR/wqKnt4FoUIPVaO6zi43NPseDr/S/rNwHZVn1Q1JQLUNXcUE4M1NuOBfO8Tk+zxR9QUHt1F38UucQxmWUagZhF5MzCDDswtQ3OagAAAA=="
     })";
     bkb_bb* bb = nullptr;
-    REQUIRE(bkb_bb_from_json(
-              reinterpret_cast<const uint8_t*>(json.constData()),
-              static_cast<size_t>(json.size()),
-              &bb) == BKB_OK);
+    REQUIRE(bkb_bb_from_json(reinterpret_cast<const uint8_t*>(json.constData()),
+                             static_cast<size_t>(json.size()),
+                             &bb) == BKB_OK);
     const auto freeBundle = qScopeGuard([&] { bkb_bb_free(bb); });
     bkb_string bundleId{};
     REQUIRE(bkb_bb_bundle_id(bb, &bundleId) == BKB_OK);
     const auto freeId = qScopeGuard([&] { bkb_string_free(bundleId); });
-    const auto id = QString::fromUtf8(bundleId.ptr,
-                                     static_cast<qsizetype>(bundleId.len));
+    const auto id =
+      QString::fromUtf8(bundleId.ptr, static_cast<qsizetype>(bundleId.len));
     const auto path =
       resource_managers::BackbeatSource::chartPath(id, "chart.bms");
     CHECK(support::pathToQString(path) ==
