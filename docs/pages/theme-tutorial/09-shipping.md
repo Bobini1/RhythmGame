@@ -26,5 +26,5 @@ will open this theme's Select screen after joining an Arena room. The Select,
 Gameplay and Result screens use the Arena panels from the [selection](05-select.md),
 [gameplay](07-gameplay.md) and [result](08-results.md) lessons.
 
-For supported contracts and customization points, see the [Theme API](../theme-api.md),
-[theme reference](../../../DEV_THEME.md) and [QML reference](qml/qml-api.html).
+For component properties and customization points, see the
+[QML reference](qml/qml-api.html).

@@ -50,10 +50,9 @@ reinvent the wheel. Although you can override almost everything if you feel the 
 
 ## Find more detail
 
-The [theme reference](../../../DEV_THEME.md) lists the screen contracts and
-settings format. The [QML reference](qml/qml-api.html) describes the standard
-components. The [architecture notes](../theme-architecture.md) explain why the
-API uses optional components inside each screen.
+The [theme overview](../../../DEV_THEME.md) introduces how themes fit into the
+game. The [QML reference](qml/qml-api.html) describes the Standard components,
+their properties and their actions.
 
 ## If you get stuck {#theme_tutorial_stuck}
 
