@@ -2,18 +2,17 @@
 
 [Previous](05-select.md) | [Tutorial](index.md) | [Next: Gameplay](07-gameplay.md)
 
+**Goal:** Show the selected chart or course and let the player start or cancel.
+
 Install `docs/examples/theme-tutorial/06-decide/` and choose it for Decide.
-Selecting a chart now shows its title with Start and Back buttons. Selecting
-a course shows the course name in the same screen.
 
 [Download 06-decide](examples/theme-tutorial/06-decide.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/06-decide).
 
 ## Receive the play data
 
-The game supplies `gameplay` when it creates the screen. Declare the required
-property on the root object so QML checks that the value is present at creation.
-You don't construct a [GameplayContext](qml/qml-rhythmgameqml-gameplaycontext.html) yourself.
+The game supplies a [GameplayContext](qml/qml-rhythmgameqml-gameplaycontext.html)
+as `gameplay`. Declare it as a required property on the root object.
 
 \snippet 06-decide/Decide.qml context
 
@@ -29,8 +28,7 @@ In a course, the current chart and players change as stages advance.
 ## Accept or cancel with the standard flow
 
 Pass the supplied context to [StandardDecideFlow](qml/qml-rhythmgameqml-standarddecideflow.html).
-Its default timeout starts
-gameplay after five seconds. Enter or a bound play key also starts,
+It starts gameplay after five seconds. Enter or a bound play key also starts,
 while Escape or START+SELECT cancels.
 
 \snippet 06-decide/Decide.qml decide-flow
@@ -41,10 +39,9 @@ so they share the flow's protection against duplicate transitions.
 
 \include{lineno} 06-decide/Decide.qml
 
-Change `timeoutMillis` to `0` if you want to wait for input. For a different
-appearance, edit the layout and keep the flow. A replacement `startAction`
-or `cancelAction` takes responsibility for the whole transition, so it is
-more work than changing how the screen looks.
+Set `timeoutMillis` to `0` to wait for input. You can change the layout while
+keeping the flow. Override `startAction` or `cancelAction` only when you need
+to replace the whole transition.
 
 ## Understand which screens remain open
 
@@ -57,10 +54,10 @@ Arena rounds open gameplay directly, without decide.
 [StandardMultiplayerFlow](qml/qml-rhythmgameqml-standardmultiplayerflow.html)
 handles that transition when the session prepares a round.
 
-\image html theme-lifetime.svg "Screen lifetime during a single chart"
-
 If you add shortcuts or audio players yourself, bind their behavior to the
 screen's `enabled` state. They don't inherit it like child Items do.
+
+## Try starting and cancelling
 
 Try starting once by button and once by waiting for the timeout. Then select
 another chart and cancel. Check a course too, if one is available in your

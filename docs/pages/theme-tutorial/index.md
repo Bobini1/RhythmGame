@@ -1,17 +1,13 @@
 # Create a theme {#theme_tutorial}
 
-A RhythmGame theme can provide one or more screens - like select, decide, k7, k14, main.
-The game can use a different theme for each screen, in a mix-and-match fashion.
-In this tutorial, we will start with the main screen to show the basics and then proceeds to more advanced scenarios.
-In general, The level of difficulty for a theme author goes (easiest to hardest) - main, decide, result, select,
-gameplay.
-It is also possible for a theme to override settings and the lobby list view.
+Build a theme, starting with a main menu and adding song selection, gameplay
+and results. A theme can replace one screen or several. Players choose a theme
+for each screen, so your theme can work alongside others.
 
-The language used for writing themes is [QML](https://doc.qt.io/qt-6/qtqml-index.html).
-It's like a declarative tree of components + JavaScript for any logic you might need.
-QML was picked as the technology for this project because it has a ton of useful components you can use out of the box
-and it can be loaded at runtime, without any compilation step. You can learn it as you go through this tutorial
-but you will surely need to look at Qt's docs eventually anyway. Unless an LLM does that for you.
+You need RhythmGame and a text editor. Themes use
+[QML](https://doc.qt.io/qt-6/qtqml-index.html) to describe the interface and
+JavaScript for logic. The first lessons introduce the basics; you don't need
+to compile the game. Save your changes and restart to load them.
 
 ## Follow the lessons
 
@@ -38,15 +34,16 @@ lessons use the same steps for other screens.
 
 ## Read the code alongside the game
 
-Every displayed snippet comes from a file in the lesson's folder. Comments
+The code snippets show the parts used in each step. The download and source
+folder contain the complete files. Comments
 such as `// [main-actions]` mark the start and end of a snippet for the docs
 generator. QML ignores the comments, so you can remove them in your own copy.
 GitHub displays the include commands as text. Read the [generated documentation
 site](https://bobini1.github.io/RhythmGame/pages.html) to see them expanded.
 
-The examples keep their appearance simple so you can follow their behavior.
-They use the set of reusable components for browsing, input and transitions that was prepared so that you don't have to
-reinvent the wheel. Although you can override almost everything if you feel the need to do so.
+The examples use simple visuals and reusable components for browsing, input
+and screen transitions. You can change the appearance while keeping that
+behavior, then replace individual actions when needed.
 
 ## Find more detail
 
@@ -56,8 +53,8 @@ their properties and their actions.
 
 ## If you get stuck {#theme_tutorial_stuck}
 
-It is perfectly possible to create a theme that breaks the game and will leave you unable to even go to settings.
-If that ever happens go to:
+If a broken theme prevents you from opening Settings, close the game and edit
+your profile's theme config file:
 
 | Platform | Theme config file                                                               |
 |----------|---------------------------------------------------------------------------------|
@@ -65,7 +62,7 @@ If that ever happens go to:
 | Linux    | `~/.local/share/RhythmGame/profiles/<profile>/theme_config.json`                |
 | macOS    | `~/Library/Application Support/RhythmGame/profiles/<profile>/theme_config.json` |
 
-You can edit its contents to change the selected theme for each screen. This is the default setup with no custom themes:
+Set the affected screen to `"Default"`. To reset all screen choices, use:
 
 ```json
 {

@@ -2,26 +2,26 @@
 
 [Tutorial](index.md) | [Next: QML basics](02-qml.md)
 
-Install `docs/examples/theme-tutorial/01-main/` to replace the main menu with a
-simple example main screen with four navigation buttons and a background image.
+**Goal:** Install a main menu with an image and four working navigation buttons,
+then edit its title or color.
 
 [Download 01-main](examples/theme-tutorial/01-main.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/01-main).
 
 ## Install the folder
 
-First, close the game and copy the whole `01-main` folder into a `themes`
-directory. A regular installation reads themes from its installation folder (the Default theme)
-and your user data directory, which gets created automatically when the game is run for the first time.
-The usual locations are listed below. Linux uses `$XDG_DATA_HOME` in place of
-`~/.local/share` when that variable is set. Windows uses the roaming AppData
-directory if it has been moved from its usual location.
+Close the game. Extract the download or copy `docs/examples/theme-tutorial/01-main/`
+into your user theme directory. The game creates this directory on first launch.
 
 | Platform | User theme directory                               |
 |----------|----------------------------------------------------|
 | Windows  | `%APPDATA%/RhythmGame/themes/`                     |
 | Linux    | `~/.local/share/RhythmGame/themes/`                |
 | macOS    | `~/Library/Application Support/RhythmGame/themes/` |
+
+On Linux, use `$XDG_DATA_HOME` instead of `~/.local/share` if it is set.
+The game also reads themes from its installation's data directory, where
+the Default theme is stored.
 
 Portable mode is enabled by `portable.ini` in the installation prefix, one
 directory above `bin`. In portable mode the game uses the installation's data
@@ -50,39 +50,28 @@ The `$schema` URL helps a text editor check the file. It's not required.
 The theme's name comes from its folder name, so the example will
 appear as `01-main` in the game.
 
-You can see all valid screen names [here](@ref theme_tutorial_stuck).
+The [default theme config](@ref theme_tutorial_stuck) lists all screen names.
 
 ## Draw the menu
 
 Open `01-main/main.qml`. `QtQuick` supplies the basic visual objects,
-`QtQuick.Controls.FluentWinUI3` supplies the buttons and label, and `QtQuick.Layouts` arranges
-them. `RhythmGameQml` supplies the game's types and also gives access to the Rg singleton,
-which we won't use in this part of the tutorial.
+`QtQuick.Controls.FluentWinUI3` supplies the buttons and label, and
+`QtQuick.Layouts` arranges them. `RhythmGameQml` supplies the game's types.
 
-The tutorial examples import the
+The examples import the
 [FluentWinUI3 style](https://doc.qt.io/qt-6/qtquickcontrols-fluentwinui3.html)
-explicitly, so their controls use that style regardless of the game's default.
-FluentWinUI3 works on both Windows and Linux. Fonts and colors can still vary
-with the system settings. Read the documentation of specific styles for more info.
+explicitly to give the controls a consistent style. You can use another
+Qt Quick Controls style or draw your own controls.
 
-You can completely avoid using the Qt Quick Controls module and create your own custom controls manually if you want.
-This can be a good idea if you want super custom controls,
-but I recommend checking out the [Imagine style](https://doc.qt.io/qt-6/qtquickcontrols-imagine.html) first, it's very
-customizable.
-
-[StandardMainController](qml/qml-rhythmgameqml-standardmaincontroller.html) handles menu actions, the START button and
-background music.
-It draws nothing, so the theme needs to create its own buttons. Their `onClicked` handlers call
+[StandardMainController](qml/qml-rhythmgameqml-standardmaincontroller.html)
+handles menu actions, the bound START button and background music. It draws
+nothing, so the theme creates buttons whose `onClicked` handlers call
 `openSelect()`, `openArena()`, `openSettings()` and `quit()` for the four menu actions.
 The component is optional. You can call `globalRoot.openSelect()`,
 `globalRoot.openArenaBrowser()`, `globalRoot.openSettings()` and
 `globalRoot.quitApplication()` directly.
-If you omit the component, make sure you give controller users some way to enter song select without using their mouse.
-[StandardMainController](qml/qml-rhythmgameqml-standardmaincontroller.html) binds the START button to `openSelect()`.
-
-In short, the rule is that each screen has a "contract".
-You can make a main menu theme that does not give the user a way to open song select.
-But that breaks the main screen contract. Each screen has a specific job.
+If you replace it, keep a way for controller users to open song select.
+The standard component binds START to `openSelect()`.
 
 \snippet 01-main/main.qml main-actions
 
@@ -105,7 +94,7 @@ Use a relative URL from the QML file that uses the asset, such as
 `images/notes.svg`. To use a custom font, load its file with
 [FontLoader](https://doc.qt.io/qt-6/qml-qtquick-fontloader.html).
 
-The complete screen is short enough to read before making a change.
+Here is the complete screen:
 
 \include{lineno} 01-main/main.qml
 
@@ -113,7 +102,7 @@ The complete screen is short enough to read before making a change.
 
 ## Choose the theme and try a change
 
-Second, launch the game and open Settings. Under Themes, select Main Menu and
+Launch the game and open Settings. Under Themes, select Main Menu and
 choose `01-main` as its theme. Leave the other screens on Default or your
 existing themes, then go back to see the newly selected main menu.
 
@@ -121,11 +110,8 @@ Click Song select or press your bound START button. The chosen selection
 screen should open. Multiplayer opens the configured Multiplayer screen, where
 you can join an Arena room. Settings opens settings, and Quit closes the game.
 
-Third, edit the title or background color in `main.qml`, save the file, and
+Edit the title or background color in `main.qml`, save the file, and
 restart the game.
-
-@note
-Hot reload is something I'm planning once Qt 6.12 becomes more widely available.
 
 Press F10 to inspect the log if the screen fails to load. `log.txt` is in the
 game's data directory, next to `themes`.

@@ -2,10 +2,12 @@
 
 [Previous](04-translations.md) | [Tutorial](index.md) | [Next: Decide](06-decide.md)
 
+**Goal:** Build a song list that opens charts and courses, then add saved
+scores, replays and rankings.
+
 Install `docs/examples/theme-tutorial/05-select/` and choose it for Select.
-The folder provides only song selection, so keep your current choices for
-Main Menu, Decide and gameplay. The first sections explain browsing. The later
-sections add an optional panel for the selected chart.
+Keep your current themes for Main Menu, Decide and gameplay. Start with the
+list; the chart details panel is optional.
 
 [Download 05-select](examples/theme-tutorial/05-select.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/05-select).
@@ -13,8 +15,8 @@ sections add an optional panel for the selected chart.
 ## Use the standard browsing behavior
 
 [StandardSelectController](qml/qml-rhythmgameqml-standardselectcontroller.html) loads folders and tables, remembers the
-path back, and opens charts or courses. It also supplies input mappings and selection
-shortcuts, background music and chart previews. The theme draws the rows, and
+path back, and opens charts or courses. It also handles input, shortcuts,
+background music and chart previews. The theme draws the rows, and
 `StandardSelectListView` connects the current row to the controller.
 
 \snippet 05-select/Select.qml select-controller
@@ -26,17 +28,13 @@ instance of each filtered item, which suits a normal list. A circular wheel can 
 Use the complete controller once. Adding [StandardSelectInput](qml/qml-rhythmgameqml-standardselectinput.html) or
 [StandardSelectShortcuts](qml/qml-rhythmgameqml-standardselectshortcuts.html) alongside it would add behavior already
 included by the controller.
-You can use those constituent components instead of the controller if you want some more custom behavior.
+Use those smaller components when building your own browsing behavior.
 
-The controller plays the selection track from the active profile's BGM set.
-When a focused chart's preview starts, the background music stops. The
-standard list holds a pending preview until scrolling stops.
-Disabling the controller stops both kinds of audio, for example it happens automatically when gameplay is open.
-The preview waits 300 milliseconds before starting. Change `preview.delayMillis`
-or `preview.volume` when your theme needs a different setting. Set
-`preview.chartAudioEnabled` to false when you only want dedicated preview
-files. [StandardSelectPreview](qml/qml-rhythmgameqml-standardselectpreview.html)
-documents the available settings.
+Background music stops when a chart preview starts. The list waits until
+scrolling stops before playing a preview. Both stop when selection becomes
+inactive, such as during gameplay. See
+[StandardSelectPreview](qml/qml-rhythmgameqml-standardselectpreview.html) to
+change the preview delay, volume or audio source.
 
 ## Recognize the entry types {#theme_tutorial_select_entry_types}
 
@@ -56,8 +54,7 @@ one of them as `modelData`. Check its type before reading properties such as
 `ChartData` starts with a capital letter. The names `entry`, `table`, `level`
 and `course` are lowercase QML value types. The example has
 [`pragma ValueTypeBehavior: Addressable`](https://doc.qt.io/qt-6/qtqml-documents-structure.html#valuetypebehavior)
-at the top of the file so it can use those names in `instanceof` checks.
-It is required!
+at the top of the file. This is required for those `instanceof` checks.
 
 The example uses one `ItemDelegate` and chooses its text by type. Folder,
 table, level and course labels identify what opening the row will do.
@@ -66,53 +63,11 @@ Missing charts get a separate label, while installed charts show their title.
 \snippet 05-select/Select.qml entry-labels
 
 The generated references list the fields on
-[ChartData](classgameplay__logic_1_1_chart_data.html),
-[entry](structresource__managers_1_1_entry.html),
-[table](structresource__managers_1_1_table.html),
-[level](structresource__managers_1_1_level.html) and
-[course](structresource__managers_1_1_course.html).
-
-## Handle an empty folder or selection
-
-When browsing or filtering produces no entries, `entries` is `[]`,
-`focusedItem` is `null` and `focusedIndex` is `-1`.
-The example shows a separate message above the empty list:
-
-\snippet 05-select/Select.qml select-empty
-
-A circular wheel can use `presentationEntries` instead.
-It duplicates entries up to the specified minimum count.
-When there are 0 entries in the logical list,
-`presentationEntries` uses `null` placeholders.
-
-Pass the row's data to `setFocused()`. The QML delegate is the visual item
-that displays the row, so don't pass the delegate itself.
-
-A missing chart from a table shows up as an `entry` with metadata.
-
-An unsuccessful search leaves the previous list in place.
-
-## Show the stages of a course
-
-The example shows a stage list when a course is selected. It keeps the stage
-order, including repeated charts, and marks missing charts as not installed.
-The list scrolls within a limited height so long courses leave room for browsing.
-
-\snippet 05-select/Select.qml course-stages
-
-A course's `loadCharts()` result contains a `ChartData` for each installed
-stage. A missing stage is a string containing its MD5 or `sha256/<hash>`
-identifier. Those strings are not folder paths.
-
-Pass either form of identifier to
-[Rg.tables.search ()](classresource__managers_1_1_tables.html). It searches
-downloaded tables and external collections without needing the chart installed.
-Matching ignores letter case, and an unknown identifier returns an empty list.
-
-`CourseStages.qml` uses the first match's `entry` to show a missing chart's
-title and subtitle. If no title is known, it displays the identifier.
-
-\include{lineno} 05-select/CourseStages.qml
+[ChartData](@ref gameplay_logic::ChartData),
+[entry](@ref resource_managers::Entry),
+[table](@ref resource_managers::Table),
+[level](@ref resource_managers::Level) and
+[course](@ref resource_managers::Course).
 
 ## Connect a list to the controller
 
@@ -135,28 +90,54 @@ A row's click handler calls `songList.activate(row.index)`. That method selects
 the row, gives the list keyboard focus and opens the entry. The list also pauses
 preview startup while it is moving.
 
-## Give the list keyboard focus
-
 Set `focus: true` on the list and its enclosing `Pane`, as the example does.
 This tells Qt where to send keyboard events when the screen becomes active.
 The chosen row and keyboard focus are separate: another button can have
 keyboard focus while the same song remains selected.
 
-For a custom wheel, use `StandardSelectController` directly. Handle its
-`moveRequested` and `focusRequested` signals, then call `setFocused()` when
-your wheel chooses an entry. The controller reference describes that interface.
-
-## Draw the current row's highlight
-
 A delegate describes one visible row. Its `modelData` receives the
-entry, while `index` identifies the row. `labelFor()` handles the entry types
-described above. Clicking a row makes it current and activates it.
+entry, while `index` identifies the row. `labelFor()` chooses the label by type.
 
 \snippet 05-select/Select.qml select-delegate
 
-The theme binds `highlighted` to `ListView.isCurrentItem`.
-`ListView.isCurrentItem` is true for the row at `songList.currentIndex`, so
-the highlight follows changes to the current row automatically.
+Bind `highlighted` to `ListView.isCurrentItem` so the highlight follows the
+current row.
+
+For a custom wheel, handle the controller's `moveRequested` and `focusRequested`
+signals. Call `setFocused()` with the row's data when the wheel chooses an entry.
+The [controller reference](qml/qml-rhythmgameqml-standardselectcontroller.html)
+describes this interface.
+
+## Handle an empty folder or selection
+
+When browsing or filtering produces no entries, `entries` is `[]`,
+`focusedItem` is `null` and `focusedIndex` is `-1`.
+The example shows a separate message above the empty list:
+
+\snippet 05-select/Select.qml select-empty
+
+A circular wheel's `presentationEntries` uses `null` placeholders when the
+list is empty. Check for null before reading a row's properties. Missing table
+charts still appear as `entry` objects. An unsuccessful search leaves the
+previous list in place.
+
+## Show the stages of a course
+
+The example shows a stage list when a course is selected. It keeps the stage
+order, including repeated charts, and marks missing charts as not installed.
+The list scrolls within a limited height so long courses leave room for browsing.
+
+\snippet 05-select/Select.qml course-stages
+
+A course's `loadCharts()` result contains a `ChartData` for each installed
+stage. A missing stage is a string containing its MD5 or `sha256/<hash>`
+identifier. Those strings are not folder paths.
+
+`CourseStages.qml` looks up missing charts with
+[Rg.tables.search()](@ref resource_managers::Tables). It uses the first
+match's title and subtitle, or displays the identifier if no title is known.
+
+\include{lineno} 05-select/CourseStages.qml
 
 ## Filter by keymode
 
@@ -176,14 +157,12 @@ in the active profile and updates `selection.keymodeFilter`. Switching profiles
 updates the filter to that profile's choice. Sorting and replay choices work
 the same way through `setSortMode()` and `setReplayType()`.
 
-The three properties are read-only. Bind your controls to them and use the
-methods to change the choice. A setter returns `false` for an unknown value
-or an inactive controller, and leaves the saved choice unchanged.
+These properties are read-only. Bind controls to them and use the methods to
+change the choice.
 
 ## Use the same actions from buttons and keys
 
-The controller also supplies actions for sorting and autoplay.
-The example calls those actions directly from buttons.
+Buttons call the same controller actions as bound keys.
 
 \snippet 05-select/Select.qml select-actions
 
@@ -204,7 +183,7 @@ and also enters folders while browsing.
 Press F12 to open Settings. This uses the controller's `openSettings()` action.
 The controller also exposes
 `reloadCurrentFolderOrTable()` for F2 and `openSelectedFolder()` for F3.
-Their optional action overrides apply to both buttons and shortcuts.
+Their action overrides apply to both buttons and shortcuts.
 
 ## Play a saved replay
 
@@ -218,13 +197,9 @@ saves the player's choice.
 
 \snippet 05-select/Select.qml select-replay
 
-These shared labels already follow the game language, so do not wrap them in
-`qsTr()` again. They are optional. You can draw your own text or artwork and use
-the same controller actions. To change one caption, choose your text in a
-binding or derive your own model. Compare the option's `value`, rather than its
-position in the list. The
-[StandardSelectOptions reference](qml/qml-rhythmgameqml-standardselectoptions.html)
-has an example and explains how to use the labels outside a select screen.
+These labels are already translated; use them without `qsTr()`. For custom
+labels, see
+[StandardSelectOptions](qml/qml-rhythmgameqml-standardselectoptions.html).
 
 The button calls [openReplay ()](qml/qml-rhythmgameqml-standardselectstate.html#openReplay-method),
 which is also the action used by bound key 7. Bound key 6 cycles the replay
@@ -235,17 +210,10 @@ Scores imported without replay data can still be viewed as results, but cannot
 be played back. A course replay needs replay data for all its stages.
 Replay playback uses the main profile alone and is unavailable in Arena.
 
-For a custom replay picker, set the controller's `tryReplayAction` to a function
-that returns true when it handles the request. Returning false lets the standard
-action continue.
+## Add an optional chart details panel
 
-## Show details for the selected chart
-
-The panel separates data that is already in memory from a full score that the
-game must load from the score database.
-
-The binding below is null for folders, courses and missing table entries. It
-also keeps the selected chart's saved results in one place.
+The panel shows the selected chart's image, saved scores and timing graph.
+Its `chartData` binding is null for folders, courses and missing table entries.
 
 \snippet 05-select/Select.qml selected-chart-state
 
@@ -256,11 +224,10 @@ of constructing a `file:///` URL yourself.
 
 \snippet 05-select/Select.qml chart-image
 
-The controller's `results` map holds lightweight [BmsResult](@ref gameplay_logic::BmsResult)
-summaries. Reading the map does not load replay data. The map updates after a
-score is saved or imported, so the labels follow the selected chart and active
-profile without imperative refresh code. `StandardRanking` derives the best
-clear and best score from the same results. They can be different runs.
+The controller's `results` map holds [BmsResult](@ref gameplay_logic::BmsResult)
+summaries without replay data. It updates after scores are saved or imported.
+`StandardRanking` finds the best clear and best score from these results; they
+can be different runs.
 
 \snippet 05-select/Select.qml saved-results
 
@@ -291,19 +258,14 @@ changes or the screen closes.
 Open Multiplayer from the main menu, then join an Arena room. The game opens
 your configured select screen, so the same example serves local and multiplayer play.
 Keep Default selected for the `multiplayer` screen when using this example.
-Use Leave selection to leave the room and return to the browser. Closing the
-browser returns to the main menu.
+Use Leave selection to leave the room and return to the browser.
 
-The select screen also adds [StandardArenaSelectOverlay](qml/qml-rhythmgameqml-standardarenaselectoverlay.html).
-The panel appears when
-you join an Arena room and supplies ready controls, the double-Start ready
-shortcut and chat. Closing chat
-returns focus to `songList` thanks to the `navigationFocusTarget` property.
-The panel is only visible in multiplayer mode.
+Add [StandardArenaSelectOverlay](qml/qml-rhythmgameqml-standardarenaselectoverlay.html)
+for ready controls and chat. It appears only in an Arena room. Press START
+twice to toggle ready. `navigationFocusTarget` returns keyboard focus to
+`songList` when chat closes.
 
 \snippet 05-select/Select.qml arena-select
-
-\include{lineno} 05-select/Select.qml
 
 ## Try a complete browsing cycle
 
@@ -311,27 +273,7 @@ Enter a song folder, choose a chart, and play it using your existing gameplay
 theme. After closing the result, the list should still show the folder you
 left. Use Back or Left to go up a folder, and Leave selection to leave the screen.
 
-Bound controller keys 1 and 3 activate an entry, key 5 starts autoplay, and
-scratch moves the selection. F2 reloads the current folder or table, F3 opens
-the selected folder, F11 opens the chart's online ranking page, and F12 opens
-Settings. F11 uses the provider chosen in the profile's settings and works
-without a ranking display in the theme. Try key 7 or the Replay button on a chart
-you have played before, then use key 6 or the combo box to choose another run.
-
-The controller's `ranking` is a
-[StandardRanking](qml/qml-rhythmgameqml-standardranking.html). It follows the
-focused chart and supplies entries, the player's position and loading state.
-The optional panel above shows one way to display those properties. A button
-can call `selection.openInternetRanking()` to use the same action as F11.
-
-If you have a difficulty table with courses, open it and choose a course.
-The same activation call opens the course. In Arena, choosing a chart proposes
-it to the room instead. Press Start twice on either player side to toggle ready.
-The Arena overlay handles the shortcut and supplies the hint on its Ready
-control. Set the overlay's `readyShortcutEnabled` to false if you want to provide
-your own shortcut. Open an empty folder or choose a filter that excludes all
-charts to check the empty-list message.
-
-The [controller reference](qml/qml-rhythmgameqml-standardselectcontroller.html)
-lists the optional actions. Start by changing the list's appearance before
-replacing browsing behavior.
+Try the same navigation with scratch and bound keys 1 or 3. Open an empty
+folder to check its message. On a chart with a saved replay, try Replay and
+choose another run from the combo box. If you have a course, select it and
+check its stage list before starting play.

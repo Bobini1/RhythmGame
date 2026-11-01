@@ -2,9 +2,10 @@
 
 [Previous](01-first-screen.md) | [Tutorial](index.md) | [Next: Profiles and settings](03-profile.md)
 
-Install `docs/examples/theme-tutorial/02-qml/` and choose it for Main Menu. You
-will see Song select, Multiplayer, Settings and Quit buttons, plus a checkbox
-that changes the menu's colors.
+**Goal:** Change colors with a binding, reuse a button component, and make the
+menu fit different window sizes.
+
+Install `docs/examples/theme-tutorial/02-qml/` and choose it for Main Menu.
 
 [Download 02-qml](examples/theme-tutorial/02-qml.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/02-qml).
@@ -35,9 +36,7 @@ refers to a property of the checkbox, and `actions.openSettings()` calls a
 method on the named standard component.
 
 Use bindings for values that depend on other properties. Use signal handlers
-for actions, such as opening Settings after a button click. Keeping the color
-bindings tied to `checked` avoids copying the checkbox's state into another
-property and keeping both values in sync.
+for actions, such as opening Settings after a button click.
 
 ## Put a repeated control in its own file
 
@@ -54,71 +53,23 @@ handler, while the shared file supplies its appearance.
 \snippet 02-qml/main.qml use-component
 
 Change the font size in `MenuButton.qml` and restart. All four buttons should
-change. Keep helpers in your theme folder rather than importing another theme's
-private files, since a user may not have that other theme installed.
-Don't depend on the Default skin either, it can change.
-If you want something from it, simply copy the code or even image assets, don't try to import its files.
+change. Keep helpers and assets in your theme folder. If you want to reuse
+something from Default, copy it: its private files may change, and other
+themes may not be installed.
 
 ## Choose how the screen resizes
 
-You control how your theme looks at different resolutions.
-If you just naively set the coordinates based on your setup,
-ui might extend beyond the window for a user with a smaller screen or one that prefers windowed mode.
-Or appear in the upper left corner for a user with a huge 4k monitor.
+Two approaches work well:
 
-There are two main approaches to handle positioning right:
-I call them "bottom-up" and "top-down".
+- **Scale a fixed canvas.** Position controls at a design size, then scale the
+  whole screen to fit. This keeps the proportions of your design.
+- **Use layouts.** Let `RowLayout` and `ColumnLayout` size their children to
+  fit the available space. Use `implicitWidth` and `implicitHeight` for natural
+  sizes, and `Layout` properties for size limits and how extra space is shared.
 
-In "bottom-up", you define the exact sizes for each leaf component -
-for example, you set a button to 100px width and 50px height.
-When you need a column of buttons,
-you use the [`Column`](https://doc.qt.io/qt-6/qml-qtquick-column.html) QML type for laying them down.
-Or set their `x` and `y` coordinates directly or
-with [anchors](https://doc.qt.io/qt-6/qtquick-positioning-anchors.html).
-
-You then put everything in a root component which you use
-to scale all of its children depending on the size of the window.
-So the 100x50 button will actually get stretched to 200x100 on a bigger screen, for example.
-Simple and good. I recommend this approach in most cases.
-
-In "top-down", you don't set the sizes of buttons and other leaf components *anywhere*.
-Instead, [Layouts](https://doc.qt.io/qt-6/qtquicklayouts-index.html) do it for you.
-The only thing you set are implicit sizes: `implicitWidth`, `implicitHeight`.
-So you would make a button with `implicitWidth: 100` and `implicitHeight: 50` and then set `Layout.fillHeight: true`.
-If you then put buttons like that in a [`ColumnLayout`](https://doc.qt.io/qt-6/qml-qtquick-layouts-columnlayout.html),
-it would leave their width at the implicit `100` but
-override their heights to fill the full height of the column evenly.
-
-In the example below, I showcase this technique.
-The big trick is that you usually don't set the width and height of the layout either,
-you have a hierarchy of layouts with one root layout at the top that you set to fill the whole screen.
-A window resize then propagates downward through intermediate layouts down to our leaf components, like the buttons.
-
-```qmllang
-ColumnLayout {
-    height: 200
-    width: 200
-    Button {
-        implicitWidth: 100
-        implicitHeight: 50
-        Layout.fillHeight: true
-    }
-    Button {
-        implicitWidth: 100
-        implicitHeight: 50
-        Layout.fillHeight: true
-    }
-}
-```
-
-In the `Default` theme, the settings screen uses the "top-down" approach
-while all other screens generally use the "bottom-up" way.
-If you want truly dynamic layouts that adapt to the screen size in some clever way, go with "top-down".
-But keep in mind that the learning curve is quite steep.
-
-The menu from the [first example](01-first-screen.md) uses a fixed 960 by 540 canvas.
-It is set to fit without stretching, leaving unused space on the sides or top and bottom
-if the window has a different side ratio.
+The [first menu](01-first-screen.md) scales a fixed 960 by 540 canvas. It keeps
+the same proportions, leaving unused space when the window has a different
+aspect ratio.
 
 \snippet 01-main/main.qml canvas
 
@@ -127,11 +78,9 @@ It contains the whole menu between two empty `Item` objects that act as spacers.
 
 \snippet 02-qml/main.qml layout
 
-The spacers use `Layout.fillHeight` and equal `Layout.preferredHeight` values.
-Their preferred heights act as relative weights when the layout has room to
-grow. They share the unused height equally, keeping the image and controls
-centered together. The outer layout has no spacing, so empty spacers don't
-leave gaps in a short window.
+The spacers use `Layout.fillHeight` and equal `Layout.preferredHeight` values
+to share unused height equally. This centers the menu. The outer layout has
+no spacing, so collapsed spacers leave no gaps in a short window.
 
 \snippet 02-qml/main.qml top-space
 
@@ -153,6 +102,8 @@ A layout controls its immediate children's geometry. Use `Layout` properties
 on those children and anchors on the surrounding layout or container.
 A label needs a constrained width before it can wrap its text.
 
+## Try the layout
+
 Try a wide window, a tall window and a short window. The image should stay next
 to the heading, and the menu should stay centered. In a short window, the
 spacers collapse and then the image shrinks.
@@ -163,8 +114,8 @@ The whole menu moves upward, with the image still next to the controls. Qt's
 [layout sizing guide](https://doc.qt.io/qt-6/qtquicklayouts-overview.html#size-constraints)
 explains how the size limits affect the result.
 
-The checkbox is temporary state, so its value resets when the screen is
-created again. In the next lesson, we will save its state in the active profile.
+The checkbox resets when the screen is created again. The next lesson adds a
+color setting saved in the active profile.
 
 For more detail, read Qt's [property binding guide](https://doc.qt.io/qt-6/qtqml-syntax-propertybinding.html)
 and [layout guide](https://doc.qt.io/qt-6/qtquicklayouts-overview.html).

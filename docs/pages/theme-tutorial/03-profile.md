@@ -2,9 +2,10 @@
 
 [Previous](02-qml.md) | [Tutorial](index.md) | [Next: Translations](04-translations.md)
 
+**Goal:** Greet the active player by name and save a greeting color for their
+profile.
+
 Install `docs/examples/theme-tutorial/03-profile/` and choose it for Main Menu.
-The menu greets the active profile by name. Its greeting color is a setting
-you can change in the game's existing settings screen.
 
 [Download 03-profile](examples/theme-tutorial/03-profile.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/03-profile).
@@ -34,8 +35,8 @@ main profile. Later lessons show the supplied player and result objects.
 ## Declare a setting for the menu
 
 The manifest points the `main` screen to a settings file as well as a QML file.
-The game reads the setting definitions and the settings screen adds the appropriate controls for changing the values,
-unless you use the special `hidden` property type.
+The settings screen uses these definitions to create controls for changing
+the values. A setting with type `hidden` has no control.
 
 \include 03-profile/theme.json
 
@@ -46,26 +47,16 @@ the settings form, and `default` supplies the first value for a profile.
 The `color` type tells the form which control to use.
 
 Saved values live under `profile.vars.themeVars[screenName][themeName]`.
-The example uses `"main"` for its screen and `QmlUtils.themeName` for its folder name.
-That's because a user can rename the theme's folder - so we do this to avoid hard-coding it.
+The example uses `"main"` for its screen and `QmlUtils.themeName` for its folder
+name, so it still works if a user renames the folder.
 [QmlUtils](@ref qml_components::QmlUtilsAttached) is
 an [attached property](https://doc.qt.io/qt-6/qtqml-typesystem-attachedtypes.html).
 
-Theme settings are per-profile and separate for each theme.
-Different screens of the same theme should not share settings.
-If you make a theme with gameplay screens,
-you will need separate json files with settings for 7k and 14k, even though they might end up very similar.
+Settings belong to a profile, screen and theme. Read only the current screen's
+settings; another screen may use a different theme.
 
-@note
-In theory, you can access the settings of any screen at any point.
-You can do profile.vars.themeVars["select"]["Default"] to get the settings of the Default theme's select, for example.
-The settings screen does it for all installed themes for obvious reasons.
-But if you abuse this to create cross-screen or cross-theme shared settings, it might get confusing for users.
-
-@note
-As a special case, if your theme does not define 5k/10k screens,
-the 7k/10k screens will be selectable for those key modes, and they **will** share settings across key modes,
-automatically.
+If a theme omits `k5` or `k10`, the game can use its `k7` or `k14` screen,
+respectively. These fallback screens share the original screen's settings.
 
 ## Try the saved value
 
@@ -77,19 +68,7 @@ The next lesson adds translations for the greeting, buttons and color setting.
 
 ## Find other game data
 
-Start with the object related to the task, then follow its generated reference.
-The \ref Rg page lists the full set of properties and their types.
-
-| Task                                     | Objects to read                                                       |
-|------------------------------------------|-----------------------------------------------------------------------|
-| Show profile preferences or saved scores | `profileList`, then the profile's `vars` or `scoreDb`                 |
-| Inspect themes or supported languages    | `themes`, `languages`                                                 |
-| Work with the song library               | `rootSongFoldersConfig`, `songFolderFactory`, `tables`                |
-| Load images, previews or local files     | `songAssets`, `songDirectoryFilePathFetcher`, `fileQuery`             |
-| Build device or audio settings           | `inputTranslator`, `gamepadManager`, `audioEngine`, `programSettings` |
-| Build online ranking or Arena UI         | `onlineScores`, `arenaSession`, `arenaRoomCount`                      |
-
-Most screens won't need to use those objects directly. For example,
-[StandardSelectController](qml/qml-rhythmgameqml-standardselectcontroller.html) already handles ordinary browsing and
-chart activation through `chartLoader`. `globalRoot` is a separate object supplied
-by the game for navigation, such as `globalRoot.returnToPreviousScreen()`.
+The \ref Rg reference lists the available game services. Later lessons use
+standard components to handle tasks such as browsing and opening charts.
+For screen navigation, use the separate `globalRoot` object, for example
+`globalRoot.returnToPreviousScreen()`.

@@ -2,18 +2,22 @@
 
 [Previous](06-decide.md) | [Tutorial](index.md) | [Next: Results](08-results.md)
 
+**Goal:** Draw notes and live scores using the player's speed and cover settings,
+with the standard flow handling play, retry and courses.
+
 Install `docs/examples/theme-tutorial/07-gameplay/` and choose it for the gameplay
-screens you use in Settings > Themes. It provides 5k, 7k, their battle variants,
+screens you use in Settings > Themes. It supports 5k, 7k, their battle variants,
 10k and 14k. Keep an existing result theme selected for now.
 
 [Download 07-gameplay](examples/theme-tutorial/07-gameplay.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/07-gameplay).
 
-The screen draws normal notes, long notes, bar lines and red mines, with the scratch
-lanes tinted differently. It also shows each player's score, combo and latest
-judgement, along with BGA and a life gauge. The lanes use plain rectangles and follow
-the player's saved note speed, lane cover, lift and hidden settings. The standard
-flow component supplies the same speed and cover controls as Default.
+The screen uses rectangles for notes, long notes, bar lines and mines. It also
+shows each player's score, combo, latest judgement and life gauge, with the
+chart's background animation (BGA) beside the lanes.
+
+`Gameplay.qml` arranges the screen, `PlayerField.qml` draws one player's field,
+and `NoteLane.qml` draws one lane. `GaugeBar.qml` displays the active gauge.
 
 ## Let the standard flow run the play
 
@@ -34,9 +38,8 @@ All gameplay themes must support courses. Bind to `gameplay.chartData` and
 
 \snippet 07-gameplay/Gameplay.qml stage
 
-`stageIndex` starts at zero, while the label adds one for the reader. A single
-chart has index zero and a count of one. Course details add context to the
-display, but the note renderer uses the same player interface in both cases.
+`stageIndex` starts at zero; add one for display. A single chart has index zero
+and a count of one. The note renderer uses the same player interface for both.
 
 `players` has one entry for SP or DP and two for local battle.
 
@@ -61,36 +64,26 @@ left half between two player playfields. Double play uses one playfield for all 
 ## Show loading and chart progress
 
 `gameplay.status` tells you whether the stage is loading, ready, running or
-finished. Showing it helps the player distinguish loading from a chart that
-has started. In Arena, Ready can remain on screen while the game waits for
-the shared start time.
+finished. In Arena, Ready can remain on screen while the game waits for the
+shared start time.
 
 \snippet 07-gameplay/Gameplay.qml play-status
 
-The first player's `bpm`, `elapsed` and `chartLength` supply the common chart
-display. `bpm` follows BPM changes during play. The time values are in
-nanoseconds, so the label divides them by one billion to show seconds. The
-progress bar uses their original units because both values use the same scale.
-Elapsed time can be negative during the lead-in, so the display clamps it to zero.
-These bindings follow the new player when a course advances.
+The first player's `bpm`, `elapsed` and `chartLength` supply the chart display.
+Divide the time values by one billion to convert nanoseconds to seconds. The
+progress bar can use the original units. Elapsed time can be negative before
+play starts, so the label clamps it to zero.
 
 ## Show the background animation
 
 [StandardGameplayBga](qml/qml-rhythmgameqml-standardgameplaybga.html) draws the
-current chart's BGA. Give it the gameplay
-context and a place in the layout. This example puts it in the right half of
-the screen, beside the lanes.
+current chart's BGA. Give it the gameplay context and a place in the layout.
 
 \snippet 07-gameplay/Gameplay.qml bga
 
-The component connects the base image, two overlay layers and the miss layer
-to video outputs. Black becomes transparent in the overlay layers. Bad and Poor
-judgements show the miss layer for 400 milliseconds. These connections follow
-`gameplay.bga` when a course changes stages.
-
-Visibility follows the player's `bgaOn` setting. In battle, it follows the main
-profile. You can override `visible`, or replace the component with your own
-renderer using `gameplay.bga.layers`.
+It handles the image layers, miss animation and course stage changes. Visibility
+follows the player's `bgaOn` setting, or the main profile's setting in battle.
+Override `visible` if needed. For a custom renderer, use `gameplay.bga.layers`.
 
 ## Show the player's score target
 
@@ -100,14 +93,10 @@ target points in a label.
 
 \snippet 07-gameplay/PlayerField.qml score-target
 
-The target follows the player's profile setting: a score fraction, best run,
-latest run or next rank. Saved replays supply the target's progress through
-the chart. A saved score without a replay uses its score rate instead.
-The component loads new scores for each course stage and cancels old requests.
-
-Battle targets follow the other player. Arena targets follow the opponent
-chosen by the session. `available` tells the display when it has a target.
-The helper also exposes `finalPoints` and personal-best values for graphs.
+The target follows the player's profile setting: a score fraction, best score,
+latest score or next rank. It uses replay progress when available, or a score
+rate otherwise, and updates for each course stage. In battle and Arena, it
+follows an opponent. Check `available` before showing it.
 
 ## Draw each player's lanes
 
@@ -116,8 +105,7 @@ They follow the default visual order, with the left scratch first and the right
 scratch last. Five-key modes omit unused columns. `player.isScratchColumn(index)`
 identifies scratch lanes for their colors.
 
-The example keeps the default input mapping. A theme can arrange the columns
-differently, for example to flip the scratch lane in 5k mode.
+Changing the visual column order does not change the input mapping.
 
 \snippet 07-gameplay/PlayerField.qml columns
 
@@ -149,10 +137,8 @@ visible span still follows the saved travel time and BPM setting.
 The conversion is `(noteScreenTimeMillis / 1000) * (referenceBpm / 60)`,
 which multiplies seconds by beats per second.
 
-The calculation updates when the settings or current stage change. BPM and
-scroll changes within the chart still affect how notes move. The helper uses
-the selected reference BPM, so a faster part of the chart can bring notes
-through the field sooner.
+The calculation updates with the settings and current stage. BPM and scroll
+changes within the chart still affect how notes move.
 
 The example also draws covers and lift from `player.profile.vars.generalVars`.
 Lift raises the judgement line by shortening the lanes. Lane cover draws over
@@ -209,15 +195,12 @@ whichever is on. When both lift and hidden are on, briefly press START+SELECT
 to switch between them. With all three off, SELECT still adjusts the saved
 lane-cover amount for the next time you enable it.
 
-Each battle player changes their own profile. In double play, either scratch
-uses the same profile, and START or SELECT can be held on either side. Speed
-and cover adjustments pause while both buttons are held or a retry is being
-chosen. They also stop when the screen is inactive.
+Each battle player changes their own profile. In double play, controls on
+either side use the same profile. Adjustments pause during START+SELECT and
+retry choice, and stop when the screen is inactive.
 
-Set `speedControlsEnabled: false` on the flow if you want different controls.
-The lane renderer still follows changes to the saved settings. For a custom
-flow, [StandardGameplayInput](qml/qml-rhythmgameqml-standardgameplayinput.html)
-also includes these controls, so do not add a second copy.
+Set `speedControlsEnabled: false` on the flow to supply your own controls.
+The lane renderer still follows the saved settings.
 
 ## Show the current gauge
 
@@ -228,8 +211,7 @@ course gauges through the same property.
 \snippet 07-gameplay/PlayerField.qml gauge
 
 `GaugeBar.qml` shows the first gauge above its clear threshold, or the last
-gauge if none is above its threshold. This follows Default's display choice.
-Its binding reads each gauge's current value, so it updates as the player hits
+gauge if none is above its threshold. The binding updates as the player hits
 or misses notes.
 
 \snippet 07-gameplay/GaugeBar.qml active-gauge
@@ -247,13 +229,22 @@ works during autoplay and replay.
 
 \snippet 07-gameplay/PlayerField.qml judgement-feedback
 
-The example maps the displayed judgements to text and colors. It ignores
-events absent from the map, like "mine avoided" events.
-A displayed judgement restarts a half-second timer.
+The example maps judgements to text and colors, ignoring events such as
+"mine avoided". Each displayed judgement restarts a half-second timer. A new
+course stage changes the connection's target and clears the previous judgement.
 
-Changing the chart when a course advances changes
-the connection's target and stops the timer. The next stage starts with no
-judgement showing.
+## Add retry controls
+
+The Retry and Same random buttons call the flow's `retry(samePattern)` method.
+Bind their enabled state to `retryAvailable` so the flow decides when retry
+is allowed.
+
+\snippet 07-gameplay/Gameplay.qml retry-buttons
+
+For a manual single chart, hold START+SELECT to choose a retry. Release START
+for the same random pattern, SELECT for a new pattern, or both to cancel.
+The Exit button is disabled during this choice. Standard quick retry is
+unavailable for courses, autoplay, replay, battle and Arena.
 
 ## Include Arena standings
 
@@ -266,47 +257,17 @@ used by the lanes. The player can move or resize it.
 
 \snippet 07-gameplay/Gameplay.qml arena-gameplay
 
-Read the files together to follow the screen, player and lane structure.
-
-\include{lineno} 07-gameplay/Gameplay.qml
-
-\include{lineno} 07-gameplay/PlayerField.qml
-
-\include{lineno} 07-gameplay/NoteLane.qml
-
-\include{lineno} 07-gameplay/GaugeBar.qml
-
 ## Try play, retry and a course
 
-Start with an easy chart or autoplay to inspect the notes. Check a long note
-and a mine, then resize the window to make sure every lane remains visible.
-Try double play or battle if you use those modes.
-Turn BGA off and check that the lanes still occupy half of the screen. In an
-Arena round, check that the panel's initial position leaves the lanes clear.
+Start with an easy chart or autoplay. Check long notes and mines, then resize
+the window: all lanes should remain visible. Try the speed and cover controls
+and confirm that the notes follow the saved settings. In manual single-chart
+play, try both retry buttons.
 
-Change the saved note travel time and BPM mode, then play a chart with BPM
-changes. Check that the example follows those settings, including when a
-course advances to a stage with a different BPM.
-
-Try START and SELECT with the scratch, then toggle lane cover with a double
-press of START. Enable lift and hidden in your profile settings and check their
-positions too. Play a chart with BGA and miss a note to see the miss layer.
-
-For an ordinary manual single chart, hold START+SELECT to enter retry choice.
-Release START for the same random, SELECT for a new random, or both to
-cancel. The example disables its Exit button while the choice is active.
-Courses, autoplay, replay, battle and Arena don't use the standard quick retry.
-
-The example also provides Retry and Same random buttons. Their `retryAvailable`
-binding uses the flow's eligibility checks. Both buttons call `retry(samePattern)`,
-which is also used by the hold-and-release gesture.
-
-\snippet 07-gameplay/Gameplay.qml retry-buttons
-
-Play a course through a stage result and confirm that the next stage changes
-both title and notes. The final course summary should return to selection
-when closed. `coursePlayers` provides combo state for the whole course if
-you want to add it, while the example's combo label describes the current stage.
+Play a course past its first result. The next stage should change both the
+title and notes. Closing the final course summary should return to selection.
+The example's combo label covers the current stage; `coursePlayers` provides
+the combo for the whole course if you want to display it.
 
 For later customization, the [flow reference](qml/qml-rhythmgameqml-standardgameplayflow.html)
 describes `startReady` and `finishReady` for delaying transitions around an

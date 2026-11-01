@@ -2,10 +2,11 @@
 
 [Previous](03-profile.md) | [Tutorial](index.md) | [Next: Song selection](05-select.md)
 
+**Goal:** Mark menu text for translation and load a translation file.
+
 Install `docs/examples/theme-tutorial/04-translations/` and choose it for Main
-Menu. It contains the previous menu with Polish translations for the greeting,
-most buttons and the color setting. The compiled translation is included, so
-you can try it before installing any translation tools.
+Menu. It includes Polish translations for the greeting, most buttons and the
+color setting. You can try them without installing translation tools.
 
 [Download 04-translations](examples/theme-tutorial/04-translations.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/04-translations).
