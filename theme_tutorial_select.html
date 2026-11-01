@@ -76,19 +76,19 @@ $(function() {
   <div class="headertitle"><div class="title">5. Browse songs and courses</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="el" href="theme_tutorial_translations.html">Previous</a> | <a class="el" href="theme_tutorial.html">Tutorial</a> | <a class="el" href="theme_tutorial_decide.html">Next: Decide</a></p>
+<div class="textblock"><p><a href="./theme_tutorial_translations.html">Previous</a> | <a href="./theme_tutorial.html">Tutorial</a> | <a href="./theme_tutorial_decide.html">Next: Decide</a></p>
 <p><b>Goal:</b> Build a song list that opens charts and courses, then add saved scores, replays and rankings.</p>
 <p>Install <code>docs/examples/theme-tutorial/05-select/</code> and choose it for Select. Keep your current themes for Main Menu, Decide and gameplay. Start with the list; the chart details panel is optional.</p>
-<p><a href="examples/theme-tutorial/05-select.zip">Download 05-select</a> or <a href="https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/05-select">open the source folder</a>.</p>
+<p><a href="./examples/theme-tutorial/05-select.zip">Download 05-select</a> or <a href="https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/05-select">open the source folder</a>.</p>
 <h1><a class="anchor" id="autotoc_md59"></a>
 Use the standard browsing behavior</h1>
-<p><a href="qml/qml-rhythmgameqml-standardselectcontroller.html">StandardSelectController</a> loads folders and tables, remembers the path back, and opens charts or courses. It also handles input, shortcuts, background music and chart previews. The theme draws the rows, and <code>StandardSelectListView</code> connects the current row to the controller.</p>
+<p><a href="./qml/qml-rhythmgameqml-standardselectcontroller.html">StandardSelectController</a> loads folders and tables, remembers the path back, and opens charts or courses. It also handles input, shortcuts, background music and chart previews. The theme draws the rows, and <code>StandardSelectListView</code> connects the current row to the controller.</p>
 <div class="fragment"><div class="line">    StandardSelectController {</div>
 <div class="line">        id: selection</div>
 <div class="line">    }</div>
 </div><!-- fragment --><p>The controller opens the root folder automatically. Its <code>entries</code> contain one instance of each filtered item, which suits a normal list. A circular wheel can use <code>presentationEntries</code> to repeat entries when it needs more visible rows.</p>
-<p>Use the complete controller once. Adding <a href="qml/qml-rhythmgameqml-standardselectinput.html">StandardSelectInput</a> or <a href="qml/qml-rhythmgameqml-standardselectshortcuts.html">StandardSelectShortcuts</a> alongside it would add behavior already included by the controller. Use those smaller components when building your own browsing behavior.</p>
-<p>Background music stops when a chart preview starts. The list waits until scrolling stops before playing a preview. Both stop when selection becomes inactive, such as during gameplay. See <a href="qml/qml-rhythmgameqml-standardselectpreview.html">StandardSelectPreview</a> to change the preview delay, volume or audio source.</p>
+<p>Use the complete controller once. Adding <a href="./qml/qml-rhythmgameqml-standardselectinput.html">StandardSelectInput</a> or <a href="./qml/qml-rhythmgameqml-standardselectshortcuts.html">StandardSelectShortcuts</a> alongside it would add behavior already included by the controller. Use those smaller components when building your own browsing behavior.</p>
+<p>Background music stops when a chart preview starts. The list waits until scrolling stops before playing a preview. Both stop when selection becomes inactive, such as during gameplay. See <a href="./qml/qml-rhythmgameqml-standardselectpreview.html">StandardSelectPreview</a> to change the preview delay, volume or audio source.</p>
 <h1><a class="anchor" id="theme_tutorial_select_entry_types"></a>
 Recognize the entry types</h1>
 <p>The controller's <code>entries</code> list contains several types. Each delegate receives one of them as <code>modelData</code>. Check its type before reading properties such as <code>title</code> or <code>name</code>.</p>
@@ -128,10 +128,10 @@ Recognize the entry types</h1>
 <div class="line">            return qsTr(&quot;Course: %1&quot;).arg(item.name);</div>
 <div class="line">        return &quot;&quot;;</div>
 <div class="line">    }</div>
-</div><!-- fragment --><p>The generated references list the fields on <a class="el" href="classgameplay__logic_1_1ChartData.html">ChartData</a>, <a class="el" href="structresource__managers_1_1Entry.html">entry</a>, <a class="el" href="structresource__managers_1_1Table.html">table</a>, <a class="el" href="structresource__managers_1_1Level.html">level</a> and <a class="el" href="structresource__managers_1_1Course.html">course</a>.</p>
+</div><!-- fragment --><p>The generated references list the fields on <a href="./classgameplay__logic_1_1ChartData.html">ChartData</a>, <a href="./structresource__managers_1_1Entry.html">entry</a>, <a href="./structresource__managers_1_1Table.html">table</a>, <a href="./structresource__managers_1_1Level.html">level</a> and <a href="./structresource__managers_1_1Course.html">course</a>.</p>
 <h1><a class="anchor" id="autotoc_md60"></a>
 Connect a list to the controller</h1>
-<p><a href="qml/qml-rhythmgameqml-standardselectlistview.html">StandardSelectListView</a> extends <code>ListView</code> with the navigation needed by a song select screen. Set its <code>controller</code> and supply a delegate for each row.</p>
+<p><a href="./qml/qml-rhythmgameqml-standardselectlistview.html">StandardSelectListView</a> extends <code>ListView</code> with the navigation needed by a song select screen. Set its <code>controller</code> and supply a delegate for each row.</p>
 <div class="fragment"><div class="line">            StandardSelectListView {</div>
 <div class="line">                id: songList</div>
 <div class="line"> </div>
@@ -176,7 +176,7 @@ Connect a list to the controller</h1>
 <div class="line">                    onClicked: songList.activate(row.index)</div>
 <div class="line">                }</div>
 </div><!-- fragment --><p>Bind <code>highlighted</code> to <code>ListView.isCurrentItem</code> so the highlight follows the current row.</p>
-<p>For a custom wheel, handle the controller's <code>moveRequested</code> and <code>focusRequested</code> signals. Call <code>setFocused()</code> with the row's data when the wheel chooses an entry. The <a href="qml/qml-rhythmgameqml-standardselectcontroller.html">controller reference</a> describes this interface.</p>
+<p>For a custom wheel, handle the controller's <code>moveRequested</code> and <code>focusRequested</code> signals. Call <code>setFocused()</code> with the row's data when the wheel chooses an entry. The <a href="./qml/qml-rhythmgameqml-standardselectcontroller.html">controller reference</a> describes this interface.</p>
 <h1><a class="anchor" id="autotoc_md61"></a>
 Handle an empty folder or selection</h1>
 <p>When browsing or filtering produces no entries, <code>entries</code> is <code>[]</code>, <code>focusedItem</code> is <code>null</code> and <code>focusedIndex</code> is <code>-1</code>. The example shows a separate message above the empty list:</p>
@@ -200,7 +200,7 @@ Show the stages of a course</h1>
 <div class="line">                visible: courseData !== null</div>
 <div class="line">            }</div>
 </div><!-- fragment --><p>A course's <code>loadCharts()</code> result contains a <code>ChartData</code> for each installed stage. A missing stage is a string containing its MD5 or <code>sha256/&lt;hash&gt;</code> identifier. Those strings are not folder paths.</p>
-<p><code>CourseStages.qml</code> looks up missing charts with <a class="el" href="classresource__managers_1_1Tables.html">Rg.tables.search()</a>. It uses the first match's title and subtitle, or displays the identifier if no title is known.</p>
+<p><code>CourseStages.qml</code> looks up missing charts with <a href="./classresource__managers_1_1Tables.html">Rg.tables.search()</a>. It uses the first match's title and subtitle, or displays the identifier if no title is known.</p>
 <div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span>import QtQuick</div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span>import QtQuick.Controls.FluentWinUI3</div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span>import QtQuick.Layouts</div>
@@ -283,7 +283,7 @@ Filter by keymode</h1>
 <div class="line">                    }</div>
 <div class="line">                }</div>
 <div class="line">            }</div>
-</div><!-- fragment --><p>Each button's <code>checked</code> state follows the controller's <a href="qml/qml-rhythmgameqml-standardselectstate.html#keymodeFilter-prop">keymodeFilter</a>. <code>checkable</code> and <code>autoExclusive</code> keep one button selected. The <code>Flow</code> wraps the buttons onto another row when the window is narrow.</p>
+</div><!-- fragment --><p>Each button's <code>checked</code> state follows the controller's <a href="./qml/qml-rhythmgameqml-standardselectstate.html#keymodeFilter-prop">keymodeFilter</a>. <code>checkable</code> and <code>autoExclusive</code> keep one button selected. The <code>Flow</code> wraps the buttons onto another row when the window is narrow.</p>
 <p>Clicking a button calls <code>selection.setKeymodeFilter()</code>, which saves the choice in the active profile and updates <code>selection.keymodeFilter</code>. Switching profiles updates the filter to that profile's choice. Sorting and replay choices work the same way through <code>setSortMode()</code> and <code>setReplayType()</code>.</p>
 <p>These properties are read-only. Bind controls to them and use the methods to change the choice.</p>
 <h1><a class="anchor" id="autotoc_md64"></a>
@@ -300,12 +300,12 @@ Use the same actions from buttons and keys</h1>
 <div class="line">                    onClicked: selection.openAutoplay()</div>
 <div class="line">                }</div>
 <div class="line">            }</div>
-</div><!-- fragment --><p><a href="qml/qml-rhythmgameqml-standardselectstate.html#cycleSortMode-method">cycleSortMode ()</a> cycles the available sort choices and saves the choice in the active profile. Bound keys 2 and 4 use the same action at the root. Inside a folder they go back. A menu that chooses a particular sort mode can call <code>setSortMode(mode)</code>. The button displays <a href="qml/qml-rhythmgameqml-standardselectstate.html#sortModeText-prop">sortModeText</a>, the translated name of the current sort mode. "Total" means the chart's TOTAL gauge value. It does not mean the number of notes.</p>
-<p><a href="qml/qml-rhythmgameqml-standardselectstate.html#openAutoplay-method">openAutoplay ()</a> starts the focused chart or course. <code>autoplayAvailable</code> keeps the button disabled for folders, incomplete courses and Arena. Bound key 5 uses the same action, and also enters folders while browsing.</p>
+</div><!-- fragment --><p><a href="./qml/qml-rhythmgameqml-standardselectstate.html#cycleSortMode-method">cycleSortMode ()</a> cycles the available sort choices and saves the choice in the active profile. Bound keys 2 and 4 use the same action at the root. Inside a folder they go back. A menu that chooses a particular sort mode can call <code>setSortMode(mode)</code>. The button displays <a href="./qml/qml-rhythmgameqml-standardselectstate.html#sortModeText-prop">sortModeText</a>, the translated name of the current sort mode. "Total" means the chart's TOTAL gauge value. It does not mean the number of notes.</p>
+<p><a href="./qml/qml-rhythmgameqml-standardselectstate.html#openAutoplay-method">openAutoplay ()</a> starts the focused chart or course. <code>autoplayAvailable</code> keeps the button disabled for folders, incomplete courses and Arena. Bound key 5 uses the same action, and also enters folders while browsing.</p>
 <p>Press F12 to open Settings. This uses the controller's <code>openSettings()</code> action. The controller also exposes <code>reloadCurrentFolderOrTable()</code> for F2 and <code>openSelectedFolder()</code> for F3. Their action overrides apply to both buttons and shortcuts.</p>
 <h1><a class="anchor" id="autotoc_md65"></a>
 Play a saved replay</h1>
-<p>The controller chooses a saved run using the active profile's replay setting. The choices are newest, best score, best clear and best combo. The combo box uses <a href="qml/qml-rhythmgameqml-standardselectstate.html#replayOptions-prop">replayOptions</a>. Each option has a <code>text</code> label and a stable <code>value</code>. The two role properties tell the combo box which field to display and which field to select. <code>currentValue</code> follows <code>selection.replayType</code>, and <code>setReplayType(currentValue)</code> saves the player's choice.</p>
+<p>The controller chooses a saved run using the active profile's replay setting. The choices are newest, best score, best clear and best combo. The combo box uses <a href="./qml/qml-rhythmgameqml-standardselectstate.html#replayOptions-prop">replayOptions</a>. Each option has a <code>text</code> label and a stable <code>value</code>. The two role properties tell the combo box which field to display and which field to select. <code>currentValue</code> follows <code>selection.replayType</code>, and <code>setReplayType(currentValue)</code> saves the player's choice.</p>
 <div class="fragment"><div class="line">            RowLayout {</div>
 <div class="line">                ComboBox {</div>
 <div class="line">                    model: selection.replayOptions</div>
@@ -321,8 +321,8 @@ Play a saved replay</h1>
 <div class="line">                    onClicked: selection.openReplay()</div>
 <div class="line">                }</div>
 <div class="line">            }</div>
-</div><!-- fragment --><p>These labels are already translated; use them without <code>qsTr()</code>. For custom labels, see <a href="qml/qml-rhythmgameqml-standardselectoptions.html">StandardSelectOptions</a>.</p>
-<p>The button calls <a href="qml/qml-rhythmgameqml-standardselectstate.html#openReplay-method">openReplay ()</a>, which is also the action used by bound key 7. Bound key 6 cycles the replay choice. No extra handler is needed on the controller.</p>
+</div><!-- fragment --><p>These labels are already translated; use them without <code>qsTr()</code>. For custom labels, see <a href="./qml/qml-rhythmgameqml-standardselectoptions.html">StandardSelectOptions</a>.</p>
+<p>The button calls <a href="./qml/qml-rhythmgameqml-standardselectstate.html#openReplay-method">openReplay ()</a>, which is also the action used by bound key 7. Bound key 6 cycles the replay choice. No extra handler is needed on the controller.</p>
 <p><code>replayAvailable</code> keeps the button disabled until a usable replay is loaded. Scores imported without replay data can still be viewed as results, but cannot be played back. A course replay needs replay data for all its stages. Replay playback uses the main profile alone and is unavailable in Arena.</p>
 <h1><a class="anchor" id="autotoc_md66"></a>
 Add an optional chart details panel</h1>
@@ -348,7 +348,7 @@ Add an optional chart details panel</h1>
 <div class="line">                            text: qsTr(&quot;No image&quot;)</div>
 <div class="line">                        }</div>
 <div class="line">                    }</div>
-</div><!-- fragment --><p>The controller's <code>results</code> map holds <a class="el" href="classgameplay__logic_1_1BmsResult.html">BmsResult</a> summaries without replay data. It updates after scores are saved or imported. <code>StandardRanking</code> finds the best clear and best score from these results; they can be different runs.</p>
+</div><!-- fragment --><p>The controller's <code>results</code> map holds <a href="./classgameplay__logic_1_1BmsResult.html">BmsResult</a> summaries without replay data. It updates after scores are saved or imported. <code>StandardRanking</code> finds the best clear and best score from these results; they can be different runs.</p>
 <div class="fragment"><div class="line">                    Label {</div>
 <div class="line">                        Layout.fillWidth: true</div>
 <div class="line">                        wrapMode: Text.Wrap</div>
@@ -362,12 +362,12 @@ Add an optional chart details panel</h1>
 <div class="line">                            .arg(selection.ranking.bestClearTypeResult?.clearType ?? &quot;NOPLAY&quot;)</div>
 <div class="line">                            .arg(selection.ranking.bestPointsResult?.points ?? 0)</div>
 <div class="line">                    }</div>
-</div><!-- fragment --><p>Use <a href="qml/qml-rhythmgameqml-scoredetails.html">ScoreDetails</a> when the panel needs a full score, such as replay hit events or gauge history. The example loads the latest saved result. Changing the selected result cancels the previous load, so the graph cannot show replay data for the chart you just left.</p>
+</div><!-- fragment --><p>Use <a href="./qml/qml-rhythmgameqml-scoredetails.html">ScoreDetails</a> when the panel needs a full score, such as replay hit events or gauge history. The example loads the latest saved result. Changing the selected result cancels the previous load, so the graph cannot show replay data for the chart you just left.</p>
 <div class="fragment"><div class="line">    ScoreDetails {</div>
 <div class="line">        id: scoreDetails</div>
 <div class="line">        result: screen.chartResults[0] || null</div>
 <div class="line">    }</div>
-</div><!-- fragment --><p>The graph receives the full score's replay data and the selected chart's timing windows. It keeps the same fixed scale that the <a class="el" href="theme_tutorial_results.html">result lesson</a> uses. A saved result can exist without a replay, so the panel distinguishes no saved score, a replay that is loading, a failed load and a score without replay data.</p>
+</div><!-- fragment --><p>The graph receives the full score's replay data and the selected chart's timing windows. It keeps the same fixed scale that the <a href="./theme_tutorial_results.html">result lesson</a> uses. A saved result can exist without a replay, so the panel distinguishes no saved score, a replay that is loading, a failed load and a score without replay data.</p>
 <div class="fragment"><div class="line">                HitDistribution {</div>
 <div class="line">                    Layout.fillWidth: true</div>
 <div class="line">                    Layout.fillHeight: true</div>
@@ -423,7 +423,7 @@ Add an optional chart details panel</h1>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md67"></a>
 Include the Arena room panel</h1>
 <p>Open Multiplayer from the main menu, then join an Arena room. The game opens your configured select screen, so the same example serves local and multiplayer play. Keep Default selected for the <code>multiplayer</code> screen when using this example. Use Leave selection to leave the room and return to the browser.</p>
-<p>Add <a href="qml/qml-rhythmgameqml-standardarenaselectoverlay.html">StandardArenaSelectOverlay</a> for ready controls and chat. It appears only in an Arena room. Press START twice to toggle ready. <code>navigationFocusTarget</code> returns keyboard focus to <code>songList</code> when chat closes.</p>
+<p>Add <a href="./qml/qml-rhythmgameqml-standardarenaselectoverlay.html">StandardArenaSelectOverlay</a> for ready controls and chat. It appears only in an Arena room. Press START twice to toggle ready. <code>navigationFocusTarget</code> returns keyboard focus to <code>songList</code> when chat closes.</p>
 <div class="fragment"><div class="line">    StandardArenaSelectOverlay {</div>
 <div class="line">        navigationFocusTarget: songList</div>
 <div class="line">    }</div>

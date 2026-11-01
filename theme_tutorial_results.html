@@ -76,10 +76,10 @@ $(function() {
   <div class="headertitle"><div class="title">8. Show chart results and course summaries</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="el" href="theme_tutorial_gameplay.html">Previous</a> | <a class="el" href="theme_tutorial.html">Tutorial</a> | <a class="el" href="theme_tutorial_shipping.html">Next: Complete theme example</a></p>
+<div class="textblock"><p><a href="./theme_tutorial_gameplay.html">Previous</a> | <a href="./theme_tutorial.html">Tutorial</a> | <a href="./theme_tutorial_shipping.html">Next: Complete theme example</a></p>
 <p><b>Goal:</b> Show scores, judgement counts and graphs for a completed chart or course, with working Continue and Retry controls.</p>
 <p>Install <code>docs/examples/theme-tutorial/08-results/</code> and choose it for Result and Course Result. Each screen has its own QML file and can be selected separately.</p>
-<p><a href="examples/theme-tutorial/08-results.zip">Download 08-results</a> or <a href="https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/08-results">open the source folder</a>.</p>
+<p><a href="./examples/theme-tutorial/08-results.zip">Download 08-results</a> or <a href="https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/08-results">open the source folder</a>.</p>
 <div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;$schema&quot;: &quot;https://raw.githubusercontent.com/Bobini1/RhythmGame/master/schemas/theme.json&quot;,</div>
 <div class="line">  &quot;scripts&quot;: {</div>
@@ -89,9 +89,9 @@ $(function() {
 <div class="line">}</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md87"></a>
 Read a completed chart</h1>
-<p><code>Result.qml</code> receives a <a href="qml/qml-rhythmgameqml-resultcontext.html">ResultContext</a> for one completed chart, including a course stage. Its <code>chartData</code> and stage fields stay fixed when gameplay advances to the next stage. The game owns the context and its scores for the result screen's lifetime; the theme presents them without destroying them.</p>
+<p><code>Result.qml</code> receives a <a href="./qml/qml-rhythmgameqml-resultcontext.html">ResultContext</a> for one completed chart, including a course stage. Its <code>chartData</code> and stage fields stay fixed when gameplay advances to the next stage. The game owns the context and its scores for the result screen's lifetime; the theme presents them without destroying them.</p>
 <div class="fragment"><div class="line">    required property ResultContext result</div>
-</div><!-- fragment --><p><code>result.players</code> contains one or two participants. Each <a href="qml/qml-rhythmgameqml-resultplayer.html">ResultPlayer</a> pairs a profile with a saved <a class="el" href="classgameplay__logic_1_1BmsScore.html">BmsScore</a>.</p>
+</div><!-- fragment --><p><code>result.players</code> contains one or two participants. Each <a href="./qml/qml-rhythmgameqml-resultplayer.html">ResultPlayer</a> pairs a profile with a saved <a href="./classgameplay__logic_1_1BmsScore.html">BmsScore</a>.</p>
 <div class="fragment"><div class="line">                Repeater {</div>
 <div class="line">                    model: screen.result.players</div>
 <div class="line"> </div>
@@ -163,7 +163,7 @@ Read a completed chart</h1>
 </div><!-- fragment --><p>The score's <code>result</code> property holds totals such as points and clear type. The score also provides replay and gauge history. Its totals stay fixed, although its online submission state can still change.</p>
 <h1><a class="anchor" id="autotoc_md88"></a>
 Add Continue and Retry controls</h1>
-<p>Pass <code>result</code> to <a href="qml/qml-rhythmgameqml-standardresultinput.html">StandardResultInput</a>. It accepts both chart and course results. It briefly delays confirmation after the screen opens, then handles the standard keys. The Continue button calls <code>confirm()</code> and uses the same delay.</p>
+<p>Pass <code>result</code> to <a href="./qml/qml-rhythmgameqml-standardresultinput.html">StandardResultInput</a>. It accepts both chart and course results. It briefly delays confirmation after the screen opens, then handles the standard keys. The Continue button calls <code>confirm()</code> and uses the same delay.</p>
 <div class="fragment"><div class="line">    StandardResultInput {</div>
 <div class="line">        id: resultInput</div>
 <div class="line">        result: screen.result</div>
@@ -359,7 +359,7 @@ Keep the result usable in a small window</h1>
 <p>The statistics use three columns when there is enough width, and stack vertically in a narrow window. A <code>ScrollView</code> holds the player displays, so battle results can show both players without shrinking the graphs. Retry and Continue stay outside the scroll area.</p>
 <h1><a class="anchor" id="autotoc_md93"></a>
 Show each player's online rank</h1>
-<p>The result uses the same <a href="qml/qml-rhythmgameqml-standardranking.html">StandardRanking</a> that the select controller supplies. Here, each player's display creates its own instance with the result's chart and that player's profile and score.</p>
+<p>The result uses the same <a href="./qml/qml-rhythmgameqml-standardranking.html">StandardRanking</a> that the select controller supplies. Here, each player's display creates its own instance with the result's chart and that player's profile and score.</p>
 <div class="fragment"><div class="line">                        StandardRanking {</div>
 <div class="line">                            id: playerRanking</div>
 <div class="line">                            chartData: screen.result.chartData</div>
@@ -405,7 +405,7 @@ Show each player's online rank</h1>
 <p>Normal results for course stages can use a ranking. Course summaries omit it because the online services rank individual charts. Arena standings are separate from online rankings and use the overlay described below.</p>
 <h1><a class="anchor" id="autotoc_md94"></a>
 Read a completed course</h1>
-<p><code>CourseResult.qml</code> receives a <a href="qml/qml-rhythmgameqml-courseresultcontext.html">CourseResultContext</a>. Its <code>course</code> describes the course, and <code>charts</code> contains chart metadata in stage order. Each player's <a class="el" href="classgameplay__logic_1_1BmsScoreCourse.html">BmsScoreCourse</a> combines their stage scores. The combined hit graph uses the widest available Bad window from the course's stages, so it can show every included hit on one fixed scale.</p>
+<p><code>CourseResult.qml</code> receives a <a href="./qml/qml-rhythmgameqml-courseresultcontext.html">CourseResultContext</a>. Its <code>course</code> describes the course, and <code>charts</code> contains chart metadata in stage order. Each player's <a href="./classgameplay__logic_1_1BmsScoreCourse.html">BmsScoreCourse</a> combines their stage scores. The combined hit graph uses the widest available Bad window from the course's stages, so it can show every included hit on one fixed scale.</p>
 <div class="fragment"><div class="line">    required property CourseResultContext result</div>
 </div><!-- fragment --><p>For a saved course result, a chart may have been removed from the library. <code>result.charts[index]</code> is then null, while <code>result.course.chartIds[index]</code> still identifies that stage. Look up that identifier with <code>Rg.tables.search()</code> for a table title, or display the identifier itself. Keep the stage in the list. The course's recorded stages and combined graph data are still available.</p>
 <div class="fragment"><div class="line">                Repeater {</div>
@@ -475,7 +475,7 @@ Read a completed course</h1>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>// [score-line]</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md95"></a>
 Include Arena standings</h1>
-<p>Add <a href="qml/qml-rhythmgameqml-standardarenaresultoverlay.html">StandardArenaResultOverlay</a> to show standings and chat for the completed Arena round. It stays hidden for local results. <code>StandardResultInput</code> disables confirmation while this result's chat is open, so Enter sends the message without closing the screen.</p>
+<p>Add <a href="./qml/qml-rhythmgameqml-standardarenaresultoverlay.html">StandardArenaResultOverlay</a> to show standings and chat for the completed Arena round. It stays hidden for local results. <code>StandardResultInput</code> disables confirmation while this result's chat is open, so Enter sends the message without closing the screen.</p>
 <div class="fragment"><div class="line">    StandardArenaResultOverlay {</div>
 <div class="line">        id: arenaOverlay</div>
 <div class="line">        parent: screen</div>

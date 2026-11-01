@@ -76,20 +76,20 @@ $(function() {
   <div class="headertitle"><div class="title">7. Draw notes during gameplay</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="el" href="theme_tutorial_decide.html">Previous</a> | <a class="el" href="theme_tutorial.html">Tutorial</a> | <a class="el" href="theme_tutorial_results.html">Next: Results</a></p>
+<div class="textblock"><p><a href="./theme_tutorial_decide.html">Previous</a> | <a href="./theme_tutorial.html">Tutorial</a> | <a href="./theme_tutorial_results.html">Next: Results</a></p>
 <p><b>Goal:</b> Draw notes and live scores using the player's speed and cover settings, with the standard flow handling play, retry and courses.</p>
 <p>Install <code>docs/examples/theme-tutorial/07-gameplay/</code> and choose it for the gameplay screens you use in Settings &gt; Themes. It supports 5k, 7k, their battle variants, 10k and 14k. Keep an existing result theme selected for now.</p>
-<p><a href="examples/theme-tutorial/07-gameplay.zip">Download 07-gameplay</a> or <a href="https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/07-gameplay">open the source folder</a>.</p>
+<p><a href="./examples/theme-tutorial/07-gameplay.zip">Download 07-gameplay</a> or <a href="https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/07-gameplay">open the source folder</a>.</p>
 <p>The screen uses rectangles for notes, long notes, bar lines and mines. It also shows each player's score, combo, latest judgement and life gauge, with the chart's background animation (BGA) beside the lanes.</p>
 <p><code>Gameplay.qml</code> arranges the screen, <code>PlayerField.qml</code> draws one player's field, and <code>NoteLane.qml</code> draws one lane. <code>GaugeBar.qml</code> displays the active gauge.</p>
 <h1><a class="anchor" id="autotoc_md73"></a>
 Let the standard flow run the play</h1>
-<p>The root receives the same <a href="qml/qml-rhythmgameqml-gameplaycontext.html">GameplayContext</a> used by decide. Bind it to <a href="qml/qml-rhythmgameqml-standardgameplayflow.html">StandardGameplayFlow</a>.</p>
+<p>The root receives the same <a href="./qml/qml-rhythmgameqml-gameplaycontext.html">GameplayContext</a> used by decide. Bind it to <a href="./qml/qml-rhythmgameqml-standardgameplayflow.html">StandardGameplayFlow</a>.</p>
 <div class="fragment"><div class="line">    StandardGameplayFlow {</div>
 <div class="line">        id: flow</div>
 <div class="line">        gameplay: gameplayScreen.gameplay</div>
 <div class="line">    }</div>
-</div><!-- fragment --><p>The flow handles startup, Escape, retry, speed controls and results. For a course, it also continues after each stage result and opens the final course summary. Don't add <a href="qml/qml-rhythmgameqml-standardgameplayinput.html">StandardGameplayInput</a> beside it or call the runner's start and finish methods yourself.</p>
+</div><!-- fragment --><p>The flow handles startup, Escape, retry, speed controls and results. For a course, it also continues after each stage result and opens the final course summary. Don't add <a href="./qml/qml-rhythmgameqml-standardgameplayinput.html">StandardGameplayInput</a> beside it or call the runner's start and finish methods yourself.</p>
 <h1><a class="anchor" id="autotoc_md74"></a>
 Follow the current stage and players</h1>
 <p>All gameplay themes must support courses. Bind to <code>gameplay.chartData</code> and <code>gameplay.players</code> so the display follows the stage that is currently playing.</p>
@@ -202,7 +202,7 @@ Show loading and chart progress</h1>
 </div><!-- fragment --><p>The first player's <code>bpm</code>, <code>elapsed</code> and <code>chartLength</code> supply the chart display. Divide the time values by one billion to convert nanoseconds to seconds. The progress bar can use the original units. Elapsed time can be negative before play starts, so the label clamps it to zero.</p>
 <h1><a class="anchor" id="autotoc_md77"></a>
 Show the background animation</h1>
-<p><a href="qml/qml-rhythmgameqml-standardgameplaybga.html">StandardGameplayBga</a> draws the current chart's BGA. Give it the gameplay context and a place in the layout.</p>
+<p><a href="./qml/qml-rhythmgameqml-standardgameplaybga.html">StandardGameplayBga</a> draws the current chart's BGA. Give it the gameplay context and a place in the layout.</p>
 <div class="fragment"><div class="line">                StandardGameplayBga {</div>
 <div class="line">                    anchors.fill: parent</div>
 <div class="line">                    gameplay: gameplayScreen.gameplay</div>
@@ -210,7 +210,7 @@ Show the background animation</h1>
 </div><!-- fragment --><p>It handles the image layers, miss animation and course stage changes. Visibility follows the player's <code>bgaOn</code> setting, or the main profile's setting in battle. Override <code>visible</code> if needed. For a custom renderer, use <code>gameplay.bga.layers</code>.</p>
 <h1><a class="anchor" id="autotoc_md78"></a>
 Show the player's score target</h1>
-<p><a href="qml/qml-rhythmgameqml-standardgameplaytarget.html">StandardGameplayTarget</a> uses the same context and player index. The example displays its current target points in a label.</p>
+<p><a href="./qml/qml-rhythmgameqml-standardgameplaytarget.html">StandardGameplayTarget</a> uses the same context and player index. The example displays its current target points in a label.</p>
 <div class="fragment"><div class="line">    StandardGameplayTarget {</div>
 <div class="line">        id: scoreTarget</div>
 <div class="line">        gameplay: field.gameplay</div>
@@ -230,7 +230,7 @@ Draw each player's lanes</h1>
 <div class="fragment"><div class="line">    readonly property var columns: field.player.columns</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md80"></a>
 Follow the player's note speed</h1>
-<p><a href="qml/qml-rhythmgameqml-standardgameplayviewport.html">StandardGameplayViewport</a> reads <code>noteScreenTimeMillis</code> and <code>hiSpeedFix</code> from the player's profile. Give it the current player, chart metadata and lane height. It calculates <code>pixelsPerBeat</code> for drawing and keeps the filtered note models in sync, including long notes whose bodies cross either edge of the visible area.</p>
+<p><a href="./qml/qml-rhythmgameqml-standardgameplayviewport.html">StandardGameplayViewport</a> reads <code>noteScreenTimeMillis</code> and <code>hiSpeedFix</code> from the player's profile. Give it the current player, chart metadata and lane height. It calculates <code>pixelsPerBeat</code> for drawing and keeps the filtered note models in sync, including long notes whose bodies cross either edge of the visible area.</p>
 <div class="fragment"><div class="line">    StandardGameplayViewport {</div>
 <div class="line">        id: viewport</div>
 <div class="line">        player: field.player</div>
@@ -379,7 +379,7 @@ Follow the player's note speed</h1>
 <div class="line">                }</div>
 <div class="line">            }</div>
 <div class="line">        }</div>
-</div><!-- fragment --><p>The lane highlight reads <code>columnState.pressed</code>. Autoplay and replay update that state too. <a class="el" href="classqml__components_1_1InputAttached.html">Input</a> reports physical input actions, so using it for the highlight would miss presses supplied by autoplay or replay.</p>
+</div><!-- fragment --><p>The lane highlight reads <code>columnState.pressed</code>. Autoplay and replay update that state too. <a href="./classqml__components_1_1InputAttached.html">Input</a> reports physical input actions, so using it for the highlight would miss presses supplied by autoplay or replay.</p>
 <div class="fragment"><div class="line">    Rectangle {</div>
 <div class="line">        anchors.fill: parent</div>
 <div class="line">        color: &quot;#35586a&quot;</div>
@@ -387,7 +387,7 @@ Follow the player's note speed</h1>
 <div class="line">    }</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md81"></a>
 Adjust speed and covers while playing</h1>
-<p><a href="qml/qml-rhythmgameqml-standardgameplayflow.html">StandardGameplayFlow</a> includes <a href="qml/qml-rhythmgameqml-standardgameplayspeedcontrols.html">StandardGameplaySpeedControls</a>. The example only needs a label to explain the controls.</p>
+<p><a href="./qml/qml-rhythmgameqml-standardgameplayflow.html">StandardGameplayFlow</a> includes <a href="./qml/qml-rhythmgameqml-standardgameplayspeedcontrols.html">StandardGameplaySpeedControls</a>. The example only needs a label to explain the controls.</p>
 <div class="fragment"><div class="line">        Label {</div>
 <div class="line">            Layout.fillWidth: true</div>
 <div class="line">            text: qsTr(&quot;START + scratch: note speed. SELECT + scratch: cover. Double-press START: toggle lane cover.&quot;)</div>
@@ -422,7 +422,7 @@ Show the current gauge</h1>
 </div><!-- fragment --><p>The bar uses <code>gaugeMax</code> for its range and shows the gauge's <code>name</code> beside its value. A theme can draw every gauge or choose another display rule using this same list.</p>
 <h1><a class="anchor" id="autotoc_md83"></a>
 Show the latest judgement</h1>
-<p>Each player's <a class="el" href="classgameplay__logic_1_1BmsLiveScore.html">BmsLiveScore</a> emits <code>hit</code> for gameplay events. The event's <code>judgement</code> identifies the outcome, or is <code>-1</code> when no judgement was awarded. Listen to the score so the display also works during autoplay and replay.</p>
+<p>Each player's <a href="./classgameplay__logic_1_1BmsLiveScore.html">BmsLiveScore</a> emits <code>hit</code> for gameplay events. The event's <code>judgement</code> identifies the outcome, or is <code>-1</code> when no judgement was awarded. Listen to the score so the display also works during autoplay and replay.</p>
 <div class="fragment"><div class="line">    Label {</div>
 <div class="line">        id: judgementText</div>
 <div class="line">        Layout.fillWidth: true</div>
@@ -484,7 +484,7 @@ Add retry controls</h1>
 </div><!-- fragment --><p>For a manual single chart, hold START+SELECT to choose a retry. Release START for the same random pattern, SELECT for a new pattern, or both to cancel. The Exit button is disabled during this choice. Standard quick retry is unavailable for courses, autoplay, replay, battle and Arena.</p>
 <h1><a class="anchor" id="autotoc_md85"></a>
 Include Arena standings</h1>
-<p>The screen adds <a href="qml/qml-rhythmgameqml-standardarenagameplayoverlay.html">StandardArenaGameplayOverlay</a> beside the gameplay flow. Both receive the same context. The overlay shows standings and chat for Arena play and stays hidden during local play and courses. Its default position is in the upper-right corner, outside the left half used by the lanes. The player can move or resize it.</p>
+<p>The screen adds <a href="./qml/qml-rhythmgameqml-standardarenagameplayoverlay.html">StandardArenaGameplayOverlay</a> beside the gameplay flow. Both receive the same context. The overlay shows standings and chat for Arena play and stays hidden during local play and courses. Its default position is in the upper-right corner, outside the left half used by the lanes. The player can move or resize it.</p>
 <div class="fragment"><div class="line">    StandardArenaGameplayOverlay {</div>
 <div class="line">        parent: gameplayScreen</div>
 <div class="line">        gameplay: gameplayScreen.gameplay</div>
@@ -493,7 +493,7 @@ Include Arena standings</h1>
 Try play, retry and a course</h1>
 <p>Start with an easy chart or autoplay. Check long notes and mines, then resize the window: all lanes should remain visible. Try the speed and cover controls and confirm that the notes follow the saved settings. In manual single-chart play, try both retry buttons.</p>
 <p>Play a course past its first result. The next stage should change both the title and notes. Closing the final course summary should return to selection. The example's combo label covers the current stage; <code>coursePlayers</code> provides the combo for the whole course if you want to display it.</p>
-<p>For later customization, the <a href="qml/qml-rhythmgameqml-standardgameplayflow.html">flow reference</a> describes <code>startReady</code> and <code>finishReady</code> for delaying transitions around an animation. Keep the standard score saving and navigation when adding such effects. </p>
+<p>For later customization, the <a href="./qml/qml-rhythmgameqml-standardgameplayflow.html">flow reference</a> describes <code>startReady</code> and <code>finishReady</code> for delaying transitions around an animation. Keep the standard score saving and navigation when adding such effects. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 <!-- start footer part -->

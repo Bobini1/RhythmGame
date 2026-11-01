@@ -76,13 +76,13 @@ $(function() {
   <div class="headertitle"><div class="title">6. Show what is about to play</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="el" href="theme_tutorial_select.html">Previous</a> | <a class="el" href="theme_tutorial.html">Tutorial</a> | <a class="el" href="theme_tutorial_gameplay.html">Next: Gameplay</a></p>
+<div class="textblock"><p><a href="./theme_tutorial_select.html">Previous</a> | <a href="./theme_tutorial.html">Tutorial</a> | <a href="./theme_tutorial_gameplay.html">Next: Gameplay</a></p>
 <p><b>Goal:</b> Show the selected chart or course and let the player start or cancel.</p>
 <p>Install <code>docs/examples/theme-tutorial/06-decide/</code> and choose it for Decide.</p>
-<p><a href="examples/theme-tutorial/06-decide.zip">Download 06-decide</a> or <a href="https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/06-decide">open the source folder</a>.</p>
+<p><a href="./examples/theme-tutorial/06-decide.zip">Download 06-decide</a> or <a href="https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/06-decide">open the source folder</a>.</p>
 <h1><a class="anchor" id="autotoc_md69"></a>
 Receive the play data</h1>
-<p>The game supplies a <a href="qml/qml-rhythmgameqml-gameplaycontext.html">GameplayContext</a> as <code>gameplay</code>. Declare it as a required property on the root object.</p>
+<p>The game supplies a <a href="./qml/qml-rhythmgameqml-gameplaycontext.html">GameplayContext</a> as <code>gameplay</code>. Declare it as a required property on the root object.</p>
 <div class="fragment"><div class="line">    required property GameplayContext gameplay</div>
 </div><!-- fragment --><p><code>gameplay.chartData</code> describes the current chart. <code>gameplay.course</code> contains the course definition when playing a course and is <code>undefined</code> for a single chart. Check <code>if (gameplay.course)</code> before using its name or other course data.</p>
 <div class="fragment"><div class="line">        Label {</div>
@@ -97,7 +97,7 @@ Receive the play data</h1>
 </div><!-- fragment --><p>Decide and gameplay receive the same context object. In a course, the current chart and players change as stages advance.</p>
 <h1><a class="anchor" id="autotoc_md70"></a>
 Accept or cancel with the standard flow</h1>
-<p>Pass the supplied context to <a href="qml/qml-rhythmgameqml-standarddecideflow.html">StandardDecideFlow</a>. It starts gameplay after five seconds. Enter or a bound play key also starts, while Escape or START+SELECT cancels.</p>
+<p>Pass the supplied context to <a href="./qml/qml-rhythmgameqml-standarddecideflow.html">StandardDecideFlow</a>. It starts gameplay after five seconds. Enter or a bound play key also starts, while Escape or START+SELECT cancels.</p>
 <div class="fragment"><div class="line">    StandardDecideFlow {</div>
 <div class="line">        id: flow</div>
 <div class="line">        gameplay: screen.gameplay</div>
@@ -158,7 +158,7 @@ Accept or cancel with the standard flow</h1>
 <h1><a class="anchor" id="autotoc_md71"></a>
 Understand which screens remain open</h1>
 <p>The game keeps selection in memory while you play, which preserves its current folder and focus. Starting play replaces decide with gameplay. The game later shows a result above gameplay, then resumes gameplay after the result closes so the flow can advance or return to selection.</p>
-<p>Arena rounds open gameplay directly, without decide. <a href="qml/qml-rhythmgameqml-standardmultiplayerflow.html">StandardMultiplayerFlow</a> handles that transition when the session prepares a round.</p>
+<p>Arena rounds open gameplay directly, without decide. <a href="./qml/qml-rhythmgameqml-standardmultiplayerflow.html">StandardMultiplayerFlow</a> handles that transition when the session prepares a round.</p>
 <p>If you add shortcuts or audio players yourself, bind their behavior to the screen's <code>enabled</code> state. They don't inherit it like child Items do.</p>
 <h1><a class="anchor" id="autotoc_md72"></a>
 Try starting and cancelling</h1>

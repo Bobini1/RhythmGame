@@ -76,9 +76,9 @@ $(function() {
   <div class="headertitle"><div class="title">1. Make a main menu</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="el" href="theme_tutorial.html">Tutorial</a> | <a class="el" href="theme_tutorial_qml.html">Next: QML basics</a></p>
+<div class="textblock"><p><a href="./theme_tutorial.html">Tutorial</a> | <a href="./theme_tutorial_qml.html">Next: QML basics</a></p>
 <p><b>Goal:</b> Install a main menu with an image and four working navigation buttons, then edit its title or color.</p>
-<p><a href="examples/theme-tutorial/01-main.zip">Download 01-main</a> or <a href="https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/01-main">open the source folder</a>.</p>
+<p><a href="./examples/theme-tutorial/01-main.zip">Download 01-main</a> or <a href="https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/01-main">open the source folder</a>.</p>
 <h1><a class="anchor" id="autotoc_md43"></a>
 Install the folder</h1>
 <p>Close the game. Extract the download or copy <code>docs/examples/theme-tutorial/01-main/</code> into your user theme directory. The game creates this directory on first launch.</p>
@@ -111,12 +111,12 @@ Register the screen</h1>
 <div class="line">  }</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>The <code>$schema</code> URL helps a text editor check the file. It's not required. The theme's name comes from its folder name, so the example will appear as <code>01-main</code> in the game.</p>
-<p>The <a class="el" href="theme_tutorial.html#theme_tutorial_stuck">default theme config</a> lists all screen names.</p>
+<p>The <a href="./theme_tutorial.html#theme_tutorial_stuck">default theme config</a> lists all screen names.</p>
 <h1><a class="anchor" id="autotoc_md45"></a>
 Draw the menu</h1>
 <p>Open <code>01-main/main.qml</code>. <code>QtQuick</code> supplies the basic visual objects, <code>QtQuick.Controls.FluentWinUI3</code> supplies the buttons and label, and <code>QtQuick.Layouts</code> arranges them. <code>RhythmGameQml</code> supplies the game's types.</p>
 <p>The examples import the <a href="https://doc.qt.io/qt-6/qtquickcontrols-fluentwinui3.html">FluentWinUI3 style</a> explicitly to give the controls a consistent style. You can use another Qt Quick Controls style or draw your own controls.</p>
-<p><a href="qml/qml-rhythmgameqml-standardmaincontroller.html">StandardMainController</a> handles menu actions, the bound START button and background music. It draws nothing, so the theme creates buttons whose <code>onClicked</code> handlers call <code>openSelect()</code>, <code>openArena()</code>, <code>openSettings()</code> and <code>quit()</code> for the four menu actions. The component is optional. You can call <code>globalRoot.openSelect()</code>, <code>globalRoot.openArenaBrowser()</code>, <code>globalRoot.openSettings()</code> and <code>globalRoot.quitApplication()</code> directly. If you replace it, keep a way for controller users to open song select. The standard component binds START to <code>openSelect()</code>.</p>
+<p><a href="./qml/qml-rhythmgameqml-standardmaincontroller.html">StandardMainController</a> handles menu actions, the bound START button and background music. It draws nothing, so the theme creates buttons whose <code>onClicked</code> handlers call <code>openSelect()</code>, <code>openArena()</code>, <code>openSettings()</code> and <code>quit()</code> for the four menu actions. The component is optional. You can call <code>globalRoot.openSelect()</code>, <code>globalRoot.openArenaBrowser()</code>, <code>globalRoot.openSettings()</code> and <code>globalRoot.quitApplication()</code> directly. If you replace it, keep a way for controller users to open song select. The standard component binds START to <code>openSelect()</code>.</p>
 <div class="fragment"><div class="line">    StandardMainController {</div>
 <div class="line">        id: actions</div>
 <div class="line">    }</div>
