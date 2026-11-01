@@ -10,7 +10,7 @@ integration. Those translations are available to all themes. Themes can use
 the shared sorting and replay labels or supply their own text in their own
 catalogs.
 
-The [translation lesson](https://bobini1.github.io/RhythmGame/theme_tutorial_translations.html) includes
+The [translation lesson](@ref theme_tutorial_translations) includes
 an installable example and commands for building its catalog.
 
 ## Theme settings strings
@@ -107,7 +107,7 @@ theme. Preserve placeholders such as `%1` and `%2` in translated text.
 
 You can work on these files without building the game. Install the tools with
 [Qt](https://www.qt.io/download-qt-installer-oss), then follow the commands in the
-[translation lesson](https://bobini1.github.io/RhythmGame/theme_tutorial_translations.html).
+[translation lesson](@ref theme_tutorial_translations).
 
 Here is what it should look like inside Qt Linguist:
 

@@ -39,7 +39,7 @@ folder contain the complete files. Comments
 such as `// [main-actions]` mark the start and end of a snippet for the docs
 generator. QML ignores the comments, so you can remove them in your own copy.
 GitHub displays the include commands as text. Read the [generated documentation
-site](https://bobini1.github.io/RhythmGame/pages.html) to see them expanded.
+site](pages.html) to see them expanded.
 
 The examples use simple visuals and reusable components for browsing, input
 and screen transitions. You can change the appearance while keeping that
