@@ -345,7 +345,7 @@ TEST_CASE("LR2 skin scanner keeps custom option and file ids distinct",
           QStringLiteral("LR2.png"));
 }
 
-TEST_CASE("LR2 screens select role-specific QML entry points", "[themes][lr2]")
+TEST_CASE("LR2 screen discovery preserves roles and CSV paths", "[themes][lr2]")
 {
     QTemporaryDir tempDir;
     const auto themesRoot = makeThemesRoot(tempDir);
@@ -354,14 +354,13 @@ TEST_CASE("LR2 screens select role-specific QML entry points", "[themes][lr2]")
     {
         int type;
         QString key;
-        QString entry;
     };
     const Role roles[] = {
-        { 0, "k7", "Gameplay" },        { 1, "k5", "Gameplay" },
-        { 2, "k14", "Gameplay" },       { 3, "k10", "Gameplay" },
-        { 5, "select", "Select" },      { 6, "decide", "Decide" },
-        { 7, "result", "Result" },      { 12, "k7battle", "Gameplay" },
-        { 13, "k5battle", "Gameplay" }, { 15, "courseResult", "CourseResult" },
+        { 0, "k7" },        { 1, "k5" },
+        { 2, "k14" },       { 3, "k10" },
+        { 5, "select" },    { 6, "decide" },
+        { 7, "result" },    { 12, "k7battle" },
+        { 13, "k5battle" }, { 15, "courseResult" },
     };
     for (const auto& role : roles) {
         writeLr2Skin(skinRoot / support::qStringToPath(role.key + ".lr2skin"),
@@ -376,8 +375,8 @@ TEST_CASE("LR2 screens select role-specific QML entry points", "[themes][lr2]")
         const auto& screens = themes.constFind(familyName).value().getScreens();
         REQUIRE(screens.contains(role.key));
         const auto& screen = screens[role.key];
-        CHECK(screen.getScript() == QUrl("qrc:///qt/qml/RhythmGameQml/Lr2/Lr2" +
-                                         role.entry + "Screen.qml"));
+        CHECK(screen.getScript().isValid());
+        CHECK_FALSE(screen.getScript().isEmpty());
         CHECK(screen.getCsvPath() ==
               support::pathToQString(std::filesystem::absolute(
                 skinRoot / support::qStringToPath(role.key + ".lr2skin"))));

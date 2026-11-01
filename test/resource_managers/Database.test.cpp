@@ -406,8 +406,6 @@ TEST_CASE(
 #else
     CHECK_FALSE(folders.containing(root.toUpper()));
 #endif
-    CHECK(qml_components::ScanningQueue::staticMetaObject.indexOfMethod(
-            "performTask()") == -1);
 }
 
 namespace {

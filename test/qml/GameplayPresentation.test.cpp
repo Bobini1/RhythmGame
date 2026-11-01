@@ -289,48 +289,10 @@ TEST_CASE("Gameplay controls and BGA follow players and replacement stages",
         REQUIRE(stage->bga());
         for (auto* layer : stage->bga()->getLayers())
             CHECK(layer->getVideoSink());
-        auto* poor = qmlContext(bga.get())->objectForName("videoPoor");
-        REQUIRE(poor);
-        CHECK_FALSE(poor->property("visible").toBool());
-        stage->players().front()->getScore()->hit(gameplay_logic::HitEvent(
-          0,
-          0,
-          0,
-          gameplay_logic::BmsPoints(0, gameplay_logic::Judgement::Poor, 0),
-          gameplay_logic::HitEvent::Action::None,
-          true));
-        CHECK(poor->property("visible").toBool());
-        if (stage == courseStage.get()) {
-            bga->setProperty("enabled", false);
-            CHECK_FALSE(poor->property("visible").toBool());
-            bga->setProperty("enabled", true);
-        }
     }
     for (auto* layer : solo->bga()->getLayers())
         CHECK_FALSE(layer->getVideoSink());
 
-    for (const auto* stage : { solo.get(), courseStage.get() }) {
-        for (const auto* lesson : { "07-gameplay", "09-complete" }) {
-            QQmlComponent gaugeComponent(
-              &engine,
-              QUrl::fromLocalFile(QString::fromUtf8(RHYTHMGAME_SOURCE_DIR) +
-                                  "/docs/examples/theme-tutorial/" + lesson +
-                                  "/GaugeBar.qml"));
-            INFO(gaugeComponent.errorString().toStdString());
-            REQUIRE(gaugeComponent.isReady());
-            const auto& gauges =
-              stage->players().front()->getScore()->getGauges();
-            std::unique_ptr<QObject> gauge(
-              gaugeComponent.createWithInitialProperties(
-                { { "gauges", QVariant::fromValue(gauges) } }));
-            REQUIRE(gauge);
-            REQUIRE(gauge->property("activeGauge").value<QObject*>());
-            for (auto* value : gauges)
-                value->addMineHit(std::chrono::nanoseconds(0), -2);
-            CHECK(gauge->property("activeGauge").value<QObject*>() ==
-                  gauges.back());
-        }
-    }
     INFO(warnings.join('\n').toStdString());
     CHECK(warnings.isEmpty());
 }

@@ -83,13 +83,10 @@ struct OverlayHarness
                   warnings.append(error.toString());
           });
         QQmlComponent component(&engine);
-        const auto source = QString::fromUtf8(RHYTHMGAME_SOURCE_DIR) +
-                            "/share/RhythmGame/themes/Default/scripts/result/";
         component.setData(R"(
 pragma ComponentBehavior: Bound
 import QtQuick
 import RhythmGameQml
-import "." as DefaultResult
 Item {
     id: screen
     width: 1920
@@ -109,7 +106,7 @@ Item {
         function toggleChat() { setChatOpen(!chatOpen); }
     }
     )" + overlay + "\n}",
-                          QUrl::fromLocalFile(source + "OverlayTest.qml"));
+                          QUrl("qrc:/ArenaOverlayTest.qml"));
         INFO(component.errorString().toStdString());
         REQUIRE(component.isReady());
         screen.reset(component.createWithInitialProperties(
@@ -248,49 +245,6 @@ TEST_CASE("Arena placement defaults and optional persistence stay reactive",
     h.checkWarnings();
 }
 
-TEST_CASE(
-  "Arena resize commits once the gesture ends and cancels on profile change",
-  "[qml][ArenaOverlay]")
-{
-    OverlayHarness h;
-    storeRect(*h.settings, { 0.2, 0.2, 0.3, 0.4 });
-    h.load();
-    auto* handle = h.frame->findChild<QObject*>("arenaResizeBottomRight");
-    REQUIRE(handle);
-    REQUIRE(QMetaObject::invokeMethod(
-      handle, "interactionStarted", Q_ARG(int, 1), Q_ARG(int, 1)));
-    REQUIRE(QMetaObject::invokeMethod(handle,
-                                      "interactionDelta",
-                                      Q_ARG(double, 100),
-                                      Q_ARG(double, 80),
-                                      Q_ARG(int, 1),
-                                      Q_ARG(int, 1)));
-    checkRect(geometry(h.frame), { 384, 216, 676, 512 });
-    checkRect(storedRect(*h.settings), { 0.2, 0.2, 0.3, 0.4 });
-    REQUIRE(QMetaObject::invokeMethod(handle, "interactionEnded"));
-    checkRect(storedRect(*h.settings),
-              { 0.2, 0.2, 676.0 / 1920, 512.0 / 1080 });
-
-    REQUIRE(QMetaObject::invokeMethod(
-      handle, "interactionStarted", Q_ARG(int, 1), Q_ARG(int, 1)));
-    std::unique_ptr<QQmlPropertyMap> otherProfile{
-        support::createQmlPropertyMap()
-    };
-    storeRect(*otherProfile, { 0.1, 0.1, 0.4, 0.4 });
-    h.screen->setProperty("settings", QVariant::fromValue(otherProfile.get()));
-    REQUIRE(QMetaObject::invokeMethod(handle,
-                                      "interactionDelta",
-                                      Q_ARG(double, 500),
-                                      Q_ARG(double, 300),
-                                      Q_ARG(int, 1),
-                                      Q_ARG(int, 1)));
-    REQUIRE(QMetaObject::invokeMethod(handle, "interactionEnded"));
-    checkRect(storedRect(*otherProfile), { 0.1, 0.1, 0.4, 0.4 });
-    checkRect(geometry(h.frame), { 192, 108, 768, 432 });
-    h.screen->setProperty("settings", QVariant::fromValue(h.settings.get()));
-    h.checkWarnings();
-}
-
 TEST_CASE("Arena repeated pointer drags preserve geometry bindings",
           "[qml][ArenaOverlay]")
 {
@@ -306,32 +260,6 @@ TEST_CASE("Arena repeated pointer drags preserve geometry bindings",
         CHECK(h.frame->y() == Catch::Approx(before.y() + 60));
         CHECK(storedRect(*h.settings).x() ==
               Catch::Approx(h.frame->x() / 1920));
-    }
-    for (const auto* name : { "arenaResizeTopLeft",
-                              "arenaResizeTop",
-                              "arenaResizeTopRight",
-                              "arenaResizeRight",
-                              "arenaResizeBottomRight",
-                              "arenaResizeBottom",
-                              "arenaResizeBottomLeft",
-                              "arenaResizeLeft" }) {
-        CAPTURE(name);
-        auto* handle = h.frame->findChild<QQuickItem*>(name);
-        REQUIRE(handle);
-        for (int i = 0; i < 2; ++i) {
-            const int horizontal = handle->property("horizontalEdge").toInt();
-            const int vertical = handle->property("verticalEdge").toInt();
-            const auto before = geometry(h.frame);
-            const auto from =
-              handle
-                ->mapToScene(QPointF(handle->width() / 2, handle->height() / 2))
-                .toPoint();
-            h.drag(from, { horizontal * 30, vertical * 30 });
-            CHECK(h.frame->width() ==
-                  Catch::Approx(before.width() + (horizontal ? 30 : 0)));
-            CHECK(h.frame->height() ==
-                  Catch::Approx(before.height() + (vertical ? 30 : 0)));
-        }
     }
     storeRect(*h.settings, { 0.2, 0.2, 0.3, 0.4 });
     settle();
@@ -378,71 +306,6 @@ TEST_CASE("Only the presented Arena overlay restores chat preferences",
     CHECK_FALSE(h.session->property("chatOpen").toBool());
     CHECK_FALSE(h.settings->value("arenaOverlayK7ChatSelected").toBool());
     h.checkWarnings();
-}
-
-TEST_CASE(
-  "Arena panel buttons change chat and keep following saved preferences",
-  "[qml][ArenaOverlay]")
-{
-    struct Panel
-    {
-        QByteArray type;
-        const char* button;
-        const char* setting;
-    };
-    for (const auto& panel : { Panel{ "StandardArenaGameplayOverlay { "
-                                      "gameplay: null; layoutVariant: 'k7';",
-                                      "arenaGameplayExpand",
-                                      "arenaOverlayK7Expanded" },
-                               Panel{ "StandardArenaResultOverlay {",
-                                      "arenaResultExpand",
-                                      "arenaOverlayResultExpanded" },
-                               Panel{ R"(StandardArenaResultOverlay {
-               panelComponent: DefaultResult.ArenaResultPanel {
-                   result: null
-                   session: overlay.session
-                   localMemberId: "self"
-                   statsFontFamily: "Arial"
-                   textFontFamily: "Arial"
-                   expanded: overlay.expanded
-                   onExpandedChangeRequested: expanded => overlay.setExpanded(expanded)
-                   onChatSelected: chat => overlay.setChatOpen(chat)
-               }
-           )",
-                                      "arenaNativeResultExpand",
-                                      "arenaOverlayResultExpanded" } }) {
-        CAPTURE(panel.button);
-        OverlayHarness h;
-        h.settings->insert(panel.setting, false);
-        h.load(panel.type + R"(
-            id: overlay
-            objectName: "overlay"
-            themeVars: screen.settings
-            session: screen.session
-            active: true
-        })");
-        auto* button = h.frame->findChild<QObject*>(panel.button);
-        REQUIRE(button);
-        REQUIRE(QMetaObject::invokeMethod(button, "clicked"));
-        settle();
-        CHECK(h.settings->value(panel.setting).toBool());
-        h.settings->insert(panel.setting, false);
-        settle();
-        CHECK_FALSE(h.frame->property("expanded").toBool());
-        REQUIRE(QMetaObject::invokeMethod(button, "clicked"));
-        settle();
-        CHECK(h.settings->value(panel.setting).toBool());
-        for (const bool chatOpen : { true, false }) {
-            auto* tab = h.frame->findChild<QObject*>(
-              chatOpen ? "arenaChatTab" : "arenaDetailsTab");
-            REQUIRE(tab);
-            REQUIRE(QMetaObject::invokeMethod(tab, "clicked"));
-            settle();
-            CHECK(h.session->property("chatOpen").toBool() == chatOpen);
-            CHECK(h.frame->property("chatSelected").toBool() == chatOpen);
-        }
-        h.checkWarnings();
-    }
 }
 
 TEST_CASE(

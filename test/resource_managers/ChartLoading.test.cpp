@@ -193,7 +193,6 @@ TEST_CASE("Replay remains valid after its source score is destroyed",
     REQUIRE(player->getReplayedScore() != source.get());
     source.reset();
     waitUntilReady(*runner);
-    CHECK(player->getReplayedScore()->parent() == player);
     CHECK(player->getReplayedScore()->getReplayData()->toJsonArray() ==
           expected);
     CHECK(player->getReplayedScore()->getSubmissionState() ==

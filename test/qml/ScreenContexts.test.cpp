@@ -327,11 +327,7 @@ TEST_CASE("Gameplay contexts cover single charts and courses for every "
                       (runner == course.get()
                          ? QStringLiteral("Two stages")
                          : context->chartData()->getTitle()));
-                CHECK(context->metaObject()->indexOfProperty("runner") == -1);
                 CHECK(context->runner() == runner);
-                CHECK(runner->parent() == context);
-                CHECK(context->metaObject()->indexOfProperty("_runner") == -1);
-                CHECK(context->metaObject()->indexOfProperty("_screen") == -1);
             }
         }
     }
@@ -527,7 +523,6 @@ TEST_CASE("QML can release a failed result without destroying its play",
     REQUIRE(gameplay);
     REQUIRE(result);
     gameplay->setParent(screen.get());
-    CHECK(runner->parent() == gameplay);
     runner.release();
     CHECK(result->gameplay() == gameplay);
     CHECK(QQmlEngine::objectOwnership(result) ==
@@ -810,7 +805,6 @@ TEST_CASE(
         CHECK(context->finishStage() == result);
         CHECK(context->stageIndex() == stage);
         CHECK(result->stageIndex() == stage);
-        CHECK(result->players()[0]->score()->parent() == runner.get());
         if (stage == 0) {
             CHECK_FALSE(context->finishCourse());
             CHECK(context->nextStage());

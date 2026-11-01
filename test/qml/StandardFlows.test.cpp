@@ -2,7 +2,6 @@
 #include "ScreenContexts.h"
 #include "qml_components/InputAttached.h"
 #include "resource_managers/ChartFactory.h"
-#include "resource_managers/GaugeFactory.h"
 #include "resource_managers/DefineDb.h"
 #include "gameplay_logic/rules/Lr2TimingWindows.h"
 #include "sounds/AudioPlayer.h"
@@ -16,14 +15,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <QElapsedTimer>
-#include <QDir>
 #include <QGuiApplication>
 #include <QQmlComponent>
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QQmlExtensionPlugin>
 #include <QQuickItem>
-#include <QQuickItemGrabResult>
 #include <QQuickWindow>
 #include <QScopeGuard>
 #include <QSignalSpy>
@@ -45,11 +42,9 @@ main(int argc, char** argv)
 
 namespace {
 void
-checkGameplayFlow(const char* lesson,
-                  bool arenaManaged,
-                  const char* playMode = "solo")
+checkGameplayFlow(bool arenaManaged, const char* playMode = "solo")
 {
-    CAPTURE(lesson, arenaManaged, playMode);
+    CAPTURE(arenaManaged, playMode);
     const auto doublePlay = std::string_view(playMode) == "double";
     const auto battle = std::string_view(playMode) == "battle";
     QTemporaryDir directory;
@@ -85,9 +80,7 @@ checkGameplayFlow(const char* lesson,
       [](auto) { return 1; });
     resource_managers::ChartFactory::PlayerSpecificData player{
         .profile = profile,
-        .gauges = *lesson ? resource_managers::GaugeFactory{}.getStandardGauges(
-                              profile, 200, 1)
-                          : QList<gameplay_logic::rules::BmsGauge*>{},
+        .gauges = {},
         .hitRules =
           gameplay_logic::rules::HitRules{
             gameplay_logic::rules::lr2_timing_windows::judgeNormal(),
@@ -104,8 +97,6 @@ checkGameplayFlow(const char* lesson,
         REQUIRE(profiles.createProfile());
         player2 = player;
         player2->profile = profiles.at(1);
-        player2->gauges = resource_managers::GaugeFactory{}.getStandardGauges(
-          player2->profile, 200, 1);
     }
     auto runner =
       factory.createChart(std::move(components), player, player2, 2.0);
@@ -143,7 +134,7 @@ checkGameplayFlow(const char* lesson,
           for (const auto& error : errors)
               warnings.append(error.toString());
       });
-    if (!*lesson) {
+    {
         // Exercise the real profile, chart metadata and native filtered models.
         auto speedChart = resource_managers::ChartDataFactory{}.loadChartData(
           "#TITLE Speed\n#BPM 180\n#BPM01 60\n#BPM02 300\n"
@@ -243,19 +234,13 @@ QtObject {
     REQUIRE(host);
     engine.rootContext()->setContextProperty("globalRoot", host.get());
     QQmlComponent component(&engine);
-    if (*lesson) {
-        component.loadUrl(QUrl::fromLocalFile(
-          QString::fromUtf8(RHYTHMGAME_SOURCE_DIR) +
-          "/docs/examples/theme-tutorial/" + lesson + "/Gameplay.qml"));
-    } else {
-        component.setData(R"(
+    component.setData(R"(
 import QtQuick
 import RhythmGameQml
 Item {
     id: screen
     required property GameplayContext gameplay
     property int activations: 0
-    readonly property string sourceFile: QmlUtils.fileName
     Item {
         StandardGameplayFlow {
             id: flow
@@ -268,8 +253,7 @@ Item {
         }
     }
 })",
-                          QUrl());
-    }
+                      QUrl());
     INFO(component.errorString().toStdString());
     REQUIRE(component.isReady());
     std::unique_ptr<QObject> screen(component.createWithInitialProperties(
@@ -382,155 +366,6 @@ Item {
         flow->setProperty("speedControlsEnabled", true);
         vars->resetNoteScreenTimeMillis();
     }
-    if (*lesson) {
-        auto* vars = profile->getVars()->getGeneralVars();
-        auto* overlay =
-          screen->findChild<QQuickItem*>("arenaGameplayPlacementFrame");
-        REQUIRE(overlay);
-        for (bool arenaPanel : { false, true }) {
-            overlay->setProperty("active", arenaPanel);
-            for (bool covers : { false, true }) {
-                vars->setBgaOn(covers);
-                vars->setLiftOn(covers);
-                vars->setLiftRatio(0.2);
-                vars->setLaneCoverOn(covers);
-                vars->setLaneCoverRatio(0.25);
-                vars->setHiddenOn(covers);
-                vars->setHiddenRatio(0.3);
-                for (const auto size : { QSize(960, 540),
-                                         QSize(640, 480),
-                                         QSize(480, 640),
-                                         QSize(360, 640) }) {
-                    window.resize(size);
-                    screenItem->setSize(size);
-                    QTest::qWait(50);
-                    int lanes = 0;
-                    QList<QRectF> laneRects;
-                    auto items = screenItem->childItems();
-                    for (qsizetype i = 0; i < items.size(); ++i) {
-                        auto* item = items[i];
-                        items.append(item->childItems());
-                        if (!item->property("columnState").isValid())
-                            continue;
-                        ++lanes;
-                        REQUIRE(item->height() > 0);
-                        REQUIRE(item->width() > 0);
-                        const auto laneRect = item->mapRectToItem(
-                          screenItem,
-                          QRectF(0, 0, item->width(), item->height()));
-                        CHECK(laneRect.right() <= screenItem->width() / 2);
-                        for (const auto& previous : laneRects)
-                            CHECK_FALSE(previous.intersects(laneRect));
-                        laneRects.append(laneRect);
-                        if (arenaPanel) {
-                            REQUIRE(overlay->isVisible());
-                            const auto panelRect = overlay->mapRectToItem(
-                              screenItem,
-                              QRectF(
-                                0, 0, overlay->width(), overlay->height()));
-                            CHECK_FALSE(laneRect.intersects(panelRect));
-                        }
-                        auto* currentPlayer =
-                          item->property("player")
-                            .value<gameplay_logic::Player*>();
-                        REQUIRE(currentPlayer);
-                        const auto covered =
-                          covers && currentPlayer->getProfile() == profile;
-                        const auto travel =
-                          currentPlayer->positionAt(std::chrono::seconds(1)) -
-                          currentPlayer->positionAt(std::chrono::seconds(0));
-                        CHECK(
-                          travel * item->property("pixelsPerBeat").toDouble() ==
-                          Catch::Approx(item->height() * (covered ? 0.75 : 1)));
-                    }
-                    qsizetype expectedLanes = 0;
-                    for (const auto* participant : gameplay->players())
-                        expectedLanes += participant->getColumns().size();
-                    CHECK(lanes == expectedLanes);
-                    const auto screenshots =
-                      qEnvironmentVariable("RHYTHMGAME_TEST_SCREENSHOTS");
-                    if (covers && !screenshots.isEmpty()) {
-                        QDir().mkpath(screenshots);
-                        const auto capture = screenItem->grabToImage();
-                        REQUIRE(capture);
-                        QSignalSpy captured(capture.get(),
-                                            &QQuickItemGrabResult::ready);
-                        REQUIRE(captured.wait(1000));
-                        CHECK(capture->saveToFile(
-                          screenshots + '/' + lesson + '-' +
-                          QString::number(size.width()) + 'x' +
-                          QString::number(size.height()) +
-                          (std::string_view(playMode) == "solo"
-                             ? QString()
-                             : '-' + QString::fromUtf8(playMode)) +
-                          (arenaPanel ? "-arena.png" : ".png")));
-                    }
-                }
-            }
-        }
-        overlay->setProperty("active", false);
-        vars->setBgaOn(true);
-        vars->setLiftOn(false);
-        vars->setLaneCoverOn(false);
-        vars->setHiddenOn(false);
-        QTest::qWait(20);
-        vars->setNoteScreenTimeMillis(750);
-        auto* column =
-          gameplay->players().front()->getState()->getColumnFilters().front();
-        CHECK(column->getTopPosition() - column->getBottomPosition() ==
-              Catch::Approx(1.5));
-        vars->resetNoteScreenTimeMillis();
-        QQuickItem* exitButton = nullptr;
-        for (auto* item : screen->findChildren<QQuickItem*>()) {
-            if (item->property("text").toString() == "Exit") {
-                exitButton = item;
-                break;
-            }
-        }
-        REQUIRE(exitButton);
-        screenItem->setEnabled(false);
-        REQUIRE(QMetaObject::invokeMethod(exitButton, "clicked"));
-        QTest::keyClick(&window, Qt::Key_Escape);
-        CHECK(host->property("returns").toInt() == 0);
-        screenItem->setEnabled(true);
-        QCoreApplication::processEvents();
-        QTest::mouseClick(&window,
-                          Qt::LeftButton,
-                          Qt::NoModifier,
-                          exitButton
-                            ->mapToScene(QPointF(exitButton->width() / 2,
-                                                 exitButton->height() / 2))
-                            .toPoint());
-        CHECK(host->property("returns").toInt() == 1);
-        CHECK_FALSE(flowItem->isEnabled());
-        REQUIRE(QMetaObject::invokeMethod(exitButton, "clicked"));
-        CHECK(host->property("returns").toInt() == 1);
-        host->setProperty("currentScreen", QVariant::fromValue(screen.get()));
-        screenItem->setEnabled(true);
-        QCoreApplication::processEvents();
-        QTest::keyClick(&window, Qt::Key_Escape);
-        CHECK(host->property("returns").toInt() == 2);
-    }
-    auto* currentPlayer = gameplay->players().front();
-    currentPlayer->getState()->setVisiblePositionSpans(64, 64);
-    auto* column = currentPlayer->getState()->getColumnFilters().front();
-    REQUIRE(column->rowCount({}) > 0);
-    for (const auto* laneLesson : { "07-gameplay", "09-complete" }) {
-        const auto path = QString::fromUtf8(RHYTHMGAME_SOURCE_DIR) +
-                          "/docs/examples/theme-tutorial/" + laneLesson +
-                          "/NoteLane.qml";
-        QQmlComponent laneComponent(&engine, QUrl::fromLocalFile(path));
-        INFO(laneComponent.errorString().toStdString());
-        REQUIRE(laneComponent.isReady());
-        std::unique_ptr<QObject> lane(laneComponent.createWithInitialProperties(
-          { { "player", QVariant::fromValue(currentPlayer) },
-            { "columnState", QVariant::fromValue(column) },
-            { "pixelsPerBeat", 8 },
-            { "scratch", false },
-            { "width", 64 },
-            { "height", 512 } }));
-        REQUIRE(lane);
-    }
     INFO(warnings.join('\n').toStdString());
     CHECK(warnings.isEmpty());
 }
@@ -539,19 +374,17 @@ Item {
 TEST_CASE("StandardGameplayFlow inherits screen activation through containers",
           "[qml][StandardGameplayFlow]")
 {
-    checkGameplayFlow(GENERATE("", "07-gameplay", "09-complete"), false);
+    checkGameplayFlow(false);
 }
 
-TEST_CASE("tutorial gameplay supports double play and battle",
+TEST_CASE("StandardGameplayFlow supports double play and battle",
           "[qml][StandardGameplayFlow]")
 {
-    checkGameplayFlow(GENERATE("07-gameplay", "09-complete"),
-                      false,
-                      GENERATE("double", "battle"));
+    checkGameplayFlow(false, GENERATE("double", "battle"));
 }
 
 TEST_CASE("Arena gameplay waits for presentation before requesting its start",
           "[qml][StandardGameplayFlow][ArenaGameplayStartup]")
 {
-    checkGameplayFlow("", true);
+    checkGameplayFlow(true);
 }

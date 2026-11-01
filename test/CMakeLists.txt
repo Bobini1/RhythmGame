@@ -99,8 +99,8 @@ qt_add_executable(RhythmGame_flow_test
         qml/StandardFlows.test.cpp
         qml/GameplayPresentation.test.cpp
         qml/ArenaOverlay.test.cpp
-        qml/ThemeAuthoring.test.cpp
-        qml/DefaultThemeControls.test.cpp)
+        qml/StandardSelect.test.cpp
+        qml/DefaultThemeLayout.test.cpp)
 target_link_libraries(RhythmGame_flow_test PRIVATE
         RhythmGame_lib RhythmGame_qml RhythmGame_qmlplugin
         dds tga cim Catch2::Catch2 Qt6::Test)
@@ -110,9 +110,9 @@ set_target_properties(RhythmGame_flow_test PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>")
 add_dependencies(RhythmGame_test RhythmGame_flow_test)
 add_test(NAME StandardGameplayFlowStartup COMMAND RhythmGame_flow_test "[StandardGameplayFlow]")
-add_test(NAME DefaultThemeControls COMMAND RhythmGame_flow_test "[DefaultTheme]")
+add_test(NAME DefaultThemeLayout COMMAND RhythmGame_flow_test "[DefaultTheme]")
 add_test(NAME ArenaOverlay COMMAND RhythmGame_flow_test "[ArenaOverlay]")
-add_test(NAME ThemeAuthoring COMMAND RhythmGame_flow_test "[ThemeAuthoring]")
+add_test(NAME StandardSelect COMMAND RhythmGame_flow_test "[StandardSelect]")
 if (WIN32)
     add_custom_command(TARGET RhythmGame_flow_test POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:RhythmGame_flow_test>/platforms"

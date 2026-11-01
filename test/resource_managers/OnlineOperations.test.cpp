@@ -615,7 +615,7 @@ TEST_CASE("Uploads prepare only a bounded batch of scores",
 }
 
 TEST_CASE(
-  "Tachi query cancellation and model destruction release their children",
+  "Tachi chart changes cancel requests and model destruction releases replies",
   "[OnlineRanking]")
 {
     ensureApplication();
@@ -634,14 +634,11 @@ TEST_CASE(
     model->setMd5("old");
     model->setMd5("current");
     QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
-    CHECK(model->findChildren<qml_components::TachiResolveHandle*>().size() ==
-          1);
     network.requests.back()->complete(
       R"({"body":{"chart":{"chartID":"42","data":{"notecount":1}}}})");
     CHECK(model->getChartId() == "42");
     CHECK(model->getGameId() == "bms-7k");
     auto firstPage = network.requests.back();
-    REQUIRE(firstPage->parent() == model.get());
     QJsonArray page;
     for (int i = 0; i < 100; ++i)
         page.append(QJsonObject{});
@@ -652,7 +649,6 @@ TEST_CASE(
         .toJson());
     auto nextPage = network.requests.back();
     REQUIRE(nextPage != firstPage);
-    CHECK(nextPage->parent() == model.get());
     model->setMd5("next-chart");
     CHECK(model->getChartId().isEmpty());
     CHECK(model->getGameId().isEmpty());

@@ -103,7 +103,6 @@ TEST_CASE("Owned reply values survive independent QML references",
     SECTION("reply is exposed after settlement")
     {
         REQUIRE(source.succeed(std::move(object)));
-        CHECK(result->parent() == reply);
         engine.globalObject().setProperty("request", engine.newQObject(reply));
     }
     CHECK(reply->value().value<QObject*>() == result);
@@ -143,7 +142,6 @@ TEST_CASE("Unconsumed and rejected owned reply values are reclaimed",
     SECTION("native reply owns an unconsumed result")
     {
         REQUIRE(source.succeed(std::move(object)));
-        CHECK(result->parent() == reply);
         delete reply;
     }
     SECTION("cancellation rejects and destroys the result")

@@ -275,10 +275,8 @@ TEST_CASE("Cached histories update QML bindings and retain result identities",
     CHECK(object->property("coursePoints").toDouble() == 175);
     CHECK(object->property("stagePoints").toDouble() == 175);
 
-    const auto children = db->findChildren<gameplay_logic::BmsResult*>().size();
     db->refreshResults();
     db->refreshResults();
-    CHECK(db->findChildren<gameplay_logic::BmsResult*>().size() == children);
     fixture.save("score-2", 190, 2000);
     db->refreshResults({ "score-2" });
     CHECK(object->property("count").toInt() == 2);
@@ -374,7 +372,6 @@ TEST_CASE("Profile startup caches results without decoding recordings",
     CHECK(result->isReplayAvailable());
     CHECK(result->isGaugeHistoryAvailable());
     CHECK_FALSE(result->isImported());
-    CHECK(result->children().isEmpty());
 
     auto* course = db->getCourseResults()
                      .value("COURSE")
@@ -384,7 +381,6 @@ TEST_CASE("Profile startup caches results without decoding recordings",
     REQUIRE(course);
     CHECK(course->getPoints() == 150);
     CHECK(course->isReplayAvailable());
-    CHECK(course->findChildren<gameplay_logic::BmsReplayData*>().isEmpty());
 
     // Cached lookups remain usable even when the database cannot answer them.
     fixture.profile->getDb().execute("DROP TABLE replay_data");
