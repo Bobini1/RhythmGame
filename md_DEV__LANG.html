@@ -74,7 +74,7 @@ $(function() {
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="autotoc_md34"></a> Each theme declares its available languages and translation files in <code>theme.json</code>. Settings labels are translated in JSON; QML text uses Qt translation catalogs.</p>
 <p>Default's catalog also contains shared text from Arena, <code>RhythmGameQml/StandardSelectOptions.qml</code>, and C++ sources such as the Backbeat integration. Those translations are available to all themes. Themes can use the shared sorting and replay labels or supply their own text in their own catalogs.</p>
-<p>The <a href="https://bobini1.github.io/RhythmGame/theme_tutorial_translations.html">translation lesson</a> includes an installable example and commands for building its catalog.</p>
+<p>The <a class="el" href="theme_tutorial_translations.html">translation lesson</a> includes an installable example and commands for building its catalog.</p>
 <h1><a class="anchor" id="autotoc_md35"></a>
 Theme settings strings</h1>
 <p>Settings files store translations directly in each setting's <code>name</code> and <code>description</code> objects. Choice labels and group labels use the same format. Add a language key beside the existing ones. See <a href="https://github.com/Bobini1/RhythmGame/blob/master/share/RhythmGame/themes/Default/settings/k7.json">Default's k7 settings</a> for a complete file.</p>
@@ -121,7 +121,7 @@ Strings in QML files</h1>
 <li><code>lrelease</code>: Compiles a <code>.ts</code> file into a <code>.qm</code> file that can be used by the game.</li>
 </ul>
 <p>Edit the <code>.ts</code> file in Qt Linguist, then compile it with <code>lrelease</code>. Keep the source <code>.ts</code> file for future edits and ship the compiled <code>.qm</code> file with the theme. Preserve placeholders such as <code>%1</code> and <code>%2</code> in translated text.</p>
-<p>You can work on these files without building the game. Install the tools with <a href="https://www.qt.io/download-qt-installer-oss">Qt</a>, then follow the commands in the <a href="https://bobini1.github.io/RhythmGame/theme_tutorial_translations.html">translation lesson</a>.</p>
+<p>You can work on these files without building the game. Install the tools with <a href="https://www.qt.io/download-qt-installer-oss">Qt</a>, then follow the commands in the <a class="el" href="theme_tutorial_translations.html">translation lesson</a>.</p>
 <p>Here is what it should look like inside Qt Linguist:</p>
 <div class="image">
 <img src="linguist.png" alt=""/>
