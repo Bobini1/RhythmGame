@@ -5,6 +5,7 @@
 #include "SqliteCppDb.h"
 #include "sqlite3.h"
 
+#include <string>
 #include <utility>
 #include <thread>
 #include <stdexcept>
@@ -43,9 +44,9 @@ db::SqliteCppDb::SqliteCppDb(const std::filesystem::path& dbPath,
                                                : "PRAGMA synchronous=NORMAL;");
         db.exec("PRAGMA optimize=0x10002;");
     }
-    sqlite3_limit(db.getHandle(),
-                  SQLITE_LIMIT_WORKER_THREADS,
-                  std::thread::hardware_concurrency());
+    // Keep the call inside SQLiteCpp, which may use SQLCipher as its backend.
+    db.exec("PRAGMA threads=" +
+            std::to_string(std::thread::hardware_concurrency()));
     db.exec("PRAGMA foreign_keys=ON;");
 }
 
