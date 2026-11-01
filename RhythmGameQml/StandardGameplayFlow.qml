@@ -4,40 +4,49 @@ import RhythmGameQml
 /*!
     \qmltype StandardGameplayFlow
     \inqmlmodule RhythmGameQml
-    \brief Starts gameplay, handles exit and retry, and opens results.
+    \brief Starts play, handles exit and retry, saves scores and opens results.
 
     Place one instance inside the gameplay screen and bind \l gameplay to the
-    supplied context. It inherits enabled from its parent, including through a
-    Pane's content item or other containers. The host disables inactive screens.
+    supplied GameplayContext. The flow handles ready audio, startup, Escape,
+    quick retry, and speed and cover controls. Your theme draws the playfield.
+    See the \l {../theme_tutorial_gameplay.html}{gameplay lesson} for an example.
 
-    The flow handles ready audio and startup, Escape, Start+Select retry, and
-    standard speed and cover adjustments through StandardGameplaySpeedControls.
-    It opens a normal result after every chart, including each course stage.
-    Closing a stage result continues the course. After the last stage result,
-    it opens the separate course summary. Closing that summary returns to selection.
-    For a single chart, closing its result returns to selection.
-    StandardGameplayInput and StandardGameplayAttemptState are already included.
-    Don't add another instance of either component to the same screen.
+    StandardGameplayInput, StandardGameplayAttemptState and
+    StandardGameplaySpeedControls are already included. Do not add another
+    copy beside the flow. It inherits the screen's enabled state, so inactive
+    screens cannot start play or navigate.
 
-    Use \l startReady to wait for an intro before starting the ready sequence.
-    For an outro, start the animation in \l finishRequested and bind \l finishReady
-    to its completion. The flow still saves scores and opens results. An explicit
-    \l exit skips the wait for a natural-finish animation.
+    \section1 Add an intro or outro
 
-    \l stageActivated is emitted once for each stage before startup. Use it to
-    reset visuals or request score data. \l closing lets the theme clean up its
-    presentation before leaving. It can repeat if result creation fails, so the
-    handler must tolerate another call and must not navigate away itself.
+    Keep \l startReady false until your intro finishes. The flow then plays
+    the ready sound and waits for \l startDelayMillis before requesting play.
 
-    Inactive screens cannot request a start or navigate. Arena runs this startup
-    sequence and holds the resulting request until the shared start time.
-    Arena does not allow quick retry. The flow submits Arena scores and ends the
-    result presentation when its result screen closes. If result creation fails,
-    \l presentationFailed is emitted and the saved scores are kept. Call \l retryTransition to try
-    opening the result again without saving it twice.
+    For an outro, keep \l finishReady false, start the animation in
+    \l finishRequested, and set finishReady to true when it ends. The flow
+    still saves scores and opens results. An explicit \l exit skips this wait.
+    Reset per-stage visuals in \l stageActivated.
 
-    See the \l {../theme_tutorial_gameplay.html}{gameplay lesson} for a complete
-    example with notes and course support.
+    \section1 Handle courses and retries
+
+    Each chart opens a normal result, including course stages. Closing a stage
+    result advances the course. After the last stage result, the flow opens the
+    course summary; closing it returns to selection. A single chart returns to
+    selection after its result closes.
+
+    Retry buttons bind to \l retryAvailable and call \l retry with false for a
+    new random pattern or true for the same pattern. Standard quick retry is
+    unavailable for courses, autoplay, replay, battle and Arena.
+
+    In Arena, the flow requests play when presentation is ready; the session
+    waits for the shared start time. The flow submits the score before showing
+    results and releases the result presentation when that screen closes.
+
+    \section1 Recover from a failed transition
+
+    If the result screen cannot open, \l presentationFailed is emitted and the
+    saved scores are kept. Call \l retryTransition to try again without saving
+    twice. \l closing may therefore run more than once. Use it to stop or clear
+    visuals; do not navigate from its handler.
 */
 Item {
     id: root
@@ -94,14 +103,23 @@ Item {
     /*! Emitted when result creation fails. Call retryTransition() to reuse the saved scores. */
     signal presentationFailed()
 
-    /*! Retries with the same pattern when \a samePattern is true, otherwise a fresh one. */
+    /*!
+        Retries with the same pattern when \a samePattern is true, otherwise a
+        new one. Returns false when \l retryAvailable is false. A handled
+        request returns true even if loading fails and the current screen stays.
+    */
     function retry(samePattern) { return input.retry(samePattern); }
     /*! Cancels the held retry choice. */
     function cancelRetry() { input.cancelRetry(); }
     /*! Retries a failed result transition without saving the score again. */
     function retryTransition() { return session.retryTransition(); }
 
-    /*! Abandons untouched play, or completes an attempted play. */
+    /*!
+        Leaves an unattempted local chart without saving. If a scoring hit was
+        made, finishes the attempt and opens results. Arena follows its session's
+        exit rules. Returns false while disabled, choosing a retry, or unable to leave.
+        \l dismissOverlayAction may handle the request while keeping play open.
+    */
     function exit() {
         if (!root.enabled || !root.exitEnabled || root.retryChoosing || !root.gameplay) {
             return false;

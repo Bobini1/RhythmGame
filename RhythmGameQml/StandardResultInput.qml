@@ -4,35 +4,39 @@ import RhythmGameQml
 /*!
     \qmltype StandardResultInput
     \inqmlmodule RhythmGameQml
-    \brief Handles confirmation and retry on a result screen.
+    \brief Handles Continue and Retry actions on a result screen.
 
-    Bind \l result to the ResultContext or CourseResultContext supplied to the
-    screen. The theme draws the result and any buttons. Call \l confirm from a
-    Continue button to use the same delay as keyboard confirmation.
+    Bind \l result to the supplied ResultContext or CourseResultContext. The
+    component draws no controls. A Continue button calls \l confirm and binds
+    its enabled state to \c {acceptsInput && confirmEnabled}. See the
+    \l {../theme_tutorial_results.html}{result lesson} for complete screens.
 
-    Actions wait until \l acceptsInput is true. Escape then closes the result
-    regardless of \l confirmEnabled. Return and calls to \l confirm also require
-    \l confirmEnabled. \l controllerEnabled controls bound controller input
-    without disabling keyboard or pointer confirmation. By default, confirmEnabled
-    follows the matching Arena round's chat state, so Return can send a message
-    without closing the result. Override it to supply another confirmation rule.
+    \section1 Confirm or close
 
-    Controller button handling first calls \l tryHandleButtonAction. If it doesn't
-    handle the button, the component tries retry, then closes for a standard play
-    key. Start closes directly. Use the first callback for a display action such
-    as cycling gauges, and return true when it handles the button.
+    Input waits for \l inputDelayMillis after the screen becomes active.
+    \l acceptsInput reports when this delay has passed.
 
-    \l tryRetryAction can handle retry before StandardChartRetry runs. Otherwise,
-    key 5 requests fresh randomization and key 7 requests the same pattern on either
-    side. The originating play comes from \l result. Course summaries can be
-    closed but cannot use single-chart retry.
+    Return and \l confirm also require \l confirmEnabled. By default this is
+    false while the matching Arena result's chat is open, so Return sends a
+    message without closing the result. Escape and \l close bypass that
+    confirmation rule, but still wait for the input delay.
 
-    Retry buttons bind enabled to \l retryAvailable and call \l retry with false
-    for fresh randomization or true for the same pattern. The same method and
-    optional override serve both buttons and bound input.
+    \l controllerEnabled controls bound game buttons independently of Return,
+    Escape and calls from your own buttons. Start closes the result. Other
+    bound keys first call \l tryHandleButtonAction, then try retry, then close
+    for a standard play key. Use that callback for actions such as cycling gauges.
 
-    See the \l {../theme_tutorial_results.html}{result lesson} for separate chart
-    and course result examples.
+    \section1 Retry a chart
+
+    Bind retry buttons to \l retryAvailable. Call \l retry with false for a new
+    random pattern or true for the same pattern. Bound keys 5 and 7 use these
+    same actions on either player side.
+
+    Standard retry is unavailable for courses, autoplay, replay, battle and
+    Arena. \l tryRetryAction can handle a request before StandardChartRetry.
+    \l closeAction replaces closing the result entirely. Return true from a
+    \c try...Action callback when it handled the request; return false to let
+    the standard action continue.
 */
 Item {
     id: root

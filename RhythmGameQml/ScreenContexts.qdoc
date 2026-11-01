@@ -7,10 +7,18 @@
     The game supplies the object when it creates decide and passes the same
     object to gameplay. Every gameplay theme must support single charts and courses.
 
-    Bind to the current chart and players so the display follows course stages.
-    Don't keep using a Player from an earlier stage. The context only supplies
-    data. Pass it to StandardDecideFlow::gameplay or StandardGameplayFlow::gameplay
-    to use the standard input and transitions.
+    Bind to \l chartData and \l players so the display follows course stages.
+    Do not keep using a Player from an earlier stage. Pass the context to
+    StandardDecideFlow::gameplay or StandardGameplayFlow::gameplay for standard
+    input and transitions. The game owns the context and its play objects;
+    themes must not destroy them.
+
+    \section1 Build a custom flow
+
+    StandardGameplayFlow calls \l start, \l finishStage, \l nextStage and
+    \l finishCourse for you. Call these methods yourself only when replacing
+    that flow. Finishing saves scores; opening a result screen is a separate
+    operation described in \l {theme-navigation.html}{Screen navigation}.
 */
 /*!
     \qmlproperty ChartData GameplayContext::chartData
@@ -21,7 +29,8 @@
     \qmlproperty list<Player> GameplayContext::players
     \readonly
     Contains one Player for solo or double play, or two for local battle.
-    Each player supplies a profile, notes, state, live score and timing.
+    Each \l {../classgameplay__logic_1_1Player.html}{Player} supplies a profile,
+    notes, state, live score and timing.
     There is no null second entry in solo play. The list and chart metadata
     update together after the next course stage has been installed.
 */
@@ -35,8 +44,9 @@
 /*!
     \qmlproperty bool GameplayContext::isArena
     \readonly
-    Reports whether the play belongs to Arena. Call start() after presentation
-    is ready. Arena holds the request until the shared start time and owns the runner.
+    True when play belongs to Arena. This value stays fixed. Arena owns the
+    play objects and controls the shared start time. Use \l arenaActive to
+    check whether the session is still presenting this round.
 */
 /*!
     \qmlproperty list<ChartData> GameplayContext::charts
@@ -66,7 +76,8 @@
 /*!
     \qmlproperty int GameplayContext::status
     \readonly
-    Reports the current stage status as ChartRunner.Loading, Ready, Running or Finished.
+    The current stage status: \c ChartRunner.Loading, \c ChartRunner.Ready,
+    \c ChartRunner.Running or \c ChartRunner.Finished.
 */
 /*!
     \qmlproperty int GameplayContext::keymode
@@ -75,8 +86,38 @@
 */
 /*!
     \qmlproperty list<int> GameplayContext::inputMapping
-    Maps physical BMS input to the columns used by the theme's lane layout.
-    The game checks the mapping and keeps it between course stages.
+    Maps physical BMS input to gameplay columns. The game checks the mapping
+    and keeps it between course stages. Moving a lane visually does not change
+    this mapping. Keep the default unless you intend to change which input
+    controls each column.
+*/
+/*!
+    \qmlmethod bool GameplayContext::start()
+    Requests play after the stage is ready. Returns false if the stage is not
+    Ready, already has a result, or is handling another lifecycle operation.
+    In Arena, an accepted request waits for the shared start time; true does
+    not mean notes have started moving yet.
+*/
+/*!
+    \qmlmethod ResultContext GameplayContext::finishStage()
+    Finishes and saves the current stage, returning its ResultContext.
+    Repeated calls for that stage return the same context without saving again.
+    Returns null while loading or if no result can be produced. Use
+    \c {globalRoot.openResult(result)} to display a successful result.
+*/
+/*!
+    \qmlmethod bool GameplayContext::nextStage()
+    Advances a course after \l finishStage has produced its result. Returns
+    true if the next stage was installed, or false for the final stage, a
+    single chart, or an unavailable transition. Bind to \l chartData and
+    \l players to follow the new stage.
+*/
+/*!
+    \qmlmethod CourseResultContext GameplayContext::finishCourse()
+    Saves the course summary after the final stage result exists. Returns the
+    CourseResultContext, or null if the course is not ready to finish.
+    Repeated successful calls return the same summary. Use
+    \c {globalRoot.openCourseResult(result)} to display it.
 */
 /*!
     \qmltype ResultContext
@@ -91,6 +132,8 @@
     Bind the context to StandardResultInput::result for confirmation and
     supported single-chart retry. Read the result's own metadata when showing
     the completed stage, since the originating play may have advanced.
+    The game keeps the context and its scores alive while the result screen
+    needs them. Do not destroy them from the theme.
 */
 /*!
     \qmlproperty ChartData ResultContext::chartData
@@ -135,6 +178,10 @@
     \qmltype ResultPlayer
     \inqmlmodule RhythmGameQml
     \brief Profile and score paired within a normal result.
+
+    Read these objects from ResultContext::players. Use this player's profile
+    for names and preferences; the main profile may belong to another player.
+    The game supplies the object and keeps it alive with its result context.
 */
 /*!
     \qmlproperty Profile ResultPlayer::profile
@@ -144,7 +191,9 @@
 /*!
     \qmlproperty BmsScore ResultPlayer::score
     \readonly
-    Completed chart score, including statistics, replay and gauge history.
+    Completed \l {../classgameplay__logic_1_1BmsScore.html}{BmsScore}.
+    Totals are in \c score.result. Imported scores may have no \c replayData
+    or \c gaugeHistory; check those before drawing graphs.
 */
 /*!
     \qmltype CourseResultContext
@@ -157,6 +206,7 @@
 
     StandardResultInput can close a course summary. Single-chart retry is
     unavailable because the result describes the whole course.
+    The game owns this context and its data; do not destroy them from the theme.
 */
 /*!
     \qmlproperty var CourseResultContext::course
@@ -166,7 +216,12 @@
 /*!
     \qmlproperty list<ChartData> CourseResultContext::charts
     \readonly
-    Contains the course charts in stage order.
+    Chart metadata in stage order. A saved course can contain null entries
+    for charts no longer installed. Keep those stages in the display: their
+    identifiers remain in \c course.chartIds at the same indices.
+    \c {Rg.tables.search(identifier)} can supply a title from a table; otherwise
+    display the identifier. Installed metadata remains valid for this context's
+    lifetime, even if the library changes.
 */
 /*!
     \qmlproperty list<CourseResultPlayer> CourseResultContext::players
@@ -177,6 +232,9 @@
     \qmltype CourseResultPlayer
     \inqmlmodule RhythmGameQml
     \brief Profile and aggregate score paired within a course summary.
+
+    Read these objects from CourseResultContext::players. The game supplies
+    each object and keeps it alive with its result context.
 */
 /*!
     \qmlproperty Profile CourseResultPlayer::profile
@@ -186,7 +244,10 @@
 /*!
     \qmlproperty BmsScoreCourse CourseResultPlayer::score
     \readonly
-    Aggregate course score, including its individual stage scores.
+    Aggregate \l {../classgameplay__logic_1_1BmsScoreCourse.html}{BmsScoreCourse},
+    including individual stage scores. Totals are in \c score.result. Replay
+    events and gauge history combine the recorded stages for use in graphs.
+    Check for missing replay or gauge data on imported scores.
 */
 
 /*!

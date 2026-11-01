@@ -119,7 +119,16 @@ Item {
         return true;
     }
 
-    /*! Opens \a score for \a item. Accepts a saved result or a full score, loading details when needed. */
+    /*!
+        Opens \a score for chart or course \a item using the main profile.
+        Supply a cached BmsResult/BmsResultCourse or a full BmsScore/BmsScoreCourse
+        belonging to that profile. Cached results are loaded before opening.
+
+        Returns false for unsupported input, inactive selection or Arena.
+        For an asynchronous load, true means the request was accepted; it does
+        not guarantee the result screen has opened. \l loadingScore tracks the
+        wait, and \l cancelScoreLoading cancels it.
+    */
     function openResult(item, score) {
         if (!root.enabled || root.arenaSeated || !score) return false;
         if (!(item instanceof course) && !(item instanceof ChartData)) return false;
@@ -130,8 +139,17 @@ Item {
     }
 
     /*!
-        Opens \a item using \a autoplay, \a replay, and \a replayScore to select the requested
-        play mode.
+        Opens installed chart or course \a item. \a autoplay selects automatic
+        play; \a replay selects a saved recording. Both default to false.
+        \a replayScore accepts a cached result or full score and defaults to null.
+        A replay needs recording data; a score without replay selects its saved
+        note pattern for G-Battle. Do not combine autoplay and replay.
+
+        Uses the active solo or battle profiles. Replay always uses the main
+        profile alone. In Arena, manual chart activation proposes the chart;
+        courses, autoplay and replay are handled without starting local play.
+        True means the request was handled, including a rejected course or an
+        asynchronous load. It does not guarantee that gameplay opened.
     */
     function openPlayable(item, autoplay = false, replay = false,
                           replayScore = null) {

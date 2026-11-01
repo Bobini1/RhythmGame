@@ -4,33 +4,41 @@ import RhythmGameQml
 /*!
     \qmltype StandardRanking
     \inqmlmodule RhythmGameQml
-    \brief Loads a chart's online ranking and opens its ranking page.
+    \brief Loads a chart's online ranking and opens its ranking website.
 
-    Set \l chartData to a chart. The active profile supplies the default account,
-    server and ranking provider. StandardSelectController supplies this component
-    as its \c ranking property. It can also be used on results or other screens.
+    Set \l chartData to the chart you want to display. The active profile
+    supplies the account, server and provider by default.
+    StandardSelectController already includes this component as \c ranking.
+    For a result screen, create one per player and also set \l profile and
+    \l score. Course summaries have no ranking; individual course stages do.
 
-    For a result, also set \l score and \l profile for that player. The component
-    refreshes after score submission and supplies \l previousPosition alongside
-    \l position. Course summaries have no online ranking; individual course
-    stages use their normal chart and score.
+    \section1 Display a ranking
 
-    Bind your display to \l entries, \l playerCount, \l clearCounts and \l loading.
-    LR2IR entries include the profile's local best score, since LR2IR cannot
-    identify the current profile's account. Local results come directly from
-    the profile's cache and update after saves and imports. Positions are
-    one-based, or zero when the player has no entry.
+    Check \l available, then bind your display to \l entries, \l position,
+    \l playerCount and \l loading. Positions start at one; zero means the
+    player has no entry. \l clearCounts supplies totals by clear type.
 
-    Call \l open to open the provider's website. No ranking display is required.
-    Set \l entriesEnabled to false to use only this action. Tachi needs a chart-ID
-    lookup before its link is available; open handles that lookup without
-    downloading the leaderboard. Changing the chart, provider or profile, or
-    disabling the component, cancels a pending open request.
+    LR2IR entries include the profile's local best score because LR2IR cannot
+    identify that profile's account. Saves and imports update the local data.
+    On results, score submission refreshes the ranking. \l previousPosition
+    compares the earlier best score against the current opponents.
 
-    Override \l provider or \l url for a different source, or \l openUrlAction
-    to present the link yourself. Overrides configure this component without
-    changing the profile's saved provider. Advanced themes can use
-    OnlineRankingModel directly when they need different queries or sorting.
+    \section1 Open the website
+
+    Call \l open from a button. Set \l entriesEnabled to false if you only
+    need the link; this avoids downloading the leaderboard. Tachi may still
+    need a chart-ID lookup. \l opening reports that wait, and \l openFailed
+    reports a failed lookup or browser open.
+
+    Changing the chart, provider or profile, or disabling the component,
+    cancels a pending website request.
+
+    \section1 Change the provider
+
+    Override \l provider or \l url for this display, or \l openUrlAction to
+    handle the link yourself. These overrides do not save a profile preference.
+    To save the user's provider choice, set
+    \c profile.vars.generalVars.rankingProvider.
 */
 Item {
     id: root
@@ -42,12 +50,18 @@ Item {
     property var profile: Rg.profileList.mainProfile
     /*! Normal chart score being shown on a result screen, or null on selection. */
     property var score: null
-    /*! Ranking provider. Follows the profile's choice unless overridden. */
+    /*!
+        OnlineRankingModel.RhythmGame, OnlineRankingModel.Tachi or
+        OnlineRankingModel.LR2IR. Follows the profile's choice unless overridden.
+    */
     property int provider: profile?.vars.generalVars.rankingProvider
         ?? OnlineRankingModel.RhythmGame
     /*! Controls leaderboard loading. The open action remains available when false. */
     property bool entriesEnabled: true
-    /*! Called with the website URL. Return false if it could not be opened. */
+    /*!
+        Calls \c openUrlAction(websiteUrl) instead of opening the browser.
+        Return false on failure; any other return value counts as handled.
+    */
     property var openUrlAction: websiteUrl => Qt.openUrlExternally(websiteUrl)
 
     /*! Chart hash used by the ranking. Empty for unsupported selections. */
@@ -62,7 +76,11 @@ Item {
         || (state.queriesMatch && state.queriesLoading)
     /*! Whether open is waiting for a website link. */
     readonly property bool opening: linkReplies.count > 0
-    /*! Ranking rows, including the local best score for LR2IR. */
+    /*!
+        Ranking rows, including the local best score for LR2IR. Each row has
+        userId, userName, bestPoints and bestClearType fields. Empty when
+        disabled, unsupported, or \l entriesEnabled is false.
+    */
     readonly property var entries: {
         if (!enabled || !entriesEnabled || !available) return [];
         const rows = rankingModel.rankingEntries.slice();
@@ -75,7 +93,7 @@ Item {
     }
     /*! Number of rows, including the local LR2IR entry when present. */
     readonly property int playerCount: entries.length
-    /*! Clear-type counts for the displayed entries. */
+    /*! Map from clear-type strings to row counts. Use zero for a missing key. */
     readonly property var clearCounts: {
         const counts = {};
         for (const row of entries)
@@ -138,7 +156,11 @@ Item {
     /*! Emitted when a requested website lookup or open operation fails. */
     signal openFailed()
 
-    /*! Opens the ranking page. True means the open request was accepted. */
+    /*!
+        Opens the ranking page. True means the request was accepted, possibly
+        with a pending Tachi lookup. False means unavailable or not handled.
+        Handle \l openFailed for a failed lookup or browser open.
+    */
     function open() {
         if (!enabled || !available) return false;
         if (root.url) return state.openUrl(root.url);

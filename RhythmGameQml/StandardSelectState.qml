@@ -5,40 +5,46 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectState
     \inqmlmodule RhythmGameQml
-    \brief Loads and tracks the entries shown by a song selector.
+    \brief Tracks browsing, focus and saved choices for a song selector.
 
-    The state keeps the current folder, history and focused entry. It also handles
-    sorting, filtering, activation, saved results and preview loading. The theme
-    draws the list. Use StandardSelectController to include standard input and
-    shortcuts, or combine this state with your own controls.
+    Use StandardSelectController for a selector with standard input, shortcuts
+    and audio. Use this component when you want the same browsing behavior
+    with your own controls. It loads and sorts entries, remembers folder
+    history, and opens charts, courses, replays and saved results.
 
-    The root folder opens when the component is completed unless \l autoInitialize
-    is false. Handle \l focusRequested to make the requested entry current in
-    your view. Call \l setFocused when the theme changes the current entry.
-    \l goForward opens a folder or playable item, while
-    \l goBack restores the preceding history entry. Call \l exit to leave the
-    selector, including its Arena room. \l openResult chooses the correct result
-    role for a saved chart or course score.
+    \section1 Connect browsing and focus
 
-    The \l sortMode, \l keymodeFilter and \l replayType properties follow the
-    active profile and are read-only. Use \l setSortMode, \l setKeymodeFilter
-    and \l setReplayType to save a player choice. The \l cycleSortMode and
-    \l cycleReplayType actions choose the next option and save it in the same way.
-    Search history keeps each query, so \l goBack can restore a search after
-    \l showAllChartsForCurrentSong opens a chart directory.
+    The root folder opens automatically unless \l autoInitialize is false.
+    Display \l entries and handle \l focusRequested to position your view.
+    Call \l setFocused with the row's data when the user selects another row.
+
+    Call \l goForward to open an entry, \l goBack to return through folder
+    history, and \l exit to leave selection or its Arena room. \l openResult
+    opens the correct screen for a saved chart or course score. An unsuccessful
+    \l search leaves the current list in place.
+
+    \section1 Save player choices
+
+    \l sortMode, \l keymodeFilter and \l replayType follow the active profile.
+    They are read-only: use \l setSortMode, \l setKeymodeFilter and
+    \l setReplayType to save a choice. \l cycleSortMode and \l cycleReplayType
+    advance through the choices. View options such as \l difficultyFilter
+    do not change profile settings.
+
+    \l openReplay chooses a recording using \l replayType. Bind a replay
+    button's enabled state to \l replayAvailable. Use \l resultForReplayType
+    when you need to choose a saved result without opening it.
+
+    \section1 Read data as it arrives
+
+    \l results contains cached score summaries. Use ScoreDetails for replay
+    events or gauge history. Preview paths and folder clear statistics load
+    asynchronously; bind to their properties to follow updates. The state
+    refreshes them when it becomes enabled again or the main profile changes.
 
     The arrays and maps in \l entries, \l folderContents, \l historyStack,
-    \l results and \l previewFiles are shallow copies. Changing an array or map
-    doesn't update the state. The chart and table objects inside them are shared.
-
-    Saved results come from the profile's memory cache before the folder is
-    sorted and opened. Previews and folder clear statistics load asynchronously.
-    Bind to their properties so the display updates when they arrive. The data
-    refreshes when the state is enabled again or the main profile changes.
-
-    \l openReplay chooses a recording for the focused chart or course using
-    the profile's \l replayType. Bind a replay button to \l replayAvailable.
-    StandardSelectController also supplies the bound replay and cycling keys.
+    \l results and \l previewFiles are copies. Editing them does not change
+    the controller. Objects inside them, such as charts, are shared.
 */
 Item {
     id: root
@@ -130,9 +136,9 @@ Item {
         handle the request, or false to continue with the standard action.
     */
     property var tryOpenPlayableAction: null
-    /*! Called before autoplay. Return true when handled, or false for standard playback. */
+    /*! Calls \c tryAutoplayAction(). Return true when handled, or false for standard playback. */
     property var tryAutoplayAction: null
-    /*! Called with the sort direction before cycling. Return true when handled. */
+    /*! Calls \c tryCycleSortModeAction(delta). Return true when handled, or false to cycle normally. */
     property var tryCycleSortModeAction: null
     /*! Calls reloadAction() instead of reloading the current folder or table. */
     property var reloadAction: null
@@ -156,9 +162,13 @@ Item {
     }))
     /*! Optional translated label for the current sort mode. */
     readonly property string sortModeText: StandardSelectOptions.sortText(root.sortMode)
-    /*! Active profile's keymode choice. Change it with setKeymodeFilter(). */
+    /*!
+        Active profile's SelectKeymodeFilter value. Change it with
+        \l setKeymodeFilter. Single includes 5K and 7K; Double includes 10K
+        and 14K. Folders, tables and courses remain visible.
+    */
     readonly property int keymodeFilter: selectionState.generalVars.selectKeymodeFilter
-    /*! Additional difficulty filter for this view. Does not change profile settings. */
+    /*! Additional difficulty filter for this view. Zero shows all difficulties. Does not save a profile choice. */
     property int difficultyFilter: 0
     /*! Controls whether items without scores sort after scored items. */
     property bool unscoredItemsLast: true
@@ -438,7 +448,11 @@ Item {
     /*! Leaves selection or its Arena room. Use goBack() for folder history. */
     function exit() { return activationImpl.exit(); }
 
-    /*! Opens the saved \a score for the chart or course \a item. */
+    /*!
+        Opens the saved \a score for the chart or course \a item. Both arguments
+        are required. See StandardSelectActions::openResult for accepted score
+        types and loading behavior.
+    */
     function openResult(item, score) { return activationImpl.openResult(item, score); }
 
     StandardSelectActions {
@@ -489,7 +503,10 @@ Item {
             ? entries[logicalIndex] : null;
     }
 
-    /*! Refreshes preview-file and folder clear-statistic metadata. */
+    /*!
+        Refreshes preview paths and folder clear statistics. To reload the
+        folder's entries or request a library scan, use \l reloadCurrentFolderOrTable.
+    */
     function refresh() {
         selectionState.refreshPreviewFiles();
         selectionState.refreshFolderClearStats();
@@ -504,8 +521,9 @@ Item {
     }
 
     /*!
-        Opens \a item using \a autoplay, \a replay, and \a replayScore to select the requested
-        play mode.
+        Opens chart or course \a item with the requested \a autoplay,
+        \a replay and \a replayScore options. See StandardSelectActions::openPlayable
+        for the score types and return-value contract.
     */
     function openPlayable(item, autoplay = false, replay = false,
                           replayScore = null) {
@@ -758,7 +776,11 @@ Item {
         return true;
     }
 
-    /*! Replaces the current entries with results for \a query. */
+    /*!
+        Searches for \a query and returns the number of matches before view
+        filtering. With matches, replaces the list and records the search in
+        history. With no matches, returns zero and keeps the current list.
+    */
     function search(query) {
         let results = sessionImpl.resolveSearchResults(query);
         let resultCount = results.length;
@@ -776,7 +798,10 @@ Item {
         return resultCount;
     }
 
-    /*! Returns whether \a item is a playable chart. */
+    /*!
+        Returns true when \a item is an installed ChartData or a missing table entry.
+        This identifies chart-like rows; it does not guarantee they can play.
+    */
     function isChartItem(item) {
         return item instanceof ChartData || item instanceof entry;
     }

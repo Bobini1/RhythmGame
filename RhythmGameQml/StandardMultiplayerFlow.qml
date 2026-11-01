@@ -7,9 +7,11 @@ import RhythmGameQml
     \inqmlmodule RhythmGameQml
     \brief Connects the Arena browser and opens room selection and gameplay.
 
-    Place this component directly inside a multiplayer screen. Use \l session
-    for the room list, createRoom(), joinRoom() and retry(). Call \l close from
-    the screen's Back button. Removing the browser disconnects from Arena.
+    Place this component directly inside a multiplayer screen. If it is nested
+    in another container, set \l screen to the screen root. Use \l session
+    for the room list, createRoom(), joinRoom() and retry(); their arguments are
+    listed in the \l {../classarena_1_1ArenaSession.html}{ArenaSession reference}.
+    Call \l close from the Back button. Removing the browser disconnects from Arena.
 
     Joining a room opens the configured selector on the ordinary screen stack.
     StandardSelectController returns to the browser when the room is left.

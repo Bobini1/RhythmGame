@@ -3,35 +3,39 @@ import QtQuick
 /*!
     \qmltype PendingReplyGroup
     \inqmlmodule RhythmGameQml
-    \brief Owns and cancels a group of asynchronous replies.
+    \brief Cancels a set of asynchronous requests together.
 
-    Use separate instances for operations with independent cancellation
-    lifetimes. Tracked replies are forgotten when they finish and are cancelled
-    when \l cancelAll is called or the group is destroyed.
+    Use one group for requests that should be cancelled together, such as data
+    for the currently selected chart. Call \l cancelAll before loading a new
+    selection. Finished replies leave the group automatically; destroying the
+    group cancels any unfinished replies.
 
-    \l track returns the same reply, so cancellation ownership can be added
-    without breaking a promise chain:
+    \l track returns the same reply, so the caller can still use its
+    \c then() method. This helper requests a full score belonging to the main
+    profile and cancels the previous request:
 
     \qml
     import QtQuick
     import RhythmGameQml
 
     Item {
-        PendingReplyGroup {
-            id: scoreReplies
-        }
+        PendingReplyGroup { id: scoreReplies }
 
-        function refreshScores() {
+        function requestScore(result) {
             scoreReplies.cancelAll();
-            scoreReplies.track(
-                Rg.profileList.mainProfile.scoreDb.getScoreSummary("")
-            ).then(result => console.info(result));
+            return scoreReplies.track(
+                Rg.profileList.mainProfile.scoreDb.getScore(result));
         }
     }
     \endqml
 
-    Calling \l track with null or an already-finished reply is a no-op. A reply
-    must provide \c resultAvailable, a \c finished signal, and \c cancel().
+    For an ordinary score display, use ScoreDetails instead. It also tracks
+    the selected result, profile and loading state.
+
+    A reply must provide a \c resultAvailable property, a \c finished signal
+    and a \c cancel() method. Null and already-finished replies are returned
+    unchanged and are not retained. Disabling the group does not cancel its
+    requests; call \l cancelAll when your custom flow needs that behavior.
 */
 Item {
     id: root

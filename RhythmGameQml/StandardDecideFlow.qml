@@ -84,7 +84,11 @@ Item {
         }
     }
 
-    /*! Accepts the chart and begins gameplay. */
+    /*!
+        Opens gameplay with the supplied context. Returns false when disabled,
+        missing gameplay, already transitioning, or the standard screen cannot
+        open. A replacement startAction counts as handled and returns true.
+    */
     function start() {
         if (!root.gameplay) {
             return false;
@@ -93,7 +97,11 @@ Item {
                              () => globalRoot.replaceGameplay(root.gameplay));
     }
 
-    /*! Cancels the chart and returns to the previous screen. */
+    /*!
+        Returns to the previous screen. Returns false when disabled, already
+        transitioning, or the standard navigation fails. A replacement
+        cancelAction counts as handled and returns true.
+    */
     function cancel() {
         return flowState.run(cancelAction,
                              () => globalRoot.returnToPreviousScreen());

@@ -15,7 +15,7 @@ import RhythmGameQml
     action. A replacement handles the whole operation, and its return value is ignored.
 
     The component also listens for either player's bound Start button. Start opens
-    song selection while \l enabled and \l startOpensSelect are true. Set
+    song selection while \c enabled and \l startOpensSelect are true. Set
     \l startOpensSelect to false if your theme handles Start itself.
 
     See the \l {../theme_tutorial_first_screen.html}{first menu lesson} for an

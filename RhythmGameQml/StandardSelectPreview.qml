@@ -19,7 +19,8 @@ import RhythmGameQml
     Bind \l moving to your list's movement state to wait until scrolling stops.
     Changing the source cancels the previous load and starts the delay again.
     Disabling the component stops audio and clears its sources. Bind a theme's
-    background music to \l playing if it should stop during previews.
+    background music to the inverse of \l playing if it should stop during
+    previews, for example \c {screen.enabled && !preview.playing}.
 */
 Item {
     id: root

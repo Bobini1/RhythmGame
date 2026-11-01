@@ -29,9 +29,16 @@ Item {
     property GameplayContext gameplay: null
     /*! Player whose profile and progress are used. Zero selects the first player. */
     property int playerIndex: 0
-    /*! Target choice. Defaults to the player's saved ScoreTarget setting. */
+    /*!
+        ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore or
+        ScoreTarget.NextRank. Defaults to the player's saved choice. An override
+        affects this display only and does not save a profile setting.
+    */
     property int mode: state.player?.profile.vars.generalVars.scoreTarget ?? ScoreTarget.Fraction
-    /*! Target fraction used by ScoreTarget.Fraction and when no saved target exists. */
+    /*!
+        Target points as a fraction of maximum points, for example 0.8 for 80%.
+        Used by ScoreTarget.Fraction and when a saved target is unavailable.
+    */
     property real fraction: state.player?.profile.vars.generalVars.targetScoreFraction ?? 0
     /*! Whether the selected player's saved scores are being loaded. */
     readonly property bool loading: state.loading

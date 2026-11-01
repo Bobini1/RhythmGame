@@ -4,58 +4,58 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectController
     \inqmlmodule RhythmGameQml
-    \brief Supplies browsing, input, shortcuts and music for a song selector.
+    \brief Adds browsing, input, previews and music to a song selector.
 
-    The controller includes StandardSelectState plus navigation, shortcuts and
-    folder feedback, background music and chart previews. Your theme owns the
-    list or wheel, its current row and its highlight. Don't add the included
-    components separately to the same screen.
+    Use this component as the starting point for a selection screen. It loads
+    folders and tables, opens charts and courses, and handles standard input.
+    Your theme draws the list or wheel. See the
+    \l {../theme_tutorial_select.html}{selection lesson} for a complete example.
 
-    \l StandardSelectListView connects a finite list to this controller. Supply its
-    delegate and call its activate(index) method from row clicks. It handles
-    current-row changes, arrows, mouse wheel input and preview movement.
+    \section1 Connect your view
 
-    A custom list or circular wheel can use the controller directly. Use
-    entries for one row per item, or presentationEntries with minimumEntryCount
-    for repeated rows. Handle moveRequested and focusRequested in your view,
-    and call setFocused when its current entry changes. Forward Up, Down and
-    release key events to handleUpPressed, handleDownPressed and handleReleased.
-    Forward wheel events from the view to handleWheel.
-    The theme manages keyboard focus in either approach.
+    For a normal list, use StandardSelectListView. Set its \c controller to
+    this component, supply a delegate, and call its \c activate(index) method
+    when a row is clicked. Set keyboard focus on the list and its enclosing
+    focus scopes.
 
-    Browsing initializes when the component is completed. To choose the timing,
-    set \l autoInitialize to false and call \l initialize after the view is ready.
+    For a custom wheel, use \l entries for one row per item or
+    \l presentationEntries for repeated rows. Handle \l moveRequested and
+    \l focusRequested, then call \l setFocused with the selected row's data.
+    Forward Up, Down, release and wheel events to \l handleUpPressed,
+    \l handleDownPressed, \l handleReleased and \l handleWheel.
 
-    F2 reloads the current folder or table, F3 opens the selected folder, and F12
-    opens Settings. F11 calls \l openInternetRanking to open the selected chart's
-    ranking page. The included \l ranking also supplies data for a ranking display.
-    Buttons can call \l reloadCurrentFolderOrTable, \l openSelectedFolder and
-    \l openSettings to use the same actions and overrides as those shortcuts.
-    At the root, keys 2 and 4 call \l cycleSortMode. The profile keeps the choice.
-    Autoplay and replay have standard actions. Key 7 calls the inherited
-    \l openReplay; key 6 calls \l cycleReplayType. Bind replay buttons to
-    \l replayAvailable and call \l openReplay from their click handlers.
-    Autoplay buttons use \l autoplayAvailable and \l openAutoplay.
-    Override \l tryReplayAction to provide a custom replay picker. Escape leaves selection or
-    its Arena room. Disable Escape with \l exitEnabled.
-    StandardArenaSelectOverlay supplies the Arena ready controls and shortcut.
+    The root folder opens automatically. Set \l autoInitialize to false and
+    call \l initialize when your view is ready if you need different timing.
 
-    The included \l preview follows the focused chart. StandardSelectListView
-    binds preview.moving automatically. For another view, bind it to the view's
-    movement state to wait until scrolling stops. Background music
-    stops while a preview is playing and returns after \l backgroundMusicDelayMillis.
-    Customize the \l preview and \l backgroundMusic properties, or set either to
-    null to omit it. Don't add a second StandardSelectPreview alongside the controller.
+    \section1 Use the built-in actions
 
-    Disabling the controller stops its input, shortcuts, feedback and music. Use
-    \l inputEnabled, \l shortcutsEnabled or \l feedbackEnabled to disable just
-    one part. Disabled keyboard handlers leave events unaccepted for another handler.
-    Keep the controller outside any visual container that you disable for a
-    popup if music should continue while that popup is open.
+    Buttons can call the same actions as keys: \l openAutoplay, \l openReplay,
+    \l cycleSortMode, \l openSettings and \l exit. Bind replay and autoplay
+    buttons to \l replayAvailable and \l autoplayAvailable.
+    StandardSelectInput lists the controller key mappings;
+    StandardSelectShortcuts lists F2, F3, F11 and F12.
 
-    Set \l enterFeedbackSource and \l leaveFeedbackSource to choose folder sounds.
-    For custom feedback, set \l feedbackEnabled to false and handle
-    \l enteredFolder and \l leftFolder yourself.
+    The controller already includes StandardSelectState, StandardSelectInput
+    and StandardSelectShortcuts. Do not add a second copy beside it.
+    Add StandardArenaSelectOverlay for Arena ready controls and chat.
+
+    \section1 Customize audio and rankings
+
+    Change \l preview, \l backgroundMusic or \l ranking to customize these
+    features; set one to null to omit it. The preview follows the focused chart,
+    and music stops while it plays. StandardSelectListView delays previews
+    during movement; a custom wheel must bind \c preview.moving itself.
+
+    Set \l enterFeedbackSource and \l leaveFeedbackSource for folder sounds.
+    To play your own feedback, set \l feedbackEnabled to false and handle
+    \l enteredFolder and \l leftFolder.
+
+    \section1 Pause input for a popup
+
+    Disabling the controller stops its input, shortcuts, audio and ranking
+    work. To keep music playing while a popup is open, leave the controller
+    enabled and set \l inputEnabled and \l shortcutsEnabled to false.
+    Keep it outside any container you disable for that popup.
 */
 StandardSelectState {
     id: root

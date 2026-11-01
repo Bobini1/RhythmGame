@@ -7,9 +7,9 @@ import RhythmGameQml
     \inqmlmodule RhythmGameQml
     \brief Loads folder contents and stores browsing history.
 
-    Use this component when implementing browsing behavior that StandardSelectState
-    doesn't provide. It stores folder contents, history and preview paths
-    without sorting them or choosing the focused row.
+    StandardSelectState already uses this component. Use it directly only for
+    custom browsing. It stores folder contents, history and preview paths;
+    your code decides when to load them, sort them and choose a focused row.
 
     The \c resolve... methods return data without changing \l folderContents or
     \l historyStack. Call \l commitFolderContents and update the history together
@@ -23,7 +23,11 @@ Item {
 
     /*! Raw contents of the current folder, table, level, or search. */
     property var folderContents: []
-    /*! Navigation history for this selection session. */
+    /*!
+        History entries in navigation order. The root folder is an empty string.
+        StandardSelectState also uses table and level values, ChartData for a
+        song's chart directory, and objects with a searchQuery field for searches.
+    */
     property var historyStack: []
     /*! Preview-file data loaded for the current contents. */
     property var previewFiles: ({})
@@ -47,7 +51,11 @@ Item {
         return item;
     }
 
-    /*! Returns raw contents for folder-like \a item. */
+    /*!
+        Returns raw entries for folder, table or level \a item. An empty string
+        opens the root. Returns an empty list for an empty folder, or null for
+        an unsupported item. Does not change history or \l folderContents.
+    */
     function resolveFolderContents(item) {
         item = folderForHistoryItem(item);
         let folder;
@@ -89,7 +97,11 @@ Item {
         return Rg.songFolderFactory.openChartDirectory(directory);
     }
 
-    /*! Replaces \l folderContents with a copy of \a contents. */
+    /*!
+        Replaces \l folderContents with a copy of \a contents and returns true.
+        Null or undefined returns false without changing the current contents.
+        Update \l historyStack separately when navigation succeeds.
+    */
     function commitFolderContents(contents) {
         if (contents === null || contents === undefined) {
             return false;

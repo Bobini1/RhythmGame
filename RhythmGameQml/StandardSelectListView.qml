@@ -6,14 +6,20 @@ import RhythmGameQml
     \inqmlmodule RhythmGameQml
     \brief Connects a finite song list to a selection controller.
 
-    Set controller and supply a delegate. The list handles arrows, the mouse
-    wheel and bound controller navigation, folder focus restoration, and preview movement.
-    Call activate(index) when a row is clicked. Return, Enter and Right open
-    the current entry; Left goes back. Movement wraps at the ends.
+    Set \l controller and supply a delegate. The model is already bound to
+    the controller's entries. A delegate receives \c modelData for the entry
+    and \c index for its row; use \c ListView.isCurrentItem for highlighting.
+    The list handles arrows, the mouse wheel, bound controller navigation,
+    folder focus restoration and preview movement. Call \l activate with the
+    row's index when it is clicked. Return, Enter and Right open the current
+    entry; Left goes back. Movement wraps at the ends.
 
     Style and size this item like any ListView. Keyboard focus still belongs
     to the theme: set focus on this list and its enclosing focus scopes.
     Use StandardSelectController directly for a custom wheel instead.
+
+    See the \l {../theme_tutorial_select.html}{selection lesson} for a delegate
+    that labels folders, charts, tables and courses.
 */
 ListView {
     id: root
@@ -25,7 +31,11 @@ ListView {
     currentIndex: -1
     keyNavigationEnabled: false
 
-    /*! Selects and opens the row at \a index, or the current row when omitted. */
+    /*!
+        Focuses, selects and opens the row at \a index, or the current row when
+        omitted. Returns false for an invalid row or disabled input. Otherwise
+        returns the result of StandardSelectState::goForward.
+    */
     function activate(index = currentIndex) {
         if (!root.enabled || !root.controller.enabled || !root.controller.inputEnabled
                 || index < 0 || index >= root.count)

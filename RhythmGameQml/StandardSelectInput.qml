@@ -101,7 +101,7 @@ StandardSelectNavigation {
         return selectState ? selectState.goBack() : false;
     }
 
-    /*! Activates replay for the focused chart. */
+    /*! Starts a saved replay for the focused chart or course. */
     function activateReplay() {
         if (!root.enabled) return false;
         if (typeof root.tryReplayAction === "function" && root.tryReplayAction()) {
@@ -110,7 +110,7 @@ StandardSelectNavigation {
         return root.selectState ? root.selectState.openReplay() : false;
     }
 
-    /*! Activates autoplay for the focused chart. */
+    /*! Starts autoplay for the focused chart or course, or enters the focused folder. */
     function activateAutoplay() {
         if (!root.enabled) {
             return false;
