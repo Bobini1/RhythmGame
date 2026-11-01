@@ -1,6 +1,6 @@
 # 8. Show chart results and course summaries {#theme_tutorial_results}
 
-[Previous](@ref theme_tutorial_gameplay) | [Tutorial](@ref theme_tutorial) | [Next: Complete theme example](@ref theme_tutorial_shipping)
+[Previous](https://bobini1.github.io/RhythmGame/theme_tutorial_gameplay.html) | [Tutorial](https://bobini1.github.io/RhythmGame/theme_tutorial.html) | [Next: Complete theme example](https://bobini1.github.io/RhythmGame/theme_tutorial_shipping.html)
 
 **Goal:** Show scores, judgement counts and graphs for a completed chart or
 course, with working Continue and Retry controls.
@@ -8,14 +8,14 @@ course, with working Continue and Retry controls.
 Install `docs/examples/theme-tutorial/08-results/` and choose it for Result and
 Course Result. Each screen has its own QML file and can be selected separately.
 
-[Download 08-results](examples/theme-tutorial/08-results.zip) or
+[Download 08-results](https://bobini1.github.io/RhythmGame/examples/theme-tutorial/08-results.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/08-results).
 
 \include 08-results/theme.json
 
 ## Read a completed chart
 
-`Result.qml` receives a [ResultContext](qml/qml-rhythmgameqml-resultcontext.html)
+`Result.qml` receives a [ResultContext](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-resultcontext.html)
 for one completed chart, including a course stage. Its `chartData` and stage
 fields stay fixed when gameplay advances to the next stage.
 The game owns the context and its scores for the result screen's lifetime; the
@@ -24,8 +24,8 @@ theme presents them without destroying them.
 \snippet 08-results/Result.qml result-contract
 
 `result.players` contains one or two participants. Each
-[ResultPlayer](qml/qml-rhythmgameqml-resultplayer.html) pairs a profile with a
-saved [BmsScore](@ref gameplay_logic::BmsScore).
+[ResultPlayer](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-resultplayer.html) pairs a profile with a
+saved [BmsScore](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1BmsScore.html).
 
 \snippet 08-results/Result.qml score-delegate
 
@@ -35,7 +35,7 @@ although its online submission state can still change.
 
 ## Add Continue and Retry controls
 
-Pass `result` to [StandardResultInput](qml/qml-rhythmgameqml-standardresultinput.html).
+Pass `result` to [StandardResultInput](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardresultinput.html).
 It accepts both chart and course results. It briefly delays confirmation after
 the screen opens, then handles the standard keys. The Continue button calls
 `confirm()` and uses the same delay.
@@ -130,7 +130,7 @@ Continue stay outside the scroll area.
 ## Show each player's online rank
 
 The result uses the same
-[StandardRanking](qml/qml-rhythmgameqml-standardranking.html) that the select
+[StandardRanking](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardranking.html) that the select
 controller supplies. Here, each player's display creates its own instance
 with the result's chart and that player's profile and score.
 
@@ -153,9 +153,9 @@ separate from online rankings and use the overlay described below.
 ## Read a completed course
 
 `CourseResult.qml` receives a
-[CourseResultContext](qml/qml-rhythmgameqml-courseresultcontext.html).
+[CourseResultContext](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-courseresultcontext.html).
 Its `course` describes the course, and `charts` contains chart metadata in
-stage order. Each player's [BmsScoreCourse](@ref gameplay_logic::BmsScoreCourse)
+stage order. Each player's [BmsScoreCourse](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1BmsScoreCourse.html)
 combines their stage scores.
 The combined hit graph uses the widest available Bad window from the course's
 stages, so it can show every included hit on one fixed scale.
@@ -180,7 +180,7 @@ the same graphs work for both screens.
 
 ## Include Arena standings
 
-Add [StandardArenaResultOverlay](qml/qml-rhythmgameqml-standardarenaresultoverlay.html)
+Add [StandardArenaResultOverlay](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardarenaresultoverlay.html)
 to show standings and chat for the completed Arena round. It stays hidden for
 local results. `StandardResultInput` disables confirmation while this result's
 chat is open, so Enter sends the message without closing the screen.

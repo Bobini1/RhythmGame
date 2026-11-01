@@ -1,6 +1,6 @@
 # 5. Browse songs and courses {#theme_tutorial_select}
 
-[Previous](@ref theme_tutorial_translations) | [Tutorial](@ref theme_tutorial) | [Next: Decide](@ref theme_tutorial_decide)
+[Previous](https://bobini1.github.io/RhythmGame/theme_tutorial_translations.html) | [Tutorial](https://bobini1.github.io/RhythmGame/theme_tutorial.html) | [Next: Decide](https://bobini1.github.io/RhythmGame/theme_tutorial_decide.html)
 
 **Goal:** Build a song list that opens charts and courses, then add saved
 scores, replays and rankings.
@@ -9,12 +9,12 @@ Install `docs/examples/theme-tutorial/05-select/` and choose it for Select.
 Keep your current themes for Main Menu, Decide and gameplay. Start with the
 list; the chart details panel is optional.
 
-[Download 05-select](examples/theme-tutorial/05-select.zip) or
+[Download 05-select](https://bobini1.github.io/RhythmGame/examples/theme-tutorial/05-select.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/05-select).
 
 ## Use the standard browsing behavior
 
-[StandardSelectController](qml/qml-rhythmgameqml-standardselectcontroller.html) loads folders and tables, remembers the
+[StandardSelectController](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectcontroller.html) loads folders and tables, remembers the
 path back, and opens charts or courses. It also handles input, shortcuts,
 background music and chart previews. The theme draws the rows, and
 `StandardSelectListView` connects the current row to the controller.
@@ -25,15 +25,15 @@ The controller opens the root folder automatically. Its `entries` contain one
 instance of each filtered item, which suits a normal list. A circular wheel can use
 `presentationEntries` to repeat entries when it needs more visible rows.
 
-Use the complete controller once. Adding [StandardSelectInput](qml/qml-rhythmgameqml-standardselectinput.html) or
-[StandardSelectShortcuts](qml/qml-rhythmgameqml-standardselectshortcuts.html) alongside it would add behavior already
+Use the complete controller once. Adding [StandardSelectInput](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectinput.html) or
+[StandardSelectShortcuts](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectshortcuts.html) alongside it would add behavior already
 included by the controller.
 Use those smaller components when building your own browsing behavior.
 
 Background music stops when a chart preview starts. The list waits until
 scrolling stops before playing a preview. Both stop when selection becomes
 inactive, such as during gameplay. See
-[StandardSelectPreview](qml/qml-rhythmgameqml-standardselectpreview.html) to
+[StandardSelectPreview](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectpreview.html) to
 change the preview delay, volume or audio source.
 
 ## Recognize the entry types {#theme_tutorial_select_entry_types}
@@ -63,15 +63,15 @@ Missing charts get a separate label, while installed charts show their title.
 \snippet 05-select/Select.qml entry-labels
 
 The generated references list the fields on
-[ChartData](@ref gameplay_logic::ChartData),
-[entry](@ref resource_managers::Entry),
-[table](@ref resource_managers::Table),
-[level](@ref resource_managers::Level) and
-[course](@ref resource_managers::Course).
+[ChartData](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ChartData.html),
+[entry](https://bobini1.github.io/RhythmGame/structresource__managers_1_1Entry.html),
+[table](https://bobini1.github.io/RhythmGame/structresource__managers_1_1Table.html),
+[level](https://bobini1.github.io/RhythmGame/structresource__managers_1_1Level.html) and
+[course](https://bobini1.github.io/RhythmGame/structresource__managers_1_1Course.html).
 
 ## Connect a list to the controller
 
-[StandardSelectListView](qml/qml-rhythmgameqml-standardselectlistview.html)
+[StandardSelectListView](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectlistview.html)
 extends `ListView` with the navigation needed by a song select screen. Set its
 `controller` and supply a delegate for each row.
 
@@ -105,7 +105,7 @@ current row.
 
 For a custom wheel, handle the controller's `moveRequested` and `focusRequested`
 signals. Call `setFocused()` with the row's data when the wheel chooses an entry.
-The [controller reference](qml/qml-rhythmgameqml-standardselectcontroller.html)
+The [controller reference](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectcontroller.html)
 describes this interface.
 
 ## Handle an empty folder or selection
@@ -134,7 +134,7 @@ stage. A missing stage is a string containing its MD5 or `sha256/<hash>`
 identifier. Those strings are not folder paths.
 
 `CourseStages.qml` looks up missing charts with
-[Rg.tables.search()](@ref resource_managers::Tables). It uses the first
+[Rg.tables.search()](https://bobini1.github.io/RhythmGame/classresource__managers_1_1Tables.html). It uses the first
 match's title and subtitle, or displays the identifier if no title is known.
 
 \include{lineno} 05-select/CourseStages.qml
@@ -148,7 +148,7 @@ Folders, tables and courses remain in the list.
 \snippet 05-select/Select.qml select-keymode
 
 Each button's `checked` state follows the controller's
-[keymodeFilter](qml/qml-rhythmgameqml-standardselectstate.html#keymodeFilter-prop).
+[keymodeFilter](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectstate.html#keymodeFilter-prop).
 `checkable` and `autoExclusive` keep one button selected. The `Flow` wraps the
 buttons onto another row when the window is narrow.
 
@@ -166,16 +166,16 @@ Buttons call the same controller actions as bound keys.
 
 \snippet 05-select/Select.qml select-actions
 
-[cycleSortMode ()](qml/qml-rhythmgameqml-standardselectstate.html#cycleSortMode-method)
+[cycleSortMode ()](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectstate.html#cycleSortMode-method)
 cycles the available sort choices and saves the choice in the active profile.
 Bound keys 2 and 4 use the same action at the root. Inside a folder they go back.
 A menu that chooses a particular sort mode can call `setSortMode(mode)`.
 The button displays
-[sortModeText](qml/qml-rhythmgameqml-standardselectstate.html#sortModeText-prop),
+[sortModeText](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectstate.html#sortModeText-prop),
 the translated name of the current sort mode. "Total" means the chart's TOTAL
 gauge value. It does not mean the number of notes.
 
-[openAutoplay ()](qml/qml-rhythmgameqml-standardselectstate.html#openAutoplay-method)
+[openAutoplay ()](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectstate.html#openAutoplay-method)
 starts the focused chart or course. `autoplayAvailable` keeps the button disabled
 for folders, incomplete courses and Arena. Bound key 5 uses the same action,
 and also enters folders while browsing.
@@ -189,7 +189,7 @@ Their action overrides apply to both buttons and shortcuts.
 
 The controller chooses a saved run using the active profile's replay setting.
 The choices are newest, best score, best clear and best combo. The combo box
-uses [replayOptions](qml/qml-rhythmgameqml-standardselectstate.html#replayOptions-prop).
+uses [replayOptions](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectstate.html#replayOptions-prop).
 Each option has a `text` label and a stable `value`. The two role properties tell
 the combo box which field to display and which field to select.
 `currentValue` follows `selection.replayType`, and `setReplayType(currentValue)`
@@ -199,9 +199,9 @@ saves the player's choice.
 
 These labels are already translated; use them without `qsTr()`. For custom
 labels, see
-[StandardSelectOptions](qml/qml-rhythmgameqml-standardselectoptions.html).
+[StandardSelectOptions](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectoptions.html).
 
-The button calls [openReplay ()](qml/qml-rhythmgameqml-standardselectstate.html#openReplay-method),
+The button calls [openReplay ()](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectstate.html#openReplay-method),
 which is also the action used by bound key 7. Bound key 6 cycles the replay
 choice. No extra handler is needed on the controller.
 
@@ -224,14 +224,14 @@ of constructing a `file:///` URL yourself.
 
 \snippet 05-select/Select.qml chart-image
 
-The controller's `results` map holds [BmsResult](@ref gameplay_logic::BmsResult)
+The controller's `results` map holds [BmsResult](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1BmsResult.html)
 summaries without replay data. It updates after scores are saved or imported.
 `StandardRanking` finds the best clear and best score from these results; they
 can be different runs.
 
 \snippet 05-select/Select.qml saved-results
 
-Use [ScoreDetails](qml/qml-rhythmgameqml-scoredetails.html) when the panel needs
+Use [ScoreDetails](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-scoredetails.html) when the panel needs
 a full score, such as replay hit events or gauge history. The example loads the
 latest saved result. Changing the selected result cancels the previous load, so
 the graph cannot show replay data for the chart you just left.
@@ -239,7 +239,7 @@ the graph cannot show replay data for the chart you just left.
 \snippet 05-select/Select.qml score-details
 
 The graph receives the full score's replay data and the selected chart's timing
-windows. It keeps the same fixed scale that the [result lesson](@ref theme_tutorial_results)
+windows. It keeps the same fixed scale that the [result lesson](https://bobini1.github.io/RhythmGame/theme_tutorial_results.html)
 uses. A saved result can exist without a replay, so the panel distinguishes
 no saved score, a replay that is loading, a failed load and a score without
 replay data.
@@ -260,7 +260,7 @@ your configured select screen, so the same example serves local and multiplayer 
 Keep Default selected for the `multiplayer` screen when using this example.
 Use Leave selection to leave the room and return to the browser.
 
-Add [StandardArenaSelectOverlay](qml/qml-rhythmgameqml-standardarenaselectoverlay.html)
+Add [StandardArenaSelectOverlay](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardarenaselectoverlay.html)
 for ready controls and chat. It appears only in an Arena room. Press START
 twice to toggle ready. `navigationFocusTarget` returns keyboard focus to
 `songList` when chat closes.

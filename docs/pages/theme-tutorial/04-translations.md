@@ -1,6 +1,6 @@
 # 4. Add a translation {#theme_tutorial_translations}
 
-[Previous](@ref theme_tutorial_rg) | [Tutorial](@ref theme_tutorial) | [Next: Song selection](@ref theme_tutorial_select)
+[Previous](https://bobini1.github.io/RhythmGame/theme_tutorial_rg.html) | [Tutorial](https://bobini1.github.io/RhythmGame/theme_tutorial.html) | [Next: Song selection](https://bobini1.github.io/RhythmGame/theme_tutorial_select.html)
 
 **Goal:** Mark menu text for translation and load a translation file.
 
@@ -8,7 +8,7 @@ Install `docs/examples/theme-tutorial/04-translations/` and choose it for Main
 Menu. It includes Polish translations for the greeting, most buttons and the
 color setting. You can try them without installing translation tools.
 
-[Download 04-translations](examples/theme-tutorial/04-translations.zip) or
+[Download 04-translations](https://bobini1.github.io/RhythmGame/examples/theme-tutorial/04-translations.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/04-translations).
 
 ## Mark text in QML

@@ -1,20 +1,20 @@
 # 3. Read a profile and save a theme setting {#theme_tutorial_rg}
 
-[Previous](@ref theme_tutorial_qml) | [Tutorial](@ref theme_tutorial) | [Next: Translations](@ref theme_tutorial_translations)
+[Previous](https://bobini1.github.io/RhythmGame/theme_tutorial_qml.html) | [Tutorial](https://bobini1.github.io/RhythmGame/theme_tutorial.html) | [Next: Translations](https://bobini1.github.io/RhythmGame/theme_tutorial_translations.html)
 
 **Goal:** Greet the active player by name and save a greeting color for their
 profile.
 
 Install `docs/examples/theme-tutorial/03-profile/` and choose it for Main Menu.
 
-[Download 03-profile](examples/theme-tutorial/03-profile.zip) or
+[Download 03-profile](https://bobini1.github.io/RhythmGame/examples/theme-tutorial/03-profile.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/03-profile).
 
 ## Read the active profile
 
-[Rg](@ref Rg) gives QML access to the game's shared objects. It is a singleton, which
+[Rg](https://bobini1.github.io/RhythmGame/classRg.html) gives QML access to the game's shared objects. It is a singleton, which
 means you use the existing object by name after importing `RhythmGameQml`.
-You don't create an [Rg](@ref Rg) instance.
+You don't create an [Rg](https://bobini1.github.io/RhythmGame/classRg.html) instance.
 
 Follow `Rg.profileList.mainProfile` to the active profile, then read
 `vars.generalVars` for preferences shared across themes. The example binds a
@@ -49,7 +49,7 @@ The `color` type tells the form which control to use.
 Saved values live under `profile.vars.themeVars[screenName][themeName]`.
 The example uses `"main"` for its screen and `QmlUtils.themeName` for its folder
 name, so it still works if a user renames the folder.
-[QmlUtils](@ref qml_components::QmlUtilsAttached) is
+[QmlUtils](https://bobini1.github.io/RhythmGame/classqml__components_1_1QmlUtilsAttached.html) is
 an [attached property](https://doc.qt.io/qt-6/qtqml-typesystem-attachedtypes.html).
 
 Settings belong to a profile, screen and theme. Read only the current screen's

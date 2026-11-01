@@ -1,11 +1,11 @@
 # 1. Make a main menu {#theme_tutorial_first_screen}
 
-[Tutorial](@ref theme_tutorial) | [Next: QML basics](@ref theme_tutorial_qml)
+[Tutorial](https://bobini1.github.io/RhythmGame/theme_tutorial.html) | [Next: QML basics](https://bobini1.github.io/RhythmGame/theme_tutorial_qml.html)
 
 **Goal:** Install a main menu with an image and four working navigation buttons,
 then edit its title or color.
 
-[Download 01-main](examples/theme-tutorial/01-main.zip) or
+[Download 01-main](https://bobini1.github.io/RhythmGame/examples/theme-tutorial/01-main.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/01-main).
 
 ## Install the folder
@@ -50,7 +50,7 @@ The `$schema` URL helps a text editor check the file. It's not required.
 The theme's name comes from its folder name, so the example will
 appear as `01-main` in the game.
 
-The [default theme config](@ref theme_tutorial_stuck) lists all screen names.
+The [default theme config](https://bobini1.github.io/RhythmGame/theme_tutorial.html#theme_tutorial_stuck) lists all screen names.
 
 ## Draw the menu
 
@@ -63,7 +63,7 @@ The examples import the
 explicitly to give the controls a consistent style. You can use another
 Qt Quick Controls style or draw your own controls.
 
-[StandardMainController](qml/qml-rhythmgameqml-standardmaincontroller.html)
+[StandardMainController](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardmaincontroller.html)
 handles menu actions, the bound START button and background music. It draws
 nothing, so the theme creates buttons whose `onClicked` handlers call
 `openSelect()`, `openArena()`, `openSettings()` and `quit()` for the four menu actions.

@@ -1,13 +1,13 @@
 # 9. Complete theme example {#theme_tutorial_shipping}
 
-[Previous](@ref theme_tutorial_results) | [Tutorial](@ref theme_tutorial)
+[Previous](https://bobini1.github.io/RhythmGame/theme_tutorial_results.html) | [Tutorial](https://bobini1.github.io/RhythmGame/theme_tutorial.html)
 
 **Goal:** Install the combined theme and use it as a starting point for your own.
 
 `09-complete` brings the screens and helpers from lessons 1 through 8 into one
 folder. Use the earlier lessons to look up how each screen works.
 
-[Download 09-complete](examples/theme-tutorial/09-complete.zip) or
+[Download 09-complete](https://bobini1.github.io/RhythmGame/examples/theme-tutorial/09-complete.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/09-complete).
 
 Copy `docs/examples/theme-tutorial/09-complete/` into your theme directory and
@@ -27,12 +27,12 @@ stage, then the course result.
 
 Default's Multiplayer browser opens this theme's Select screen after joining
 an Arena room. The Select, Gameplay and Result screens use the Arena panels
-from the [select](@ref theme_tutorial_select),
-[gameplay](@ref theme_tutorial_gameplay) and [result](@ref theme_tutorial_results) lessons.
+from the [select](https://bobini1.github.io/RhythmGame/theme_tutorial_select.html),
+[gameplay](https://bobini1.github.io/RhythmGame/theme_tutorial_gameplay.html) and [result](https://bobini1.github.io/RhythmGame/theme_tutorial_results.html) lessons.
 
 To make your own version, copy and rename the whole folder. Keep its helper
 files, settings and assets together. Change one screen at a time and restart
 to check it.
 
 For component properties and customization points, see the
-[QML reference](qml/qml-api.html).
+[QML reference](https://bobini1.github.io/RhythmGame/qml/qml-api.html).

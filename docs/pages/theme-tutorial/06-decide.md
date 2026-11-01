@@ -1,17 +1,17 @@
 # 6. Show what is about to play {#theme_tutorial_decide}
 
-[Previous](@ref theme_tutorial_select) | [Tutorial](@ref theme_tutorial) | [Next: Gameplay](@ref theme_tutorial_gameplay)
+[Previous](https://bobini1.github.io/RhythmGame/theme_tutorial_select.html) | [Tutorial](https://bobini1.github.io/RhythmGame/theme_tutorial.html) | [Next: Gameplay](https://bobini1.github.io/RhythmGame/theme_tutorial_gameplay.html)
 
 **Goal:** Show the selected chart or course and let the player start or cancel.
 
 Install `docs/examples/theme-tutorial/06-decide/` and choose it for Decide.
 
-[Download 06-decide](examples/theme-tutorial/06-decide.zip) or
+[Download 06-decide](https://bobini1.github.io/RhythmGame/examples/theme-tutorial/06-decide.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/06-decide).
 
 ## Receive the play data
 
-The game supplies a [GameplayContext](qml/qml-rhythmgameqml-gameplaycontext.html)
+The game supplies a [GameplayContext](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-gameplaycontext.html)
 as `gameplay`. Declare it as a required property on the root object.
 
 \snippet 06-decide/Decide.qml context
@@ -27,7 +27,7 @@ In a course, the current chart and players change as stages advance.
 
 ## Accept or cancel with the standard flow
 
-Pass the supplied context to [StandardDecideFlow](qml/qml-rhythmgameqml-standarddecideflow.html).
+Pass the supplied context to [StandardDecideFlow](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standarddecideflow.html).
 It starts gameplay after five seconds. Enter or a bound play key also starts,
 while Escape or START+SELECT cancels.
 
@@ -51,7 +51,7 @@ The game later shows a result above gameplay, then resumes gameplay after
 the result closes so the flow can advance or return to selection.
 
 Arena rounds open gameplay directly, without decide.
-[StandardMultiplayerFlow](qml/qml-rhythmgameqml-standardmultiplayerflow.html)
+[StandardMultiplayerFlow](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardmultiplayerflow.html)
 handles that transition when the session prepares a round.
 
 If you add shortcuts or audio players yourself, bind their behavior to the

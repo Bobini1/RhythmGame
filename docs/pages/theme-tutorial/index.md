@@ -28,7 +28,7 @@ QML files and any assets it uses.
 | \subpage theme_tutorial_results      | `08-results`       | Chart results and a separate course summary                       |
 | \subpage theme_tutorial_shipping     | `09-complete`      | A self-contained version of lessons 1 through 8                  |
 
-Start with [the first menu](@ref theme_tutorial_first_screen), even if you plan to work on
+Start with [the first menu](https://bobini1.github.io/RhythmGame/theme_tutorial_first_screen.html), even if you plan to work on
 gameplay. It explains how to install, select and reload an example. Later
 lessons use the same steps for other screens.
 
@@ -39,7 +39,7 @@ folder contain the complete files. Comments
 such as `// [main-actions]` mark the start and end of a snippet for the docs
 generator. QML ignores the comments, so you can remove them in your own copy.
 GitHub displays the include commands as text. Read the [generated documentation
-site](pages.html) to see them expanded.
+site](https://bobini1.github.io/RhythmGame/pages.html) to see them expanded.
 
 The examples use simple visuals and reusable components for browsing, input
 and screen transitions. You can change the appearance while keeping that
@@ -48,7 +48,7 @@ behavior, then replace individual actions when needed.
 ## Find more detail
 
 The [theme overview](../../../DEV_THEME.md) introduces how themes fit into the
-game. The [QML reference](qml/qml-api.html) describes the Standard components,
+game. The [QML reference](https://bobini1.github.io/RhythmGame/qml/qml-api.html) describes the Standard components,
 their properties and their actions.
 
 ## If you get stuck {#theme_tutorial_stuck}

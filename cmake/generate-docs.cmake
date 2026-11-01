@@ -64,6 +64,9 @@ execute_process(
     COMMAND_ERROR_IS_FATAL ANY
 )
 
+set(DOCS_HTML_DIRECTORY "${QDOC_OUTPUT_DIRECTORY}")
+include("${PROJECT_SOURCE_DIR}/cmake/localize-doc-links.cmake")
+
 # Publish each tutorial theme as a complete folder and an installable archive.
 set(tutorial_source "${PROJECT_SOURCE_DIR}/docs/examples/theme-tutorial")
 set(tutorial_output "${DOXYGEN_OUTPUT_DIRECTORY}/html/examples/theme-tutorial")

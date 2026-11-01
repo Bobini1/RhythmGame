@@ -1,6 +1,6 @@
 # 7. Draw notes during gameplay {#theme_tutorial_gameplay}
 
-[Previous](@ref theme_tutorial_decide) | [Tutorial](@ref theme_tutorial) | [Next: Results](@ref theme_tutorial_results)
+[Previous](https://bobini1.github.io/RhythmGame/theme_tutorial_decide.html) | [Tutorial](https://bobini1.github.io/RhythmGame/theme_tutorial.html) | [Next: Results](https://bobini1.github.io/RhythmGame/theme_tutorial_results.html)
 
 **Goal:** Draw notes and live scores using the player's speed and cover settings,
 with the standard flow handling play, retry and courses.
@@ -9,7 +9,7 @@ Install `docs/examples/theme-tutorial/07-gameplay/` and choose it for the gamepl
 screens you use in Settings > Themes. It supports 5k, 7k, their battle variants,
 10k and 14k. Keep an existing result theme selected for now.
 
-[Download 07-gameplay](examples/theme-tutorial/07-gameplay.zip) or
+[Download 07-gameplay](https://bobini1.github.io/RhythmGame/examples/theme-tutorial/07-gameplay.zip) or
 [open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/07-gameplay).
 
 The screen uses rectangles for notes, long notes, bar lines and mines. It also
@@ -21,14 +21,14 @@ and `NoteLane.qml` draws one lane. `GaugeBar.qml` displays the active gauge.
 
 ## Let the standard flow run the play
 
-The root receives the same [GameplayContext](qml/qml-rhythmgameqml-gameplaycontext.html) used by decide.
-Bind it to [StandardGameplayFlow](qml/qml-rhythmgameqml-standardgameplayflow.html).
+The root receives the same [GameplayContext](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-gameplaycontext.html) used by decide.
+Bind it to [StandardGameplayFlow](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardgameplayflow.html).
 
 \snippet 07-gameplay/Gameplay.qml flow
 
 The flow handles startup, Escape, retry, speed controls and results. For a course, it also
 continues after each stage result and opens the final course summary.
-Don't add [StandardGameplayInput](qml/qml-rhythmgameqml-standardgameplayinput.html)
+Don't add [StandardGameplayInput](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardgameplayinput.html)
 beside it or call the runner's start and finish methods yourself.
 
 ## Follow the current stage and players
@@ -76,7 +76,7 @@ play starts, so the label clamps it to zero.
 
 ## Show the background animation
 
-[StandardGameplayBga](qml/qml-rhythmgameqml-standardgameplaybga.html) draws the
+[StandardGameplayBga](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardgameplaybga.html) draws the
 current chart's BGA. Give it the gameplay context and a place in the layout.
 
 \snippet 07-gameplay/Gameplay.qml bga
@@ -87,7 +87,7 @@ Override `visible` if needed. For a custom renderer, use `gameplay.bga.layers`.
 
 ## Show the player's score target
 
-[StandardGameplayTarget](qml/qml-rhythmgameqml-standardgameplaytarget.html)
+[StandardGameplayTarget](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardgameplaytarget.html)
 uses the same context and player index. The example displays its current
 target points in a label.
 
@@ -111,7 +111,7 @@ Changing the visual column order does not change the input mapping.
 
 ## Follow the player's note speed
 
-[StandardGameplayViewport](qml/qml-rhythmgameqml-standardgameplayviewport.html)
+[StandardGameplayViewport](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardgameplayviewport.html)
 reads `noteScreenTimeMillis` and `hiSpeedFix` from the player's profile. Give it
 the current player, chart metadata and lane height. It calculates
 `pixelsPerBeat` for drawing and keeps the filtered note models in sync,
@@ -172,15 +172,15 @@ filters the lines to the visible range.
 \snippet 07-gameplay/PlayerField.qml bar-lines
 
 The lane highlight reads `columnState.pressed`. Autoplay and replay update
-that state too. [Input](@ref qml_components::InputAttached) reports physical input actions, so using it for the
+that state too. [Input](https://bobini1.github.io/RhythmGame/classqml__components_1_1InputAttached.html) reports physical input actions, so using it for the
 highlight would miss presses supplied by autoplay or replay.
 
 \snippet 07-gameplay/NoteLane.qml pressed
 
 ## Adjust speed and covers while playing
 
-[StandardGameplayFlow](qml/qml-rhythmgameqml-standardgameplayflow.html) includes
-[StandardGameplaySpeedControls](qml/qml-rhythmgameqml-standardgameplayspeedcontrols.html).
+[StandardGameplayFlow](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardgameplayflow.html) includes
+[StandardGameplaySpeedControls](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardgameplayspeedcontrols.html).
 The example only needs a label to explain the controls.
 
 \snippet 07-gameplay/Gameplay.qml speed-controls
@@ -222,7 +222,7 @@ same list.
 
 ## Show the latest judgement
 
-Each player's [BmsLiveScore](@ref gameplay_logic::BmsLiveScore) emits `hit`
+Each player's [BmsLiveScore](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1BmsLiveScore.html) emits `hit`
 for gameplay events. The event's `judgement` identifies the outcome, or is
 `-1` when no judgement was awarded. Listen to the score so the display also
 works during autoplay and replay.
@@ -248,7 +248,7 @@ unavailable for courses, autoplay, replay, battle and Arena.
 
 ## Include Arena standings
 
-The screen adds [StandardArenaGameplayOverlay](qml/qml-rhythmgameqml-standardarenagameplayoverlay.html) beside the
+The screen adds [StandardArenaGameplayOverlay](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardarenagameplayoverlay.html) beside the
 gameplay flow.
 Both receive the same context. The overlay shows standings and chat for
 Arena play and stays hidden during local play and courses.
@@ -269,6 +269,6 @@ title and notes. Closing the final course summary should return to selection.
 The example's combo label covers the current stage; `coursePlayers` provides
 the combo for the whole course if you want to display it.
 
-For later customization, the [flow reference](qml/qml-rhythmgameqml-standardgameplayflow.html)
+For later customization, the [flow reference](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardgameplayflow.html)
 describes `startReady` and `finishReady` for delaying transitions around an
 animation. Keep the standard score saving and navigation when adding such effects.

@@ -31,7 +31,7 @@ Contact me if you're interested, I can help you get started!
 You can use the [default theme](https://github.com/Bobini1/RhythmGame/tree/master/share/RhythmGame/themes/Default) as a
 reference.
 See the [DEV_THEME.md](DEV_THEME.md) document for more information.
-The [theme tutorial](@ref theme_tutorial) starts with a small main
+The [theme tutorial](https://bobini1.github.io/RhythmGame/theme_tutorial.html) starts with a small main
 menu and adds profiles, translations, selection, gameplay and results. Each
 lesson includes a complete theme you can install.
 
