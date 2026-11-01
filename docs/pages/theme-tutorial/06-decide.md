@@ -1,6 +1,6 @@
 # 6. Show what is about to play {#theme_tutorial_decide}
 
-[Previous](05-select.md) | [Tutorial](index.md) | [Next: Gameplay](07-gameplay.md)
+[Previous](@ref theme_tutorial_select) | [Tutorial](@ref theme_tutorial) | [Next: Gameplay](@ref theme_tutorial_gameplay)
 
 **Goal:** Show the selected chart or course and let the player start or cancel.
 

@@ -1,6 +1,6 @@
 # 7. Draw notes during gameplay {#theme_tutorial_gameplay}
 
-[Previous](06-decide.md) | [Tutorial](index.md) | [Next: Results](08-results.md)
+[Previous](@ref theme_tutorial_decide) | [Tutorial](@ref theme_tutorial) | [Next: Results](@ref theme_tutorial_results)
 
 **Goal:** Draw notes and live scores using the player's speed and cover settings,
 with the standard flow handling play, retry and courses.

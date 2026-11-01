@@ -1,6 +1,6 @@
 # 4. Add a translation {#theme_tutorial_translations}
 
-[Previous](03-profile.md) | [Tutorial](index.md) | [Next: Song selection](05-select.md)
+[Previous](@ref theme_tutorial_rg) | [Tutorial](@ref theme_tutorial) | [Next: Song selection](@ref theme_tutorial_select)
 
 **Goal:** Mark menu text for translation and load a translation file.
 

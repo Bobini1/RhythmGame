@@ -1,6 +1,6 @@
 # 3. Read a profile and save a theme setting {#theme_tutorial_rg}
 
-[Previous](02-qml.md) | [Tutorial](index.md) | [Next: Translations](04-translations.md)
+[Previous](@ref theme_tutorial_qml) | [Tutorial](@ref theme_tutorial) | [Next: Translations](@ref theme_tutorial_translations)
 
 **Goal:** Greet the active player by name and save a greeting color for their
 profile.

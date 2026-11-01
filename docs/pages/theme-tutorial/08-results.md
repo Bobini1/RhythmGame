@@ -1,6 +1,6 @@
 # 8. Show chart results and course summaries {#theme_tutorial_results}
 
-[Previous](07-gameplay.md) | [Tutorial](index.md) | [Next: Complete theme example](09-shipping.md)
+[Previous](@ref theme_tutorial_gameplay) | [Tutorial](@ref theme_tutorial) | [Next: Complete theme example](@ref theme_tutorial_shipping)
 
 **Goal:** Show scores, judgement counts and graphs for a completed chart or
 course, with working Continue and Retry controls.

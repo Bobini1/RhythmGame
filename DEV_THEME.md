@@ -4,7 +4,7 @@ RhythmGame themes are written in QML. A theme can provide one screen or a whole
 set, and players can choose a different theme for each screen. Design your
 screens to work alongside screens from other themes.
 
-Start with the [theme tutorial](docs/pages/theme-tutorial/index.md). Each lesson
+Start with the [theme tutorial](https://bobini1.github.io/RhythmGame/theme_tutorial.html). Each lesson
 has a complete example folder you can install and edit. You only need a text
 editor and the game to try it.
 
@@ -23,7 +23,7 @@ and where to find them. For example:
 ```
 
 The player can select this theme for the main menu and keep their other screens
-on Default. The [first lesson](docs/pages/theme-tutorial/01-first-screen.md)
+on Default. The [first lesson](https://bobini1.github.io/RhythmGame/theme_tutorial_first_screen.html)
 explains installation and screen registration. The tutorial also lists the
 [supported screen names](@ref theme_tutorial_stuck).
 
@@ -48,9 +48,9 @@ The components are optional and expose ways to customize their behavior. Start
 with the complete controller or flow for your screen, then change the parts you
 need. Its reference page describes the available properties and actions.
 
-Arena panels also belong to themes. The [selection](docs/pages/theme-tutorial/05-select.md),
-[gameplay](docs/pages/theme-tutorial/07-gameplay.md) and
-[result](docs/pages/theme-tutorial/08-results.md) lessons show how to include
+Arena panels also belong to themes. The [selection](https://bobini1.github.io/RhythmGame/theme_tutorial_select.html),
+[gameplay](https://bobini1.github.io/RhythmGame/theme_tutorial_gameplay.html) and
+[result](https://bobini1.github.io/RhythmGame/theme_tutorial_results.html) lessons show how to include
 the standard room and standings panels.
 
 The game manages screen creation and navigation. For custom navigation, use
@@ -59,10 +59,10 @@ Let the game manage the underlying screen stack.
 
 ## Game data
 
-The [Rg singleton](https://bobini1.github.io/RhythmGame/class_rg.html) provides
+The [Rg singleton](https://bobini1.github.io/RhythmGame/classRg.html) provides
 access to shared data such as profiles and the song library. For example,
 `Rg.profileList.mainProfile` gives you the active profile. The
-[profile lesson](docs/pages/theme-tutorial/03-profile.md) shows how to use it.
+[profile lesson](https://bobini1.github.io/RhythmGame/theme_tutorial_rg.html) shows how to use it.
 
 The game supplies play and result data when it opens those screens. Decide and
 gameplay receive a [GameplayContext](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-gameplaycontext.html),
@@ -72,14 +72,14 @@ Bind your display to the supplied data so it follows changes during play.
 
 Every gameplay theme must support both single charts and courses. Normal result
 and course result are separate screens that players choose independently.
-The [gameplay](docs/pages/theme-tutorial/07-gameplay.md) and
-[result](docs/pages/theme-tutorial/08-results.md) lessons cover both cases.
+The [gameplay](https://bobini1.github.io/RhythmGame/theme_tutorial_gameplay.html) and
+[result](https://bobini1.github.io/RhythmGame/theme_tutorial_results.html) lessons cover both cases.
 
 ## Settings and translations
 
 Themes can declare saved preferences in the manifest's `settings` field. The
 game stores them separately for each profile, screen and theme, and generates
-controls for them in Settings. The [profile lesson](docs/pages/theme-tutorial/03-profile.md)
+controls for them in Settings. The [profile lesson](https://bobini1.github.io/RhythmGame/theme_tutorial_rg.html)
 walks through adding and using a color setting.
 
 Use `QmlUtils.themeName` when accessing your theme's settings so the theme still
@@ -87,7 +87,7 @@ works if its folder is renamed. Keep each screen's preferences independent of
 other screens, since the player may select those screens from another theme.
 
 The manifest's `translations` field declares the languages a theme supports.
-Follow the [translation lesson](docs/pages/theme-tutorial/04-translations.md)
+Follow the [translation lesson](https://bobini1.github.io/RhythmGame/theme_tutorial_translations.html)
 for an example, or [DEV_LANG.md](DEV_LANG.md) for the translation workflow.
 
 ## Trying a theme
@@ -98,7 +98,7 @@ prevents you from reaching Settings, the tutorial explains
 [how to restore the screen choices](@ref theme_tutorial_stuck).
 
 Test your screens at different window sizes and with mouse, keyboard and
-controller input. The [QML lesson](docs/pages/theme-tutorial/02-qml.md) introduces
+controller input. The [QML lesson](https://bobini1.github.io/RhythmGame/theme_tutorial_qml.html) introduces
 layouts and scaling. Screens can remain loaded while another screen is shown,
 so pause custom sounds and shortcuts while your screen is disabled. The
 Standard components handle their own inactive state.

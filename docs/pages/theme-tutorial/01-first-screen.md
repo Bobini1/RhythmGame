@@ -1,6 +1,6 @@
 # 1. Make a main menu {#theme_tutorial_first_screen}
 
-[Tutorial](index.md) | [Next: QML basics](02-qml.md)
+[Tutorial](@ref theme_tutorial) | [Next: QML basics](@ref theme_tutorial_qml)
 
 **Goal:** Install a main menu with an image and four working navigation buttons,
 then edit its title or color.

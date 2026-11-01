@@ -1,6 +1,6 @@
 # 9. Complete theme example {#theme_tutorial_shipping}
 
-[Previous](08-results.md) | [Tutorial](index.md)
+[Previous](@ref theme_tutorial_results) | [Tutorial](@ref theme_tutorial)
 
 **Goal:** Install the combined theme and use it as a starting point for your own.
 
@@ -27,8 +27,8 @@ stage, then the course result.
 
 Default's Multiplayer browser opens this theme's Select screen after joining
 an Arena room. The Select, Gameplay and Result screens use the Arena panels
-from the [select](05-select.md),
-[gameplay](07-gameplay.md) and [result](08-results.md) lessons.
+from the [select](@ref theme_tutorial_select),
+[gameplay](@ref theme_tutorial_gameplay) and [result](@ref theme_tutorial_results) lessons.
 
 To make your own version, copy and rename the whole folder. Keep its helper
 files, settings and assets together. Change one screen at a time and restart

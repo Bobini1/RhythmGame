@@ -1,6 +1,6 @@
 # 5. Browse songs and courses {#theme_tutorial_select}
 
-[Previous](04-translations.md) | [Tutorial](index.md) | [Next: Decide](06-decide.md)
+[Previous](@ref theme_tutorial_translations) | [Tutorial](@ref theme_tutorial) | [Next: Decide](@ref theme_tutorial_decide)
 
 **Goal:** Build a song list that opens charts and courses, then add saved
 scores, replays and rankings.
@@ -239,7 +239,7 @@ the graph cannot show replay data for the chart you just left.
 \snippet 05-select/Select.qml score-details
 
 The graph receives the full score's replay data and the selected chart's timing
-windows. It keeps the same fixed scale that the [result lesson](08-results.md)
+windows. It keeps the same fixed scale that the [result lesson](@ref theme_tutorial_results)
 uses. A saved result can exist without a replay, so the panel distinguishes
 no saved score, a replay that is loading, a failed load and a score without
 replay data.

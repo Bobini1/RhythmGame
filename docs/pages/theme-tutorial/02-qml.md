@@ -1,6 +1,6 @@
 # 2. Use bindings and reusable components {#theme_tutorial_qml}
 
-[Previous](01-first-screen.md) | [Tutorial](index.md) | [Next: Profiles and settings](03-profile.md)
+[Previous](@ref theme_tutorial_first_screen) | [Tutorial](@ref theme_tutorial) | [Next: Profiles and settings](@ref theme_tutorial_rg)
 
 **Goal:** Change colors with a binding, reuse a button component, and make the
 menu fit different window sizes.
@@ -67,7 +67,7 @@ Two approaches work well:
   fit the available space. Use `implicitWidth` and `implicitHeight` for natural
   sizes, and `Layout` properties for size limits and how extra space is shared.
 
-The [first menu](01-first-screen.md) scales a fixed 960 by 540 canvas. It keeps
+The [first menu](@ref theme_tutorial_first_screen) scales a fixed 960 by 540 canvas. It keeps
 the same proportions, leaving unused space when the window has a different
 aspect ratio.
 

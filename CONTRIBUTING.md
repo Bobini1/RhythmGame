@@ -10,7 +10,7 @@
 What you need depends on what you want to edit.
 
 For theme development, see [`DEV_THEME.md`](DEV_THEME.md).
-The [theme tutorial](docs/pages/theme-tutorial/index.md) introduces the API through
+The [theme tutorial](https://bobini1.github.io/RhythmGame/theme_tutorial.html) introduces the API through
 small examples that can each be installed as a theme.
 
 ## Building documentation
