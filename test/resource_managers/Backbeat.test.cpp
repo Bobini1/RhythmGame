@@ -29,6 +29,7 @@
 #include <QScopeGuard>
 #include <QThreadPool>
 #include <catch2/catch_test_macros.hpp>
+#include <cstdint>
 #include <functional>
 #include <future>
 
@@ -632,7 +633,8 @@ TEST_CASE("Backbeat packs are ordinary folders with independent membership",
     auto insertRoot = library.database.createStatement(
       "INSERT INTO parent_dir (dir) VALUES (?) RETURNING id");
     insertRoot.bind(1, nativeRoot.toStdString());
-    native->save(library.database, insertRoot.executeAndGet<qint64>().value());
+    native->save(library.database,
+                 insertRoot.executeAndGet<std::int64_t>().value());
     auto source = std::make_shared<Store>();
     const auto firstId = "b-" + QString(64, 'a');
     const auto secondId = "b-" + QString(64, 'b');
