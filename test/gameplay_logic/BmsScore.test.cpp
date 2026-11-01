@@ -2,17 +2,22 @@
 #include "gameplay_logic/BmsReplayData.h"
 #include "gameplay_logic/BmsResult.h"
 #include "gameplay_logic/BmsScore.h"
+#include "support/Compress.h"
 #include "support/QStringToPath.h"
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <QTemporaryDir>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 #include <magic_enum/magic_enum.hpp>
 
 namespace {
 auto
-makeResult(const QString& guid) -> std::unique_ptr<gameplay_logic::BmsResult>
+makeResult(const QString& guid, QList<qint64> randomSequence = {})
+  -> std::unique_ptr<gameplay_logic::BmsResult>
 {
     return std::make_unique<gameplay_logic::BmsResult>(
       200.0,
@@ -29,7 +34,7 @@ makeResult(const QString& guid) -> std::unique_ptr<gameplay_logic::BmsResult>
       80,
       1234,
       10'000,
-      QList<qint64>{},
+      std::move(randomSequence),
       0,
       resource_managers::NoteOrderAlgorithm::Normal,
       resource_managers::NoteOrderAlgorithm::Normal,
@@ -75,6 +80,17 @@ struct StoredProvenance
     int source{};
     int longNoteMode{};
 };
+
+auto
+makeCompleteScore(const QString& guid) -> gameplay_logic::BmsScore
+{
+    return gameplay_logic::BmsScore(
+      makeResult(guid),
+      std::make_unique<gameplay_logic::BmsReplayData>(
+        QList<gameplay_logic::HitEvent>{}, guid),
+      std::make_unique<gameplay_logic::BmsGaugeHistory>(
+        QList<gameplay_logic::BmsGaugeInfo>{}, guid));
+}
 }
 
 TEST_CASE("Imported scores persist without replay-owned attachments",
@@ -115,6 +131,73 @@ TEST_CASE("Imported scores persist without replay-owned attachments",
               .executeAndGet<int>() == 0);
 }
 
+TEST_CASE("Autoplay scores skip serialization and database writes",
+          "[BmsScore]")
+{
+    db::SqliteCppDb database(":memory:");
+    const auto score = makeCompleteScore({});
+    const auto prepared = score.prepareSave();
+    CHECK(prepared.randomSequence.isEmpty());
+    CHECK(prepared.replay.isEmpty());
+    CHECK(prepared.gauges.isEmpty());
+    REQUIRE_NOTHROW(score.save(database));
+    REQUIRE_NOTHROW(score.save(database, prepared));
+    REQUIRE_NOTHROW(score.getResult()->save(database));
+    REQUIRE_NOTHROW(score.getReplayData()->save(database));
+    REQUIRE_NOTHROW(score.getGaugeHistory()->save(database));
+}
+
+TEST_CASE("Prepared score payloads preserve replay, gauge and random data",
+          "[BmsScore]")
+{
+    using namespace gameplay_logic;
+    db::SqliteCppDb database(":memory:");
+    createScoreTables(database);
+    const auto guid = QStringLiteral("prepared-score");
+    const QList<qint64> randomSequence{ 1, 3, 2 };
+    BmsScore score(
+      makeResult(guid, randomSequence),
+      std::make_unique<BmsReplayData>(
+        QList<HitEvent>{ HitEvent(1,
+                                  input::BmsKey::Col11,
+                                  2,
+                                  1'000'000,
+                                  BmsPoints(2, Judgement::Perfect, -100),
+                                  HitEvent::Action::Press,
+                                  true) },
+        guid),
+      std::make_unique<BmsGaugeHistory>(
+        QList<BmsGaugeInfo>{ { 100,
+                               80,
+                               "NORMAL",
+                               false,
+                               { rules::GaugeHistoryEntry(0, 20),
+                                 rules::GaugeHistoryEntry(1'000'000, 80) } } },
+        guid));
+    const auto prepared = score.prepareSave();
+    score.save(database, prepared);
+    const auto replay = database
+                          .createStatement("SELECT id, score_guid, replay_data "
+                                           "FROM replay_data")
+                          .executeAndGet<BmsReplayData::DTO>();
+    const auto gauges = database
+                          .createStatement("SELECT id, score_guid, gauge_info "
+                                           "FROM gauge_history")
+                          .executeAndGet<BmsGaugeHistory::DTO>();
+    const auto random =
+      database.createStatement("SELECT random_sequence FROM score")
+        .executeAndGet<std::string>();
+    REQUIRE(replay);
+    REQUIRE(gauges);
+    REQUIRE(random);
+    CHECK(BmsReplayData::load(*replay)->toJsonArray() ==
+          score.getReplayData()->toJsonArray());
+    CHECK(BmsGaugeHistory::load(*gauges)->toJsonArray() ==
+          score.getGaugeHistory()->toJsonArray());
+    CHECK(support::decompress<QList<qint64>>(
+            QByteArray::fromStdString(*random)) == randomSequence);
+}
+
 TEST_CASE("Complete score data upgrades an imported score with the same GUID",
           "[BmsScore]")
 {
@@ -150,4 +233,119 @@ TEST_CASE("Complete score data upgrades an imported score with the same GUID",
               .executeAndGet<int>() == 1);
     REQUIRE(db.createStatement("SELECT COUNT(*) FROM gauge_history;")
               .executeAndGet<int>() == 1);
+}
+
+TEST_CASE(
+  "A failed score save preserves the previous score and its attachments",
+  "[BmsScore]")
+{
+    db::SqliteCppDb database(":memory:");
+    createScoreTables(database);
+    const auto guid = QStringLiteral("failed-upgrade");
+    gameplay_logic::BmsScore::fromImportedResult(
+      makeResult(guid),
+      gameplay_logic::BmsScore::Source::Lr2,
+      gameplay_logic::BmsScore::LongNoteMode::Hcn)
+      ->save(database);
+    database.execute(
+      "CREATE TRIGGER reject_gauge BEFORE INSERT ON gauge_history "
+      "BEGIN SELECT RAISE(ABORT, 'injected gauge failure'); END");
+    REQUIRE_THROWS_AS(makeCompleteScore(guid).save(database),
+                      SQLite::Exception);
+    const auto previous =
+      database.createStatement("SELECT source, ln_mode FROM score")
+        .executeAndGet<StoredProvenance>();
+    REQUIRE(previous);
+    CHECK(previous->source ==
+          static_cast<int>(gameplay_logic::BmsScore::Source::Lr2));
+    CHECK(previous->longNoteMode ==
+          static_cast<int>(gameplay_logic::BmsScore::LongNoteMode::Hcn));
+    CHECK(database.createStatement("SELECT count(*) FROM replay_data")
+            .executeAndGet<int>() == 0);
+    CHECK(database.createStatement("SELECT count(*) FROM gauge_history")
+            .executeAndGet<int>() == 0);
+}
+
+TEST_CASE("A failed score inside a batch leaves no partial replay",
+          "[BmsScore]")
+{
+    db::SqliteCppDb database(":memory:");
+    createScoreTables(database);
+    database.execute(
+      "CREATE TRIGGER reject_gauge BEFORE INSERT ON gauge_history "
+      "WHEN NEW.score_guid = 'failed' "
+      "BEGIN SELECT RAISE(ABORT, 'injected gauge failure'); END");
+    auto batch = database.transaction();
+    makeCompleteScore("first").save(database);
+    REQUIRE_THROWS_AS(makeCompleteScore("failed").save(database),
+                      SQLite::Exception);
+    makeCompleteScore("last").save(database);
+    batch.commit();
+    for (const auto* table : { "score", "replay_data", "gauge_history" }) {
+        const auto key = std::string(table) == "score" ? "guid" : "score_guid";
+        CHECK(database
+                .createStatement(std::string("SELECT ") + key + " FROM " +
+                                 table + " ORDER BY " + key)
+                .executeAndGetAll<std::string>() ==
+              std::vector<std::string>{ "first", "last" });
+    }
+}
+
+TEST_CASE("Remote scores reject invalid documents and mismatched identity",
+          "[BmsScore][remote]")
+{
+    using gameplay_logic::BmsScore;
+    auto object = makeResult("requested-score")->toJson();
+    object["replayData"] = QJsonArray{};
+    object["gaugeHistory"] = QJsonArray{};
+    const auto decode = [&] {
+        return BmsScore::fromRemoteJson(QJsonDocument(object).toJson(),
+                                        "requested-score");
+    };
+    REQUIRE_NOTHROW(decode());
+    SECTION("malformed JSON")
+    {
+        CHECK_THROWS(BmsScore::fromRemoteJson("{", "requested-score"));
+    }
+    SECTION("empty object")
+    {
+        CHECK_THROWS(BmsScore::fromRemoteJson("{}", "requested-score"));
+    }
+    SECTION("other score")
+    {
+        object["guid"] = "another-score";
+        CHECK_THROWS(decode());
+    }
+    SECTION("short judgement array")
+    {
+        object["judgementCounts"] = QJsonArray{ 1 };
+        // The old decoder retained this short list; save() indexed six entries.
+        CHECK(gameplay_logic::BmsResult::fromJson(object)
+                ->getJudgementCounts()
+                .size() == 1);
+        CHECK_THROWS(decode());
+    }
+    SECTION("invalid judgement count")
+    {
+        auto counts = object["judgementCounts"].toArray();
+        counts[0] = -1;
+        object["judgementCounts"] = counts;
+        CHECK_THROWS(decode());
+    }
+    SECTION("wrong replay shape")
+    {
+        object["replayData"] = QJsonObject{};
+        CHECK_THROWS(decode());
+    }
+    SECTION("missing replay")
+    {
+        object.remove("replayData");
+        CHECK_THROWS(decode());
+    }
+    SECTION("legacy six judgements")
+    {
+        object["judgementCounts"] = QJsonArray{ 0, 0, 0, 0, 0, 0 };
+        CHECK(decode()->getResult()->getJudgementCounts().size() ==
+              magic_enum::enum_count<gameplay_logic::Judgement>());
+    }
 }

@@ -6,19 +6,20 @@
 #define RHYTHMGAME_SCORESYNCOPERATION_H
 
 #include <QObject>
+#include <QNetworkReply>
+#include <QSet>
+#include <QStringList>
+#include <atomic>
+#include <functional>
 #include <qqmlintegration.h>
 
 namespace qml_components {
 
-/**
- * @brief Tracks the progress of an asynchronous score sync (upload or
- * download).
- * @details Instances are created by Profile::uploadScores() and
- * Profile::downloadScores(). The total is set once the server diff is known.
- * Each individual score completion calls increment(). Errors per score fire
- * the error() signal but do not halt the operation — finished() is always
- * emitted exactly once when done == total.
- */
+/// Tracks progress and errors for a score upload, download, or import.
+/// Uploads and downloads queue scores once the server diff is known and
+/// prepare or transfer at most four at once. Errors do not stop the queue.
+/// Cancellation aborts owned replies and discards queued work. Finished
+/// operations cannot restart.
 class ScoreSyncOperation : public QObject
 {
     Q_OBJECT
@@ -28,45 +29,59 @@ class ScoreSyncOperation : public QObject
     Q_PROPERTY(int done READ getDone NOTIFY progressChanged)
     Q_PROPERTY(int total READ getTotal NOTIFY progressChanged)
     Q_PROPERTY(bool finished READ isFinished NOTIFY finishedChanged)
+    Q_PROPERTY(int errorCount READ getErrorCount NOTIFY errorsChanged)
+    Q_PROPERTY(QString lastError READ getLastError NOTIFY errorsChanged)
+    Q_PROPERTY(bool cancelled READ isCancelled NOTIFY finishedChanged)
 
     int currentDone{ 0 };
     int total{ 0 };
     bool finishedFlag{ false };
+    int errors{};
+    QString lastError;
+    std::atomic_bool cancelled{};
+    QStringList pending;
+    qsizetype next{};
+    int active{};
+    bool dispatching{};
+    std::function<void(const QString&)> dispatch;
+    QSet<QNetworkReply*> replies;
+    void startNext();
 
   public:
     explicit ScoreSyncOperation(QObject* parent = nullptr);
+    ~ScoreSyncOperation() override;
+    static constexpr int concurrency = 4;
+    void start(QStringList guids, std::function<void(const QString&)> dispatch);
+    void ownReply(QNetworkReply* reply);
+    Q_INVOKABLE void cancel();
 
     [[nodiscard]] auto getDone() const -> int { return currentDone; }
     [[nodiscard]] auto getTotal() const -> int { return total; }
     [[nodiscard]] auto isFinished() const -> bool;
+    [[nodiscard]] auto isCancelled() const -> bool { return cancelled; }
+    [[nodiscard]] auto getErrorCount() const -> int { return errors; }
+    [[nodiscard]] auto getLastError() const -> QString { return lastError; }
 
-    /**
-     * @brief Set the total number of items once it is known.
-     * @details Emits progressChanged(). If total is 0, also emits finished().
-     */
+    /// Sets the total number of items and emits progressChanged().
+    /// A zero total finishes the operation.
     void setTotal(int total);
 
-    /**
-     * @brief Set/get the finished state for bindings.
-     * @details Setting to true will emit finishedChanged() and finished().
-     */
+    /// Marks the operation finished when value is true.
+    /// Emits finishedChanged() once.
     void setFinished(bool value);
 
-    /**
-     * @brief Advance the done counter by one and emit progressChanged().
-     * @details Emits finished() when done reaches total.
-     */
+    /// Marks one item done and emits progressChanged().
+    /// Finishes the operation when done reaches total.
     void increment();
 
-    /**
-     * @brief Report a per-score error without halting the operation.
-     */
+    /// Records an error without stopping the operation.
     void reportError(const QString& message);
 
   signals:
     void progressChanged();
     void finishedChanged();
     void error(const QString& message);
+    void errorsChanged();
 };
 
 } // namespace qml_components

@@ -1,0 +1,15 @@
+diff --git a/src/lib.rs b/src/lib.rs
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -938,7 +938,10 @@ impl Library {
+                         let meta = format!("rustc-link-arg={}{}", flag, val);
+                         config.print_metadata(&meta);
+                     } else if statik && is_static_available(val, &system_roots, &dirs) {
+-                        let meta = format!("rustc-link-lib=static={}", val);
++                        // Keep package-manager libraries external to Rust archives.
++                        // The final CMake link supplies their imported targets.
++                        // https://doc.rust-lang.org/rustc/command-line-arguments.html#linking-modifiers-bundle
++                        let meta = format!("rustc-link-lib=static:-bundle={}", val);
+                         config.print_metadata(&meta);
+                     } else {
+                         let meta = format!("rustc-link-lib={}", val);

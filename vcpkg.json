@@ -135,6 +135,12 @@
     "zstd"
   ],
   "features": {
+    "backbeat": {
+      "description": "Backbeat chart library integration (GPL-3.0)",
+      "dependencies": [
+        "backbeat"
+      ]
+    },
     "docs": {
       "description": "Dependencies for generating documentation",
       "dependencies": [

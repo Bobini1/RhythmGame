@@ -5,6 +5,7 @@
 #include "ScanThemes.h"
 
 #include "Languages.h"
+#include "Vars.h"
 
 #include "resource_managers/lr2_skin/Lr2ThemeScanner.h"
 #include "support/PathToQString.h"
@@ -73,6 +74,11 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                                  settingsScripts.toObject()[key].toString())))
                     : QUrl("");
 
+                if (!settingsUrl.isEmpty()) {
+                    validateThemeSettings(
+                      path, support::qStringToPath(settingsUrl.toLocalFile()));
+                }
+
                 auto screen = qml_components::Screen{
                     QUrl::fromLocalFile(support::pathToQString(
                       path / support::qStringToPath(value.toString()))),
@@ -104,9 +110,10 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                        .toObject()
                        .toVariantHash()
                        .asKeyValueRange()) {
-                    auto translationPath =
-                      path / support::qStringToPath(translation.toString());
-                    if (exists(translationPath)) {
+                    const auto fileName = translation.toString();
+                    const auto translationPath =
+                      path / support::qStringToPath(fileName);
+                    if (fileName.isEmpty() || exists(translationPath)) {
                         const auto canonicalLanguage =
                           Languages::canonicalLanguageTag(language);
                         if (canonicalLanguage.isEmpty()) {
@@ -126,8 +133,10 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                         }
                         translations.insert(
                           canonicalLanguage,
-                          QUrl::fromLocalFile(
-                            support::pathToQString(translationPath)));
+                          fileName.isEmpty()
+                            ? QUrl{}
+                            : QUrl::fromLocalFile(
+                                support::pathToQString(translationPath)));
                     } else {
                         spdlog::warn(
                           "Translation file {} does not exist for theme {}",

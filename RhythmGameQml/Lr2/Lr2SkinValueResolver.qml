@@ -1645,11 +1645,6 @@ QtObject {
             return resolver.resolveResultTargetSideNumber(num - 120, 1);
         }
 
-        const arenaResultMatches = root.arenaResultMatches === true
-            && root.arenaRoundId.length > 0
-            && root.arenaRoundId
-                === String(root.arenaSession.presentedResult.roundId || "");
-
         switch (num) {
         case 20:
         case 21:
@@ -1912,12 +1907,12 @@ QtObject {
         case 178:
             return root.resultBadPoor(current) - root.resultBadPoor(old);
         case 179:
-            return arenaResultMatches
+            return root.arenaResultMatches
                 ? (root.arenaSession.presentedResult.finalized
                     ? root.arenaSession.presentedResult.localRank : 0)
                 : rankingState.playerRank();
         case 180:
-            return arenaResultMatches
+            return root.arenaResultMatches
                 ? root.arenaSession.presentedResult.participantCount
                 : rankingState.currentPlayerCount;
         case 181:

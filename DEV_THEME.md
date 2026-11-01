@@ -1,406 +1,104 @@
-# Theme Development
+# Theme development
 
-If you want to edit a theme, you only need a text editor.
-Edit the scripts and relaunch the game to see your changes.
+RhythmGame themes are written in QML. A theme can provide one screen or a whole
+set, and players can choose a different theme for each screen. Design your
+screens to work alongside screens from other themes.
 
-All errors are printed to log.txt in the data folder. On platforms other than Windows,
-the log is printed to the console as well.
-You can also press F10 in-game to open the log overlay.
+Start with the [theme tutorial](docs/pages/theme-tutorial/index.md). Each lesson
+has a complete example folder you can install and edit. You only need a text
+editor and the game to try it.
 
-# Theme structure
+## Theme folders
 
-A theme is a folder in `share/RhythmGame/themes/` that contains a `theme.json` file.
-That file needs to have a `scripts` field with an object
-containing relative paths to QML files for each game screen implemented by the theme.
-
-Here is an example of a minimal `theme.json` file:
-
-```json
-{
-  "scripts": {
-    "result": "result.qml"
-  }
-}
-```
-
-A theme does not need to implement all screens, it can just implement the ones you want.
-You can think of it as a package that can contain replacements for any number of the game's screens.
-
-### Persisent settings
-
-To provide configurable theme settings that will be stored separately for each user profile,
-you can define a `settings` field in `theme.json`.
+A theme folder contains its QML files, images and other assets, plus a
+`theme.json` file. The manifest tells the game which screens the theme provides
+and where to find them. For example:
 
 ```json
 {
   "scripts": {
-    "result": "result.qml"
-  },
-  "settings": {
-    "result": "result.json"
+    "main": "main.qml"
   }
 }
 ```
 
-It serves two purposes
-
-- Defines variables of the screen
-- Is used for generating a settings page in the settings screen
-
-For persistent global settings affecting all profiles, you can use the
-[Settings QML type](https://doc.qt.io/qt-6/qml-qt-labs-settings-settings.html).
-But you probably won't need it. I only ever used it once, for storing screen resolution.
-
-There are 7 different types of properties you can use in a settings file:
-
-- boolean
-- range
-- string
-- file
-- choice
-- color
-- hidden
-
-You can also put them in groups that have names and descriptions.
-
-The usage of most property types is self-explanatory, simply take a look at the default theme
-to find out how to use them.
-
-The special `hidden` type can be used to declare properties that will not be shown
-in the auto-generated settings page.
-
-You can access the values assigned to properties via
-`profile.vars.themeVars[screen][themeName].varId`.
-
-You can get the current theme's name with
-[QmlUtils.themeName](https://bobini1.github.io/RhythmGame/classqml__components_1_1QmlUtilsAttached.html).
-As for `screen`, your theme should be able to figure it out on its own. It can be `"result"`, `"k7"`, etc.
-
----
-**NOTE**
-
-You should not hard-code the name of your theme anywhere in your theme.
-The actual name of a theme in the game is always the name of its folder.
-Your theme should not break if a user renames the folder. Use `QmlUtils.themeName`.
-
----
-
-Please don't access vars that don't belong to the current screen.
-It creates hidden dependencies on other themes or screens of your theme that might not be enabled.
-
-If you need to pass a variable between screens, suggest adding it to `profile.vars.generalVars`
-in the engine.
-
-### Overriding the settings page for a screen
-
-You can override the auto-generated settings page for a screen by providing a QML file in a
-`settingsScripts` field in `theme.json`.
-
-```json
-{
-  "scripts": {
-    "result": "result.qml"
-  },
-  "settings": {
-    "result": "result.json"
-  },
-  "settingsScripts": {
-    "result": "resultSettings.qml"
-  }
-}
-```
-
-The default theme does not use this feature.
-
-### Translations
-
-Translations are described in [DEV_LANG.md](DEV_LANG.md).
-
-```json
-{
-  "scripts": {
-    "result": "result.qml"
-  },
-  "settings": {
-    "result": "result.json"
-  },
-  "settingsScripts": {
-    "result": "resultSettings.qml"
-  },
-  "translations": {
-    "en": "en.qm",
-    "pl": "pl.qm",
-    "zh-Hans": "zh_Hans.qm",
-    "zh-Hant-HK": "zh_Hant_HK.qm"
-  }
-}
-```
-
-Translation keys use BCP 47 language tags with optional script and territory
-subtags. See [DEV_LANG.md](DEV_LANG.md) for matching and compatibility details.
-
-## Theme loading
-
-Themes are loaded and validated when the game starts.
-If there are any critical errors in configuration files,
-the game will fail to start. Don't share broken themes!
-Look at log.txt in the data folder to find out what went wrong.
-
-The part of the game that manages the theme most directly is
-[RhythmGameQml/ContentFrame.qml](https://github.com/Bobini1/RhythmGame/blob/master/RhythmGameQml/ContentFrame.qml).
-That qml file is compiled into the executable and is not part of any theme.
-It contains the window of the entire game and exposes the supported screen-flow
-operations through the globally accessible `globalRoot` object. For example,
-use `globalRoot.openSelect()` to enter selection and
-`globalRoot.returnToPreviousScreen()` to leave the current screen.
-
-`ContentFrame` owns the underlying screen stack. Themes should use the semantic
-`globalRoot` operations instead of accessing that stack directly. This keeps a
-theme independent of the details of screen lifetime, retry, and Arena flow.
-
-Custom flows can use these navigation operations:
-
-- `currentScreen` is the currently presented screen.
-- `previousScreen(screen)` returns the retained screen immediately before it,
-  or `null`. Omitting `screen` uses the current screen.
-- `openGameplay(runner)` replaces the current decide screen with gameplay.
-- `replaceGameplay(runner, screen)` replaces that screen and anything above it
-  with local gameplay. Omitting `screen` replaces the current screen. It returns
-  the new screen, or `null` if creation fails or the target is unavailable.
-  The replacement is created before removing the old screens, so a broken
-  gameplay skin leaves the current screen intact.
-
-Runner lifetime follows the local screen: decide owns it until gameplay takes
-over; gameplay retains it while results are shown, and destroys it when removed
-or replaced. `ContentFrame` handles this even when a skin omits the standard
-input components. Skins must not destroy these runners themselves. Arena uses
-`openGameplay(runner, true)` to push gameplay without transferring its externally
-owned runner. `ContentFrame` has no retry-specific input or session state.
-
----
-**NOTE**
-
-When going from `select` to `k7` and then `result`, the former screens are not
-destroyed immediately. `ContentFrame` keeps those screens alive while newer
-screens are presented and restores or closes them as the flow requires.
-
----
-
-## Initial state of screens
-
-`globalRoot` provides the following operations for screens that require initial
-state:
-
-```qml
-function openChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2)
-function openCourse(course, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2)
-function openResult(scores, profiles, chartData)
-function openCourseResult(scores, profiles, chartDatas, course)
-```
-
-Since gameplay screens and result screens need to be pushed with some initial property state,
-those helper methods set them based on the parameters passed to them.
-
-See [ChartLoader docs](https://bobini1.github.io/RhythmGame/classqml__components_1_1ChartLoader.html)
-for an explanation of the parameters of `openChart` and `openCourse`.
-
-Call them on `globalRoot`, for example `globalRoot.openChart(...)`.
-
-Keep the following in mind when writing screens with initial state:
-
-Screens `k7`, `k14` and `k7battle` are expected to have single `var` property called `chart`. The assigned `chart` will
-be either a [ChartRunner](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ChartRunner.html) or
-[CourseRunner](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1CourseRunner.html)
-object, depending on whether the player is playing a single chart or a course.
-
-Screen `result` is expected to have the following properties:
-
-```qml
-property list<BmsScore> scores
-property list<Profile> profiles
-property ChartData chartData
-```
-
-The lists will have 1 or 2 elements, depending on whether the game was played solo or in battle mode.
-
-Screen `courseResult` is expected to have the following properties:
-
-```qml
-property list<BmsScoreCourse> scores
-property list<Profile> profiles
-property list<ChartData> chartDatas
-property course course
-```
-
-You can always use `var` instead of the exact type if you want to be flexible.
-
-## Input
-
-It would be best if your theme supported mouse, keyboard and controller navigation.
-For example, for scrolling a list of songs, it would be best to allow using the mouse wheel, arrow keys and scratch.
-In the default theme, the `settings` screen was designed with mouse and keyboard in mind,
-without support for controller navigation.
-
-For mouse input, use [MouseArea](https://doc.qt.io/qt-6/qml-qtquick-mousearea.html) or
-[TapHandler](https://doc.qt.io/qt-6/qml-qtquick-taphandler.html).
-
-For keyboard input, use [Keys](https://doc.qt.io/qt-6/qml-qtquick-keys.html)
-
-For bound key input (controller or keyboard), use
-[Input](https://bobini1.github.io/RhythmGame/classqml__components_1_1InputAttached.html).
-
-`ContentFrame` automatically disables all input for screens that are not active.
-Make sure to disable any background sounds and [Shortcuts](https://doc.qt.io/qt-6/qml-qtquick-shortcut.html) when
-the screen is inactive (Shortcuts are not disabled automatically).
-Song preview should not play during gameplay. You can use the
-[enabled](https://doc.qt.io/qt-6/qml-qtquick-item.html#enabled-prop) property of `Item`
-to detect when a screen is not active.
-This property propagates to all child components.
-
-Gameplay screens should not use `Input` directly. Instead, use
-[columnState.pressed](https://bobini1.github.io/RhythmGame/classgameplay__logic_1_1ColumnState.html#a116fbd7d8aec0c9ebad00828b7564ab6).
-This will play nicely with autoplay and replays.
-`Input` is reserved for actual input, not injected key presses.
-
-### Reusable selection components
-
-Themes can import `RhythmGameQml` and opt into the standard selection behavior
-without using the Default theme's presentation:
-
-For a complete standard selector, instantiate `StandardSelectController`. It
-extends `StandardSelectState` with presentation adaptation, folder enter/leave
-feedback, input, navigation and selection shortcuts. Its inherited `entries`
-contain one logical copy of each filtered item; `presentationEntries` repeats
-them to `minimumEntryCount` for circular selectors. Handle
-`focusRequested(index)` and `moveRequested(steps, repeated, analog)` to update
-the skin's presentation. Set `autoInitialize` to false and call `initialize()`
-when a skin needs to control startup timing.
-
-For a different composition, use only the lower-level pieces required.
-
-Browsing and activation:
-
-- `StandardSelectSession` owns the raw folder contents, history, asynchronous
-  score-query lifetime, scores and preview paths. Its `resolve...` methods only
-  acquire data; `commitFolderContents()` is the explicit state change. A custom
-  `tableCoursesProvider` can return the courses for a table.
-- `StandardSelectActivation` implements the standard chart, course and Arena
-  activation rules.
-- `StandardSelectState` combines the session and activation behavior with
-  sorting, filtering and focus. Its `entries` contain one logical copy of each
-  filtered item. Score, preview-file and folder-stat enrichment can be disabled
-  independently, and all sorting/filtering policies have profile-backed
-  defaults that a skin can override.
-- `StandardSelectModelAdapter` can repeat a logical model to a requested
-  minimum size for circular visual selectors. Skins with a finite list do not
-  need to instantiate it.
-
-Interaction policies:
-
-- `StandardSelectNavigation` converts directional key and scratch input into
-  semantic `moveRequested(steps, repeated, analog)` signals. The skin remains
-  responsible for positioning and animating its list or wheel.
-- `StandardSelectInput` adds the standard activation, replay, autoplay,
-  sorting and back-button mappings by extending `StandardSelectNavigation`. A
-  custom state can supply semantic `activateAction`, `goBackAction` and
-  `atTopLevel` values instead of pretending to be `StandardSelectState`.
-  Autoplay has a state-backed implementation. Replay needs
-  `tryReplayAction`, since choosing a replay score remains skin-owned.
-- `StandardSelectShortcuts` provides F2 reload, F3 open-folder, F11
-  internet-ranking and F12 settings shortcuts. F2 and F3 use a supplied
-  `selectState` by default. F2, F3 and F12 defaults can be replaced or
-  individually disabled. F11 emits `openInternetRankingRequested`; if the
-  standard state declines F2 or F3, the corresponding request signal is also
-  emitted for the skin.
-
-Shared asynchronous lifetime:
-
-- `PendingReplyGroup` owns any set of asynchronous replies with one cancellation
-  lifetime. It can be reused by custom selection enrichment or other skin
-  state that starts cancellable operations.
-
-The controller has no required list interface. Keyboard `Keys` handlers stay on
-the focused visual item and can forward up/down/release events to the
-controller's `handleUpPressed`, `handleDownPressed` and `handleReleased`
-methods. Feedback remains configurable through the controller's
-`feedbackEnabled`, action and sound-source properties.
-
-Application-owned F1 and F4 behavior is internal to `ContentFrame`. F12 belongs
-to `StandardSelectShortcuts`, so it is only available on selection screens that
-opt into the standard selection shortcuts.
-
-### Reusable behavior for other screens
-
-Other screens expose smaller components around their own natural seams rather
-than copying the selection component structure:
-
-- `StandardMainActions` provides the standard song-select, Arena, settings and
-  quit destinations, including START opening song selection.
-- `StandardDecideFlow` owns decide timeout, accept/cancel input and transition
-  guarding. It fills its parent by default; the skin owns the decide visuals.
-  A replacement start/cancel action owns its full transition. Starting replaces
-  decide with gameplay; there is no retained decide screen to close afterward.
-- `StandardResultInput` owns delayed result dismissal and retry input. A skin
-  can supply `tryHandleButtonAction` for presentation-specific actions such as
-  cycling a displayed gauge before the standard retry/dismissal handling runs.
-  Skin pointer handlers can call `confirm()` to share the standard confirmation
-  gate. Keys 5 and 7 retry with fresh randomization and the same pattern,
-  respectively. It uses `StandardChartRetry` internally and obtains the runner
-  from the preceding gameplay screen.
-- `StandardGameplayInput` combines Escape, the optional START+SELECT hold gesture
-  and normal result dispatch. Supply `chart` and `chartData`.
-  `retryHoldDurationMillis` defaults to 1000. During `retryChoosing`,
-  releasing START retries the same pattern, releasing SELECT uses fresh
-  randomization, and releasing both cancels. The gameplay screen stays visible.
-  Standard exit and result completion wait for the choice to end; skins only
-  need to gate their own controls with `!retryChoosing`. Keep this component
-  enabled to observe releases. `retryEnabled` and `exitEnabled` independently
-  disable those actions. `retryAction(samePattern)` replaces restarting;
-  `retry(samePattern)` and `cancelRetry()` are available for custom controls.
-  Untouched charts return immediately on Escape; attempted plays finish and
-  open results. Presentation cleanup, exit, feedback and result opening remain
-  replaceable. `completionEnabled: false` allows a skin such as LR2 to own its
-  finish timing. Otherwise completion detected while inactive or choosing retry
-  is retained until it can be presented.
-- `StandardChartRetry` provides `available` and `retry(samePattern)` without
-  input mappings or completion handling. Set `fromResult: true` to infer the
-  runner from gameplay under the current result; otherwise supply `chart`.
-  It replaces gameplay directly, including the result above it when present.
-  The standard implementation excludes courses, autoplay, replay, battle and
-  Arena. An unfinished retry does not finish/save the old play; result retry
-  preserves the already saved result. A supported request is consumed even if
-  loading fails, leaving the current screen intact.
-- `StandardGameplayAttemptState` tracks whether a chart has received a scoring
-  hit. It is available separately for custom gameplay transitions.
-
-`StandardInputKeys.isPlayKey(key)` is available when a custom component needs
-the same lane-key classification used by the standard decide and result input.
-
-All action properties are optional. Without an override these components call
-the semantic operations exposed by the application content frame. An `Action`
-property is a complete replacement and does not need to return a value. A
-`try...Action` is a pre-handler: return `true` when it consumed the request, or
-return `false`/`undefined` to continue with the standard behavior. Skins should
-use `globalRoot.returnToPreviousScreen()` instead of accessing `sceneStack`
-directly.
-
-## Scaling
-
-Your theme is expected to work on all screen sizes and aspect ratios.
-There are two ways you can achieve that.
-
-- Use [layouts](https://doc.qt.io/qt-6/qtquicklayouts-overview.html) to dynamically set the sizes of elements based on
-  the size of their parents.
-- Use fixed, hard-coded component sizes and [rescale](https://doc.qt.io/qt-6/qml-qtquick-item.html#scale-prop) the top
-  item to fit the size of the window.
-
-In the default theme, you can see the first approach in the `settings` screen. All other screens use scaling.
-In general, scaling is easier to use.
-
-Please try resizing the window of the game when testing your theme edits.
-
-## The Rg singleton
-
-The [Rg](https://bobini1.github.io/RhythmGame/classRg.html) singleton is globally accessible upon importing
-`RhythmGameQml`. It contains various API objects with methods and properties useful for themes.
-You will probably use it a lot! Start reading the docs there.
+The player can select this theme for the main menu and keep their other screens
+on Default. The [first lesson](docs/pages/theme-tutorial/01-first-screen.md)
+explains installation and screen registration. The tutorial also lists the
+[supported screen names](@ref theme_tutorial_stuck).
+
+## Shared behavior
+
+Import `RhythmGameQml` to use the game's data and Standard components. Your
+QML defines the appearance, while the Standard components handle common actions
+such as browsing songs, starting play and opening results.
+
+Choose the component for the screen you're building:
+
+| Screen | Component | Common behavior |
+|--------|-----------|-----------------|
+| Main menu | [StandardMainController](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardmaincontroller.html) | Navigation and menu music |
+| Song selection | [StandardSelectController](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardselectcontroller.html) | Browsing, input, previews and saved scores |
+| Decide | [StandardDecideFlow](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standarddecideflow.html) | Confirmation before play |
+| Gameplay | [StandardGameplayFlow](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardgameplayflow.html) | Startup, exit, retry and results |
+| Result and course result | [StandardResultInput](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardresultinput.html) | Confirmation and supported retries |
+| Multiplayer browser | [StandardMultiplayerFlow](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-standardmultiplayerflow.html) | Connecting to Arena and entering rooms and gameplay |
+
+The components are optional and expose ways to customize their behavior. Start
+with the complete controller or flow for your screen, then change the parts you
+need. Its reference page describes the available properties and actions.
+
+Arena panels also belong to themes. The [selection](docs/pages/theme-tutorial/05-select.md),
+[gameplay](docs/pages/theme-tutorial/07-gameplay.md) and
+[result](docs/pages/theme-tutorial/08-results.md) lessons show how to include
+the standard room and standings panels.
+
+The game manages screen creation and navigation. For custom navigation, use
+`globalRoot` operations such as `openSelect()` and `returnToPreviousScreen()`.
+Let the game manage the underlying screen stack.
+
+## Game data
+
+The [Rg singleton](https://bobini1.github.io/RhythmGame/class_rg.html) provides
+access to shared data such as profiles and the song library. For example,
+`Rg.profileList.mainProfile` gives you the active profile. The
+[profile lesson](docs/pages/theme-tutorial/03-profile.md) shows how to use it.
+
+The game supplies play and result data when it opens those screens. Decide and
+gameplay receive a [GameplayContext](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-gameplaycontext.html),
+and result screens receive a [ResultContext](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-resultcontext.html)
+or [CourseResultContext](https://bobini1.github.io/RhythmGame/qml/qml-rhythmgameqml-courseresultcontext.html).
+Bind your display to the supplied data so it follows changes during play.
+
+Every gameplay theme must support both single charts and courses. Normal result
+and course result are separate screens that players choose independently.
+The [gameplay](docs/pages/theme-tutorial/07-gameplay.md) and
+[result](docs/pages/theme-tutorial/08-results.md) lessons cover both cases.
+
+## Settings and translations
+
+Themes can declare saved preferences in the manifest's `settings` field. The
+game stores them separately for each profile, screen and theme, and generates
+controls for them in Settings. The [profile lesson](docs/pages/theme-tutorial/03-profile.md)
+walks through adding and using a color setting.
+
+Use `QmlUtils.themeName` when accessing your theme's settings so the theme still
+works if its folder is renamed. Keep each screen's preferences independent of
+other screens, since the player may select those screens from another theme.
+
+The manifest's `translations` field declares the languages a theme supports.
+Follow the [translation lesson](docs/pages/theme-tutorial/04-translations.md)
+for an example, or [DEV_LANG.md](DEV_LANG.md) for the translation workflow.
+
+## Trying a theme
+
+Restart the game after editing theme files. Press F10 to inspect errors in the
+log overlay, or read `log.txt` in the game's data folder. If a broken theme
+prevents you from reaching Settings, the tutorial explains
+[how to restore the screen choices](@ref theme_tutorial_stuck).
+
+Test your screens at different window sizes and with mouse, keyboard and
+controller input. The [QML lesson](docs/pages/theme-tutorial/02-qml.md) introduces
+layouts and scaling. Screens can remain loaded while another screen is shown,
+so pause custom sounds and shortcuts while your screen is disabled. The
+Standard components handle their own inactive state.

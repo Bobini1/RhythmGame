@@ -1,0 +1,6 @@
+# zstd-sys ships bindings, so Cargo can use the package manager's library
+# directly without running the bundled zstd build script.
+[target.@BACKBEAT_RUST_TARGET@.zstd]
+rustc-link-lib = ["@zstd_link_kind@=zstd"]
+rustc-link-search = ["native=@native_library_dir@"]
+include = "@BACKBEAT_INSTALLED_DIR@/include"

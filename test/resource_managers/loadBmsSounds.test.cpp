@@ -16,11 +16,50 @@
 
 #include <QByteArray>
 #include <QFile>
+#include <QTemporaryDir>
 
 #include <atomic>
 
 #include <support/PathToQString.h>
 #include <support/UtfStringToPath.h>
+#include <support/QStringToPath.h>
+
+// Exercise the case-sensitive filesystem resolver on Windows builds too.
+namespace charts {
+auto
+createLowerCaseFilesMap(std::filesystem::path directory)
+  -> std::unordered_map<std::string, std::filesystem::path>;
+auto
+getActualPath(
+  const std::unordered_map<std::string, std::filesystem::path>& files,
+  const std::filesystem::path& path) -> std::optional<std::filesystem::path>;
+}
+
+TEST_CASE(
+  "Case-sensitive sound lookup keeps directories and handles short paths",
+  "[loadBmsSounds]")
+{
+    QTemporaryDir directory;
+    REQUIRE(directory.isValid());
+    const auto root = support::qStringToPath(directory.path());
+    std::filesystem::create_directories(root / "samples");
+    std::filesystem::create_directories(root / "other");
+    for (const auto* path : { "samples/kick.wav", "other/kick.wav" }) {
+        QFile file(directory.filePath(path));
+        REQUIRE(file.open(QIODevice::WriteOnly));
+    }
+    const auto files = charts::createLowerCaseFilesMap(root);
+    CHECK(charts::getActualPath(files, "./SAMPLES\\kick.WAV") ==
+          root / "samples/kick.wav");
+    CHECK(charts::getActualPath(files, "other/KICK.flac") ==
+          root / "other/kick.wav");
+    CHECK(charts::getActualPath(files, "samples/kick") ==
+          root / "samples/kick.wav");
+    for (const auto* missing : { "", "a", "ab", "kick.wav" }) {
+        CAPTURE(missing);
+        CHECK_FALSE(charts::getActualPath(files, missing));
+    }
+}
 
 namespace {
 auto randomGenerator = [](charts::ParsedBmsChart::RandomRange range) {
@@ -122,4 +161,52 @@ TEST_CASE("Even when the extension says wav, allow loading other extensions",
     auto engine = sounds::AudioEngine{};
     auto sounds = charts::loadBmsSounds(&engine, wavs, folder);
     REQUIRE(sounds.size() == 4);
+}
+
+TEST_CASE("Sound paths preserve directories and safely try other extensions",
+          "[loadBmsSounds]")
+{
+    qputenv("RHYTHMGAME_AUDIO_BACKEND", QByteArrayLiteral("Null"));
+    QTemporaryDir temporary;
+    REQUIRE(temporary.isValid());
+    const auto root = support::qStringToPath(temporary.path());
+    std::filesystem::create_directories(root / "samples");
+    std::filesystem::create_directories(root / "other");
+    const auto source = findTestAssetsFolder() / "supportedSoundFormats" /
+                        "8BIT_audiocheck.net_sin_1000Hz_-3dBFS_0.2s_8.0k.wav";
+    std::filesystem::copy_file(source, root / "samples/kick.wav");
+    std::filesystem::copy_file(source, root / "other/kick.wav");
+    const auto paths = std::unordered_map<uint64_t, std::filesystem::path>{
+        { 1, "./SAMPLES\\kick.WAV" },
+        { 2, "other/KICK.flac" },
+        { 3, "" },
+        { 4, "a" },
+        { 5, "ab" },
+        { 6, "kick.wav" }
+    };
+    sounds::AudioEngine engine;
+    SECTION("BMS")
+    {
+        const auto loaded = charts::loadBmsSounds(&engine, paths, root);
+        REQUIRE(loaded.size() == 2);
+        const auto first =
+          std::dynamic_pointer_cast<sounds::NormalSound>(loaded.at(1));
+        const auto second =
+          std::dynamic_pointer_cast<sounds::NormalSound>(loaded.at(2));
+        REQUIRE(first);
+        REQUIRE(second);
+        CHECK(first->getBuffer() != second->getBuffer());
+    }
+    SECTION("BMSON")
+    {
+        const auto slices = std::vector<charts::BmsNotesData::BmsonSliceInfo>{
+            { 10, 1, 0.0, -1.0 }, { 20, 2, 0.0, -1.0 }, { 30, 3, 0.0, -1.0 },
+            { 40, 4, 0.0, -1.0 }, { 50, 5, 0.0, -1.0 }, { 60, 6, 0.0, -1.0 }
+        };
+        const auto loaded =
+          charts::loadBmsonSounds(&engine, paths, slices, {}, root);
+        REQUIRE(loaded.size() == 2);
+        CHECK(loaded.contains(10));
+        CHECK(loaded.contains(20));
+    }
 }

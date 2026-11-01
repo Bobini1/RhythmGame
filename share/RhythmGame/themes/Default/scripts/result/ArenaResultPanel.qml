@@ -20,16 +20,17 @@ Rectangle {
         ? String(panel.session.roomName || qsTr("Arena")) : qsTr("Arena")
 
     signal chatSelected(bool chat)
+    signal expandedChangeRequested(bool expanded)
 
     readonly property string winnerSummary: {
-        if (!panel.result || !panel.result.valid || !panel.result.finalized) {
+        if (!panel.result?.roundId || !panel.result.finalized) {
             return qsTr("Waiting for final standings");
         }
         const names = panel.result.winnerNames || [];
         return competitionText.winnersText(names);
     }
     readonly property string localStanding: {
-        const count = panel.result && panel.result.valid ? Number(panel.result.participantCount || 0) : 0;
+        const count = panel.result?.roundId ? Number(panel.result.participantCount || 0) : 0;
         if (panel.result && panel.result.localDnf) {
             return qsTr("DNF / %1").arg(count);
         }
@@ -138,7 +139,7 @@ Rectangle {
                 visible: !panel.chatOpen
 
                 Accessible.name: text
-                onClicked: panel.expanded = !panel.expanded
+                onClicked: panel.expandedChangeRequested(!panel.expanded)
             }
 
             ArenaPanelTabs {
@@ -208,7 +209,7 @@ Rectangle {
             boundsBehavior: Flickable.StopAtBounds
             clip: true
             keyNavigationEnabled: true
-            model: panel.result && panel.result.valid ? panel.result.standings : null
+            model: panel.result?.roundId ? panel.result.standings : null
             reuseItems: true
             spacing: 5
             visible: !panel.chatOpen
@@ -253,7 +254,7 @@ Rectangle {
                 required property int bad
                 required property int poor
                 required property int emptyPoor
-                required property int gaugeValueMilli
+                required property real gaugeValue
                 required property string clearType
                 required property int lobbyWinsAfter
                 required property string dnfReason

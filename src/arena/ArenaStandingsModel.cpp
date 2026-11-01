@@ -189,8 +189,8 @@ ArenaStandingsModel::data(const QModelIndex& index, int role) const -> QVariant
             return row.hasScore;
         case ExScoreRole:
             return row.exScore;
-        case ProgressPermilleRole:
-            return row.progressPermille;
+        case ProgressRole:
+            return row.progressPermille / 1000.0;
         case MaxComboRole:
             return row.maxCombo;
         case BadPoorCountRole:
@@ -209,8 +209,8 @@ ArenaStandingsModel::data(const QModelIndex& index, int role) const -> QVariant
             return row.emptyPoor;
         case GaugeTypeRole:
             return row.gaugeType;
-        case GaugeValueMilliRole:
-            return row.gaugeValueMilli;
+        case GaugeValueRole:
+            return row.gaugeValueMilli / 1000.0;
         case ClearTypeRole:
             return row.clearType;
         case LobbyWinsAfterRole:
@@ -233,7 +233,7 @@ ArenaStandingsModel::roleNames() const -> QHash<int, QByteArray>
         { RankRole, "rank" },
         { HasScoreRole, "hasScore" },
         { ExScoreRole, "exScore" },
-        { ProgressPermilleRole, "progressPermille" },
+        { ProgressRole, "progress" },
         { MaxComboRole, "maxCombo" },
         { BadPoorCountRole, "badPoorCount" },
         { PerfectRole, "perfect" },
@@ -243,7 +243,7 @@ ArenaStandingsModel::roleNames() const -> QHash<int, QByteArray>
         { PoorRole, "poor" },
         { EmptyPoorRole, "emptyPoor" },
         { GaugeTypeRole, "gaugeType" },
-        { GaugeValueMilliRole, "gaugeValueMilli" },
+        { GaugeValueRole, "gaugeValue" },
         { ClearTypeRole, "clearType" },
         { LobbyWinsAfterRole, "lobbyWinsAfter" },
         { DnfReasonRole, "dnfReason" },

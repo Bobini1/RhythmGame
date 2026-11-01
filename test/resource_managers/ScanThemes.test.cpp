@@ -1,5 +1,7 @@
 #include "resource_managers/ScanThemes.h"
+#include "resource_managers/SerializeConfig.h"
 
+#include "support/CreateQmlPropertyMap.h"
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
 
@@ -13,6 +15,7 @@
 #include <QString>
 
 #include <filesystem>
+#include <memory>
 
 namespace {
 
@@ -50,7 +53,37 @@ makeThemesRoot(QTemporaryDir& tempDir) -> std::filesystem::path
 
 } // namespace
 
-TEST_CASE("Theme scanner canonicalizes translation locale tags",
+TEST_CASE("A chart result theme does not replace the configured course result",
+          "[themes]")
+{
+    QTemporaryDir tempDir;
+    const auto themesRoot = makeThemesRoot(tempDir);
+    writeLr2SkinBytes(themesRoot / "Default" / "Result.qml",
+                      "import QtQuick\n");
+    writeLr2SkinBytes(themesRoot / "Default" / "CourseResult.qml",
+                      "import QtQuick\n");
+    writeLr2SkinBytes(themesRoot / "Default" / "theme.json", R"({
+        "scripts": { "result": "Result.qml", "courseResult": "CourseResult.qml" }
+    })");
+    writeLr2SkinBytes(themesRoot / "ChartResult" / "Result.qml",
+                      "import QtQuick\n");
+    writeLr2SkinBytes(themesRoot / "ChartResult" / "theme.json", R"({
+        "scripts": { "result": "Result.qml" }
+    })");
+    const auto themes = resource_managers::scanThemes(themesRoot);
+    auto config =
+      std::unique_ptr<QQmlPropertyMap>(support::createQmlPropertyMap());
+    resource_managers::fillWithDefaults(*config, themes);
+    const auto configPath = themesRoot / "profile.json";
+    writeLr2SkinBytes(configPath, R"({
+        "result": "ChartResult", "courseResult": "ChartResult"
+    })");
+    resource_managers::readConfig(configPath, *config, themes);
+    CHECK(config->value("result").toString() == "ChartResult");
+    CHECK(config->value("courseResult").toString() == "Default");
+}
+
+TEST_CASE("Theme scanner preserves source languages and canonicalizes locales",
           "[themes][translations]")
 {
     QTemporaryDir tempDir;
@@ -61,7 +94,7 @@ TEST_CASE("Theme scanner canonicalizes translation locale tags",
     writeLr2SkinBytes(themeRoot / "zh_Hant_TW.qm", QByteArray("translation"));
     writeLr2SkinBytes(themeRoot / "theme.json", QByteArray(R"({
         "scripts": { "main": "main.qml" },
-        "translations": { "zh_Hant_TW": "zh_Hant_TW.qm" }
+        "translations": { "en": "", "fr_CA": "", "zh_Hant_TW": "zh_Hant_TW.qm" }
       })"));
 
     const auto themes = resource_managers::scanThemes(themesRoot);
@@ -69,8 +102,39 @@ TEST_CASE("Theme scanner canonicalizes translation locale tags",
     REQUIRE(themes.contains(QStringLiteral("ScriptLocaleTheme")));
     const auto translations =
       themes[QStringLiteral("ScriptLocaleTheme")].getTranslations();
+    REQUIRE(translations.contains(QStringLiteral("en")));
+    CHECK(translations.value(QStringLiteral("en")).isEmpty());
+    CHECK_FALSE(translations.value(QStringLiteral("en")).isValid());
+    REQUIRE(translations.contains(QStringLiteral("fr-CA")));
+    CHECK(translations.value(QStringLiteral("fr-CA")).isEmpty());
     CHECK(translations.contains(QStringLiteral("zh-Hant-TW")));
+    CHECK(translations.value(QStringLiteral("zh-Hant-TW")).toLocalFile() ==
+          support::pathToQString(themeRoot / "zh_Hant_TW.qm"));
     CHECK_FALSE(translations.contains(QStringLiteral("zh_Hant_TW")));
+}
+
+TEST_CASE("Theme discovery isolates invalid settings", "[themes]")
+{
+    QTemporaryDir directory;
+    const auto root = makeThemesRoot(directory);
+    writeLr2SkinBytes(root / "Default" / "theme.json",
+                      R"({"scripts":{"main":"main.qml"}})");
+    writeLr2SkinBytes(
+      root / "Broken" / "theme.json",
+      R"({"scripts":{"main":"main.qml"},"settings":{"main":"settings.json"}})");
+    SECTION("missing settings items")
+    {
+        writeLr2SkinBytes(root / "Broken" / "settings.json", "{}");
+    }
+    SECTION("invalid choice default")
+    {
+        writeLr2SkinBytes(
+          root / "Broken" / "settings.json",
+          R"({"items":[{"id":"choice","name":{"en":"Choice"},"type":"choice","default":"absent","choices":[{"name":{"en":"Present"},"value":"present"}]}]})");
+    }
+    const auto themes = resource_managers::scanThemes(root);
+    REQUIRE(themes.contains("Default"));
+    CHECK(themes.size() == 1);
 }
 
 TEST_CASE("LR2 skin scanner skips unsupported beatoraja keymodes",
@@ -279,4 +343,48 @@ TEST_CASE("LR2 skin scanner keeps custom option and file ids distinct",
           QStringLiteral("sudden_lane_sudden_lane"));
     CHECK(fileItem[QStringLiteral("default")].toString() ==
           QStringLiteral("LR2.png"));
+}
+
+TEST_CASE("LR2 screen discovery preserves roles and CSV paths", "[themes][lr2]")
+{
+    QTemporaryDir tempDir;
+    const auto themesRoot = makeThemesRoot(tempDir);
+    const auto skinRoot = themesRoot / "Legacy";
+    struct Role
+    {
+        int type;
+        QString key;
+    };
+    const Role roles[] = {
+        { 0, "k7" },        { 1, "k5" },
+        { 2, "k14" },       { 3, "k10" },
+        { 5, "select" },    { 6, "decide" },
+        { 7, "result" },    { 12, "k7battle" },
+        { 13, "k5battle" }, { 15, "courseResult" },
+    };
+    for (const auto& role : roles) {
+        writeLr2Skin(skinRoot / support::qStringToPath(role.key + ".lr2skin"),
+                     role.type,
+                     role.key);
+    }
+    const auto themes = resource_managers::scanThemes(themesRoot);
+    for (const auto& role : roles) {
+        INFO(role.key.toStdString());
+        const auto familyName = role.key + " (" + role.key + ".lr2skin)";
+        REQUIRE(themes.contains(familyName));
+        const auto& screens = themes.constFind(familyName).value().getScreens();
+        REQUIRE(screens.contains(role.key));
+        const auto& screen = screens[role.key];
+        CHECK(screen.getScript().isValid());
+        CHECK_FALSE(screen.getScript().isEmpty());
+        CHECK(screen.getCsvPath() ==
+              support::pathToQString(std::filesystem::absolute(
+                skinRoot / support::qStringToPath(role.key + ".lr2skin"))));
+        CHECK(QJsonDocument::fromJson(screen.getSettingsData().toUtf8())["type"]
+                .toInt() == role.type);
+        for (const auto& alias : screens.asKeyValueRange()) {
+            CHECK(alias.second.getScript() == screen.getScript());
+            CHECK(alias.second.getCsvPath() == screen.getCsvPath());
+        }
+    }
 }

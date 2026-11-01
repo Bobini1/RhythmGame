@@ -1,0 +1,73 @@
+# 4. Add a translation {#theme_tutorial_translations}
+
+[Previous](03-profile.md) | [Tutorial](index.md) | [Next: Song selection](05-select.md)
+
+**Goal:** Mark menu text for translation and load a translation file.
+
+Install `docs/examples/theme-tutorial/04-translations/` and choose it for Main
+Menu. It includes Polish translations for the greeting, most buttons and the
+color setting. You can try them without installing translation tools.
+
+[Download 04-translations](examples/theme-tutorial/04-translations.zip) or
+[open the source folder](https://github.com/Bobini1/RhythmGame/tree/master/docs/examples/theme-tutorial/04-translations).
+
+## Mark text in QML
+
+The earlier examples use plain English strings. To make them translatable,
+wrap each string shown to the player in `qsTr()`. The Song select button now
+contains:
+
+\snippet 04-translations/main.qml translated-text
+
+`qsTr()` looks up the translation for the selected language. If none is
+available, it returns the original text.
+
+For the greeting, keep the whole phrase inside `qsTr()` and put `%1` where the
+profile name belongs. `.arg()` replaces `%1` after translation, so the name
+itself isn't translated. A translator can move `%1` to the right place for
+their language.
+
+\snippet 04-translations/main.qml profile-label
+
+## Include the translation files
+
+The manifest declares `en` and `pl` as available languages. An empty English
+path uses the source text. The Polish path points to a compiled `.qm` file.
+
+\include 04-translations/theme.json
+
+The editable `.ts` file contains the source strings and translations.
+
+\include 04-translations/translations/tutorial_pl.ts
+
+Open Settings > General > Language, choose Polish, and return to the menu.
+Song select, Settings and Quit should read "Wybór utworu", "Ustawienia" and "Wyjdź".
+Multiplayer has no translation yet, so it keeps its English label. Choose English
+again to return to the source text. The language preference belongs to the profile,
+so other screens with Polish translations will change too.
+
+Settings labels use translations stored directly in JSON. They don't pass
+through `lupdate` or the QML translation file.
+
+\include 04-translations/main-settings.json
+
+## Edit and compile a translation
+
+To change the translated strings, install Qt's Linguist tools. With their
+directory on your command search path, run the following from inside
+`04-translations`. `lupdate` collects the strings, Linguist lets you edit the
+translations, and `lrelease` builds the file loaded by the game.
+
+```console
+lupdate main.qml -ts translations/tutorial_pl.ts
+linguist translations/tutorial_pl.ts
+lrelease translations/tutorial_pl.ts -qm translations/tutorial_pl.qm
+```
+
+Keep both files in your source folder and include the `.qm` file when sharing
+the theme. Restart the game after replacing it. Add any new QML files to the
+`lupdate` command so their strings are collected too.
+
+The [translation guide](../../../DEV_LANG.md) explains language tags such as
+`fr-CA` and `zh-Hant-TW`. Qt's [source translation guide](https://doc.qt.io/qt-6/i18n-source-translation.html)
+explains contexts and placeholders in more detail.

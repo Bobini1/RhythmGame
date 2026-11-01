@@ -3,14 +3,11 @@ import QtQuick
 import RhythmGameQml
 import QtQuick.Controls
 import QtQml
-import "../common/helpers.js" as Helpers
 import "../common"
 import "./options"
 
 FocusScope {
     id: selectScreen
-
-    readonly property bool arenaNativeSelectPresentation: true
 
     Image {
         id: root
@@ -31,7 +28,6 @@ FocusScope {
             (height - 1080 * contentScale) / 2
         readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
         readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.select || {})[QmlUtils.themeName] || ({})
-        readonly property int replayType: replayTypeIndex(generalVars ? generalVars.replayType : 0)
 
         ThemeFont {
             id: scoreInfoFont
@@ -44,130 +40,25 @@ FocusScope {
             fileName: root.themeVars.songInfoFont
         }
 
-        function getScore(type, requireReplayData) {
-            let scoreList = songList.currentItem?.scores || [];
-            if (requireReplayData) {
-                scoreList = scoreList.filter(score => score.replayData !== null);
-            }
-            if (scoreList.length === 0) {
-                return null;
-            }
-            switch (type) {
-                case 0:
-                    return scoreList[scoreList.length - 1];
-                    break;
-                case 1:
-                    return songList.currentItem.scoreWithBestPoints;
-                    break;
-                case 2:
-                    let clearType = Helpers.getClearType(scoreList);
-                    let score = scoreList.find((score) => {
-                        return score.result.clearType === clearType;
-                    });
-                    if (score) {
-                        return score;
-                    }
-                    break;
-                case 3:
-                    let bestScore = scoreList.reduce((prev, curr) => {
-                        return prev.result.maxCombo > curr.result.maxCombo ? prev : curr;
-                    });
-                    if (bestScore) {
-                        return bestScore;
-                    }
-                    break;
-            }
-            return null;
-        }
-
         function openReplay(type, button) {
             if (arenaSeated) {
                 return false;
             }
-            let score = getScore(type, button === Qt.LeftButton);
+            if (button === Qt.LeftButton) {
+                return songList.controller.openReplay(type);
+            }
+            const score = songList.controller.resultForReplayType(type, false);
             if (!score) {
                 return false;
             }
             if (button === Qt.RightButton) {
-                globalRoot.openResult([score], [Rg.profileList.mainProfile], songList.current);
-                return true;
+                return songList.controller.openResult(songList.current, score);
             }
-            let replay = true;
-            if (button === Qt.MiddleButton) {
-                replay = false;
-            }
-            let path = songList.current instanceof course ? songList.current : songList.current.path;
-            let func = songList.current instanceof course ? globalRoot.openCourse : globalRoot.openChart;
-            func(path, Rg.profileList.mainProfile, false, replay, score, null, false, false, null);
-            return true;
+            return songList.controller.openPlayable(songList.current, false, false, score);
         }
 
         function focusSongList() {
             songList.forceActiveFocus();
-        }
-
-        function selectedReplayType() {
-            if (Keys.digit2Pressed) {
-                return 1;
-            }
-            if (Keys.digit3Pressed) {
-                return 2;
-            }
-            if (Keys.digit4Pressed) {
-                return 3;
-            }
-            return replayType;
-        }
-
-        function cycleReplayType() {
-            setReplayType(replayType + 1);
-            return true;
-        }
-
-        function replayTypeIndex(value) {
-            let numeric = Math.floor(Number(value || 0));
-            if (isNaN(numeric)) {
-                numeric = 0;
-            }
-            return ((numeric % 4) + 4) % 4;
-        }
-
-        function setReplayType(value) {
-            if (generalVars) {
-                generalVars.replayType = replayTypeIndex(value);
-            }
-        }
-
-        function openSelectedAutoplay() {
-            if (arenaSeated) {
-                return true;
-            }
-            return songList.controller.openPlayable(
-                songList.current, true, false, null);
-        }
-
-        function openSelectedReplay(button) {
-            if (arenaSeated) {
-                return true;
-            }
-            let target = songList.current;
-            if (!(target instanceof ChartData || target instanceof course)) {
-                return false;
-            }
-            return openReplay(selectedReplayType(), button || Qt.LeftButton);
-        }
-
-        function reloadCurrentFolderOrTable() {
-            return songList.controller.reloadCurrentFolderOrTable();
-        }
-
-        function openSelectedFolder() {
-            return songList.controller.openSelectedFolder();
-        }
-
-        function openSelectedInternetRanking() {
-            return rankingPosition.rankingLink.length > 0
-                && Qt.openUrlExternally(rankingPosition.rankingLink);
         }
 
         function openSelectedReadme() {
@@ -178,18 +69,13 @@ FocusScope {
             return songList.controller.showAllChartsForCurrentSong();
         }
 
-        function cycleSortMode(delta) {
-            sortButton.cycle(delta === undefined ? 1 : delta);
-            return true;
-        }
-
         function toggleDetailOptions() {
             options.togglePlayOptions();
             return true;
         }
 
         function openKeyConfig() {
-            globalRoot.openSettings(5);
+            globalRoot.openSettings("keys");
             return true;
         }
 
@@ -199,11 +85,11 @@ FocusScope {
                 keymodeButton.cycle(1);
                 return true;
             case 2:
-                return cycleSortMode(1);
+                return songList.controller.cycleSortMode(1);
             case 3:
                 return false;
             case 4:
-                return cycleReplayType();
+                return songList.controller.cycleReplayType();
             case 5:
                 return toggleDetailOptions();
             case 6:
@@ -217,24 +103,30 @@ FocusScope {
             }
         }
 
+        StandardSelectController {
+            id: selection
+
+            inputEnabled: songList.enabled
+            shortcutsEnabled: songList.enabled
+            feedbackEnabled: songList.enabled
+            minimumEntryCount: songList.pathItemCount
+            preview.enabled: songList.enabled
+            preview.moving: songList.movingInAnyWay || vbar.pressed
+
+            onOpenedFolder: songList.openedFolder()
+            onFocusRequested: index => {
+                songList.positionViewAtIndex(Math.max(0, index), PathView.Center);
+                songList.resetNavigation();
+            }
+            onMoveRequested: (steps, repeated, analog) => {
+                songList.moveSelection(steps, repeated, analog);
+            }
+        }
+
         fillMode: Image.PreserveAspectCrop
         height: parent.height
         source: root.imagesUrl + "bg.png"
         width: parent.width
-
-        onEnabledChanged: {
-            if (enabled) {
-                previewDelayTimer.restart();
-                songList.controller.refresh();
-            } else {
-                previewDelayTimer.stop();
-                playMusic.stop();
-                chartMusic.stop();
-                chartMusic.source = "";
-                bgm.stop();
-                playMusic.waitingForStop = false;
-            }
-        }
 
         Item {
             anchors.centerIn: parent
@@ -276,26 +168,15 @@ FocusScope {
                 height: 480
                 width: 640
             }
-            Loader {
-                id: arenaPanelLoader
-
-                objectName: "arenaNativeSelectPanelLoader"
-                active: root.arenaSeated
-                anchors.fill: parent
-                enabled: !options.visible
+            StandardArenaSelectOverlay {
                 parent: root
-                sourceComponent: ArenaSelectOverlay {
-                    defaultPixelRectHint: Qt.rect(root.contentLeft + 728 * root.contentScale,
-                                                  root.contentTop + 120 * root.contentScale,
-                                                  520 * root.contentScale,
-                                                  480 * root.contentScale)
-                    navigationFocusTarget: songList
-                    presentationActive: root.enabled && root.visible
-                    readyShortcutDescription: qsTr("Press Start twice to toggle ready.")
-                    session: Rg.arenaSession
-                    themeVars: root.themeVars
-                    viewport: root
-                }
+                defaultPixelRectHint: Qt.rect(root.contentLeft + 728 * root.contentScale,
+                                              root.contentTop + 120 * root.contentScale,
+                                              520 * root.contentScale,
+                                              480 * root.contentScale)
+                navigationFocusTarget: songList
+                themeVars: root.themeVars
+
                 z: options.visible ? 0 : 3
             }
             Banner {
@@ -327,6 +208,7 @@ FocusScope {
                 spacing: 5
                 current: songList.current
                 currentItem: songList.currentItem
+                selection: songList.controller
             }
             Selector {
                 anchors.right: parent.right
@@ -359,7 +241,6 @@ FocusScope {
                 orientation: Qt.Vertical
                 onPositionChanged: {
                     if (pressed) {
-                        previewDelayTimer.restart();
                         songList.offset = songList.count * (1 - vbar.position);
                         songList.resetNavigation();
                     }
@@ -390,6 +271,7 @@ FocusScope {
             List {
                 id: songList
 
+                controller: selection
                 anchors.right: parent.right
                 anchors.rightMargin: 43
                 anchors.top: parent.top
@@ -420,82 +302,6 @@ FocusScope {
                     bpmConnectorOpacity: Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName].densityGraphBpmConnectorOpacity
                 }
             }
-            Shortcut {
-                sequence: "Esc"
-                enabled: root.enabled
-
-                onActivated: {
-                    if (root.arenaSeated) {
-                        Rg.arenaSession.leaveRoom();
-                        return;
-                    }
-                    globalRoot.returnToPreviousScreen();
-                }
-            }
-            AudioPlayer {
-                id: playMusic
-
-                readonly property string requestedPreviewSource: songList.current instanceof ChartData
-                    ? (songList.previewFiles[songList.current.chartDirectory] || "")
-                    : ""
-                readonly property string requestedChartSource: songList.current instanceof ChartData
-                    ? (songList.current.path || "")
-                    : ""
-                readonly property bool requestedChartAudio: requestedPreviewSource === ""
-                    && requestedChartSource !== ""
-                readonly property string requestedSource: requestedChartAudio
-                    ? requestedChartSource
-                    : requestedPreviewSource
-                property string queuedSource: ""
-                property bool queuedChartAudio: false
-                property bool waitingForStop: false
-                fadeInMillis: 1000
-                looping: true
-                source: queuedChartAudio ? "" : queuedSource
-
-                onRequestedSourceChanged: {
-                    previewDelayTimer.stop();
-                    playMusic.stop();
-                    chartMusic.stop();
-                    chartMusic.source = "";
-                    queuedSource = "";
-                    queuedChartAudio = false;
-                    waitingForStop = requestedSource !== "";
-                    if (waitingForStop && root.enabled) {
-                        previewDelayTimer.restart();
-                    }
-                }
-            }
-            ChartAudioPlayer {
-                id: chartMusic
-
-                fadeInMillis: 1000
-                looping: true
-            }
-            AudioPlayer {
-                id: bgm
-                looping: true
-                source: Rg.profileList.mainProfile.vars.generalVars.bgmPath + "select";
-                fadeInMillis: 1000
-                property bool canPlay: (!playMusic.playing || !playMusic.loaded)
-                    && (!chartMusic.playing || !chartMusic.loaded)
-                    && root.enabled
-                onCanPlayChanged: {
-                    if (!canPlay) {
-                        bgm.stop();
-                    }
-                }
-            }
-            Timer {
-                id: bgmDelayTimer
-
-                interval: 500
-                running: bgm.canPlay
-
-                onTriggered: {
-                    bgm.play();
-                }
-            }
             Difficulty {
                 anchors.left: parent.left
                 anchors.leftMargin: 80
@@ -524,96 +330,8 @@ FocusScope {
                 width: 276
                 anchors.top: grade.bottom
                 anchors.topMargin: -146
-                loading: ranking.loading
-                rankingTotalEntries: ranking.playerCount
-                visible: ranking.visible
-                rankingLink: {
-                    if (!rankingTotalEntries || (ranking.provider === OnlineRankingModel.LR2IR && rankingTotalEntries <= 1)) {
-                        return "";
-                    }
-                    switch (ranking.provider) {
-                        case OnlineRankingModel.RhythmGame:
-                            return Rg.profileList.mainProfile.vars.generalVars.websiteBaseUrl + "/charts/" + songList.current.md5;
-                        case OnlineRankingModel.LR2IR:
-                            return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + songList.current.md5;
-                        case OnlineRankingModel.Tachi:
-                            if (!ranking.chartId || !ranking.tachiGameId) {
-                                return "";
-                            }
-                            return "https://boku.tachi.ac/games/" + ranking.tachiGameId +
-                                "/charts/" + ranking.chartId;
-                    }
-                }
-                rankingPosition: {
-                    let entries = ranking.entries;
-                    switch (ranking.provider) {
-                        case OnlineRankingModel.RhythmGame:
-                            for (let i = 0; i < entries.length; i++) {
-                                if (entries[i].userId === Rg.profileList.mainProfile.onlineUserData?.userId) {
-                                    return i + 1;
-                                }
-                            }
-                            break;
-                        case OnlineRankingModel.LR2IR:
-                            for (let i = 0; i < entries.length; i++) {
-                                if (!(entries[i] instanceof rankingEntry)) {
-                                    return i + 1;
-                                }
-                            }
-                            break;
-                        case OnlineRankingModel.Tachi:
-                            for (let i = 0; i < entries.length; i++) {
-                                if (entries[i].userId === Rg.profileList.mainProfile.tachiData?.userId) {
-                                    return i + 1;
-                                }
-                            }
-                            break;
-                    }
-                    return 0;
-                }
-            }
-            Connections {
-                function onMovingInAnyWayChanged() {
-                    if (playMusic.waitingForStop) {
-                        previewDelayTimer.restart();
-                    }
-                }
-
-                function onOpenedFolder() {
-                    previewDelayTimer.restart()
-                }
-
-                target: songList
-            }
-            Timer {
-                id: previewDelayTimer
-
-                interval: 300
-
-                onTriggered: {
-                    let requested = playMusic.requestedSource;
-                    let requestedChartAudio = playMusic.requestedChartAudio;
-                    playMusic.waitingForStop = false;
-                    playMusic.queuedSource = "";
-                    playMusic.queuedChartAudio = requestedChartAudio;
-                    playMusic.queuedSource = requested;
-                    if (requested !== "") {
-                        Qt.callLater(() => {
-                            if (root.enabled
-                                    && playMusic.queuedSource === requested
-                                    && playMusic.requestedSource === requested
-                                    && playMusic.queuedChartAudio === requestedChartAudio
-                                    && playMusic.requestedChartAudio === requestedChartAudio) {
-                                if (requestedChartAudio) {
-                                    chartMusic.source = requested;
-                                    chartMusic.play();
-                                } else {
-                                    playMusic.play();
-                                }
-                            }
-                        });
-                    }
-                }
+                ranking: songList.controller.ranking
+                visible: songList.controller.ranking.available
             }
             Text {
                 anchors.bottom: scoreInfo.top
@@ -636,7 +354,7 @@ FocusScope {
                 anchors.horizontalCenterOffset: scoreInfo.lineWidth / 2 + scoreInfo.spacing / 2
                 anchors.bottomMargin: 18
                 text: qsTr("Score Details")
-                    + (scoreInfo.scoreWithBestPoints?.imported
+                    + (scoreInfo.scoreWithBestPoints?.imported && scoreInfo.scoreWithBestPoints?.sourceName
                        ? " · " + scoreInfo.scoreWithBestPoints.sourceName
                        : "")
                 width: scoreInfo.lineWidth - 48
@@ -728,7 +446,7 @@ FocusScope {
                     acceptedButtons: Qt.NoButton
 
                     onWheel: wheel => {
-                        songList.handleWheel(wheel);
+                        wheel.accepted = selection.handleWheel(wheel);
                     }
                 }
             }
@@ -753,14 +471,11 @@ FocusScope {
             }
             Ranking {
                 id: ranking
-                chartData: songList.current
+                rankingState: songList.controller.ranking
                 anchors.left: search.right
                 anchors.leftMargin: -9
                 anchors.bottom: search.top
                 anchors.bottomMargin: -11
-                provider: rankingPosition.provider
-                bestPointsScore: songList.currentItem?.scoreWithBestPoints || null
-                bestClearTypeScore: songList.currentItem?.scoreWithBestClear || null
             }
             KeymodeButton {
                 id: keymodeButton
@@ -769,7 +484,7 @@ FocusScope {
                 anchors.leftMargin: 900
                 anchors.top: parent.top
                 anchors.topMargin: 20
-                generalVars: Rg.profileList.mainProfile.vars.generalVars
+                controller: selection
             }
             SortButton {
                 id: sortButton
@@ -777,7 +492,7 @@ FocusScope {
                 anchors.left: keymodeButton.left
                 anchors.top: keymodeButton.bottom
                 anchors.topMargin: 20
-                generalVars: Rg.profileList.mainProfile.vars.generalVars
+                selection: songList.controller
             }
             MouseArea {
                 id: focusList

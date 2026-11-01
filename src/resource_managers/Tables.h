@@ -8,7 +8,9 @@
 #include <QAbstractListModel>
 #include <QDir>
 #include <QNetworkReply>
+#include <QPointer>
 #include <qthreadpool.h>
+#include <functional>
 namespace db {
 class SqliteCppDb;
 } // namespace db
@@ -27,7 +29,7 @@ struct Entry
     Q_PROPERTY(QString urlDiff MEMBER urlDiff CONSTANT)
     Q_PROPERTY(QString level MEMBER level CONSTANT)
     Q_PROPERTY(QString comment MEMBER comment CONSTANT)
-    public:
+  public:
     QString title;
     QString artist;
     QString subtitle;
@@ -38,6 +40,8 @@ struct Entry
     QString urlDiff;
     QString level;
     QString comment;
+    QString path;
+    bool exactPath = false;
 };
 
 struct Level
@@ -50,7 +54,8 @@ struct Level
     QString name;
     QList<Entry> entries;
     // for searching
-    QHash<QString, Entry> md5s;
+    QHash<QString, Entry> entriesById;
+    void addEntry(Entry entry);
     auto getEntries() const -> QVariantList;
     Q_INVOKABLE QVariantList loadCharts() const;
 };
@@ -74,10 +79,12 @@ struct Course
 {
     Q_GADGET
     Q_PROPERTY(QString name MEMBER name CONSTANT)
-    Q_PROPERTY(QStringList md5s MEMBER md5s CONSTANT)
+    /** Stage identifiers, each an MD5 or sha256/<hash>, in course order. */
+    Q_PROPERTY(QStringList chartIds READ getChartIds CONSTANT)
     Q_PROPERTY(QVariantList trophies READ getTrophies CONSTANT)
     Q_PROPERTY(QStringList constraints MEMBER constraints CONSTANT)
     Q_PROPERTY(QString identifier READ getIdentifier STORED false CONSTANT)
+    Q_PROPERTY(QString unavailableReason MEMBER unavailableReason CONSTANT)
   public:
     db::SqliteCppDb* db;
     QString name;
@@ -85,8 +92,13 @@ struct Course
     QStringList md5s;
     QList<Trophy> trophies;
     QStringList constraints;
+    QStringList sha256s;
+    QStringList paths;
+    QString unavailableReason;
     auto getTrophies() const -> QVariantList;
+    auto getChartIds() const -> QStringList;
     auto getIdentifier() const -> QString;
+    auto chartPath(qsizetype index) const -> QString;
     Q_INVOKABLE QVariantList loadCharts() const;
 };
 
@@ -127,6 +139,7 @@ struct Table
     Q_PROPERTY(QUrl url MEMBER url)
     Q_PROPERTY(Status status MEMBER status)
     Q_PROPERTY(QString symbol MEMBER symbol)
+    Q_PROPERTY(QString identifier READ getIdentifier CONSTANT)
 
   public:
     QString name;
@@ -137,6 +150,8 @@ struct Table
     QList<QList<Course>> courses;
     QUrl url;
     Status status{ Loading };
+    bool managedExternally = false;
+    auto getIdentifier() const -> QString;
     auto getLevels() const -> QVariantList;
     auto getCourses() const -> QVariantList;
 };
@@ -146,7 +161,7 @@ struct Table
  * @details The Tables class handles downloading table data from specified
  * URLs, storing it in a local cache file, and parsing the data for use in QML.
  * It provides methods to add, remove, reload, and reorder tables, as well as
- * search for specific entries by their MD5 hash.
+ * search for entries by MD5 or sha256/<hash> identifier.
  */
 class Tables final : public QAbstractListModel
 {
@@ -155,19 +170,29 @@ class Tables final : public QAbstractListModel
     QDir tableLocation;
     db::SqliteCppDb* db;
     QList<Table> tables;
+    QList<Table> externalTables;
     QThreadPool fileOperationThreadPool;
+    QHash<QUrl, QPointer<QNetworkReply>> requests;
 
+    void request(const QUrl& tableUrl,
+                 const QUrl& requestUrl,
+                 std::function<void(QNetworkReply*)> finished);
+    void cancelRequest(const QUrl& url);
     void handleInitialReply(QNetworkReply* reply, const QUrl& url);
     void setErrorFlag(const QUrl& url);
-    void handleHeader(const QUrl& url, const QJsonObject& header);
-    void handleData(const QUrl& url, const QJsonArray& data);
-    void handleHeaderReply(const QUrl& url, const QByteArray& reply);
+    void readHeader(Table& table, const QJsonObject& header) const;
+    void readData(Table& table, const QJsonArray& data) const;
+    void handleHeaderReply(const QUrl& url,
+                           const QUrl& headerUrl,
+                           const QByteArray& reply);
+    auto findTable(const Table& table) const -> const Table*;
 
   public:
     explicit Tables(QNetworkAccessManager* networkManager,
                     const QDir& tableLocation,
                     db::SqliteCppDb* db,
                     QObject* parent = nullptr);
+    ~Tables() override;
     auto rowCount(const QModelIndex& parent) const -> int override;
     auto data(const QModelIndex& index, int role) const -> QVariant override;
     /**
@@ -188,6 +213,12 @@ class Tables final : public QAbstractListModel
      * @param index The index of the table to reload.
      */
     Q_INVOKABLE void reload(int index);
+    /** Reloads a collection through the provider that owns it. */
+    Q_INVOKABLE bool reloadTable(const Table& table);
+    /** Resolves a retained table or level against the current catalog. */
+    Q_INVOKABLE QVariant resolveTable(const Table& table) const;
+    Q_INVOKABLE QVariant resolveLevel(const Table& table,
+                                      const Level& level) const;
     /**
      * @brief Reorders a table from one index to another.
      * @param from The current index of the table.
@@ -197,18 +228,24 @@ class Tables final : public QAbstractListModel
     /**
      * @brief Retrieves a list of all tables as QVariantList.
      * @return A QVariantList containing all tables.
-     * @note You're encouraged to use the model API that this class provides
-     * instead of this method, as it is more efficient. But this method is
-     * still provided for convenience.
+     * @note The editable model excludes externally managed collections.
      */
     Q_INVOKABLE QVariantList getList();
+    void setExternalTables(QList<Table> tables);
     /**
-     * @brief Searches for entries with the specified MD5 hash across all tables.
-     * @param md5 The MD5 hash to search for.
+     * @brief Searches for a chart across downloaded and externally managed
+     * tables.
+     * @param identifier A plain MD5 hash or a `sha256/<hash>` identifier, as
+     * returned for missing stages by Course::loadCharts(). Matching is
+     * case-insensitive.
      * @return A list of TableInfo objects containing information about the
      * matching entries.
      */
-    Q_INVOKABLE QList<TableInfo> search(const QString& md5);
+    Q_INVOKABLE QList<TableInfo> search(const QString& identifier);
+
+  signals:
+    void contentsChanged();
+    void externalReloadRequested();
 };
 } // namespace resource_managers
 

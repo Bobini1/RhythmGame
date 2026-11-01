@@ -8,9 +8,13 @@
 #include <optional>
 #include <vector>
 #include <type_traits>
-#include <mutex>
+#include <chrono>
+#include <cstdint>
+#include <stop_token>
 #include "support/get.h"
 #include "support/TupleSize.h"
+
+struct sqlite3_mutex;
 
 /**
  * @brief Namespace for database related classes and functions.
@@ -19,58 +23,131 @@ namespace db {
 
 /**
  * @brief Database wrapper for SQLiteCpp.
- * @note This class is thread safe.
+ * @note Independent statements may share a connection across threads. Use a
+ * transaction to isolate a sequence of operations on that connection.
  */
 class SqliteCppDb
 {
     SQLite::Database db;
+    uint64_t nextSavepoint = 0;
+    unsigned transactionDepth = 0;
+
+    void checkTransaction() const;
+
+    class ConnectionLock
+    {
+        sqlite3_mutex* mutex;
+
+      public:
+        explicit ConnectionLock(const SQLite::Database* database);
+        ~ConnectionLock();
+        ConnectionLock(const ConnectionLock&) = delete;
+        auto operator=(const ConnectionLock&) -> ConnectionLock& = delete;
+        void unlock();
+    };
+
+    class StatementExecution
+    {
+        ConnectionLock lock;
+        SQLite::Statement* statement;
+        const SQLite::Database* database;
+        std::stop_token stopToken;
+        bool finished = false;
+
+      public:
+        StatementExecution(SQLite::Statement* statement,
+                           const SqliteCppDb* database,
+                           std::stop_token stopToken);
+        ~StatementExecution();
+        void checkCancelled() const;
+        void finish();
+    };
 
   public:
+    enum class Durability
+    {
+        Normal,
+        Full
+    };
+
+    /**
+     * @brief Isolates a transaction from other users of this connection.
+     * @details Nested transactions use savepoints. Uncommitted changes are
+     * rolled back on destruction. Keep transactions on their creating thread
+     * and do not wait for other threads or dispatch callbacks while holding one.
+     * The database must outlive the transaction. Finish nested scopes inside out.
+     */
+    class Transaction
+    {
+        ConnectionLock lock;
+        SqliteCppDb* owner;
+        SQLite::Database* database;
+        std::string commitQuery;
+        std::string rollbackQuery;
+        bool nested;
+        unsigned depth;
+        bool committed = false;
+
+      public:
+        explicit Transaction(SqliteCppDb* database);
+        ~Transaction();
+        void commit();
+    };
+
+    [[nodiscard]] auto transaction() -> Transaction;
+
     /**
      * @brief Wrapper for SQLiteCpp::Statement.
-     * @note This class is thread safe.
+     * @note A statement must not be used by multiple threads simultaneously.
+     * @details Execution accepts an optional stop token. Cancellation is checked
+     * after acquiring the connection and during SQL execution and row copying.
+     * It throws SQLite::Exception with SQLITE_INTERRUPT without interrupting
+     * other statements. Interrupted writes may roll back their transaction.
      */
     class Statement
     {
         SQLite::Statement statement;
-        SQLite::Database* db;
+        SqliteCppDb* db;
 
       public:
-        Statement(SQLite::Statement statement,
-                  SQLite::Database* db);
+        Statement(SQLite::Statement statement, SqliteCppDb* db);
         template<typename... T>
         auto bind(int index, T&&... values) -> void
         {
+            const ConnectionLock lock(&db->db);
             statement.bind(index, std::forward<T>(values)...);
         }
         template<typename... T>
         auto bind(const std::string& name, T&&... values) -> void
         {
+            const ConnectionLock lock(&db->db);
             statement.bind(name, std::forward<T>(values)...);
         }
         void reset();
 
-        auto execute() -> int64_t;
+        void execute(std::stop_token stopToken = {});
 
         /**
          * @brief Executes a query that returns a single row.
          * @return An optional holding the result of the query. It will be empty
-         * if the query didn't return anything. If the query returns fewer
-         * columns than specified in template parameters, they will be default
-         * initialized.
+         * if the query didn't return anything. The cursor is reset after copying
+         * the row, including on failure. Bindings are retained. Too few columns
+         * for the requested result type cause an exception.
          * @tparam Ret The type that the result will be stored in can be a tuple
          * or an aggregate. Must be default constructible.
          */
         template<std::default_initializable Ret>
-        [[nodiscard]] auto executeAndGet() -> std::optional<Ret>
+        [[nodiscard]] auto executeAndGet(std::stop_token stopToken = {})
+          -> std::optional<Ret>
         {
-            if (!statement.executeStep()) {
-                return {};
+            StatementExecution execution(&statement, db, stopToken);
+            std::optional<Ret> result;
+            if (statement.executeStep()) {
+                result.emplace();
+                writeRow(statement, *result);
             }
-            Ret result{};
-            writeRow(statement, result);
-
-            return { std::move(result) };
+            execution.finish();
+            return result;
         }
         /**
          * @brief Executes a query that returns any number of rows.
@@ -81,15 +158,19 @@ class SqliteCppDb
          * or an aggregate. Must be default constructible.
          */
         template<std::default_initializable Ret>
-        [[nodiscard]] auto executeAndGetAll() -> std::vector<Ret>
+        [[nodiscard]] auto executeAndGetAll(std::stop_token stopToken = {})
+          -> std::vector<Ret>
         {
+            StatementExecution execution(&statement, db, stopToken);
             std::vector<Ret> result;
 
             while (statement.executeStep()) {
+                execution.checkCancelled();
                 result.emplace_back();
                 writeRow(statement, result.back());
             }
 
+            execution.finish();
             return result;
         }
 
@@ -132,15 +213,24 @@ class SqliteCppDb
      * @brief Constructs a database wrapper.
      * @param dbPath Path to the database file.
      * The database file will be created if it does not exist.
+     * @param busyTimeout How long to wait for locks held by other connections.
+     * Shared-connection transactions are serialized independently of this timeout.
+     * @param durability Full synchronizes each WAL commit for persistent user data.
      */
-    explicit SqliteCppDb(const std::filesystem::path& dbPath);
+    explicit SqliteCppDb(
+      const std::filesystem::path& dbPath,
+      std::chrono::milliseconds busyTimeout = std::chrono::milliseconds{ 0 },
+      Durability durability = Durability::Normal);
+    /** Opens an existing database for reads, without write-side maintenance. */
+    static auto openReadOnly(const std::filesystem::path& dbPath,
+                             std::chrono::milliseconds busyTimeout =
+                               std::chrono::milliseconds{ 0 }) -> SqliteCppDb;
     /**
      * @brief Executes a query.
      * @note Good for single-use queries. Use Statement otherwise.
      * @param query Query to execute.
-     * @return The last inserted row id.
      */
-    auto execute(const std::string& query) -> int64_t;
+    void execute(const std::string& query);
     auto createStatement(const std::string& query) -> Statement;
     /**
      * @brief Queries the database to inspect whether the table with the
@@ -149,6 +239,12 @@ class SqliteCppDb
      * @return True if the table exists, false otherwise.
      */
     [[nodiscard]] auto hasTable(const std::string& table) const -> bool;
+
+  private:
+    SqliteCppDb(const std::filesystem::path& dbPath,
+                std::chrono::milliseconds busyTimeout,
+                Durability durability,
+                bool readOnly);
 };
 } // namespace db
 

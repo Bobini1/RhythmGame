@@ -189,9 +189,9 @@ struct Channel
 
 struct Measure
 {
-    static constexpr auto rule = peek(dsl::hash_sign >> dsl::digit<>) >>
-                                 (dsl::hash_sign +
-                                  capture(token(dsl::times<3>(dsl::digit<>))));
+    static constexpr auto rule =
+      peek(dsl::hash_sign >> dsl::digit<>) >>
+      (dsl::hash_sign + capture(token(dsl::times<3>(dsl::digit<>))));
     static constexpr auto value = lexy::callback<int>([](auto&& str) {
         constexpr auto base = 10;
         auto result = 0;
@@ -202,9 +202,9 @@ struct Measure
 
 struct MeasureBasedTag
 {
-    static constexpr auto rule = dsl::p<Measure> >>
-                                 (dsl::p<Channel> + dsl::colon +
-                                  dsl::p<IdentifierChain>);
+    static constexpr auto rule =
+      dsl::p<Measure> >>
+      (dsl::p<Channel> + dsl::colon + dsl::p<IdentifierChain>);
     static constexpr auto value =
       lexy::construct<std::tuple<int64_t, int, std::vector<uint16_t>>>;
 };
@@ -251,26 +251,11 @@ struct MeasureBasedTag
             t = std::move(rhs);                                                \
             return *this;                                                      \
         }                                                                      \
-        operator const T&() const                                              \
-        {                                                                      \
-            return t;                                                          \
-        }                                                                      \
-        operator T&() &                                                        \
-        {                                                                      \
-            return t;                                                          \
-        }                                                                      \
-        operator T&&() &&                                                      \
-        {                                                                      \
-            return std::move(t);                                               \
-        }                                                                      \
-        bool operator==(const D& rhs) const                                    \
-        {                                                                      \
-            return t == rhs.t;                                                 \
-        }                                                                      \
-        bool operator<(const D& rhs) const                                     \
-        {                                                                      \
-            return t < rhs.t;                                                  \
-        }                                                                      \
+        operator const T&() const { return t; }                                \
+        operator T&() & { return t; }                                          \
+        operator T&&() && { return std::move(t); }                             \
+        bool operator==(const D& rhs) const { return t == rhs.t; }             \
+        bool operator<(const D& rhs) const { return t < rhs.t; }               \
     };
 
 RG_STRONG_TYPEDEF(std::string, Title)

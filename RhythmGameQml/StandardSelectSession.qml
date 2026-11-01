@@ -5,44 +5,57 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectSession
     \inqmlmodule RhythmGameQml
-    \brief Owns the nonvisual lifetime of a selection session.
+    \brief Loads folder contents and stores browsing history.
 
-    The component provides raw folder loading, history storage, preview data,
-    and pending score-query cancellation shared by standard and legacy skins.
+    StandardSelectState already uses this component. Use it directly only for
+    custom browsing. It stores folder contents, history and preview paths;
+    your code decides when to load them, sort them and choose a focused row.
 
-    This is a low-level storage and acquisition component. The \c resolve...
-    functions return data without changing \l folderContents or
-    \l historyStack. Call \l commitFolderContents explicitly and update history
-    as one transaction. Replies passed to \l trackScoreDbReply are cancelled by
-    \l cancelScoreDbReplies and when the reply group is destroyed.
+    The \c resolve... methods return data without changing \l folderContents or
+    \l historyStack. Call \l commitFolderContents and update the history together
+    when the navigation is ready to take effect.
 
-    \l tableCoursesProvider, when set, is called as
-    \c tableCoursesProvider(tableItem) and must return the table's course list.
+    To supply custom table courses, set \l tableCoursesProvider to a function that accepts a
+    \c tableItem and returns its course list.
 */
 Item {
     id: root
 
     /*! Raw contents of the current folder, table, level, or search. */
     property var folderContents: []
-    /*! Navigation history for this selection session. */
+    /*!
+        History entries in navigation order. The root folder is an empty string.
+        StandardSelectState also uses table and level values, ChartData for a
+        song's chart directory, and objects with a searchQuery field for searches.
+    */
     property var historyStack: []
-    /*! Score data loaded for the current contents. */
-    property var scores: ({})
     /*! Preview-file data loaded for the current contents. */
     property var previewFiles: ({})
-    /*! Optional \c tableCoursesProvider(tableItem) course-list provider. */
+    /*! Called as \c tableCoursesProvider(tableItem) to return a custom list of courses. */
     property var tableCoursesProvider: null
-
-    PendingReplyGroup {
-        id: scoreDbReplies
-    }
 
     /*! Resolves a history \a item to the folder it represents. */
     function folderForHistoryItem(item) {
-        return item instanceof ChartData ? item.chartDirectory : item;
+        if (item instanceof ChartData) {
+            return item.chartDirectory;
+        }
+        if (item instanceof table) {
+            return Rg.tables.resolveTable(item) || null;
+        }
+        if (item instanceof level) {
+            const parentTable = root.historyStack.slice().reverse().find(parent => parent instanceof table);
+            if (parentTable) {
+                return Rg.tables.resolveLevel(parentTable, item) || null;
+            }
+        }
+        return item;
     }
 
-    /*! Returns raw contents for folder-like \a item. */
+    /*!
+        Returns raw entries for folder, table or level \a item. An empty string
+        opens the root. Returns an empty list for an empty folder, or null for
+        an unsupported item. Does not change history or \l folderContents.
+    */
     function resolveFolderContents(item) {
         item = folderForHistoryItem(item);
         let folder;
@@ -84,7 +97,11 @@ Item {
         return Rg.songFolderFactory.openChartDirectory(directory);
     }
 
-    /*! Replaces \l folderContents with a copy of \a contents. */
+    /*!
+        Replaces \l folderContents with a copy of \a contents and returns true.
+        Null or undefined returns false without changing the current contents.
+        Update \l historyStack separately when navigation succeeds.
+    */
     function commitFolderContents(contents) {
         if (contents === null || contents === undefined) {
             return false;
@@ -93,13 +110,4 @@ Item {
         return true;
     }
 
-    /*! Retains \a reply until it finishes or the session cancels it. */
-    function trackScoreDbReply(reply) {
-        return scoreDbReplies.track(reply);
-    }
-
-    /*! Cancels and releases all pending score-database replies. */
-    function cancelScoreDbReplies() {
-        scoreDbReplies.cancelAll();
-    }
 }

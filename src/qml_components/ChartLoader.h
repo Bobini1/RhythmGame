@@ -47,10 +47,9 @@ class ChartLoader : public QObject
         const QHash<QString, double>& initialValues)>;
     using HitValueFactory = std::function<double(std::chrono::nanoseconds,
                                                  gameplay_logic::Judgement)>;
-    using GetChartPathFromMd5 =
-      std::function<std::optional<std::filesystem::path>(
-        const QString& hash,
-        const std::filesystem::path& hint)>;
+    using FindChartPath = std::function<std::optional<std::filesystem::path>(
+      const QString& hash,
+      const std::filesystem::path& hint)>;
 
   private:
     resource_managers::ChartDataFactory* chartDataFactory;
@@ -58,7 +57,7 @@ class ChartLoader : public QObject
     HitValueFactory hitValueFactory;
     GaugeFactory gaugeFactory;
     GaugeFactoryCourse gaugeFactoryCourse;
-    GetChartPathFromMd5 getChartPathFromMd5;
+    FindChartPath findChartPath;
     resource_managers::ChartFactory* chartFactory;
     ProfileList* profileList;
     input::InputTranslator* inputTranslator;
@@ -102,7 +101,7 @@ class ChartLoader : public QObject
                 HitValueFactory hitValueFactory,
                 GaugeFactory gaugeFactory,
                 GaugeFactoryCourse gaugeFactoryCourse,
-                GetChartPathFromMd5 getChartPathFromSha256,
+                FindChartPath findChartPath,
                 resource_managers::ChartFactory* chartFactory,
                 db::SqliteCppDb* db,
                 QObject* parent = nullptr);
@@ -192,23 +191,27 @@ class ChartLoader : public QObject
 
     /**
      *
-     * @param filename The path to the chart file, optional if md5 is given.
-     * @param md5 The md5 hash of the chart file, optional if filename is given.
+     * @param filename The path to the chart file, optional if identifier is
+     * given.
+     * @param identifier An MD5 hash or sha256/<hash>, optional if filename is
+     * given.
      * @param randomSequence The #RANDOM sequence to use for the chart,
      * optional.
      * @return The chart data, loaded from the BMS file, or nullptr on failure.
      */
     Q_INVOKABLE gameplay_logic::ChartData* loadChartData(
       const QString& filename,
-      const QString& md5 = "",
+      const QString& identifier = "",
       QList<int64_t> randomSequence = {}) const;
     /**
      * @brief Loads chart datas for multiple charts from the database.
-     * @param md5s The list of md5 hashes of the charts to load.
-     * @return A map from md5 hash to chart data. If a hash was not in
+     * @param identifiers MD5 hashes or sha256/<hash> identifiers.
+     * @return A map from identifier to chart data. Hashes are uppercase and the
+     * SHA256 prefix is lowercase. If an identifier was not in
      * the database, it will not be present in the map.
      */
-    Q_INVOKABLE QVariantMap loadChartDataFromDb(QList<QString> md5s) const;
+    Q_INVOKABLE QVariantMap
+    loadChartDataFromDb(QList<QString> identifiers) const;
 };
 
 } // namespace qml_components

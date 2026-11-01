@@ -1,0 +1,22 @@
+diff --git a/Cargo.lock b/Cargo.lock
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -4281,8 +4281,6 @@ dependencies = [
+ [[package]]
+ name = "pkg-config"
+ version = "0.3.33"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "19f132c84eca552bf34cab8ec81f1c1dcc229b811638f9d283dceabe58c5569e"
+ 
+ [[package]]
+ name = "plist"
+diff --git a/Cargo.toml b/Cargo.toml
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -181,3 +181,6 @@ bytes = "1.11.1"
+ nix = "0.31"
+ tower = "0.5"
+ chrono = "0.4.45"
++
++[patch.crates-io]
++pkg-config = { path = "vcpkg/pkg-config" }

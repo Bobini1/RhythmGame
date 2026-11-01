@@ -106,10 +106,19 @@ ChartRunner::start()
     if (status == Running || status == Finished) {
         return;
     }
-    if (!startGate.requestStart(status == Ready)) {
-        return;
+    const auto wasPending = startPending();
+    if (startGate.requestStart(status == Ready)) {
+        startNow();
     }
-    startNow();
+    if (wasPending != startPending()) {
+        emit startPendingChanged();
+    }
+}
+
+auto
+ChartRunner::startPending() const -> bool
+{
+    return startGate.hasPendingStart();
 }
 
 void
@@ -125,6 +134,7 @@ ChartRunner::releaseStart()
 {
     if (startGate.release(status == Ready)) {
         startNow();
+        emit startPendingChanged();
     }
 }
 
@@ -308,17 +318,25 @@ ChartRunner::setup()
         status != Loading) {
         return;
     }
+    if (bgaFuture.isCanceled()) {
+        return;
+    }
     bga = bgaFuture.takeResult().release();
+    if (!bga) {
+        return;
+    }
     bga->setParent(this);
     emit bgaLoaded();
     setStatus(Ready);
     if (startGate.onReady()) {
         startNow();
+        emit startPendingChanged();
     }
 }
 auto
 ChartRunner::finish() -> QList<BmsScore*>
 {
+    const auto wasPending = startPending();
     startGate.reset();
     propertyUpdateTimer.stop();
     clearPressedInputKeys();
@@ -345,6 +363,9 @@ ChartRunner::finish() -> QList<BmsScore*>
         ret.push_back(player2->finish(*chartData));
     }
     setStatus(Finished);
+    if (wasPending) {
+        emit startPendingChanged();
+    }
     return ret;
 }
 void
@@ -570,6 +591,25 @@ Player::getState() const -> GameplayState*
     return state;
 }
 auto
+Player::getColumns() const -> QList<int>
+{
+    const auto keymode = score->getKeymode();
+    const auto fiveKeys =
+      keymode == ChartData::Keymode::K5 || keymode == ChartData::Keymode::K10;
+    auto columns = fiveKeys ? QList<int>{ 7, 0, 1, 2, 3, 4 }
+                            : QList<int>{ 7, 0, 1, 2, 3, 4, 5, 6 };
+    if (keymode == ChartData::Keymode::K10)
+        columns.append({ 8, 9, 10, 11, 12, 15 });
+    else if (keymode == ChartData::Keymode::K14)
+        columns.append({ 8, 9, 10, 11, 12, 13, 14, 15 });
+    return columns;
+}
+bool
+Player::isScratchColumn(int column) const
+{
+    return column == 7 || column == 15;
+}
+auto
 Player::getProfile() const -> resource_managers::Profile*
 {
     return profile;
@@ -662,6 +702,7 @@ Player::finish(const ChartData& chartData) -> BmsScore*
     if (auto* profilePtr = profile.get()) {
         try {
             score->save(profilePtr->getDb());
+            profilePtr->getScoreDb()->rememberScore(score.get());
         } catch (const std::exception& e) {
             spdlog::error("Failed to save score: {}", e.what());
         }
@@ -739,8 +780,8 @@ RePlayer::RePlayer(BmsNotes* notes,
            chartLength,
            initialBpm,
            parent)
-  , replayedScore(replayedScore)
-  , events(replayedScore->getReplayData()->getHitEvents())
+  , replayedScore(replayedScore->clone(this).release())
+  , events(this->replayedScore->getReplayData()->getHitEvents())
 {
 }
 void

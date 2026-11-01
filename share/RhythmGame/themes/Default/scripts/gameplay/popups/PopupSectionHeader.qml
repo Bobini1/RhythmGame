@@ -1,4 +1,5 @@
 import QtQuick
+import "PopupEditorColors.js" as PopupColors
 
 Item {
     id: sectionHeader
@@ -10,10 +11,6 @@ Item {
     height: content.implicitHeight + 16
     width: ListView.view ? ListView.view.width : 414
 
-    PopupEditorColors {
-        id: popupColors
-    }
-
     Column {
         id: content
 
@@ -24,7 +21,7 @@ Item {
         spacing: 3
 
         Rectangle {
-            color: popupColors.divider
+            color: PopupColors.divider
             height: 1
             visible: sectionHeader.showTopLine
             width: parent.width
@@ -33,7 +30,7 @@ Item {
         Text {
             id: title
 
-            color: popupColors.text
+            color: PopupColors.text
             elide: Text.ElideRight
             font.bold: true
             font.pixelSize: 15
@@ -44,7 +41,7 @@ Item {
         Text {
             id: subtitle
 
-            color: popupColors.subtleText
+            color: PopupColors.subtleText
             elide: Text.ElideRight
             font.pixelSize: 12
             textFormat: Text.PlainText

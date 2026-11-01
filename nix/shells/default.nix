@@ -45,6 +45,7 @@
   zlib,
   zlib-ng,
   libremidi,
+  backbeat,
 }:
 mkShell {
   buildInputs = [
@@ -86,6 +87,7 @@ mkShell {
     zlib
     zlib-ng
     libremidi
+    backbeat
   ];
 
   nativeBuildInputs = [

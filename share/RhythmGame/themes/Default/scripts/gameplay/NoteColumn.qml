@@ -49,7 +49,7 @@ Item {
                 required property int index
                 readonly property var hitData: display.hitData
                 readonly property bool held: display.note.type === note.Type.LongNoteBegin && hitData && !display.otherEndHitData
-                readonly property real nextPosition: column.notes[display.index+1]?.time?.position || Infinity
+                readonly property real nextPosition: column.notes[display.index+1]?.time?.position ?? Infinity
                 visible: display.note.type === note.Type.LongNoteBegin || display.note.type === note.Type.LongNoteEnd || !hitData
                 readonly property bool shouldShowStatic: display.note.type === note.Type.LongNoteBegin && (wasHeld || display.belowBottom) && nextPosition > column.player.position
                 property bool wasHeld: display.note.type === note.Type.LongNoteBegin && hitData && (!display.otherEndHitData || display.otherEndHitData.points.judgement !== Judgement.LnEndSkip)
@@ -106,13 +106,10 @@ Item {
                             id: lnImg
 
                             fillMode: Image.TileVertically
-                            height: {
-                                if (!noteObj.shouldShowStatic) {
-                                    return (noteObj.nextPosition - noteObj.display.note.time.position) * column.heightMultiplier - noteImg.height
-                                } else {
-                                    return (noteObj.nextPosition - column.player.position) * column.heightMultiplier - noteImg.height
-                                }
-                            }
+                            readonly property real bodyLength: (noteObj.nextPosition
+                                - (noteObj.shouldShowStatic ? column.player.position : noteObj.display.note.time.position))
+                                * column.heightMultiplier
+                            height: Math.max(0, Math.abs(bodyLength) - noteImg.height)
                             source: {
                                 if (!noteObj.held) {
                                     return column.lnBodyInactive;
@@ -120,7 +117,7 @@ Item {
                                 return column.flashing ? column.lnBodyFlashing : column.lnBodyActive;
                             }
                             width: noteObj.width
-                            y: -height
+                            y: bodyLength >= 0 ? -height : noteImg.height
                             z: -1
                         }
                     }

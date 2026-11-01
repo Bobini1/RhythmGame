@@ -11,6 +11,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <cmath>
 #include <libxml2/libxml/HTMLparser.h>
 #include <libxml2/libxml/xpath.h>
 #include <QUrl>
@@ -78,14 +79,30 @@ resource_managers::Level::getEntries() const -> QVariantList
     return list;
 }
 static auto
-queryCharts(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
-  -> size_t
+queryCharts(db::SqliteCppDb& db,
+            QVariantList& ret,
+            const QList<resource_managers::Entry>& entries) -> size_t
 {
-    // Create a single query with an IN clause
-    auto queryStr = std::string("WITH md5_list(md5, idx) AS (VALUES ");
+    if (entries.isEmpty()) {
+        return 0;
+    }
+    if (entries.size() > 128) {
+        // Stay below SQLite's parameter limit, including builds using 999.
+        size_t loaded = 0;
+        for (qsizetype offset = 0; offset < entries.size(); offset += 128) {
+            auto batch = ret.mid(offset, 128);
+            loaded += queryCharts(db, batch, entries.mid(offset, 128));
+            for (qsizetype i = 0; i < batch.size(); ++i) {
+                ret[offset + i] = batch[i];
+            }
+        }
+        return loaded;
+    }
+    auto queryStr = std::string(
+      "WITH chart_refs(md5, sha256, path, exact_path, idx) AS (VALUES ");
     auto value = std::string("");
-    for (const auto& md5 : md5List) {
-        value += "(?, ?), ";
+    for (qsizetype i = 0; i < entries.size(); ++i) {
+        value += "(?, ?, ?, ?, ?), ";
     }
     if (value.size() > 2) {
         value =
@@ -93,40 +110,67 @@ queryCharts(db::SqliteCppDb& db, QVariantList& ret, QStringList md5List)
     }
     queryStr += value;
 
-    queryStr += ") SELECT min(md5_list.idx), charts.id, charts.title, "
-                "charts.artist, charts.subtitle, charts.subartist, "
-                "charts.genre, charts.stage_file, charts.banner, "
-                "charts.back_bmp, charts.rank, charts.total, "
-                "charts.play_level, charts.difficulty, charts.is_random, "
-                "charts.random_sequence, charts.normal_note_count, "
-                "charts.scratch_count, charts.ln_count, charts.bss_count, "
-                "charts.mine_count, charts.length, "
-                "charts.initial_bpm, charts.max_bpm, charts.min_bpm, "
-                "charts.main_bpm, charts.avg_bpm, charts.peak_density, "
-                "charts.avg_density, charts.end_density, charts.path, "
-                "charts.directory, charts.sha256, charts.md5, charts.keymode, "
-                "charts.game_version, h.bpms, h.histogram_data "
-                "FROM md5_list JOIN charts ON md5_list.md5 = charts.md5 "
-                "LEFT JOIN histogram_data h ON h.chart_id = charts.id GROUP "
-                "BY md5_list.idx";
+    queryStr +=
+      "), matches AS (SELECT chart_refs.idx, charts.id, charts.title, "
+      "charts.artist, charts.subtitle, charts.subartist, "
+      "charts.genre, charts.stage_file, charts.banner, "
+      "charts.back_bmp, charts.rank, charts.total, "
+      "charts.play_level, charts.difficulty, charts.is_random, "
+      "charts.random_sequence, charts.normal_note_count, "
+      "charts.scratch_count, charts.ln_count, charts.bss_count, "
+      "charts.mine_count, charts.length, "
+      "charts.initial_bpm, charts.max_bpm, charts.min_bpm, "
+      "charts.main_bpm, charts.avg_bpm, charts.peak_density, "
+      "charts.avg_density, charts.end_density, charts.path, "
+      "charts.directory, charts.sha256, charts.md5, charts.keymode, "
+      "charts.game_version, h.bpms, h.histogram_data, "
+      "ROW_NUMBER() OVER (PARTITION BY chart_refs.idx ORDER BY "
+      "CASE WHEN charts.path = chart_refs.path THEN 0 ELSE 1 END, "
+      "charts.id) AS choice "
+      "FROM chart_refs JOIN charts ON charts.path = chart_refs.path OR "
+      "(NOT chart_refs.exact_path AND chart_refs.md5 <> '' AND "
+      "chart_refs.md5 = charts.md5) OR "
+      "(NOT chart_refs.exact_path AND chart_refs.sha256 <> '' AND "
+      "chart_refs.sha256 = charts.sha256) "
+      "LEFT JOIN histogram_data h ON h.chart_id = charts.id) "
+      "SELECT * FROM matches WHERE choice = 1 ORDER BY idx";
 
     auto query = db.createStatement(queryStr);
-    for (const auto& [index, md5] : std::ranges::views::enumerate(md5List)) {
-        query.bind(index * 2 + 1, md5.toStdString());
-        query.bind(index * 2 + 2, static_cast<int64_t>(index));
+    for (const auto& [index, entry] : std::ranges::views::enumerate(entries)) {
+        query.bind(index * 5 + 1, entry.md5.toUpper().toStdString());
+        query.bind(index * 5 + 2, entry.sha256.toUpper().toStdString());
+        query.bind(index * 5 + 3, entry.path.toStdString());
+        query.bind(index * 5 + 4, entry.exactPath);
+        query.bind(index * 5 + 5, static_cast<int64_t>(index));
     }
     struct ChartDTOWithIndex
     {
         int64_t index;
         gameplay_logic::ChartData::DTO chartData;
+        int choice;
     };
     auto queryResult = query.executeAndGetAll<ChartDTOWithIndex>();
     for (const auto& result : queryResult) {
         auto chartData = gameplay_logic::ChartData::load(result.chartData);
+        QQmlEngine::setObjectOwnership(chartData.get(),
+                                       QQmlEngine::JavaScriptOwnership);
         ret[result.index] = QVariant::fromValue(chartData.release());
     }
     return queryResult.size();
 }
+void
+resource_managers::Level::addEntry(Entry entry)
+{
+    entry.level = name;
+    if (!entry.md5.isEmpty()) {
+        entriesById.insert(entry.md5.toUpper(), entry);
+    }
+    if (!entry.sha256.isEmpty()) {
+        entriesById.insert("SHA256/" + entry.sha256.toUpper(), entry);
+    }
+    entries.append(std::move(entry));
+}
+
 auto
 resource_managers::Level::loadCharts() const -> QVariantList
 {
@@ -136,14 +180,12 @@ resource_managers::Level::loadCharts() const -> QVariantList
 
     auto sw = spdlog::stopwatch{};
     auto ret = QVariantList{};
-    auto md5List = QStringList{};
 
     for (const auto& chart : entries) {
         ret.append(QVariant::fromValue(chart));
-        md5List.append(chart.md5.toUpper());
     }
 
-    auto loaded = queryCharts(*db, ret, md5List);
+    auto loaded = queryCharts(*db, ret, entries);
     // sort by title, subtitle
     std::ranges::sort(ret, [](QVariant& a, QVariant& b) {
         auto getTitle = [](QVariant& chart) {
@@ -207,30 +249,73 @@ resource_managers::Course::getTrophies() const -> QVariantList
     return list;
 }
 auto
+resource_managers::Course::getChartIds() const -> QStringList
+{
+    auto ids = md5s;
+    ids.resize(std::max(md5s.size(), sha256s.size()));
+    for (qsizetype i = 0; i < ids.size(); ++i) {
+        if (ids[i].isEmpty() && !sha256s.value(i).isEmpty())
+            ids[i] = "sha256/" + sha256s[i];
+    }
+    return ids;
+}
+
+auto
 resource_managers::Course::getIdentifier() const -> QString
 {
-    auto identifier = md5s.join(" ");
+    auto ids = getChartIds();
+    for (qsizetype i = 0; i < ids.size(); ++i) {
+        if (!sha256s.value(i).isEmpty()) {
+            ids[i] = "sha256/" + sha256s[i];
+        }
+    }
+    auto identifier = ids.join(" ");
     identifier += '+';
     auto constraintsSorted = constraints;
     constraintsSorted.sort();
     identifier += constraintsSorted.join(",");
     return identifier;
 }
+auto
+resource_managers::Course::chartPath(qsizetype index) const -> QString
+{
+    auto query = db->createStatement(
+      "SELECT path FROM charts WHERE (md5 = ? AND md5 <> '') OR "
+      "(sha256 = ? AND sha256 <> '') ORDER BY CASE WHEN path = ? THEN 0 ELSE 1 "
+      "END, id LIMIT 1");
+    query.bind(1, md5s.value(index).toUpper().toStdString());
+    query.bind(2, sha256s.value(index).toUpper().toStdString());
+    query.bind(3, paths.value(index).toStdString());
+    return QString::fromStdString(
+      query.executeAndGet<std::string>().value_or(""));
+}
 QVariantList
 resource_managers::Course::loadCharts() const
 {
     auto sw = spdlog::stopwatch{};
     auto ret = QVariantList{};
-    auto md5List = QStringList{};
+    auto references = QList<Entry>{};
 
-    for (const auto& md5 : md5s) {
-        ret.append(md5);
-        md5List.append(md5.toUpper());
+    const auto ids = getChartIds();
+    for (qsizetype i = 0; i < ids.size(); ++i) {
+        ret.append(ids[i]);
+        Entry entry;
+        entry.md5 = md5s.value(i);
+        entry.sha256 = sha256s.value(i);
+        entry.path = paths.value(i);
+        references.append(std::move(entry));
     }
 
-    auto loaded = queryCharts(*db, ret, md5List);
+    auto loaded = queryCharts(*db, ret, references);
     spdlog::debug("Loaded {} charts in {} s", loaded, sw);
     return ret;
+}
+auto
+resource_managers::Table::getIdentifier() const -> QString
+{
+    return (managedExternally ? QStringLiteral("external:")
+                              : QStringLiteral("table:")) +
+           url.toString(QUrl::FullyEncoded);
 }
 auto
 resource_managers::Table::getLevels() const -> QVariantList
@@ -255,21 +340,56 @@ resource_managers::Table::getCourses() const -> QVariantList
     return list;
 }
 void
+resource_managers::Tables::request(const QUrl& tableUrl,
+                                   const QUrl& requestUrl,
+                                   std::function<void(QNetworkReply*)> finished)
+{
+    auto* reply = networkManager->get(QNetworkRequest(requestUrl));
+    requests.insert(tableUrl, reply);
+    connect(reply,
+            &QNetworkReply::finished,
+            this,
+            [this, tableUrl, reply, finished = std::move(finished)] {
+                reply->deleteLater();
+                if (requests.value(tableUrl) != reply) {
+                    return;
+                }
+                requests.remove(tableUrl);
+                if (reply->error() != QNetworkReply::NoError) {
+                    spdlog::error("Network error: {}",
+                                  reply->errorString().toStdString());
+                    setErrorFlag(tableUrl);
+                    return;
+                }
+                finished(reply);
+            });
+}
+
+void
+resource_managers::Tables::cancelRequest(const QUrl& url)
+{
+    if (auto reply = requests.take(url)) {
+        reply->disconnect(this);
+        reply->abort();
+        reply->deleteLater();
+    }
+}
+
+resource_managers::Tables::~Tables()
+{
+    for (const auto& url : requests.keys()) {
+        cancelRequest(url);
+    }
+}
+
+void
 resource_managers::Tables::handleInitialReply(QNetworkReply* reply,
                                               const QUrl& url)
 {
-    reply->deleteLater();
-
-    if (reply->error() != QNetworkReply::NoError) {
-        spdlog::error("Network error: {}", reply->errorString().toStdString());
-        setErrorFlag(url);
-        return;
-    }
-
     const auto type = reply->header(QNetworkRequest::ContentTypeHeader);
     if (reply->url().toString().endsWith(".json") ||
         type.toString().startsWith("application/json")) {
-        handleHeaderReply(url, reply->readAll());
+        handleHeaderReply(url, reply->url(), reply->readAll());
         return;
     }
 
@@ -282,17 +402,8 @@ resource_managers::Tables::handleInitialReply(QNetworkReply* reply,
     }
 
     auto headerUrl = reply->url().resolved(QUrl(bmstableLink));
-    const auto request = QNetworkRequest(headerUrl);
-    auto* newReply = networkManager->get(request);
-    connect(newReply, &QNetworkReply::finished, this, [this, newReply, url] {
-        newReply->deleteLater();
-        if (newReply->error() == QNetworkReply::NoError) {
-            handleHeaderReply(url, newReply->readAll());
-        } else {
-            spdlog::error("Network error: {}",
-                          newReply->errorString().toStdString());
-            setErrorFlag(url);
-        }
+    request(url, headerUrl, [this, url](QNetworkReply* headerReply) {
+        handleHeaderReply(url, headerReply->url(), headerReply->readAll());
     });
 }
 void
@@ -308,8 +419,7 @@ resource_managers::Tables::setErrorFlag(const QUrl& url)
 static void
 save(const QDir& tableLocation,
      const QUrl& url,
-     const QString& keyName,
-     std::optional<QJsonValue> json)
+     const QJsonObject& contents = {})
 {
     // create table location if it doesn't exist
     if (!tableLocation.mkpath(".")) {
@@ -334,8 +444,8 @@ save(const QDir& tableLocation,
             entryIndex = index;
         }
     }
-    if (json) {
-        thisTableObject[keyName] = *json;
+    for (auto it = contents.begin(); it != contents.end(); ++it) {
+        thisTableObject[it.key()] = it.value();
     }
     if (entryIndex == -1) {
         thisTableObject["url"] = url.toString();
@@ -373,9 +483,8 @@ reorderInFile(const QDir& tableLocation, const QUrl& url1, const QUrl& url2)
     }
 
     if (index1 != -1 && index2 != -1) {
-        const auto temp = existingArray[index1].toObject();
-        existingArray[index1] = existingArray[index2].toObject();
-        existingArray[index2] = temp;
+        const auto moved = existingArray.takeAt(index1);
+        existingArray.insert(index2, moved);
         existingJson.setArray(existingArray);
         file.resize(0);
         file.write(existingJson.toJson());
@@ -386,80 +495,76 @@ reorderInFile(const QDir& tableLocation, const QUrl& url1, const QUrl& url2)
 }
 
 void
-resource_managers::Tables::handleData(const QUrl& url, const QJsonArray& data)
+resource_managers::Tables::readData(Table& table, const QJsonArray& data) const
 {
-    for (const auto& [index, table] : std::ranges::views::enumerate(tables)) {
-        if (table.url == url) {
-            auto map = QHash<QString, Level*>{};
-            for (auto& level : table.levels) {
-                map[level.name] = &level;
-            }
-            // levels not declared in level_order
-            auto extraLevels = QHash<QString, Level>{};
-            for (const auto& chart : data) {
-                auto chartObj = chart.toObject();
-                auto levelStr = chartObj["level"].toString();
-                auto* level = map[levelStr];
-                if (level == nullptr) {
-                    level = &extraLevels[levelStr];
-                    level->db = db;
-                    level->name = levelStr;
-                }
-                auto entry = Entry{};
-                entry.md5 = chartObj["md5"].toString().toUpper();
-                entry.sha256 = chartObj["sha256"].toString();
-                entry.title = chartObj["title"].toString();
-                entry.artist = chartObj["artist"].toString();
-                entry.subtitle = chartObj["subtitle"].toString();
-                entry.subartist = chartObj["subartist"].toString();
-                entry.level = levelStr;
-                entry.url = chartObj["url"].toString();
-                entry.urlDiff = chartObj["url_diff"].toString();
-                entry.comment = chartObj["comment"].toString();
-
-                level->entries.push_back(entry);
-                level->md5s.insert(entry.md5.toUpper(), entry);
-            }
-            auto extraLevelValues = extraLevels.values();
-            std::ranges::sort(extraLevelValues,
-                              [](const auto& a, const auto& b) {
-                                  bool ok1;
-                                  bool ok2;
-                                  auto aNum = a.name.toDouble(&ok1);
-                                  auto bNum = b.name.toDouble(&ok2);
-                                  if (ok1 && ok2) {
-                                      return aNum < bNum;
-                                  }
-                                  return a.name < b.name;
-                              });
-            for (const auto& level : extraLevelValues) {
-                table.levels.push_back(level);
-            }
-            // remove empty levels
-            table.levels.erase(
-              std::ranges::remove_if(
-                table.levels,
-                [](const auto& level) { return level.entries.empty(); })
-                .begin(),
-              table.levels.end());
-            if (table.levels.empty()) {
-                spdlog::error("Table {} is empty",
-                              table.url.toString().toStdString());
-                table.status = Table::Error;
-            }
-            if (table.status != Table::Error) {
-                table.status = Table::Loaded;
-            }
-            emit dataChanged(createIndex(index, 0), createIndex(index, 0));
+    auto map = QHash<QString, Level*>{};
+    for (auto& level : table.levels) {
+        map[level.name] = &level;
+    }
+    // levels not declared in level_order
+    auto extraLevels = QHash<QString, Level>{};
+    for (const auto& chart : data) {
+        auto chartObj = chart.toObject();
+        auto levelStr = chartObj["level"].toString();
+        auto* level = map[levelStr];
+        if (level == nullptr) {
+            level = &extraLevels[levelStr];
+            level->db = db;
+            level->name = levelStr;
         }
+        auto entry = Entry{};
+        entry.md5 = chartObj["md5"].toString().toUpper();
+        entry.sha256 = chartObj["sha256"].toString();
+        entry.title = chartObj["title"].toString();
+        entry.artist = chartObj["artist"].toString();
+        entry.subtitle = chartObj["subtitle"].toString();
+        entry.subartist = chartObj["subartist"].toString();
+        entry.url = chartObj["url"].toString();
+        entry.urlDiff = chartObj["url_diff"].toString();
+        entry.comment = chartObj["comment"].toString();
+
+        level->addEntry(std::move(entry));
+    }
+    auto extraLevelValues = extraLevels.values();
+    std::ranges::sort(extraLevelValues, [](const auto& a, const auto& b) {
+        bool ok1;
+        bool ok2;
+        auto aNum = a.name.toDouble(&ok1);
+        auto bNum = b.name.toDouble(&ok2);
+        ok1 = ok1 && std::isfinite(aNum);
+        ok2 = ok2 && std::isfinite(bNum);
+        if (ok1 != ok2) {
+            return ok1;
+        }
+        if (ok1 && aNum != bNum) {
+            return aNum < bNum;
+        }
+        return a.name < b.name;
+    });
+    for (const auto& level : extraLevelValues) {
+        table.levels.push_back(level);
+    }
+    // remove empty levels
+    table.levels.erase(
+      std::ranges::remove_if(
+        table.levels, [](const auto& level) { return level.entries.empty(); })
+        .begin(),
+      table.levels.end());
+    if (table.levels.empty()) {
+        spdlog::error("Table {} is empty", table.url.toString().toStdString());
+        table.status = Table::Error;
+    }
+    if (table.status != Table::Error) {
+        table.status = Table::Loaded;
     }
 }
 void
 resource_managers::Tables::handleHeaderReply(const QUrl& url,
+                                             const QUrl& headerUrl,
                                              const QByteArray& reply)
 {
     auto json = QJsonDocument::fromJson(reply);
-    if (json.isNull()) {
+    if (!json.isObject()) {
         spdlog::error("Failed to parse json");
         setErrorFlag(url);
         return;
@@ -468,87 +573,87 @@ resource_managers::Tables::handleHeaderReply(const QUrl& url,
     if (dataUrl.isEmpty()) {
         spdlog::error("No data url found");
         setErrorFlag(url);
+        return;
     }
-    fileOperationThreadPool.start(
-      [tableLocation = tableLocation, url, obj = json.object()] {
-          save(tableLocation, url, QStringLiteral("header"), obj);
-      });
-    handleHeader(url, json.object());
-    auto dataRequest = QNetworkRequest(url.resolved(QUrl(dataUrl)));
-    auto* dataReply = networkManager->get(dataRequest);
-    connect(dataReply, &QNetworkReply::finished, this, [this, dataReply, url] {
-        dataReply->deleteLater();
-        if (dataReply->error() != QNetworkReply::NoError) {
-            spdlog::error("Network error: {}",
-                          dataReply->errorString().toStdString());
-            setErrorFlag(url);
-            return;
-        }
-        const auto json = QJsonDocument::fromJson(dataReply->readAll());
-        if (json.isNull()) {
-            spdlog::error("Failed to parse json");
-            setErrorFlag(url);
-            return;
-        }
-        fileOperationThreadPool.start(
-          [tableLocation = tableLocation, url, obj = json.array()] {
-              save(tableLocation, url, QStringLiteral("data"), obj);
-          });
-        handleData(url, json.array());
-    });
+    request(url,
+            headerUrl.resolved(QUrl(dataUrl)),
+            [this, url, header = json.object()](QNetworkReply* dataReply) {
+                const auto json = QJsonDocument::fromJson(dataReply->readAll());
+                if (!json.isArray()) {
+                    spdlog::error("Failed to parse json");
+                    setErrorFlag(url);
+                    return;
+                }
+                auto replacement = Table{ .url = url };
+                readHeader(replacement, header);
+                readData(replacement, json.array());
+                if (replacement.status == Table::Error) {
+                    setErrorFlag(url);
+                    return;
+                }
+                for (auto i = 0; i < tables.size(); ++i) {
+                    if (tables[i].url != url) {
+                        continue;
+                    }
+                    tables[i] = std::move(replacement);
+                    fileOperationThreadPool.start(
+                      [tableLocation = tableLocation,
+                       url,
+                       header,
+                       data = json.array()] {
+                          save(tableLocation,
+                               url,
+                               { { "header", header }, { "data", data } });
+                      });
+                    emit dataChanged(index(i), index(i));
+                    emit contentsChanged();
+                    break;
+                }
+            });
 }
 void
-resource_managers::Tables::handleHeader(const QUrl& url,
-                                        const QJsonObject& header)
+resource_managers::Tables::readHeader(Table& table,
+                                      const QJsonObject& header) const
 {
-    for (const auto& [index, table] : std::ranges::views::enumerate(tables)) {
-        if (table.url == url) {
-            table.name = header["name"].toString();
-            table.tag = header["tag"].toString();
-            table.symbol = header["symbol"].toString();
-            table.keymode = header["keymode"];
-            for (const auto& level : header["level_order"].toArray()) {
-                auto levelObj = Level{};
-                levelObj.name = level.isString()
-                                  ? level.toString()
-                                  : QString::number(level.toInt());
-                levelObj.db = db;
-                table.levels.push_back(levelObj);
-            }
+    table.name = header["name"].toString();
+    table.tag = header["tag"].toString();
+    table.symbol = header["symbol"].toString();
+    table.keymode = header["keymode"];
+    for (const auto& level : header["level_order"].toArray()) {
+        auto levelObj = Level{};
+        levelObj.name =
+          level.isString() ? level.toString() : QString::number(level.toInt());
+        levelObj.db = db;
+        table.levels.push_back(levelObj);
+    }
 
-            for (const auto& courseList : header["course"].toArray()) {
-                auto courseListObj = QList<Course>{};
-                for (const auto& course : courseList.toArray()) {
-                    auto courseObj = Course{ db };
-                    courseObj.name = course.toObject()["name"].toString();
-                    for (const auto& md5 : course.toObject()["md5"].toArray()) {
-                        courseObj.md5s.push_back(md5.toString().toUpper());
-                    }
-                    for (const auto& trophy :
-                         course.toObject()["trophy"].toArray()) {
-                        auto trophyObj = Trophy{};
-                        trophyObj.name = trophy.toObject()["name"].toString();
-                        trophyObj.missRate =
-                          trophy.toObject()["missrate"].toDouble();
-                        trophyObj.scoreRate =
-                          trophy.toObject()["scorerate"].toDouble();
-                        courseObj.trophies.push_back(trophyObj);
-                    }
-                    for (const auto& constraint :
-                         course.toObject()["constraint"].toArray()) {
-                        courseObj.constraints.push_back(constraint.toString());
-                    }
-                    // other courses are currently unsupported
-                    if (courseObj.constraints.contains("gauge_lr2") &&
-                        courseObj.constraints.contains("grade_mirror") &&
-                        courseObj.constraints.size() == 2) {
-                        courseListObj.push_back(courseObj);
-                    }
-                }
-                table.courses.push_back(courseListObj);
+    for (const auto& courseList : header["course"].toArray()) {
+        auto courseListObj = QList<Course>{};
+        for (const auto& course : courseList.toArray()) {
+            auto courseObj = Course{ db };
+            courseObj.name = course.toObject()["name"].toString();
+            for (const auto& md5 : course.toObject()["md5"].toArray()) {
+                courseObj.md5s.push_back(md5.toString().toUpper());
             }
-            emit dataChanged(createIndex(index, 0), createIndex(index, 0));
+            for (const auto& trophy : course.toObject()["trophy"].toArray()) {
+                auto trophyObj = Trophy{};
+                trophyObj.name = trophy.toObject()["name"].toString();
+                trophyObj.missRate = trophy.toObject()["missrate"].toDouble();
+                trophyObj.scoreRate = trophy.toObject()["scorerate"].toDouble();
+                courseObj.trophies.push_back(trophyObj);
+            }
+            for (const auto& constraint :
+                 course.toObject()["constraint"].toArray()) {
+                courseObj.constraints.push_back(constraint.toString());
+            }
+            // other courses are currently unsupported
+            if (courseObj.constraints.contains("gauge_lr2") &&
+                courseObj.constraints.contains("grade_mirror") &&
+                courseObj.constraints.size() == 2) {
+                courseListObj.push_back(courseObj);
+            }
         }
+        table.courses.push_back(courseListObj);
     }
 }
 resource_managers::Tables::Tables(QNetworkAccessManager* networkManager,
@@ -583,14 +688,12 @@ resource_managers::Tables::Tables(QNetworkAccessManager* networkManager,
         const auto& tableObj = table.toObject();
         tables.push_back({ .url = QUrl(table.toObject()["url"].toString()) });
         if (tableObj.contains("header")) {
-            handleHeader(QUrl(tableObj["url"].toString()),
-                         tableObj["header"].toObject());
+            readHeader(tables.back(), tableObj["header"].toObject());
         } else {
             setErrorFlag(QUrl(tableObj["url"].toString()));
         }
         if (tableObj.contains("data")) {
-            handleData(QUrl(tableObj["url"].toString()),
-                       tableObj["data"].toArray());
+            readData(tables.back(), tableObj["data"].toArray());
         } else {
             setErrorFlag(QUrl(tableObj["url"].toString()));
         }
@@ -599,7 +702,7 @@ resource_managers::Tables::Tables(QNetworkAccessManager* networkManager,
 auto
 resource_managers::Tables::rowCount(const QModelIndex& parent) const -> int
 {
-    return tables.size();
+    return parent.isValid() ? 0 : tables.size();
 }
 auto
 resource_managers::Tables::data(const QModelIndex& index, const int role) const
@@ -654,6 +757,7 @@ resource_managers::Tables::removeAt(int index)
     }
     spdlog::info("Removing table: {}",
                  tables[index].url.toString().toStdString());
+    cancelRequest(tables[index].url);
 
     fileOperationThreadPool.start(
       [tableLocation = tableLocation, url = tables[index].url] {
@@ -663,6 +767,7 @@ resource_managers::Tables::removeAt(int index)
     beginRemoveRows(QModelIndex(), index, index);
     tables.removeAt(index);
     endRemoveRows();
+    emit contentsChanged();
 }
 void
 resource_managers::Tables::add(const QUrl& url)
@@ -677,18 +782,15 @@ resource_managers::Tables::add(const QUrl& url)
         removeAt(indexToRemove);
     }
     spdlog::info("Adding table: {}", url.toString().toStdString());
-    const QNetworkRequest request(url);
-    auto* reply = networkManager->get(request);
-    connect(reply, &QNetworkReply::finished, this, [this, reply, url] {
-        handleInitialReply(reply, url);
-    });
     // add to file
-    fileOperationThreadPool.start([tableLocation = tableLocation, url] {
-        save(tableLocation, url, QStringLiteral("url"), std::nullopt);
-    });
+    fileOperationThreadPool.start(
+      [tableLocation = tableLocation, url] { save(tableLocation, url); });
     beginInsertRows(QModelIndex(), tables.size(), tables.size());
     tables.push_back(Table{ .url = url });
     endInsertRows();
+    request(url, url, [this, url](QNetworkReply* reply) {
+        handleInitialReply(reply, url);
+    });
 }
 void
 resource_managers::Tables::reload(int index)
@@ -705,14 +807,64 @@ resource_managers::Tables::reload(int index)
     }
     spdlog::info("Reloading table: {}", table.url.toString().toStdString());
     table.status = Table::Loading;
-    const QNetworkRequest request(table.url);
-    auto* reply = networkManager->get(request);
-    connect(reply,
-            &QNetworkReply::finished,
-            this,
-            [this, reply, url = table.url] { handleInitialReply(reply, url); });
+    request(
+      table.url, table.url, [this, url = table.url](QNetworkReply* reply) {
+          handleInitialReply(reply, url);
+      });
     emit dataChanged(createIndex(index, 0), createIndex(index, 0));
 }
+auto
+resource_managers::Tables::findTable(const Table& table) const -> const Table*
+{
+    const auto& candidates = table.managedExternally ? externalTables : tables;
+    for (const auto& candidate : candidates) {
+        if (candidate.url == table.url) {
+            return &candidate;
+        }
+    }
+    return nullptr;
+}
+
+auto
+resource_managers::Tables::resolveTable(const Table& table) const -> QVariant
+{
+    const auto* current = findTable(table);
+    return current ? QVariant::fromValue(*current) : QVariant{};
+}
+
+auto
+resource_managers::Tables::resolveLevel(const Table& table,
+                                        const Level& level) const -> QVariant
+{
+    if (const auto* current = findTable(table)) {
+        for (const auto& candidate : current->levels) {
+            if (candidate.name == level.name) {
+                return QVariant::fromValue(candidate);
+            }
+        }
+    }
+    return {};
+}
+
+auto
+resource_managers::Tables::reloadTable(const Table& table) -> bool
+{
+    if (!findTable(table)) {
+        return false;
+    }
+    if (table.managedExternally) {
+        emit externalReloadRequested();
+        return true;
+    }
+    for (qsizetype i = 0; i < tables.size(); ++i) {
+        if (tables[i].url == table.url) {
+            reload(static_cast<int>(i));
+            return true;
+        }
+    }
+    return false;
+}
+
 void
 resource_managers::Tables::reorder(int from, int to)
 {
@@ -728,35 +880,43 @@ resource_managers::Tables::reorder(int from, int to)
     if (to < 0) {
         return;
     }
-    spdlog::debug("Reordering table entries: {} and {}", from, to);
-    beginMoveRows(QModelIndex(), from, from, QModelIndex(), to + (from < to));
-    using std::swap;
-    swap(tables[from], tables[to]);
+    if (from == to || !beginMoveRows({}, from, from, {}, to + (from < to))) {
+        return;
+    }
+    const auto fromUrl = tables[from].url;
+    const auto toUrl = tables[to].url;
+    tables.move(from, to);
     endMoveRows();
-    fileOperationThreadPool.start([fromUrl = tables[from].url,
-                                   toUrl = tables[to].url,
-                                   tableLocation = tableLocation] {
-        reorderInFile(tableLocation, fromUrl, toUrl);
-    });
+    emit contentsChanged();
+    fileOperationThreadPool.start(
+      [fromUrl, toUrl, tableLocation = tableLocation] {
+          reorderInFile(tableLocation, fromUrl, toUrl);
+      });
 }
 auto
 resource_managers::Tables::getList() -> QVariantList
 {
     auto ret = QVariantList{};
-    for (const auto& table : tables) {
+    for (const auto& table : tables + externalTables) {
         ret.push_back(QVariant::fromValue(table));
     }
     return ret;
 }
-auto
-resource_managers::Tables::search(const QString& md5) -> QList<TableInfo>
+void
+resource_managers::Tables::setExternalTables(QList<Table> updated)
 {
-    const auto upper = md5.toUpper();
+    externalTables = std::move(updated);
+    emit contentsChanged();
+}
+auto
+resource_managers::Tables::search(const QString& identifier) -> QList<TableInfo>
+{
+    const auto upper = identifier.toUpper();
     auto info = QList<TableInfo>{};
-    for (const auto& table : tables) {
+    for (const auto& table : tables + externalTables) {
         for (const auto& level : table.levels) {
-            if (auto entry = level.md5s.find(upper);
-                entry != level.md5s.end()) {
+            if (auto entry = level.entriesById.constFind(upper);
+                entry != level.entriesById.cend()) {
                 info.push_back(TableInfo{ .tableName = table.name,
                                           .levelName = level.name,
                                           .symbol = table.symbol,

@@ -174,13 +174,11 @@ removeDuplicateButtonMappings(QHash<Key, BmsKey>& config) -> bool
     auto modified = false;
     for (auto it = config.begin(); it != config.end();) {
         const auto index = static_cast<std::size_t>(it.value());
-        if (index < keyCount && seen[index]) {
+        if (index >= keyCount || seen[index]) {
             it = config.erase(it);
             modified = true;
         } else {
-            if (index < keyCount) {
-                seen[index] = true;
-            }
+            seen[index] = true;
             ++it;
         }
     }
@@ -1216,7 +1214,8 @@ InputTranslator::setConfiguredButton(const QVariant& button)
 {
     const auto old = configuredButton;
     const auto oldIsConfiguring = isConfiguring();
-    configuredButton = button.canConvert<BmsKey>()
+    configuredButton = button.canConvert<BmsKey>() &&
+                           magic_enum::enum_contains(button.value<BmsKey>())
                          ? std::optional{ button.value<BmsKey>() }
                          : std::nullopt;
     if (old != configuredButton) {

@@ -5,6 +5,10 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     nur.url = "github:nix-community/NUR";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -12,17 +16,26 @@
     nixpkgs,
     flake-utils,
     nur,
+    rust-overlay,
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {
         inherit system;
         overlays = [
           nur.overlays.default
+          rust-overlay.overlays.default
           (import ./nix/overlays/stb.nix)
         ];
       };
 
       stdenv = pkgs.gcc15Stdenv;
+
+      backbeat = pkgs.callPackage ./nix/packages/backbeat.nix {
+        rustPlatform = pkgs.makeRustPlatform {
+          cargo = pkgs.rust-bin.stable."1.96.0".minimal;
+          rustc = pkgs.rust-bin.stable."1.96.0".minimal;
+        };
+      };
 
       libremidi = pkgs.libremidi.overrideAttrs (_: rec {
         version = "5.4.3";
@@ -44,15 +57,15 @@
       packages = {
         default = self.packages.${system}.rhythmgame;
         rhythmgame = pkgs.kdePackages.callPackage ./nix/packages/rhythmgame.nix {
-          inherit libremidi ned14-llfio;
+          inherit backbeat libremidi ned14-llfio;
           lexy = nur-foolnotion.foonathan-lexy;
           inherit stdenv;
         };
-        inherit ned14-llfio;
+        inherit backbeat ned14-llfio;
       };
 
       devShells.default = pkgs.kdePackages.callPackage ./nix/shells/default.nix {
-        inherit libremidi ned14-llfio;
+        inherit backbeat libremidi ned14-llfio;
         lexy = nur-foolnotion.foonathan-lexy;
         inherit (pkgs.kdePackages) qtdeclarative qtwebsockets qtsvg qtshadertools qtwayland qtmultimedia qttools qtkeychain;
         mkShell = pkgs.mkShell.override {inherit stdenv;};

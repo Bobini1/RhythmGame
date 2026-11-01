@@ -1,12 +1,11 @@
-import QtQuick 2.9
-import QtQuick.Controls 2.2
+import QtQuick
 
 Item {
     id: root
 
     property bool borderPressed: leftTopHandle.pressed || rightTopHandle.pressed || leftBottomHandle.pressed || rightBottomHandle.pressed || posTopItem.pressed || posLeftItem.pressed || posRightItem.pressed || posBottomItem.pressed
     property int borderWidth: 12
-    property var control: parent
+    property Item control: parent
     property bool keepAspectRatio: false
     property bool leftBorderResizable: true
     property bool rightBorderResizable: true
@@ -19,7 +18,38 @@ Item {
     // so that dragging a visual edge moves that edge, not the opposite one.
     property bool mirrored: false
 
-    //左上角的拖拽
+    // Request an edit; the owner stores it and its geometry bindings stay intact.
+    signal geometryEdited(rect geometry)
+
+    function resize(xOffset, yOffset, horizontalEdge, verticalEdge) {
+        let oldWidth = control.width;
+        let oldHeight = control.height;
+        if (oldWidth <= 0 || oldHeight <= 0)
+            return;
+
+        let width = oldWidth + horizontalEdge * xOffset * (anchorXCenter ? 2 : 1);
+        let height = oldHeight + verticalEdge * yOffset;
+        if (keepAspectRatio) {
+            let aspectRatio = oldWidth / oldHeight;
+            if (anchorYBottom || Math.abs(xOffset) <= Math.abs(yOffset))
+                height = width / aspectRatio;
+            else
+                width = height * aspectRatio;
+        }
+        if (width <= 0 || height <= 0)
+            return;
+
+        let x = control.x;
+        if (anchorXCenter)
+            x += (oldWidth - width) / 2;
+        else if (mirrored ? horizontalEdge > 0 : horizontalEdge < 0)
+            x += oldWidth - width;
+        let y = control.y;
+        if (anchorYBottom || verticalEdge < 0)
+            y += oldHeight - height;
+        geometryEdited(Qt.rect(x, y, width, height));
+    }
+
     DragItem {
         id: leftTopHandle
 
@@ -28,32 +58,8 @@ Item {
         posType: posLeftTop
         width: borderWidth
 
-        onPosChange: function (xOffset, yOffset) {
-            if (root.keepAspectRatio) {
-                let aspectRatio = control.width / control.height;
-                if (Math.abs(xOffset) > Math.abs(yOffset)) {
-                    xOffset = yOffset * aspectRatio;
-                } else {
-                    yOffset = xOffset / aspectRatio;
-                }
-            }
-            if (root.mirrored) {
-                // visual left edge: change width only
-                if (control.width - xOffset > 0)
-                    control.width -= xOffset;
-            } else {
-                if (control.x + xOffset < control.x + control.width)
-                    control.x += xOffset + (root.anchorXCenter ? -xOffset : 0);
-                if (control.width - xOffset > 0)
-                    control.width -= xOffset;
-            }
-            if (control.y + yOffset < control.y + control.height)
-                control.y += yOffset + (root.anchorYBottom ? -yOffset : 0);
-            if (control.height - yOffset > 0)
-                control.height -= yOffset;
-        }
+        onPosChange: (xOffset, yOffset) => root.resize(xOffset, yOffset, -1, -1)
     }
-    //右上角拖拽
     DragItem {
         id: rightTopHandle
 
@@ -63,32 +69,8 @@ Item {
         width: borderWidth
         x: parent.width - width
 
-        onPosChange: function (xOffset, yOffset) {
-            if (root.keepAspectRatio) {
-                let aspectRatio = control.width / control.height;
-                if (Math.abs(xOffset) > Math.abs(yOffset)) {
-                    xOffset = yOffset * aspectRatio * -1;
-                } else {
-                    yOffset = xOffset / aspectRatio * -1;
-                }
-            }
-            if (root.mirrored) {
-                // visual right edge: move x and width together
-                if (control.width + xOffset > 0) {
-                    control.x -= xOffset;
-                    control.width += xOffset;
-                }
-            } else {
-                if (control.width + xOffset > 0)
-                    control.width += xOffset;
-            }
-            if (control.height - yOffset > 0)
-                control.height -= yOffset;
-            if (control.y + yOffset < control.y + control.height)
-                control.y += yOffset;
-        }
+        onPosChange: (xOffset, yOffset) => root.resize(xOffset, yOffset, 1, -1)
     }
-    //左下角拖拽
     DragItem {
         id: leftBottomHandle
 
@@ -98,30 +80,8 @@ Item {
         width: borderWidth
         y: parent.height - height
 
-        onPosChange: function (xOffset, yOffset) {
-            if (root.keepAspectRatio) {
-                let aspectRatio = control.width / control.height;
-                if (Math.abs(xOffset) > Math.abs(yOffset) && !root.anchorYBottom) {
-                    xOffset = yOffset * aspectRatio * -1;
-                } else {
-                    yOffset = xOffset / aspectRatio * -1;
-                }
-            }
-            if (root.mirrored) {
-                // visual left edge: change width only
-                if (control.width - xOffset > 0)
-                    control.width -= xOffset;
-            } else {
-                if (control.x + xOffset < control.x + control.width)
-                    control.x += xOffset - (root.anchorXCenter ? xOffset : 0);
-                if (control.width - xOffset > 0)
-                    control.width -= xOffset;
-            }
-            if (control.height + yOffset > 0)
-                control.height += yOffset;
-        }
+        onPosChange: (xOffset, yOffset) => root.resize(xOffset, yOffset, -1, 1)
     }
-    //右下角拖拽
     DragItem {
         id: rightBottomHandle
 
@@ -132,30 +92,8 @@ Item {
         x: parent.width - width
         y: parent.height - height
 
-        onPosChange: function (xOffset, yOffset) {
-            if (root.keepAspectRatio) {
-                let aspectRatio = control.width / control.height;
-                if (Math.abs(xOffset) > Math.abs(yOffset) && !root.anchorYBottom) {
-                    xOffset = yOffset * aspectRatio;
-                } else {
-                    yOffset = xOffset / aspectRatio;
-                }
-            }
-            if (root.mirrored) {
-                // visual right edge: move x and width together
-                if (control.width + xOffset > 0) {
-                    control.x -= xOffset;
-                    control.width += xOffset;
-                }
-            } else {
-                if (control.width + xOffset > 0)
-                    control.width += xOffset;
-            }
-            if (control.height + yOffset > 0)
-                control.height += yOffset;
-        }
+        onPosChange: (xOffset, yOffset) => root.resize(xOffset, yOffset, 1, 1)
     }
-    //上边拖拽
     DragItem {
         id: posTopItem
 
@@ -165,15 +103,9 @@ Item {
         width: parent.width - leftTopHandle.width - rightTopHandle.width
         x: leftBottomHandle.width
 
-        onPosChange: function (xOffset, yOffset) {
-            if (control.y + yOffset < control.y + control.height)
-                control.y += yOffset;
-            if (control.height - yOffset > 0)
-                control.height -= yOffset;
-        }
+        onPosChange: (xOffset, yOffset) => root.resize(xOffset, yOffset, 0, -1)
     }
 
-    //左边拖拽
     DragItem {
         id: posLeftItem
 
@@ -183,20 +115,8 @@ Item {
         width: borderWidth
         y: leftTopHandle.height
 
-        onPosChange: function (xOffset, yOffset) {
-            if (root.mirrored) {
-                // visual left edge: change width only, keep x fixed
-                if (control.width - xOffset > 0)
-                    control.width -= xOffset;
-            } else {
-                if (control.x + xOffset < control.x + control.width)
-                    control.x += xOffset;
-                if (control.width - xOffset > 0)
-                    control.width -= xOffset;
-            }
-        }
+        onPosChange: (xOffset, yOffset) => root.resize(xOffset, yOffset, -1, 0)
     }
-    //右边拖拽
     DragItem {
         id: posRightItem
 
@@ -207,20 +127,8 @@ Item {
         x: parent.width - width
         y: rightTopHandle.height
 
-        onPosChange: function (xOffset, yOffset) {
-            if (root.mirrored) {
-                // visual right edge: move x so the right visual edge tracks the mouse
-                if (control.width + xOffset > 0) {
-                    control.x -= xOffset;
-                    control.width += xOffset;
-                }
-            } else {
-                if (control.width + xOffset > 0)
-                    control.width += xOffset;
-            }
-        }
+        onPosChange: (xOffset, yOffset) => root.resize(xOffset, yOffset, 1, 0)
     }
-    //下边拖拽
     DragItem {
         id: posBottomItem
 
@@ -231,9 +139,6 @@ Item {
         x: leftBottomHandle.width
         y: parent.height - height
 
-        onPosChange: function (xOffset, yOffset) {
-            if (control.height + yOffset > 0)
-                control.height += yOffset;
-        }
+        onPosChange: (xOffset, yOffset) => root.resize(xOffset, yOffset, 0, 1)
     }
 }

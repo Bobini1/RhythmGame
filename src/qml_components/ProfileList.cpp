@@ -187,7 +187,8 @@ qml_components::ProfileList::createProfile() -> resource_managers::Profile*
 void
 qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
 {
-    if (profile == nullptr) {
+    const auto index = profiles.indexOf(profile);
+    if (index < 0) {
         return;
     }
     if (profiles.size() == 1) {
@@ -196,7 +197,6 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
             return;
         }
     }
-    const auto index = profiles.indexOf(profile);
     profiles.remove(index);
     if (profile == mainProfile) {
         setMainProfile(profiles[0]);
@@ -222,10 +222,10 @@ qml_components::ProfileList::removeProfile(resource_managers::Profile* profile)
               spdlog::error("Failed to remove profile: {}", ec.message());
           }
 
-          QKeychain::DeletePasswordJob job(
+          auto* job = new QKeychain::DeletePasswordJob(
             resource_managers::Profile::keychainService, this);
-          job.setKey(QString("profile/%1/token").arg(guid));
-          job.start();
+          job->setKey(resource_managers::Profile::credentialKey(guid));
+          job->start();
       });
     emit profilesChanged();
 }
@@ -342,5 +342,5 @@ auto
 qml_components::ProfileList::at(const int index) const
   -> resource_managers::Profile*
 {
-    return profiles.at(index);
+    return profiles.value(index);
 }

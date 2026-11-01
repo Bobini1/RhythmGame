@@ -1,4 +1,8 @@
 #include "SongAssetStore.h"
+#include <QCache>
+#ifdef RHYTHMGAME_USE_BACKBEAT
+#include "BackbeatSource.h"
+#endif
 
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
@@ -23,7 +27,6 @@
 
 #include <algorithm>
 #include <array>
-#include <deque>
 #include <cstring>
 #include <iterator>
 #include <memory>
@@ -73,6 +76,11 @@ normalizedVirtualPath(const std::filesystem::path& path) -> QString
 {
     auto value = support::pathToQString(path);
     value.replace('\\', '/');
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(path)) {
+        return value;
+    }
+#endif
     return QDir::cleanPath(value);
 }
 
@@ -105,6 +113,11 @@ joinVirtual(QString directory, QString relative) -> QString
     if (!directory.endsWith('/')) {
         directory += '/';
     }
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (directory.startsWith(BackbeatSource::rootPath())) {
+        return directory + relative;
+    }
+#endif
     return QDir::cleanPath(directory + relative);
 }
 
@@ -415,8 +428,6 @@ struct IndexedZipEntry
     QString path;
     bool directory = false;
     bool encrypted = false;
-    std::optional<zip_uint64_t> uncompressedSize;
-    std::optional<zip_uint16_t> compressionMethod;
 };
 
 struct IndexedZipLookup
@@ -425,21 +436,13 @@ struct IndexedZipLookup
     zip_uint64_t index{};
 };
 
-class IndexedZipArchive : public std::enable_shared_from_this<IndexedZipArchive>
+class IndexedZipArchive
 {
   public:
-    IndexedZipArchive(ZipArchiveHandle archive,
-                      std::shared_ptr<IndexedZipArchive> parent = {})
+    explicit IndexedZipArchive(ZipArchiveHandle archive)
       : archive(std::move(archive))
-      , parent(std::move(parent))
     {
         buildIndex();
-    }
-
-    ~IndexedZipArchive()
-    {
-        auto locks = lockParents();
-        archive.reset();
     }
 
     IndexedZipArchive(const IndexedZipArchive&) = delete;
@@ -529,39 +532,6 @@ class IndexedZipArchive : public std::enable_shared_from_this<IndexedZipArchive>
           stop);
     }
 
-    [[nodiscard]] auto openNested(const zip_uint64_t index) const
-      -> std::shared_ptr<IndexedZipArchive>
-    {
-        auto locks = lockChain();
-        auto error = zip_error_t{};
-        zip_error_init(&error);
-        auto* source = zip_source_zip_file_create(
-          archive.get(), index, 0, 0, -1, nullptr, &error);
-        if (!source) {
-            auto exception = zipError(
-              QStringLiteral("Could not open nested ZIP entry"), &error);
-            zip_error_fini(&error);
-            throw exception;
-        }
-        if (zip_source_is_seekable(source) != 1) {
-            zip_source_free(source);
-            zip_error_fini(&error);
-            return {};
-        }
-        auto* child = zip_open_from_source(source, ZIP_RDONLY, &error);
-        if (!child) {
-            auto exception = zipError(
-              QStringLiteral("Could not open nested ZIP archive"), &error);
-            zip_source_free(source);
-            zip_error_fini(&error);
-            throw exception;
-        }
-        zip_error_fini(&error);
-        return std::make_shared<IndexedZipArchive>(
-          ZipArchiveHandle{ child },
-          const_cast<IndexedZipArchive*>(this)->shared_from_this());
-    }
-
   private:
     void stream(const zip_uint64_t index,
                 const QString& errorContext,
@@ -569,7 +539,7 @@ class IndexedZipArchive : public std::enable_shared_from_this<IndexedZipArchive>
                 const std::atomic_bool* stop) const
     {
         throwIfCancelled(stop);
-        auto locks = lockChain();
+        auto lock = std::scoped_lock{ mutex };
         auto file = openFile(index);
         auto buffer = std::array<char, archiveReadBlockSize>{};
         for (;;) {
@@ -585,42 +555,6 @@ class IndexedZipArchive : public std::enable_shared_from_this<IndexedZipArchive>
             consume(buffer.data(), bytes);
         }
     }
-    void appendMutexes(std::vector<std::mutex*>& mutexes) const
-    {
-        if (parent) {
-            parent->appendMutexes(mutexes);
-        }
-        mutexes.push_back(&mutex);
-    }
-
-    [[nodiscard]] auto lockParents() const
-      -> std::vector<std::unique_lock<std::mutex>>
-    {
-        auto mutexes = std::vector<std::mutex*>{};
-        if (parent) {
-            parent->appendMutexes(mutexes);
-        }
-        auto locks = std::vector<std::unique_lock<std::mutex>>{};
-        locks.reserve(mutexes.size());
-        for (auto* value : mutexes) {
-            locks.emplace_back(*value);
-        }
-        return locks;
-    }
-
-    [[nodiscard]] auto lockChain() const
-      -> std::vector<std::unique_lock<std::mutex>>
-    {
-        auto mutexes = std::vector<std::mutex*>{};
-        appendMutexes(mutexes);
-        auto locks = std::vector<std::unique_lock<std::mutex>>{};
-        locks.reserve(mutexes.size());
-        for (auto* value : mutexes) {
-            locks.emplace_back(*value);
-        }
-        return locks;
-    }
-
     [[nodiscard]] auto openFile(const zip_uint64_t index) const -> ZipFileHandle
     {
         auto* value = zip_fopen_index(archive.get(), index, ZIP_FL_UNCHANGED);
@@ -657,19 +591,7 @@ class IndexedZipArchive : public std::enable_shared_from_this<IndexedZipArchive>
             const auto encrypted =
               (stat.valid & ZIP_STAT_ENCRYPTION_METHOD) != 0 &&
               stat.encryption_method != ZIP_EM_NONE;
-            const auto uncompressedSize =
-              (stat.valid & ZIP_STAT_SIZE) != 0
-                ? std::optional<zip_uint64_t>{ stat.size }
-                : std::nullopt;
-            const auto compressionMethod =
-              (stat.valid & ZIP_STAT_COMP_METHOD) != 0
-                ? std::optional<zip_uint16_t>{ stat.comp_method }
-                : std::nullopt;
-            entries.push_back({ path,
-                                directory,
-                                encrypted,
-                                uncompressedSize,
-                                compressionMethod });
+            entries.push_back({ path, directory, encrypted });
             if (path.isEmpty()) {
                 continue;
             }
@@ -688,7 +610,6 @@ class IndexedZipArchive : public std::enable_shared_from_this<IndexedZipArchive>
     }
 
     ZipArchiveHandle archive;
-    std::shared_ptr<IndexedZipArchive> parent;
     mutable std::mutex mutex;
     std::vector<IndexedZipEntry> entries;
     std::vector<IndexedZipLookup> exactEntries;
@@ -737,6 +658,13 @@ auto
 materializationKeyDigest(const std::filesystem::path& virtualPath)
   -> std::optional<QByteArray>
 {
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(virtualPath)) {
+        return QCryptographicHash::hash(
+          normalizedVirtualPath(virtualPath).toUtf8(),
+          QCryptographicHash::Sha256);
+    }
+#endif
     const auto boundary = findPhysicalBoundary(virtualPath);
     if (!boundary || boundary->remainder.isEmpty()) {
         return std::nullopt;
@@ -857,6 +785,11 @@ auto
 candidatePaths(const QString& requested) -> QStringList
 {
     auto candidates = QStringList{ normalizeArchivePath(requested) };
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (requested.startsWith(BackbeatSource::rootPath())) {
+        candidates = { requested };
+    }
+#endif
     auto info = QFileInfo(requested);
     auto stem = info.path();
     if (stem == QStringLiteral(".")) {
@@ -872,6 +805,25 @@ candidatePaths(const QString& requested) -> QStringList
     candidates.removeDuplicates();
     return candidates;
 }
+
+#ifdef RHYTHMGAME_USE_BACKBEAT
+auto
+resolveBackbeatAsset(const BackbeatSource& source,
+                     const std::filesystem::path& path,
+                     const std::atomic_bool* stop) -> BackbeatSource::Asset
+{
+    for (const auto& candidate : candidatePaths(normalizedVirtualPath(path))) {
+        throwIfCancelled(stop);
+        if (auto asset = source.resolve(support::qStringToPath(candidate))) {
+            return std::move(*asset);
+        }
+    }
+    throw std::filesystem::filesystem_error(
+      "Backbeat asset not found",
+      path,
+      std::make_error_code(std::errc::no_such_file_or_directory));
+}
+#endif
 
 auto
 relativeKey(const std::filesystem::path& path) -> QString
@@ -957,7 +909,7 @@ class SongAssetStore::Impl
     struct LocatedContainer
     {
         std::shared_ptr<IndexedZipArchive> archive;
-        std::filesystem::path virtualArchivePath;
+        std::filesystem::path archivePath;
         QString internalDirectory;
     };
 
@@ -980,8 +932,8 @@ class SongAssetStore::Impl
         const auto identity = normalizedPhysicalPath(path);
         {
             auto lock = std::scoped_lock{ cacheMutex };
-            if (const auto found = physicalArchives.constFind(identity);
-                found != physicalArchives.cend() && found->key == key) {
+            if (const auto* found = physicalArchives.object(identity);
+                found && found->key == key) {
                 return found->archive;
             }
         }
@@ -989,76 +941,18 @@ class SongAssetStore::Impl
         auto opened =
           std::make_shared<IndexedZipArchive>(openPhysicalZip(path));
         auto lock = std::scoped_lock{ cacheMutex };
-        if (const auto found = physicalArchives.constFind(identity);
-            found != physicalArchives.cend() && found->key == key) {
+        if (const auto* found = physicalArchives.object(identity);
+            found && found->key == key) {
             return found->archive;
         }
-        physicalArchives.insert(identity, { key, opened });
-        return opened;
-    }
-
-    [[nodiscard]] auto nestedArchive(
-      const std::shared_ptr<IndexedZipArchive>& parent,
-      const zip_uint64_t index,
-      const std::filesystem::path& virtualPath,
-      const std::atomic_bool* stop = nullptr) const
-      -> std::shared_ptr<IndexedZipArchive>
-    {
-        throwIfCancelled(stop);
-        const auto& entry = parent->entry(index);
-        if (!entry.compressionMethod ||
-            *entry.compressionMethod != ZIP_CM_STORE) {
-            const auto declaredSize =
-              entry.uncompressedSize
-                ? QStringLiteral("%1 bytes")
-                    .arg(static_cast<qulonglong>(*entry.uncompressedSize))
-                : QStringLiteral("unknown");
-            throw std::runtime_error(
-              QStringLiteral(
-                "Nested ZIP is compressed inside its parent and is "
-                "unsupported: %1 (declared size: %2).")
-                .arg(support::pathToQString(virtualPath), declaredSize)
-                .toStdString());
-        }
-        const auto digest = materializationKeyDigest(virtualPath);
-        if (!digest) {
-            throw std::runtime_error(
-              QStringLiteral("Could not identify nested ZIP archive %1")
-                .arg(support::pathToQString(virtualPath))
-                .toStdString());
-        }
-        const auto key =
-          QStringLiteral("nested:") + QString::fromLatin1(digest->toHex());
-        {
-            auto lock = std::scoped_lock{ cacheMutex };
-            if (const auto found = archives.constFind(key);
-                found != archives.cend()) {
-                if (auto cached = found->lock()) {
-                    retainNestedArchive(key, cached);
-                    return cached;
-                }
-            }
-        }
-
-        auto opened = parent->openNested(index);
-        if (!opened) {
-            throw std::runtime_error(
-              QStringLiteral(
-                "Nested ZIP is not directly seekable and is unsupported: %1.")
-                .arg(support::pathToQString(virtualPath))
-                .toStdString());
-        }
-
-        auto lock = std::scoped_lock{ cacheMutex };
-        if (const auto found = archives.constFind(key);
-            found != archives.cend()) {
-            if (auto cached = found->lock()) {
-                retainNestedArchive(key, cached);
-                return cached;
-            }
-        }
-        archives.insert(key, opened);
-        retainNestedArchive(key, opened);
+        // Charge at least one slot per archive as well as its entry index.
+        // An oversized archive occupies the whole cache, so successive asset
+        // reads still reuse its index. Active readers survive cache eviction.
+        const auto cost =
+          std::min<size_t>(physicalArchives.maxCost(),
+                           std::max<size_t>(4096, opened->allEntries().size()));
+        physicalArchives.insert(
+          identity, new RetainedArchive{ key, opened }, static_cast<int>(cost));
         return opened;
     }
 
@@ -1121,62 +1015,19 @@ class SongAssetStore::Impl
         }
 
         auto archive = physicalArchive(boundary->physicalFile);
-        auto virtualArchivePath = boundary->physicalFile;
-        auto remaining = boundary->remainder;
-        for (;;) {
-            throwIfCancelled(stop);
-            auto prefixes = QStringList{};
-            for (auto index = remaining.indexOf('/'); index >= 0;
-                 index = remaining.indexOf('/', index + 1)) {
-                prefixes.push_back(remaining.left(index));
+        for (auto prefix = boundary->remainder; !prefix.isEmpty();) {
+            if (archive->findExact(prefix)) {
+                return std::nullopt;
             }
-            if (!remaining.isEmpty() && SongAssetStore::isArchivePath(
-                                          support::qStringToPath(remaining))) {
-                prefixes.push_back(remaining);
+            const auto separator = prefix.lastIndexOf('/');
+            if (separator < 0) {
+                break;
             }
-            std::ranges::sort(prefixes,
-                              [](const QString& left, const QString& right) {
-                                  return left.size() > right.size();
-                              });
-            prefixes.removeDuplicates();
-
-            auto selectedPrefix = QString{};
-            auto selectedIndex = std::optional<zip_uint64_t>{};
-            for (const auto& prefix : prefixes) {
-                throwIfCancelled(stop);
-                if (!SongAssetStore::isArchivePath(
-                      support::qStringToPath(prefix))) {
-                    continue;
-                }
-                const auto nestedVirtualPath =
-                  support::qStringToPath(joinVirtual(
-                    support::pathToQString(virtualArchivePath), prefix));
-                const auto supportError =
-                  SongAssetStore::archiveSupportError(nestedVirtualPath);
-                if (!supportError.isEmpty()) {
-                    throw std::runtime_error(supportError.toStdString());
-                }
-                if (const auto index = archive->findExact(prefix)) {
-                    selectedPrefix = prefix;
-                    selectedIndex = index;
-                    break;
-                }
-            }
-            if (!selectedIndex) {
-                return LocatedContainer{ archive,
-                                         virtualArchivePath,
-                                         remaining };
-            }
-
-            virtualArchivePath = support::qStringToPath(joinVirtual(
-              support::pathToQString(virtualArchivePath), selectedPrefix));
-            archive =
-              nestedArchive(archive, *selectedIndex, virtualArchivePath, stop);
-            remaining.remove(0, selectedPrefix.size());
-            while (remaining.startsWith('/')) {
-                remaining.remove(0, 1);
-            }
+            prefix.truncate(separator);
         }
+        return LocatedContainer{ std::move(archive),
+                                 boundary->physicalFile,
+                                 boundary->remainder };
     }
 
     [[nodiscard]] auto locateEntry(const std::filesystem::path& virtualPath,
@@ -1221,13 +1072,11 @@ class SongAssetStore::Impl
         }
 
         const auto& entry = container->archive->entry(*selected);
-        return LocatedEntry{
-            container->archive,
-            *selected,
-            support::qStringToPath(
-              joinVirtual(support::pathToQString(container->virtualArchivePath),
-                          entry.path))
-        };
+        return LocatedEntry{ container->archive,
+                             *selected,
+                             support::qStringToPath(joinVirtual(
+                               support::pathToQString(container->archivePath),
+                               entry.path)) };
     }
 
   private:
@@ -1236,34 +1085,6 @@ class SongAssetStore::Impl
         QString key;
         std::shared_ptr<IndexedZipArchive> archive;
     };
-
-    void retainNestedArchive(
-      const QString& key,
-      const std::shared_ptr<IndexedZipArchive>& archive) const
-    {
-        for (auto retained = hotArchives.begin(); retained != hotArchives.end();
-             ++retained) {
-            if (retained->archive != archive) {
-                continue;
-            }
-            hotArchives.erase(retained);
-            break;
-        }
-        hotArchives.push_front({ key, archive });
-
-        // Root ZIPs are retained separately, so even a huge outer central
-        // directory cannot evict the active inner song pack. Keep a modest
-        // number of recent inner packs to make selection and gameplay reuse
-        // their indexes without retaining every pack visited by a full scan.
-        constexpr auto hotArchiveLimit = size_t{ 32 };
-        while (hotArchives.size() > hotArchiveLimit) {
-            auto evicted = std::move(hotArchives.back());
-            hotArchives.pop_back();
-            if (evicted.archive.use_count() == 1) {
-                archives.remove(evicted.key);
-            }
-        }
-    }
 
     [[nodiscard]] static auto physicalArchiveKey(
       const std::filesystem::path& path) -> QString
@@ -1287,9 +1108,7 @@ class SongAssetStore::Impl
 
     std::filesystem::path materializationDirectory;
     mutable std::mutex cacheMutex;
-    mutable QHash<QString, RetainedArchive> physicalArchives;
-    mutable QHash<QString, std::weak_ptr<IndexedZipArchive>> archives;
-    mutable std::deque<RetainedArchive> hotArchives;
+    mutable QCache<QString, RetainedArchive> physicalArchives{ 32 * 4096 };
 };
 
 SongAssetStore::SongAssetStore(QObject* parent)
@@ -1306,6 +1125,25 @@ SongAssetStore::SongAssetStore(QObject* parent)
 }
 
 SongAssetStore::~SongAssetStore() = default;
+
+#ifdef RHYTHMGAME_USE_BACKBEAT
+void
+SongAssetStore::setBackbeatSource(std::shared_ptr<BackbeatSource> source)
+{
+    backbeat = std::move(source);
+}
+#endif
+
+auto
+SongAssetStore::isVirtual(const std::filesystem::path& path) const -> bool
+{
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(path)) {
+        return true;
+    }
+#endif
+    return isArchived(path);
+}
 
 auto
 SongAssetStore::isArchivePath(const std::filesystem::path& path) -> bool
@@ -1378,88 +1216,38 @@ SongAssetStore::walkArchive(const std::filesystem::path& archivePath,
                             const EntryVisitor& visitor,
                             std::atomic_bool* stop) const
 {
-    struct PendingArchive
-    {
-        std::shared_ptr<IndexedZipArchive> archive;
-        std::shared_ptr<IndexedZipArchive> parent;
-        std::optional<zip_uint64_t> parentIndex;
-        std::filesystem::path virtualArchivePath;
-        QString virtualPrefix;
-    };
-    auto pending = std::deque<PendingArchive>{};
+    auto archive = impl->physicalArchive(archivePath);
     auto prefix = normalizedVirtualPath(archivePath);
     if (!prefix.endsWith('/')) {
         prefix += '/';
     }
-    pending.push_back(
-      { impl->physicalArchive(archivePath), {}, {}, archivePath, prefix });
-    while (!pending.empty()) {
+    auto entryIndex = zip_uint64_t{};
+    for (const auto& entry : archive->allEntries()) {
+        const auto currentEntryIndex = entryIndex++;
         if (stop && *stop) {
             return;
         }
-        auto current = std::move(pending.front());
-        pending.pop_front();
-        if (!current.archive) {
-            try {
-                current.archive =
-                  impl->nestedArchive(current.parent,
-                                      *current.parentIndex,
-                                      current.virtualArchivePath,
-                                      stop);
-            } catch (const std::exception& error) {
-                spdlog::warn("Skipping nested archive {}: {}",
-                             current.virtualPrefix.toStdString(),
-                             error.what());
-                continue;
-            }
+        const auto& relative = entry.path;
+        if (entry.directory || relative.isEmpty()) {
+            continue;
         }
-        auto entryIndex = zip_uint64_t{};
-        for (const auto& entry : current.archive->allEntries()) {
-            const auto currentEntryIndex = entryIndex++;
-            if (stop && *stop) {
-                return;
-            }
-            const auto& relative = entry.path;
-            if (entry.directory || relative.isEmpty()) {
-                continue;
-            }
-            const auto virtualPath = current.virtualPrefix + relative;
-            if (entry.encrypted) {
-                spdlog::warn("Encrypted archive entry is unsupported: {}",
-                             virtualPath.toStdString());
-                continue;
-            }
-            if (isSplitArchivePath(support::qStringToPath(relative))) {
-                spdlog::error(
-                  "{}",
-                  archiveSupportError(support::qStringToPath(virtualPath))
-                    .toStdString());
-                continue;
-            }
-            if (isArchivePath(support::qStringToPath(relative))) {
-                const auto nestedVirtualPath =
-                  support::qStringToPath(virtualPath);
-                const auto supportError =
-                  archiveSupportError(nestedVirtualPath);
-                if (!supportError.isEmpty()) {
-                    spdlog::error("{}", supportError.toStdString());
-                    continue;
-                }
-                pending.push_front({ {},
-                                     current.archive,
-                                     currentEntryIndex,
-                                     nestedVirtualPath,
-                                     virtualPath + '/' });
-                continue;
-            }
+        const auto relativePath = support::qStringToPath(relative);
+        if (isArchivePath(relativePath) || isSplitArchivePath(relativePath)) {
+            continue;
+        }
+        const auto virtualPath = prefix + relative;
+        if (entry.encrypted) {
+            spdlog::warn("Encrypted archive entry is unsupported: {}",
+                         virtualPath.toStdString());
+            continue;
+        }
 
-            auto data = std::optional<QByteArray>{};
-            const auto fsVirtualPath = support::qStringToPath(virtualPath);
-            if (wantsContents && wantsContents(fsVirtualPath)) {
-                data = current.archive->read(currentEntryIndex, stop);
-            }
-            visitor(ArchiveEntry{ fsVirtualPath, std::move(data) });
+        auto data = std::optional<QByteArray>{};
+        const auto fsVirtualPath = support::qStringToPath(virtualPath);
+        if (wantsContents && wantsContents(fsVirtualPath)) {
+            data = archive->read(currentEntryIndex, stop);
         }
+        visitor(ArchiveEntry{ fsVirtualPath, std::move(data) });
     }
 }
 
@@ -1474,6 +1262,23 @@ SongAssetStore::materializeRelative(
     if (relativePaths.empty()) {
         return {};
     }
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(virtualDirectory)) {
+        std::unordered_map<std::filesystem::path, std::filesystem::path> result;
+        for (const auto& relative : relativePaths) {
+            throwIfCancelled(stop);
+            try {
+                result.emplace(relative,
+                               materialize(virtualDirectory / relative, stop));
+            } catch (const std::filesystem::filesystem_error& error) {
+                if (error.code() != std::errc::no_such_file_or_directory) {
+                    throw;
+                }
+            }
+        }
+        return result;
+    }
+#endif
 
     const auto requestedVirtualPath =
       [&virtualDirectory](const std::filesystem::path& relative) {
@@ -1548,6 +1353,19 @@ SongAssetStore::read(const std::filesystem::path& virtualPath,
                      const std::atomic_bool* stop) const -> QByteArray
 {
     throwIfCancelled(stop);
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(virtualPath)) {
+        if (!backbeat) {
+            throw std::runtime_error("Backbeat is unavailable");
+        }
+        auto asset = resolveBackbeatAsset(*backbeat, virtualPath, stop);
+        throwIfCancelled(stop);
+        if (const auto bytes = std::get_if<QByteArray>(&asset)) {
+            return *bytes;
+        }
+        return read(std::get<std::filesystem::path>(asset), stop);
+    }
+#endif
     if (isArchived(virtualPath)) {
         const auto located = impl->locateEntry(virtualPath, stop);
         if (!located) {
@@ -1586,6 +1404,38 @@ SongAssetStore::materialize(const std::filesystem::path& virtualPath,
   -> std::filesystem::path
 {
     throwIfCancelled(stop);
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(virtualPath)) {
+        if (!backbeat) {
+            throw std::runtime_error("Backbeat is unavailable");
+        }
+        if (const auto cached =
+              existingMaterialization(materializationDirectory, virtualPath)) {
+            return *cached;
+        }
+        auto asset = resolveBackbeatAsset(*backbeat, virtualPath, stop);
+        throwIfCancelled(stop);
+        if (const auto path = std::get_if<std::filesystem::path>(&asset)) {
+            return *path;
+        }
+        const auto target =
+          sourceMaterializationPath(materializationDirectory, virtualPath)
+            .value();
+        QSaveFile file(support::pathToQString(target));
+        const auto& bytes = std::get<QByteArray>(asset);
+        if (!file.open(QIODevice::WriteOnly) ||
+            file.write(bytes) != bytes.size()) {
+            throw std::runtime_error(
+              "Could not write temporary Backbeat asset");
+        }
+        throwIfCancelled(stop);
+        if (!file.commit()) {
+            throw std::runtime_error(
+              "Could not commit temporary Backbeat asset");
+        }
+        return target;
+    }
+#endif
     if (!isArchived(virtualPath)) {
         std::error_code ec;
         if (std::filesystem::is_regular_file(virtualPath, ec)) {
@@ -1609,6 +1459,12 @@ SongAssetStore::imageUrl(const std::filesystem::path& virtualPath) -> QString
     if (virtualPath.empty()) {
         return {};
     }
+#ifdef RHYTHMGAME_USE_BACKBEAT
+    if (BackbeatSource::isPath(virtualPath)) {
+        return QStringLiteral("image://song-assets/") +
+               encodedPath(virtualPath);
+    }
+#endif
     const auto boundary = findPhysicalBoundary(virtualPath);
     if (!boundary ||
         (boundary->remainder.isEmpty() && !boundary->trailingSeparator)) {
@@ -1707,6 +1563,9 @@ SongAssetStore::localFile(const QString& virtualPath) const
 QString
 SongAssetStore::containingFolder(const QString& virtualPath) const
 {
+    if (virtualPath.startsWith(QStringLiteral("backbeat:/"))) {
+        return {};
+    }
     const auto path = support::qStringToPath(virtualPath);
     if (const auto boundary = findPhysicalBoundary(path);
         boundary &&

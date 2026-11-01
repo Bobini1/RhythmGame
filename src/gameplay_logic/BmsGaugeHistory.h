@@ -94,6 +94,8 @@ class BmsGaugeHistory final : public QObject
     auto getGuid() const -> QString;
 
     void save(db::SqliteCppDb& db) const;
+    auto serialize() const -> QByteArray;
+    void save(db::SqliteCppDb& db, const QByteArray& serialized) const;
 
     struct DTO
     {

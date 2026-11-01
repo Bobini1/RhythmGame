@@ -19,6 +19,9 @@
 #include "resource_managers/SongDbScanner.h"
 #include "resource_managers/SongAssetImageProvider.h"
 #include "resource_managers/SongAssetStore.h"
+#ifdef RHYTHMGAME_USE_BACKBEAT
+#include "resource_managers/BackbeatCatalog.h"
+#endif
 #include "resource_managers/DefineDb.h"
 #include "input/GamepadManager.h"
 #include "input/InputTranslator.h"
@@ -69,6 +72,7 @@
 #include "arena/SqliteArenaInventorySource.h"
 
 #include <filesystem>
+#include <chrono>
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 Q_IMPORT_PLUGIN(TgaPlugin)
@@ -289,14 +293,21 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             qputenv("QV4_GC_TIMELIMIT", QByteArray("1"));
         }
 
-        auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite" };
+        auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite",
+                                   std::chrono::seconds(5) };
 
         resource_managers::defineDb(db);
+        auto catalogWriteDb = db::SqliteCppDb{ dataFolder / "song_db.sqlite",
+                                               std::chrono::seconds(5) };
 
         removeLegacySongAssetCache(dataFolder);
         auto songAssets = resource_managers::SongAssetStore{};
+#ifdef RHYTHMGAME_USE_BACKBEAT
+        auto backbeat = std::make_shared<resource_managers::BackbeatSource>();
+        songAssets.setBackbeatSource(backbeat);
+#endif
         auto songDbScanner =
-          resource_managers::SongDbScanner{ &db, &songAssets };
+          resource_managers::SongDbScanner{ &catalogWriteDb, &songAssets };
         auto avatarPath = support::pathToQString(dataFolder / "avatars/");
         if (!avatarPath.startsWith("/")) {
             avatarPath = "/" + avatarPath;
@@ -404,29 +415,20 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
               return gaugeFactoryGeneral.getCourseGauges(profile,
                                                          initialValues);
           };
-        auto getChartPathFromMd5 = [&db](const QString& md5,
-                                         const std::filesystem::path& hint) {
-            // Check if the hint path exists and matches the hash
-            if (!hint.empty()) {
-                auto hintStatement =
-                  db.createStatement("SELECT md5 FROM charts WHERE path = ?;");
-                hintStatement.bind(1, support::pathToUtfString(hint));
-                if (const auto hintResult =
-                      hintStatement.executeAndGet<std::string>()) {
-                    if (*hintResult == md5.toStdString()) {
-                        return std::optional{ hint };
-                    }
-                }
-            }
-
-            auto statement =
-              db.createStatement("SELECT path FROM charts WHERE md5 = ?;");
-            statement.bind(1, md5.toStdString());
-            auto path = statement.executeAndGet<std::string>();
-            if (!path) {
-                return std::optional<std::filesystem::path>{};
-            }
-            return std::optional{ support::utfStringToPath(*path) };
+        auto findChartPath = [&db](const QString& identifier,
+                                   const std::filesystem::path& hint) {
+            const auto id = identifier.toUpper();
+            const bool sha256 = id.startsWith("SHA256/");
+            const auto hash = sha256 ? id.mid(7) : id;
+            auto statement = db.createStatement(
+              "SELECT path FROM charts WHERE " +
+              std::string(sha256 ? "sha256" : "md5") +
+              " = ? ORDER BY CASE WHEN path = ? THEN 0 ELSE 1 END, id LIMIT 1");
+            statement.bind(1, hash.toStdString());
+            statement.bind(2, support::pathToUtfString(hint));
+            const auto path = statement.executeAndGet<std::string>();
+            return path ? std::optional{ support::utfStringToPath(*path) }
+                        : std::optional<std::filesystem::path>{};
         };
         auto chartLoader = qml_components::ChartLoader{
             &profileList,
@@ -436,12 +438,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             &gameplay_logic::rules::lr2_hit_values::getLr2HitValue,
             gaugeFactory,
             gaugeFactoryCourse,
-            getChartPathFromMd5,
+            findChartPath,
             &chartFactory,
             &db
         };
-        auto arenaRoundLoader =
-          arena::QtArenaRoundLoader{ &profileList, &db, &chartLoader };
+        auto arenaRoundLoader = arena::QtArenaRoundLoader{
+            &profileList, &db, &chartLoader, &songAssets
+        };
         auto arenaGameplaySource = arena::QtArenaGameplaySource{};
         auto arenaSession =
           arena::ArenaSession{ &arenaTransport,
@@ -485,7 +488,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         applyArenaDirectoryPolicy();
 
         auto scanningQueue =
-          qml_components::ScanningQueue{ &db, songDbScanner };
+          qml_components::ScanningQueue{ &catalogWriteDb, songDbScanner };
 
         auto folders = qml_components::RootSongFolders{ &db, &scanningQueue };
 
@@ -511,6 +514,60 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto tables = resource_managers::Tables{ &networkManager,
                                                  dataFolder / "tables",
                                                  &db };
+
+        QObject::connect(&scanningQueue,
+                         &qml_components::ScanningQueue::queueDrained,
+                         &songFolderFactory,
+                         &qml_components::SongFolderFactory::contentsChanged);
+        QObject::connect(
+          &folders,
+          &qml_components::RootSongFolders::chartSetMutationCommitted,
+          &songFolderFactory,
+          &qml_components::SongFolderFactory::contentsChanged);
+#ifdef RHYTHMGAME_USE_BACKBEAT
+        auto backbeatCatalog = resource_managers::BackbeatCatalog{
+            backbeat, dataFolder / "song_db.sqlite", &db, &catalogWriteDb
+        };
+        QObject::connect(&scanningQueue,
+                         &qml_components::ScanningQueue::queueDrained,
+                         &backbeatCatalog,
+                         [&] { backbeatCatalog.refresh(true); });
+        QObject::connect(
+          &folders,
+          &qml_components::RootSongFolders::chartSetMutationCommitted,
+          &backbeatCatalog,
+          [&] { backbeatCatalog.refresh(true); });
+        QObject::connect(&songFolderFactory,
+                         &qml_components::SongFolderFactory::refreshRequested,
+                         &backbeatCatalog,
+                         &resource_managers::BackbeatCatalog::refresh);
+        QObject::connect(&tables,
+                         &resource_managers::Tables::externalReloadRequested,
+                         &backbeatCatalog,
+                         [&] { backbeatCatalog.refresh(true); });
+        QObject::connect(&backbeatCatalog,
+                         &resource_managers::BackbeatCatalog::busyChanged,
+                         &songFolderFactory,
+                         &qml_components::SongFolderFactory::setRefreshing);
+        QObject::connect(&backbeatCatalog,
+                         &resource_managers::BackbeatCatalog::errorChanged,
+                         &songFolderFactory,
+                         &qml_components::SongFolderFactory::setRefreshError);
+        QObject::connect(
+          &backbeatCatalog,
+          &resource_managers::BackbeatCatalog::chartSetChanged,
+          &arenaInventorySource,
+          &arena::SqliteArenaInventorySource::commitLibraryMutation);
+        QObject::connect(
+          &backbeatCatalog,
+          &resource_managers::BackbeatCatalog::updated,
+          &songFolderFactory,
+          [&](const QList<resource_managers::Table>& collections) {
+              tables.setExternalTables(collections);
+              emit songFolderFactory.contentsChanged();
+          });
+        backbeatCatalog.refresh();
+#endif
 
         auto onlineScores = qml_components::OnlineScores{ &networkManager };
 
@@ -563,162 +620,16 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         Rg::instance = &rg;
 
         // add all other common types
-        qmlRegisterType<resource_managers::Level>(
-          "RhythmGameQml", 1, 0, "level");
-        qmlRegisterType<resource_managers::Course>(
-          "RhythmGameQml", 1, 0, "course");
-        qmlRegisterType<resource_managers::Trophy>(
-          "RhythmGameQml", 1, 0, "trophy");
-        qmlRegisterType<resource_managers::Table>(
-          "RhythmGameQml", 1, 0, "table");
-        qmlRegisterType<resource_managers::Entry>(
-          "RhythmGameQml", 1, 0, "entry");
-        qmlRegisterType<qml_components::ScoreQueryResult>(
-          "RhythmGameQml", 1, 0, "scoreQueryResult");
-        qmlRegisterType<qml_components::TableQueryResult>(
-          "RhythmGameQml", 1, 0, "tableQueryResult");
-        qmlRegisterType<resource_managers::TableInfo>(
-          "RhythmGameQml", 1, 0, "tableInfo");
-        qmlRegisterType<gameplay_logic::ChartRunner>(
-          "RhythmGameQml", 1, 0, "ChartRunner");
-        qmlRegisterType<gameplay_logic::CourseRunner>(
-          "RhythmGameQml", 1, 0, "CourseRunner");
-        qmlRegisterType<gameplay_logic::ChartData>(
-          "RhythmGameQml", 1, 0, "ChartData");
-        qmlRegisterType<gameplay_logic::Player>(
-          "RhythmGameQml", 1, 0, "Player");
-        qmlRegisterUncreatableType<gameplay_logic::AutoPlayer>(
-          "RhythmGameQml",
-          1,
-          0,
-          "AutoPlayer",
-          "AutoPlayer is created by ChartLoader");
-        qmlRegisterUncreatableType<gameplay_logic::rules::BmsGauge>(
-          "RhythmGameQml", 1, 0, "BmsGauge", "BmsGauge is abstract");
-        qmlRegisterType<gameplay_logic::BmsLiveScore>(
-          "RhythmGameQml", 1, 0, "BmsLiveScore");
-        qmlRegisterType<gameplay_logic::BmsNotes>(
-          "RhythmGameQml", 1, 0, "BmsNotes");
-        qmlRegisterType<resource_managers::Profile>(
-          "RhythmGameQml", 1, 0, "BmsProfile");
-        qmlRegisterType<gameplay_logic::BmsScore>(
-          "RhythmGameQml", 1, 0, "BmsScore");
-        qmlRegisterType<gameplay_logic::BmsScoreCourse>(
-          "RhythmGameQml", 1, 0, "BmsScoreCourse");
-        qmlRegisterType<gameplay_logic::BmsResultCourse>(
-          "RhythmGameQml", 1, 0, "BmsResultCourse");
-        qmlRegisterType<gameplay_logic::BmsPoints>(
-          "RhythmGameQml", 1, 0, "bmsPoints");
-        qmlRegisterType<gameplay_logic::BmsResult>(
-          "RhythmGameQml", 1, 0, "BmsResult");
-        qmlRegisterType<gameplay_logic::BmsReplayData>(
-          "RhythmGameQml", 1, 0, "BmsReplayData");
-        qmlRegisterType<gameplay_logic::BmsGaugeHistory>(
-          "RhythmGameQml", 1, 0, "BmsGaugeHistory");
-        qmlRegisterType<gameplay_logic::HitEvent>(
-          "RhythmGameQml", 1, 0, "hitEvent");
-        qmlRegisterType<qml_components::Bga>("RhythmGameQml", 1, 0, "Bga");
-        qmlRegisterType<qml_components::BgaContainer>(
-          "RhythmGameQml", 1, 0, "BgaContainer");
-        qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "key");
-        qmlRegisterType<input::Gamepad>("RhythmGameQml", 1, 0, "gamepad");
-        qmlRegisterType<input::MidiDevice>("RhythmGameQml", 1, 0, "midiDevice");
-        qmlRegisterType<qml_components::OnlineProfileInfo>(
-          "RhythmGameQml", 1, 0, "onlineProfileInfo");
-        qmlRegisterUncreatableMetaObject(
-          gameplay_logic::judgement::staticMetaObject,
-          "RhythmGameQml",
-          1,
-          0,
-          "Judgement",
-          "Access to enums & flags only");
-        qmlRegisterUncreatableMetaObject(input::staticMetaObject,
-                                         "RhythmGameQml",
-                                         1,
-                                         0,
-                                         "BmsKey",
-                                         "Access to enums & flags only");
-        qmlRegisterUncreatableMetaObject(
-          resource_managers::dp_options::staticMetaObject,
-          "RhythmGameQml",
-          1,
-          0,
-          "DpOptions",
-          "Access to enums & flags only");
-        qmlRegisterUncreatableMetaObject(
-          resource_managers::hi_speed_fix::staticMetaObject,
-          "RhythmGameQml",
-          1,
-          0,
-          "HiSpeedFix",
-          "Access to enums & flags only");
-        qmlRegisterUncreatableMetaObject(
-          resource_managers::gauge_mode::staticMetaObject,
-          "RhythmGameQml",
-          1,
-          0,
-          "GaugeMode",
-          "Access to enums & flags only");
-        qmlRegisterUncreatableMetaObject(
-          resource_managers::score_target::staticMetaObject,
-          "RhythmGameQml",
-          1,
-          0,
-          "ScoreTarget",
-          "Access to enums & flags only");
-        qmlRegisterUncreatableMetaObject(
-          resource_managers::select_sort_mode::staticMetaObject,
-          "RhythmGameQml",
-          1,
-          0,
-          "SelectSortMode",
-          "Access to enums & flags only");
-        qmlRegisterUncreatableMetaObject(
-          resource_managers::select_keymode_filter::staticMetaObject,
-          "RhythmGameQml",
-          1,
-          0,
-          "SelectKeymodeFilter",
-          "Access to enums & flags only");
-        qmlRegisterUncreatableMetaObject(
-          resource_managers::note_order_algorithm::staticMetaObject,
-          "RhythmGameQml",
-          1,
-          0,
-          "NoteOrderAlgorithm",
-          "Access to enums & flags only");
-        qmlRegisterUncreatableType<gameplay_logic::Note>(
-          "RhythmGameQml", 1, 0, "note", "Note is created in C++");
-        qmlRegisterUncreatableType<qml_components::InputAttached>(
-          "RhythmGameQml",
-          1,
-          0,
-          "Input",
-          "Input is only accessible as an attached property");
         sounds::AudioPlayer::engine = &audioEngine;
         sounds::AudioPlayer::assetStore = &songAssets;
-        qmlRegisterType<sounds::AudioPlayer>(
-          "RhythmGameQml", 1, 0, "AudioPlayer");
         sounds::ChartAudioPlayer::engine = &audioEngine;
         sounds::ChartAudioPlayer::assetStore = &songAssets;
         sounds::ChartAudioPlayer::threadPool = &chartAudioThreadPool;
-        qmlRegisterType<sounds::ChartAudioPlayer>(
-          "RhythmGameQml", 1, 0, "ChartAudioPlayer");
-        qmlRegisterType<qml_components::ScoreReplayer>(
-          "RhythmGameQml", 1, 0, "ScoreReplayer");
         qmlRegisterType<qml_components::Lr2NativeCursor>(
           "RhythmGameQml", 1, 0, "Lr2NativeCursor");
         qml_components::OnlineRankingModel::networkManager = &networkManager;
         qml_components::OnlineRankingModel::profileList = &profileList;
         qml_components::OnlineRankingModel::onlineScores = &onlineScores;
-        qmlRegisterType<qml_components::OnlineRankingModel>(
-          "RhythmGameQml", 1, 0, "OnlineRankingModel");
-        qmlRegisterType<qml_components::RankingEntry>(
-          "RhythmGameQml", 1, 0, "rankingEntry");
-        qmlRegisterType<resource_managers::OnlineUserData>(
-          "RhythmGameQml", 1, 0, "onlineUserData");
-        qmlRegisterType<resource_managers::TachiData>(
-          "RhythmGameQml", 1, 0, "tachiData");
 
         qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2Dst>(
           "RhythmGameQml", 1, 0, "lr2Dst", "Q_GADGET");
@@ -763,12 +674,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
               }
               return QString{};
           };
-        qmlRegisterUncreatableType<qml_components::QmlUtilsAttached>(
-          "RhythmGameQml",
-          1,
-          0,
-          "QmlUtils",
-          "QmlUtils is only accessible as an attached property");
 
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});

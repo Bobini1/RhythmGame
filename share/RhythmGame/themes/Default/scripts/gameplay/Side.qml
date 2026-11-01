@@ -21,114 +21,14 @@ Item {
     readonly property real laneCoverNumber: Math.max(0, Math.min(1, profile.vars.generalVars.laneCoverRatio)) * 1000
     readonly property real liftNumber: Math.max(0, Math.min(1, profile.vars.generalVars.liftRatio)) * 1000
 
-    property bool start: Input[`start${index+1}`] || (dpSuffix && (Input.start1 || Input.start2))
-    property bool select: Input[`select${index+1}`] || (dpSuffix && (Input.select1 || Input.select2))
-    property bool coverChangeLift: true
-    property bool startSelectHeld: false
+    readonly property bool start: side.Input[`start${index+1}`] || (dpSuffix && (side.Input.start1 || side.Input.start2))
+    readonly property bool select: side.Input[`select${index+1}`] || (dpSuffix && (side.Input.select1 || side.Input.select2))
     property var pointTarget
     property bool pointTargetAvailable: true
     property real bestFinalPoints: 0
     property real bestMaxPoints: 0
     property real bestPoints: 0
     property real targetFinalPoints: 0
-
-    readonly property int laneCoverDoubleClickInterval: 500
-    property double lastStartPressTime: -1
-
-    property bool lastDirectionUp: false
-    function handleStartPress(time) {
-        if (side.lastStartPressTime >= 0
-                && time >= side.lastStartPressTime
-                && time - side.lastStartPressTime <= side.laneCoverDoubleClickInterval) {
-            side.lastStartPressTime = -1;
-            let vars = side.profile.vars.generalVars;
-            let visibleRatio = Math.max(0.001, 1 - Math.max(0, Math.min(1, vars.laneCoverRatio)));
-            let currentDuration = vars.noteScreenTimeMillis > 0 ? vars.noteScreenTimeMillis : 1000;
-            vars.noteScreenTimeMillis = Math.max(1, Math.min(10000,
-                vars.laneCoverOn ? currentDuration / visibleRatio : currentDuration * visibleRatio));
-            vars.laneCoverOn = !vars.laneCoverOn;
-        } else {
-            side.lastStartPressTime = time;
-        }
-    }
-    function updateCoverChangeTarget() {
-        let held = side.start && side.select;
-        if (held && !side.startSelectHeld) {
-            side.coverChangeLift = !side.coverChangeLift;
-        }
-        side.startSelectHeld = held;
-    }
-    onStartChanged: updateCoverChangeTarget()
-    onSelectChanged: updateCoverChangeTarget()
-    function modifyCoverValue(value) {
-        let vars = side.profile.vars.generalVars;
-        if (vars.laneCoverOn || (!vars.liftOn && !vars.hiddenOn)) {
-            vars.laneCoverRatio = Math.max(0, Math.min(1, vars.laneCoverRatio + value));
-        } else if (vars.liftOn && (!vars.hiddenOn || side.coverChangeLift)) {
-            vars.liftRatio = Math.max(0, Math.min(1, vars.liftRatio + value));
-        } else {
-            vars.hiddenRatio = Math.max(0, Math.min(1, vars.hiddenRatio + value));
-        }
-    }
-    function modifyGnWn(number, amount) {
-        if (amount > 0 && lastDirectionUp || amount < 0 && !lastDirectionUp) {
-            return;
-        }
-        let mult = 1 * amount;
-        if (number > 50 || side.index === 0 && Input.col1sUp && Input.col1sDown || side.index === 1 && Input.col2sUp && Input.col2sDown) {
-            mult = 10 * amount;
-        }
-        let vars = side.profile.vars.generalVars;
-        if (side.start && side.select) {
-            return;
-        } else if (side.start) {
-            vars.noteScreenTimeMillis += vars.noteScreenTimeMillis / 1000 * mult;
-        } else if (side.select) {
-            side.modifyCoverValue(0.0005 * mult);
-        }
-    }
-    Input.onStart1Pressed: time => {
-        if (side.index === 0) side.handleStartPress(time);
-    }
-    Input.onStart2Pressed: time => {
-        if (side.index === 1) side.handleStartPress(time);
-    }
-    Input.onCol1sUpTicked: (number, type) => {
-        if (side.index === 0) side.modifyGnWn(number, -1);
-    }
-    Input.onCol1sDownTicked: (number, type) => {
-        if (side.index === 0) side.modifyGnWn(number, 1);
-    }
-    Input.onCol2sUpTicked: (number, type) => {
-        if (side.index === 1) side.modifyGnWn(number, -1)
-    }
-    Input.onCol2sDownTicked: (number, type) => {
-        if (side.index === 1) side.modifyGnWn(number, 1)
-    }
-    Input.onCol1sUpPressed: {
-        if (side.index === 0) side.lastDirectionUp = true;
-    }
-    Input.onCol1sUpReleased: {
-        if (side.index === 0) side.lastDirectionUp = false;
-    }
-    Input.onCol1sDownPressed: {
-        if (side.index === 0) side.lastDirectionUp = false;
-    }
-    Input.onCol1sDownReleased: {
-        if (side.index === 0) side.lastDirectionUp = true;
-    }
-    Input.onCol2sUpPressed: {
-        if (side.index === 1) side.lastDirectionUp = true;
-    }
-    Input.onCol2sUpReleased: {
-        if (side.index === 1) side.lastDirectionUp = false;
-    }
-    Input.onCol2sDownPressed: {
-        if (side.index === 1) side.lastDirectionUp = false;
-    }
-    Input.onCol2sDownReleased: {
-        if (side.index === 1) side.lastDirectionUp = true;
-    }
 
     transform: Scale {
         xScale: side.mirrored ? -1 : 1; origin.x: side.width / 2
@@ -175,38 +75,6 @@ Item {
         x: side.profileVars["playAreaX" + side.dpSuffix]
         y: side.profileVars["playAreaY" + side.dpSuffix]
 
-        onHeightChanged: {
-            side.profileVars.playAreaHeight = height;
-        }
-        onWidthChanged: {
-            let spacing = side.profileVars.spacing;
-            let oldWithoutSpacing = side.columns.reduce((a, b) => a + playArea.columnSizes[b], 0);
-            let newWithoutSpacing = width - spacing * 7;
-            let newWidths = [];
-            for (let i = 5; i < 8; i++) {
-                newWidths.push(newWithoutSpacing / oldWithoutSpacing * playArea.columnSizes[i]);
-            }
-            side.profileVars.blackWidth = newWidths[0];
-            side.profileVars.whiteWidth = newWidths[1];
-            side.profileVars.scratchWidth = newWidths[2];
-        }
-        onXChanged: {
-            side.profileVars["playAreaX" + side.dpSuffix] = x;
-        }
-        onYChanged: {
-            side.profileVars["playAreaY" + side.dpSuffix] = y;
-        }
-        Binding {
-            delayed: true
-            playArea.width: {
-                return side.columns.reduce((a, b) => a + playArea.columnSizes[b], 0) + (side.columns.length - 1) * side.profileVars.spacing;
-            }
-        }
-        Binding {
-            delayed: true
-            playArea.height: side.profileVars.playAreaHeight
-        }
-
         TemplateDragBorder {
             visible: root.customizeMode
             z: 10
@@ -214,6 +82,23 @@ Item {
             anchors.fill: parent
             anchors.margins: -borderMargin
             color: "transparent"
+
+            onGeometryEdited: geometry => {
+                if (geometry.width !== playArea.width) {
+                    let oldLaneWidth = side.columns.reduce((sum, column) => sum + playArea.columnSizes[column], 0);
+                    let newLaneWidth = geometry.width - (side.columns.length - 1) * side.profileVars.spacing;
+                    if (oldLaneWidth <= 0 || newLaneWidth <= 0)
+                        return;
+                    let ratio = newLaneWidth / oldLaneWidth;
+                    let widths = [side.profileVars.blackWidth, side.profileVars.whiteWidth, side.profileVars.scratchWidth].map(width => width * ratio);
+                    side.profileVars.blackWidth = widths[0];
+                    side.profileVars.whiteWidth = widths[1];
+                    side.profileVars.scratchWidth = widths[2];
+                }
+                side.profileVars["playAreaX" + side.dpSuffix] = geometry.x;
+                side.profileVars["playAreaY" + side.dpSuffix] = geometry.y;
+                side.profileVars.playAreaHeight = geometry.height;
+            }
 
             MouseArea {
                 id: playAreaTemplateMouseArea
@@ -277,19 +162,6 @@ Item {
         y: side.profileVars.lifeBarY
         z: side.profileVars.lifeBarZ
 
-        onHeightChanged: {
-            side.profileVars.lifeBarHeight = height;
-        }
-        onWidthChanged: {
-            side.profileVars.lifeBarWidth = width;
-        }
-        onXChanged: {
-            side.profileVars.lifeBarX = x;
-        }
-        onYChanged: {
-            side.profileVars.lifeBarY = y;
-        }
-
         TemplateDragBorder {
             id: lifeBarTemplate
 
@@ -298,6 +170,13 @@ Item {
             color: "transparent"
             visible: root.customizeMode
             mirrored: side.mirrored
+
+            onGeometryEdited: geometry => {
+                side.profileVars.lifeBarX = geometry.x;
+                side.profileVars.lifeBarY = geometry.y;
+                side.profileVars.lifeBarWidth = geometry.width;
+                side.profileVars.lifeBarHeight = geometry.height;
+            }
 
             MouseArea {
                 id: lifeBarMouseArea
@@ -346,17 +225,19 @@ Item {
         targetPoints: side.pointTarget
         targetFinalPoints: side.targetFinalPoints
 
-        onXChanged: side.profileVars.scoreGraphX = x
-        onYChanged: side.profileVars.scoreGraphY = y
-        onWidthChanged: side.profileVars.scoreGraphWidth = width
-        onHeightChanged: side.profileVars.scoreGraphHeight = height
-
         TemplateDragBorder {
             anchors.fill: parent
             anchors.margins: -borderMargin
             color: "transparent"
             visible: root.customizeMode
             mirrored: side.mirrored
+
+            onGeometryEdited: geometry => {
+                side.profileVars.scoreGraphX = geometry.x;
+                side.profileVars.scoreGraphY = geometry.y;
+                side.profileVars.scoreGraphWidth = geometry.width;
+                side.profileVars.scoreGraphHeight = geometry.height;
+            }
         }
 
         MouseArea {
@@ -389,19 +270,6 @@ Item {
         score: side.score
         fontFile: side.profileVars.judgementCountsFont
 
-        onHeightChanged: {
-            side.profileVars.judgementCountsHeight = height;
-        }
-        onWidthChanged: {
-            side.profileVars.judgementCountsWidth = width;
-        }
-        onXChanged: {
-            side.profileVars.judgementCountsX = x;
-        }
-        onYChanged: {
-            side.profileVars.judgementCountsY = y;
-        }
-
         TemplateDragBorder {
             id: judgementCountsTemplate
 
@@ -410,6 +278,13 @@ Item {
             color: "transparent"
             visible: root.customizeMode
             mirrored: side.mirrored
+
+            onGeometryEdited: geometry => {
+                side.profileVars.judgementCountsX = geometry.x;
+                side.profileVars.judgementCountsY = geometry.y;
+                side.profileVars.judgementCountsWidth = geometry.width;
+                side.profileVars.judgementCountsHeight = geometry.height;
+            }
         }
 
         MouseArea {
@@ -433,21 +308,6 @@ Item {
                 root.popup = popup;
             }
         }
-    }
-
-    Connections {
-        function onHit(tap) {
-            if (!tap.points) {
-                return;
-            }
-            let judgement = tap.points.judgement;
-            if (judgement === Judgement.Poor || judgement === Judgement.Bad) {
-                bga.poorVisible = true;
-                poorLayerTimer.restart();
-            }
-        }
-
-        target: side.score
     }
 
     // ── Hit Distribution ────────────────────────────────────────────────────
@@ -484,17 +344,19 @@ Item {
         timingWindows: root.chartData.timingWindows
         score: side.score
 
-        onXChanged: side.profileVars.hitDistributionX = x
-        onYChanged: side.profileVars.hitDistributionY = y
-        onWidthChanged: side.profileVars.hitDistributionWidth = width
-        onHeightChanged: side.profileVars.hitDistributionHeight = height
-
         TemplateDragBorder {
             anchors.fill: parent
             anchors.margins: -borderMargin
             color: "transparent"
             visible: root.customizeMode
             mirrored: side.mirrored
+
+            onGeometryEdited: geometry => {
+                side.profileVars.hitDistributionX = geometry.x;
+                side.profileVars.hitDistributionY = geometry.y;
+                side.profileVars.hitDistributionWidth = geometry.width;
+                side.profileVars.hitDistributionHeight = geometry.height;
+            }
         }
 
         MouseArea {

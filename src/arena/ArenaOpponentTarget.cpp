@@ -50,12 +50,6 @@ ArenaOpponentTarget::ArenaOpponentTarget(QObject* parent)
 }
 
 auto
-ArenaOpponentTarget::available() const -> bool
-{
-    return m_available;
-}
-
-auto
 ArenaOpponentTarget::memberId() const -> const QString&
 {
     return m_memberId;
@@ -118,7 +112,7 @@ ArenaOpponentTarget::update(const LiveStandingsSnapshot& snapshot,
                                return left.exScore < right.exScore;
                            });
         selected = *strongest;
-        if (sameRound && m_available) {
+        if (sameRound && !m_memberId.isEmpty()) {
             const auto retained =
               std::find_if(candidates.cbegin(),
                            candidates.cend(),
@@ -132,17 +126,14 @@ ArenaOpponentTarget::update(const LiveStandingsSnapshot& snapshot,
         }
     }
 
-    const auto availableValue = selected.has_value();
     const auto memberIdValue = selected ? selected->memberId : QString{};
     const auto displayNameValue = selected ? selected->displayName : QString{};
     const auto exScoreValue = selected ? selected->exScore : 0;
     const auto finishedValue = selected && selected->finished;
     const auto visibleChanged =
-      m_available != availableValue || m_memberId != memberIdValue ||
-      m_displayName != displayNameValue || m_exScore != exScoreValue ||
-      m_finished != finishedValue;
+      m_memberId != memberIdValue || m_displayName != displayNameValue ||
+      m_exScore != exScoreValue || m_finished != finishedValue;
 
-    m_available = availableValue;
     m_memberId = memberIdValue;
     m_displayName = displayNameValue;
     m_exScore = exScoreValue;
@@ -157,10 +148,9 @@ ArenaOpponentTarget::update(const LiveStandingsSnapshot& snapshot,
 void
 ArenaOpponentTarget::clear()
 {
-    const auto visibleChanged = m_available || !m_memberId.isEmpty() ||
+    const auto visibleChanged = !m_memberId.isEmpty() ||
                                 !m_displayName.isEmpty() || m_exScore != 0 ||
                                 m_finished;
-    m_available = false;
     m_memberId.clear();
     m_displayName.clear();
     m_exScore = 0;

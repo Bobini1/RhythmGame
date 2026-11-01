@@ -9,7 +9,7 @@ Item {
 
     property alias folderContents: standardSession.folderContents
     property alias historyStack: standardSession.historyStack
-    property alias scores: standardSession.scores
+    property var results: ({})
     property var folderLampByKey: ({})
     property var folderScoreCountsByKey: ({})
     property var pendingFolderLampByKey: ({})
@@ -198,21 +198,50 @@ Item {
         tableCoursesProvider: tableItem => root.classCoursesForTable(tableItem)
     }
 
-    StandardSelectActivation {
-        id: standardActivation
+    property bool libraryRefreshPending: false
+    property string librarySearchQuery: ""
+
+    Connections {
+        target: Rg.songFolderFactory
+        function onContentsChanged() {
+            root.libraryRefreshPending = true;
+            Qt.callLater(root.refreshLibraryContents);
+        }
+    }
+
+    function refreshLibraryContents() {
+        if (!root.updatesActive || !root.libraryRefreshPending || !root.historyStack.length) {
+            return;
+        }
+        root.libraryRefreshPending = false;
+        if (root.historyStack[root.historyStack.length - 1] === "SEARCH") {
+            const results = standardSession.resolveSearchResults(root.librarySearchQuery);
+            standardSession.commitFolderContents(results);
+            root.rebuildFolderIndexes(root.folderContents);
+            root.applySortedFolderContents(root.current, false);
+            root.refreshScores();
+            root.openedFolder();
+            root.markListContentsChanged();
+            return;
+        }
+        let folder = root.open(root.historyStack[root.historyStack.length - 1], root.current);
+        while (folder === null && root.historyStack.length > 1) {
+            root.historyStack = root.historyStack.slice(0, -1);
+            folder = root.open(root.historyStack[root.historyStack.length - 1]);
+        }
+    }
+
+    readonly property alias actions: standardActions
+
+    StandardSelectActions {
+        id: standardActions
     }
 
     PendingReplyGroup {
         id: folderLampScoreDbReplies
     }
 
-    function trackScoreDbReply(reply: var) : var {
-        return standardSession.trackScoreDbReply(reply);
-    }
-
-    function cancelScoreDbReplies() {
-        standardSession.cancelScoreDbReplies();
-    }
+    PendingReplyGroup { id: playerStatsReplies }
 
     function trackFolderLampScoreDbReply(reply: var) : var {
         return folderLampScoreDbReplies.track(reply);
@@ -339,7 +368,7 @@ Item {
         keymodeFilter: root.selectKeymodeFilter
         difficultyFilter: root.difficultyFilter
         unscoredItemsLast: false
-        scores: root.scores
+        scores: root.results
     }
 
     Lr2SelectItemModel {
@@ -354,7 +383,7 @@ Item {
         chartFolderModel: selectSortFilter
         levelFolderParentKey: {
             let parent = historyStack.length > 0 ? historyStack[historyStack.length - 1] : null;
-            return isTable(parent) ? (parent.url || parent.name || "") : "";
+            return isTable(parent) ? parent.identifier : "";
         }
         levelFolderParentSymbol: {
             let parent = historyStack.length > 0 ? historyStack[historyStack.length - 1] : null;
@@ -395,6 +424,9 @@ Item {
     }
 
     onUpdatesActiveChanged: {
+        if (updatesActive) {
+            Qt.callLater(root.refreshLibraryContents);
+        }
         if (!componentReady) {
             return;
         }
@@ -732,11 +764,11 @@ Item {
             return "folder:" + item;
         }
         if (isTable(item)) {
-            return "table:" + (item.url || item.name || "");
+            return "table:" + item.identifier;
         }
         if (isLevel(item)) {
             let parent = historyStack.length > 0 ? historyStack[historyStack.length - 1] : null;
-            let parentKey = isTable(parent) ? (parent.url || parent.name || "") : "";
+            let parentKey = isTable(parent) ? parent.identifier : "";
             return "level:" + parentKey + ":" + (item.name || "");
         }
         return "";
@@ -1016,7 +1048,7 @@ Item {
     }
 
     function publishSelectItemScoreSummaries() : void {
-        selectItemModel.setScoreSummariesFromScores(scores);
+        selectItemModel.setScoreSummariesFromScores(root.results);
     }
 
     function addToMinimumCount(input: var) : var {
@@ -1055,7 +1087,7 @@ Item {
             return 7;
         case SelectSortMode.MissCount:
             return 8;
-        case SelectSortMode.TotalNotes:
+        case SelectSortMode.Total:
             return 9;
         default:
             return 2;
@@ -1083,7 +1115,7 @@ Item {
         case 8:
             return SelectSortMode.MissCount;
         case 9:
-            return SelectSortMode.TotalNotes;
+            return SelectSortMode.Total;
         default:
             return SelectSortMode.Title;
         }
@@ -1100,7 +1132,8 @@ Item {
     function activeSortMode() : var {
         return legacySortModeForSelectSortMode(selectSortMode);
     }
-    function activeSortUsesScores() : var {
+
+    function activeSortUsesScores() : var {
         switch (activeSortMode()) {
         case 3: // clear lamp
         case 4: // score rate
@@ -1121,12 +1154,12 @@ Item {
         return null;
     }
 
-    function handleScoresLoaded() : void {
+    function handleScoresLoaded(reorder: bool) : void {
         scoreGeneration += 1;
         clearScoreLoadedStateCaches();
         nativeNavigation.invalidateFocusedState();
         nativeNavigation.refreshFocusedState();
-        if (activeSortUsesScores()) {
+        if (reorder && activeSortUsesScores()) {
             sortOrFilterChanged(scoreLoadPreferredItem());
         }
         queueSelectItemScoreSummaries();
@@ -1307,79 +1340,34 @@ Item {
         }
     }
 
-    function folderContentsNeedFullScores() : var {
-        for (let item of folderContents) {
-            if (isChart(item) || isEntry(item) || isCourse(item) || isRankingEntry(item)) {
-                return true;
+    function refreshScores(reorder = true) : var {
+        const md5s = [];
+        const courseIds = [];
+        const items = rankingMode ? rankingSavedFolderContents : folderContents;
+        for (const item of items) {
+            if ((isChart(item) || isEntry(item)) && item.md5) {
+                md5s.push(item.md5);
+            } else if (isCourse(item)) {
+                courseIds.push(item.identifier);
             }
         }
-        return false;
-    }
-
-    function refreshScores() : var {
-        let folder = historyStack.length > 0
-            ? folderForHistoryItem(historyStack[historyStack.length - 1])
-            : "";
-        let scoreDb = Rg.profileList.mainProfile.scoreDb;
-        cancelScoreDbReplies();
-        if (!folderContentsNeedFullScores()) {
-            scores = ({});
-            handleScoresLoaded();
-            refreshSongDirectoryFiles();
-            refreshFolderLamps();
-            return;
-        }
-        if (folder === "SEARCH") {
-            let md5s = [];
-            let courseIds = [];
-            for (let item of folderContents) {
-                if (isChart(item) && item.md5) {
-                    md5s.push(item.md5);
-                } else if (isCourse(item) && item.identifier) {
-                    courseIds.push(item.identifier);
-                }
-            }
-            trackScoreDbReply(scoreDb.getScoresForMd5(md5s)).then((result) => {
-                if (courseIds.length <= 0) {
-                    scores = result.scores;
-                    handleScoresLoaded();
-                    return;
-                }
-                trackScoreDbReply(scoreDb.getScoresForCourseId(courseIds)).then((courseResult) => {
-                    let newScores = Object.assign({}, result.scores || {});
-                    for (let [key, value] of Object.entries(courseResult.scores || {})) {
-                        newScores[key] = value;
-                    }
-                    scores = newScores;
-                    handleScoresLoaded();
-                });
-            });
-            refreshSongDirectoryFiles();
-            refreshFolderLamps();
-            return;
-        }
-        trackScoreDbReply(scoreDb.getScores(folder)).then((result) => {
-            if (result && result.courseScores !== undefined) {
-                let newScores = result.scores.scores;
-                for (let [key, value] of Object.entries(result.courseScores.scores)) {
-                    newScores[key] = value;
-                }
-                scores = newScores;
-            } else {
-                scores = result.scores;
-            }
-            handleScoresLoaded();
-        });
+        const scoreDb = Rg.profileList.mainProfile.scoreDb;
+        const lists = {};
+        for (const md5 of md5s) lists[md5] = scoreDb.chartResults[md5.toUpperCase()] || [];
+        for (const id of courseIds) lists[id] = scoreDb.courseResults[id] || [];
+        root.results = lists;
+        handleScoresLoaded(reorder);
         refreshSongDirectoryFiles();
         refreshFolderLamps();
     }
 
     function refreshPlayerStats() : var {
+        playerStatsReplies.cancelAll();
         let db = Rg.profileList?.mainProfile?.scoreDb;
         if (!db) {
             return;
         }
-        trackScoreDbReply(db.getTotalStats()).then((result) => {
+        playerStatsReplies.track(db.getTotalStats()).then((result) => {
             playerStats = result || playerStats;
         });
     }
@@ -1391,8 +1379,8 @@ Item {
         }
         standardSession.commitFolderContents(folder);
         rebuildFolderIndexes(folderContents);
+        refreshScores(false);
         applySortedFolderContents(initialItem, false);
-        refreshScores();
         refreshPlayerStats();
         openedFolder();
         markListContentsChanged();
@@ -1401,6 +1389,7 @@ Item {
     }
 
     function search(query: var) : var {
+        root.librarySearchQuery = query || "";
         let results = standardSession.resolveSearchResults(query);
         let resultCount = results.length;
         if (!results.length) {
@@ -1409,11 +1398,11 @@ Item {
         }
         standardSession.commitFolderContents(results);
         rebuildFolderIndexes(folderContents);
+        refreshScores(false);
         applySortedFolderContents(undefined, false);
         if (historyStack[historyStack.length - 1] !== "SEARCH") {
             historyStack = historyStack.concat(["SEARCH"]);
         }
-        refreshScores();
         refreshPlayerStats();
         openedFolder();
         markListContentsChanged();
@@ -1652,7 +1641,7 @@ Item {
             hideRanking();
             item = baseItem;
         }
-        if (standardActivation.openPlayable(
+        if (standardActions.openPlayable(
                 item, !!autoplay, !!replay, replayScore || null)) {
             return;
         }
@@ -1675,19 +1664,7 @@ Item {
             hideRanking();
             item = baseItem;
         }
-        if (isCourse(item)) {
-            globalRoot.openCourseResult(
-                [replayScore],
-                [Rg.profileList.mainProfile],
-                courseStages(item),
-                item);
-            return true;
-        }
-        if (isChart(item)) {
-            globalRoot.openResult([replayScore], [Rg.profileList.mainProfile], item);
-            return true;
-        }
-        return false;
+        return standardActions.openResult(item, replayScore);
     }
 
     function sameEntry(a: var, b: var) : var {
@@ -1706,7 +1683,7 @@ Item {
             return a.name === b.name;
         }
         if (isTable(a) && isTable(b)) {
-            return a.name === b.name;
+            return a.identifier === b.identifier;
         }
         if (isCourse(a) && isCourse(b)) {
             return a.name === b.name;
@@ -1736,9 +1713,7 @@ Item {
             return item.name || "";
         }
         if (typeof item === "string") {
-            let normalized = item.replace(/\\/g, "/").replace(/\/$/, "");
-            let slash = normalized.lastIndexOf("/");
-            return slash >= 0 ? normalized.slice(slash + 1) : normalized;
+            return QmlUtils.folderName(item);
         }
         return "";
     }
@@ -2105,7 +2080,7 @@ Item {
             return "course:" + (item.identifier || item.name || ("index:" + fallbackIndex));
         }
         if (isTable(item)) {
-            return "table:" + (item.url || item.name || ("index:" + fallbackIndex));
+            return "table:" + item.identifier;
         }
         if (isLevel(item)) {
             return "level:" + (folderLampKey(item) || item.name || ("index:" + fallbackIndex));
@@ -2121,9 +2096,9 @@ Item {
             return emptyScoreList;
         }
         let key = String(id);
-        return scores[key]
-            || scores[key.toUpperCase()]
-            || scores[key.toLowerCase()]
+        return root.results[key]
+            || root.results[key.toUpperCase()]
+            || root.results[key.toLowerCase()]
             || emptyScoreList;
     }
 
@@ -2204,7 +2179,7 @@ Item {
     }
 
     function badPoorForScore(score: var) : var {
-        let counts = score?.result?.judgementCounts || [];
+        let counts = resultOf(score)?.judgementCounts || [];
         return judgementCount(counts, Judgement.Bad)
             + judgementCount(counts, Judgement.Poor)
             + judgementCount(counts, Judgement.EmptyPoor);
@@ -2248,7 +2223,7 @@ Item {
         let minBadPoor = -1;
 
         for (let score of scoreList) {
-            if (!score || !score.result) {
+            if (!score || !resultOf(score)) {
                 continue;
             }
 
@@ -2299,9 +2274,9 @@ Item {
             let badPoor = badPoorForScore(score);
             minBadPoor = minBadPoor < 0 ? badPoor : Math.min(minBadPoor, badPoor);
 
-            let maxPoints = score.result.maxPoints || 0;
+            let maxPoints = resultOf(score).maxPoints || 0;
             let hasMaxPoints = maxPoints > 0;
-            let rate = hasMaxPoints ? (score.result.points || 0) / maxPoints : 0;
+            let rate = hasMaxPoints ? (resultOf(score).points || 0) / maxPoints : 0;
             if (rate > bestRate
                     || (rate === bestRate && hasMaxPoints && !bestHasMaxPoints)) {
                 bestRate = rate;
@@ -2354,7 +2329,7 @@ Item {
     }
 
     function clearTypeOf(score: var) : var {
-        return skinCompatibleClearType(score?.result?.clearType || "NOPLAY");
+        return skinCompatibleClearType(resultOf(score)?.clearType || "NOPLAY");
     }
 
     function collapsedClearTypeLamp(clear: var) : var {
@@ -2435,11 +2410,11 @@ Item {
     function scoreListByNewest(scoreList: var) : var {
         let result = [];
         for (let score of scoreList) {
-            if (score && score.result) {
+            if (score && resultOf(score)) {
                 result.push(score);
             }
         }
-        result.sort((a, b) => (b.result.unixTimestamp || 0) - (a.result.unixTimestamp || 0));
+        result.sort((a, b) => (resultOf(b).unixTimestamp || 0) - (resultOf(a).unixTimestamp || 0));
         return result;
     }
 
@@ -2462,9 +2437,9 @@ Item {
         let bestRate = -1;
         let bestHasMaxPoints = false;
         for (let score of scoreList) {
-            let maxPoints = score?.result?.maxPoints || 0;
+            let maxPoints = resultOf(score)?.maxPoints || 0;
             let hasMaxPoints = maxPoints > 0;
-            let rate = hasMaxPoints ? (score.result.points || 0) / maxPoints : 0;
+            let rate = hasMaxPoints ? (resultOf(score).points || 0) / maxPoints : 0;
             if (rate > bestRate
                     || (rate === bestRate && hasMaxPoints && !bestHasMaxPoints)) {
                 bestRate = rate;
@@ -2491,7 +2466,7 @@ Item {
         let best = null;
         let bestCombo = -1;
         for (let score of scoreList) {
-            let combo = score?.result?.maxCombo || 0;
+            let combo = resultOf(score)?.maxCombo || 0;
             if (combo > bestCombo) {
                 bestCombo = combo;
                 best = score;
@@ -2518,6 +2493,26 @@ Item {
 
     function judgementCount(counts: var, judgement: var) : var {
         return judgement >= 0 && judgement < counts.length ? (counts[judgement] || 0) : 0;
+    }
+
+    function resultOf(score: var) : var { return score ? (score.result || score) : null; }
+
+    ScoreDetails {
+        id: selectedScoreDetails
+        result: root.selectedState.summary.bestScore || null
+        profile: Rg.profileList.mainProfile
+        enabled: root.enabled && !!result
+        onScoreChanged: nativeNavigation.touchSelection()
+    }
+
+    Connections {
+        target: Rg.profileList.mainProfile.scoreDb
+        function onResultsChanged() {
+            if (root.enabled) {
+                root.refreshScores();
+                root.refreshPlayerStats();
+            }
+        }
     }
 
     function emptyJudgeTimingCounts() : var {
@@ -2561,7 +2556,8 @@ Item {
 
     function judgeTimingCountsForScore(score: var) : var {
         let counts = emptyJudgeTimingCounts();
-        let replay = score && score.replayData ? score.replayData : null;
+        let loaded = score && score.replayData ? score : selectedScoreDetails.score;
+        let replay = loaded && loaded.result.guid === resultOf(score)?.guid ? loaded.replayData : null;
         if (replay && replay.earlyTimingCounts && replay.lateTimingCounts) {
             counts.early = replay.earlyTimingCounts;
             counts.late = replay.lateTimingCounts;
@@ -2605,10 +2601,10 @@ Item {
     }
 
     function statsForScore(score: var, includeTiming: var) : var {
-        if (!score || !score.result) {
+        if (!score || !resultOf(score)) {
             return null;
         }
-        let counts = score.result.judgementCounts || [];
+        let counts = resultOf(score).judgementCounts || [];
         let pg = judgementCount(counts, Judgement.Perfect);
         let gr = judgementCount(counts, Judgement.Great);
         let gd = judgementCount(counts, Judgement.Good);
@@ -2628,10 +2624,10 @@ Item {
             totalJudgements: Math.max(1, pg + gr + gd + bd + pr),
             comboBreak: bd + poor,
             badPoor: bd + pr,
-            maxCombo: score.result.maxCombo || 0,
-            score: score.result.points || 0,
-            exscore: score.result.points || 0,
-            maxPoints: score.result.maxPoints || 0,
+            maxCombo: resultOf(score).maxCombo || 0,
+            score: resultOf(score).points || 0,
+            exscore: resultOf(score).points || 0,
+            maxPoints: resultOf(score).maxPoints || 0,
             early: timingCounts ? timingCounts.early : null,
             late: timingCounts ? timingCounts.late : null,
             totalEarly: timingCounts ? totalTimingCount(timingCounts, true) : 0,
@@ -2760,11 +2756,11 @@ Item {
     }
 
     function appendScoreOptionIds(score: var, ids: var) : var {
-        if (!score || !score.result) {
+        if (!score || !resultOf(score)) {
             return;
         }
 
-        switch (score.result.noteOrderAlgorithm) {
+        switch (resultOf(score).noteOrderAlgorithm) {
         case NoteOrderAlgorithm.Mirror:
             ids.push(127);
             break;
@@ -2789,8 +2785,8 @@ Item {
             break;
         }
 
-        if (score.result.dpOptions === DpOptions.Battle) {
-            let keymode = score.result.keymode || 0;
+        if (resultOf(score).dpOptions === DpOptions.Battle) {
+            let keymode = resultOf(score).keymode || 0;
             ids.push(keymode === 5 || keymode === 7 ? 145 : 144);
         }
     }
@@ -3461,8 +3457,8 @@ Item {
         }
         folderContents = [...folder];
         rebuildFolderIndexes(folderContents);
+        refreshScores(false);
         applySortedFolderContents(currentChart, false);
-        refreshScores();
         refreshPlayerStats();
         openedFolder();
         markListContentsChanged();
@@ -3954,6 +3950,7 @@ Item {
         target: selectedDetailState
 
         function onSelectedItemRevisionChanged() {
+            standardActions.cancelScoreLoading();
             root.scheduleNumberValueSelectedRevisionRefresh();
         }
 

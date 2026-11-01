@@ -16,6 +16,10 @@ namespace db {
 class SqliteCppDb;
 }
 
+namespace resource_managers {
+class SongAssetStore;
+}
+
 namespace qml_components {
 class ChartLoader;
 class ProfileList;
@@ -48,6 +52,7 @@ class QtArenaRoundLoader final : public ArenaRoundLoader
     QtArenaRoundLoader(qml_components::ProfileList* profileList,
                        db::SqliteCppDb* songDb,
                        qml_components::ChartLoader* chartLoader,
+                       resource_managers::SongAssetStore* songAssets,
                        QObject* parent = nullptr);
     ~QtArenaRoundLoader() override;
 
@@ -95,6 +100,7 @@ class QtArenaRoundLoader final : public ArenaRoundLoader
     PathResolver m_pathResolver;
     RunnerLoader m_runnerLoader;
     SeedGenerator m_seedGenerator;
+    resource_managers::SongAssetStore* m_songAssets = nullptr;
     QHash<quint64, Operation> m_operations;
     quint64 m_nextSerial{ 1 };
 

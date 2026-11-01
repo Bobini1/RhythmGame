@@ -1,9 +1,15 @@
 cmake_minimum_required(VERSION 3.21)
 
 include(cmake/prelude.cmake)
+option(RhythmGame_USE_BACKBEAT "Enable the GPL-3.0 Backbeat chart library" ON)
+# Manifest features must be selected before the vcpkg toolchain runs in project().
+list(REMOVE_ITEM VCPKG_MANIFEST_FEATURES backbeat)
+if (RhythmGame_USE_BACKBEAT)
+    list(APPEND VCPKG_MANIFEST_FEATURES backbeat)
+endif ()
 project(
         RhythmGame
-        VERSION 1.3.18
+        VERSION 1.4.0
         DESCRIPTION "A customizable BMS player for Windows and Linux. "
         HOMEPAGE_URL "https://github.com/Bobini1/RhythmGame"
         LANGUAGES C CXX
@@ -11,6 +17,12 @@ project(
 
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
+
+if (RhythmGame_USE_BACKBEAT)
+    set(RhythmGame_LICENSE_FILE "${PROJECT_SOURCE_DIR}/LICENSE.GPL-3.0.md")
+else ()
+    set(RhythmGame_LICENSE_FILE "${PROJECT_SOURCE_DIR}/LICENSE.md")
+endif ()
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT supported OUTPUT error)
@@ -65,7 +77,7 @@ message(STATUS "miniaudio include dirs: ${MINIAUDIO_INCLUDE_DIRS}")
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg LinguistTools QuickControls2 WebSockets REQUIRED)
+find_package(Qt6 6.10 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg LinguistTools QuickControls2 WebSockets REQUIRED)
 qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp zh_CN)
 
 # <------------ QtKeychain (storing login data) --------------->
@@ -219,6 +231,7 @@ qt_add_library(RhythmGame_lib OBJECT
         src/resource_managers/SongAssetImageProvider.h
         src/support/PathToQString.cpp
         src/support/PathToQString.h
+        src/support/FolderName.h
         src/support/QStringToPath.cpp
         src/support/QStringToPath.h
         src/support/CreateQmlPropertyMap.cpp
@@ -386,6 +399,18 @@ endif ()
 if (RhythmGame_USE_MIMALLOC)
     target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_USE_MIMALLOC)
     target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
+endif ()
+
+if (RhythmGame_USE_BACKBEAT)
+    find_package(Backbeat CONFIG REQUIRED)
+    target_sources(RhythmGame_lib PRIVATE
+            src/resource_managers/BackbeatSource.cpp
+            src/resource_managers/BackbeatSource.h
+            src/resource_managers/BackbeatCatalog.cpp
+            src/resource_managers/BackbeatCatalog.h
+    )
+    target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_USE_BACKBEAT)
+    target_link_libraries(RhythmGame_lib PUBLIC Backbeat::Backbeat)
 endif ()
 
 # <------------ SndFile (audio file reading) --------------->

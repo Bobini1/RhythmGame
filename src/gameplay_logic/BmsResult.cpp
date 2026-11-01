@@ -145,6 +145,48 @@ generateResultPermutation(ChartData::Keymode keymode,
 }
 } // namespace
 
+bool
+gameplay_logic::BmsResult::updateFrom(const BmsResult& other)
+{
+    Q_ASSERT(guid == other.guid);
+    const auto fields = [](auto& value) {
+        return std::tie(value.replayAvailable,
+                        value.gaugeHistoryAvailable,
+                        value.imported,
+                        value.sourceName,
+                        value.maxPoints,
+                        value.maxHits,
+                        value.normalNoteCount,
+                        value.scratchCount,
+                        value.lnCount,
+                        value.bssCount,
+                        value.mineCount,
+                        value.clearType,
+                        value.judgementCounts,
+                        value.randomSequence,
+                        value.sha256,
+                        value.md5,
+                        value.mineHits,
+                        value.points,
+                        value.maxCombo,
+                        value.unixTimestamp,
+                        value.length,
+                        value.randomSeed,
+                        value.noteOrderAlgorithm,
+                        value.noteOrderAlgorithmP2,
+                        value.dpOptions,
+                        value.keymode,
+                        value.gameVersion,
+                        value.owner,
+                        value.permutation);
+    };
+    if (fields(*this) == fields(other))
+        return false;
+    fields(*this) = fields(other);
+    emit changed();
+    return true;
+}
+
 auto
 gameplay_logic::BmsResult::getMaxPoints() const -> double
 {
@@ -176,7 +218,7 @@ gameplay_logic::BmsResult::getClearType() const -> const QString&
     return clearType;
 }
 auto
-gameplay_logic::BmsResult::getRandomSequence() -> const QList<qint64>&
+gameplay_logic::BmsResult::getRandomSequence() const -> const QList<qint64>&
 {
     return randomSequence;
 }
@@ -243,6 +285,57 @@ gameplay_logic::BmsResult::BmsResult(
 }
 void
 gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
+                                int source,
+                                int longNoteMode) const
+{
+    if (guid.isEmpty()) {
+        return;
+    }
+    save(db, serializeRandomSequence(), source, longNoteMode);
+}
+
+auto
+gameplay_logic::BmsResult::clone() const -> std::unique_ptr<BmsResult>
+{
+    auto copy = std::make_unique<BmsResult>(maxPoints,
+                                            maxHits,
+                                            normalNoteCount,
+                                            scratchCount,
+                                            lnCount,
+                                            bssCount,
+                                            mineCount,
+                                            clearType,
+                                            judgementCounts,
+                                            mineHits,
+                                            points,
+                                            maxCombo,
+                                            unixTimestamp,
+                                            length,
+                                            randomSequence,
+                                            randomSeed,
+                                            noteOrderAlgorithm,
+                                            noteOrderAlgorithmP2,
+                                            dpOptions,
+                                            keymode,
+                                            guid,
+                                            sha256,
+                                            md5,
+                                            gameVersion,
+                                            owner);
+    copy->setStoredData(
+      replayAvailable, gaugeHistoryAvailable, imported, sourceName);
+    return copy;
+}
+
+auto
+gameplay_logic::BmsResult::serializeRandomSequence() const -> QByteArray
+{
+    return support::compress(randomSequence);
+}
+
+void
+gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
+                                const QByteArray& randomSequenceCompressed,
                                 int source,
                                 int longNoteMode) const
 {
@@ -333,9 +426,9 @@ gameplay_logic::BmsResult::save(db::SqliteCppDb& db,
     statement.bind(20, md5.toStdString());
     statement.bind(21, unixTimestamp);
     statement.bind(22, length);
-    auto randomSequenceCompressed = support::compress(randomSequence);
-    statement.bind(
-      23, randomSequenceCompressed.data(), randomSequenceCompressed.size());
+    statement.bind(23,
+                   randomSequenceCompressed.constData(),
+                   randomSequenceCompressed.size());
     statement.bind(24, static_cast<int64_t>(randomSeed));
     statement.bind(25, static_cast<int>(noteOrderAlgorithm));
     statement.bind(26, static_cast<int>(noteOrderAlgorithmP2));

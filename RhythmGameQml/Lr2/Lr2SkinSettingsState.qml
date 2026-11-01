@@ -91,6 +91,16 @@ QtObject {
         return screenVars ? screenVars[themeName] : null;
     }
 
+    function initializeScreen() : void {
+        const screen = root.screenObject(root.host.screenKey);
+        // Keep this screen's configuration when another screen changes the profile.
+        // Set options before the CSV path starts loading the skin.
+        root.host.skinSettings = root.host.copyObject(
+            root.settingDestinationForScreen(root.host.screenKey));
+        root.host.skinSettingsData = screen.settingsData || "";
+        root.host.csvPath = screen.csvPath;
+    }
+
     function currentPreviewScreen() : var {
         return root.previewScreenKey.length > 0
             ? root.previewScreenKey

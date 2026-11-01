@@ -3,6 +3,7 @@
 //
 
 #include "CourseRunner.h"
+#include <QScopedValueRollback>
 #include <ranges>
 #include <spdlog/spdlog.h>
 namespace gameplay_logic {
@@ -173,16 +174,22 @@ CourseRunner::setInputMapping(QList<int> inputMapping)
 }
 auto
 CourseRunner::proceed() -> QList<BmsScore*>
-
 {
-    if (currentChartIndex == chartDatas.size()) {
-        return { nullptr };
-    }
-    const auto* p2 = getPlayer2();
+    const auto scores = finishStage();
+    nextStage();
+    return scores;
+}
+
+auto
+CourseRunner::finishStage() -> QList<BmsScore*>
+{
+    if (finishingStage)
+        return {};
+    if (!stageScores.isEmpty())
+        return stageScores;
+    QScopedValueRollback busy(finishingStage, true);
     auto scores = QList<BmsScore*>{};
-    auto currentInputMapping = QList<int>{};
     if (currentChart) {
-        currentInputMapping = currentChart->getInputMapping();
         scores = currentChart->finish();
         clear1 = QStringLiteral("FAILED");
         if (scores.size() > 0) {
@@ -212,11 +219,29 @@ CourseRunner::proceed() -> QList<BmsScore*>
             }
         }
     }
-    currentChartIndex++;
-    if (currentChartIndex != chartDatas.size()) {
+    stageScores = scores;
+    return stageScores;
+}
+
+bool
+CourseRunner::nextStage()
+{
+    if (finishingStage || stageScores.isEmpty() ||
+        currentChartIndex + 1 >= chartDatas.size())
+        return false;
+    const auto* p2 = getPlayer2();
+    if (!getPlayer1()->getProfile() || (p2 && !p2->getProfile()))
+        return false;
+    auto next = loadChart();
+    if (!next || !next->getPlayer1() || bool(p2) != bool(next->getPlayer2()))
+        return false;
+    auto currentInputMapping = currentChart->getInputMapping();
+    ++currentChartIndex;
+    stageScores.clear();
+    {
         emit currentChartIndexChanged();
         currentChart.release()->deleteLater();
-        currentChart = loadChart();
+        currentChart = std::move(next);
         if (!currentInputMapping.isEmpty()) {
             currentChart->setInputMapping(std::move(currentInputMapping));
         }
@@ -231,15 +256,22 @@ CourseRunner::proceed() -> QList<BmsScore*>
         }
         connectChart();
     }
-    return scores;
+    return true;
 }
 auto
 CourseRunner::finish() -> QList<BmsScoreCourse*>
 {
+    if (finishingStage || finishingCourse)
+        return {};
+    if (!courseScores.isEmpty())
+        return courseScores;
+    QScopedValueRollback busy(finishingCourse, true);
     while (currentChartIndex < chartDatas.size() - 1) {
-        proceed();
+        finishStage();
+        if (!nextStage())
+            return {};
     }
-    proceed();
+    finishStage();
     auto scores = QList<BmsScoreCourse*>{};
     if (scores1.contains(nullptr) || scores2.contains(nullptr) ||
         scores1.isEmpty()) {
@@ -260,12 +292,12 @@ CourseRunner::finish() -> QList<BmsScoreCourse*>
         return score->getResult()->getMaxPoints() ==
                score->getResult()->getPoints();
     };
-    if (std::ranges::all_of(scores1, satisfiesFc)) {
-        clear1 = QStringLiteral("FC");
+    if (std::ranges::all_of(scores1, satisfiesMax)) {
+        clear1 = QStringLiteral("MAX");
     } else if (std::ranges::all_of(scores1, satisfiesPerfect)) {
         clear1 = QStringLiteral("PERFECT");
-    } else if (std::ranges::all_of(scores1, satisfiesMax)) {
-        clear1 = QStringLiteral("MAX");
+    } else if (std::ranges::all_of(scores1, satisfiesFc)) {
+        clear1 = QStringLiteral("FC");
     }
 
     auto result1 =
@@ -277,7 +309,10 @@ CourseRunner::finish() -> QList<BmsScoreCourse*>
                                         course.constraints);
     auto score1 = BmsScoreCourse::fromScores(std::move(result1), scores1, this);
     try {
-        score1->save(getPlayer1()->getProfile()->getDb());
+        if (auto* profile = getPlayer1()->getProfile()) {
+            score1->save(profile->getDb());
+            profile->getScoreDb()->rememberCourseScore(score1.get());
+        }
     } catch (const std::exception& e) {
         spdlog::error("Failed to save course result for player 1: {}",
                       e.what());
@@ -285,12 +320,12 @@ CourseRunner::finish() -> QList<BmsScoreCourse*>
     scores.append(score1.release());
 
     if (coursePlayer2) {
-        if (std::ranges::all_of(scores2, satisfiesFc)) {
-            clear2 = QStringLiteral("FC");
+        if (std::ranges::all_of(scores2, satisfiesMax)) {
+            clear2 = QStringLiteral("MAX");
         } else if (std::ranges::all_of(scores2, satisfiesPerfect)) {
             clear2 = QStringLiteral("PERFECT");
-        } else if (std::ranges::all_of(scores2, satisfiesMax)) {
-            clear2 = QStringLiteral("MAX");
+        } else if (std::ranges::all_of(scores2, satisfiesFc)) {
+            clear2 = QStringLiteral("FC");
         }
         auto result2 =
           std::make_unique<BmsResultCourse>(coursePlayer2->getGuid(),
@@ -302,7 +337,10 @@ CourseRunner::finish() -> QList<BmsScoreCourse*>
         auto score2 =
           BmsScoreCourse::fromScores(std::move(result2), scores2, this);
         try {
-            score2->save(getPlayer2()->getProfile()->getDb());
+            if (auto* profile = getPlayer2()->getProfile()) {
+                score2->save(profile->getDb());
+                profile->getScoreDb()->rememberCourseScore(score2.get());
+            }
         } catch (const std::exception& e) {
             spdlog::error("Failed to save course result for player 2: {}",
                           e.what());
@@ -311,6 +349,7 @@ CourseRunner::finish() -> QList<BmsScoreCourse*>
     }
     scores1.clear();
     scores2.clear();
+    courseScores = scores;
     return scores;
 }
 void

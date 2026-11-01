@@ -4,98 +4,141 @@ import RhythmGameQml
 /*!
     \qmltype StandardGameplayFlow
     \inqmlmodule RhythmGameQml
-    \brief Owns the gameplay lifecycle while the skin owns its presentation.
+    \brief Starts play, handles exit and retry, saves scores and opens results.
 
-    Place one instance directly inside a gameplay screen and bind \l chart to
-    the injected runner. This includes ready audio and startup, Escape,
-    attempted-play tracking, Start+Select retry, stage results, course
-    continuation, course results and return navigation. Do not also instantiate
-    StandardGameplayInput or StandardGameplayAttemptState on that screen.
+    Place one instance inside the gameplay screen and bind \l gameplay to the
+    supplied GameplayContext. The flow handles ready audio, startup, Escape,
+    quick retry, and speed and cover controls. Your theme draws the playfield.
+    See the \l {../theme_tutorial_gameplay.html}{gameplay lesson} for an example.
 
-    \l startReady gates startup; \l finishReady gates natural completion. Use
-    \l finishRequested to start an outro and bind finishReady to its completion.
-    These gates change presentation timing without replacing score saving or
-    navigation. Explicit \l exit skips the natural-finish gate.
+    StandardGameplayInput, StandardGameplayAttemptState and
+    StandardGameplaySpeedControls are already included. Do not add another
+    copy beside the flow. It inherits the screen's enabled state, so inactive
+    screens cannot start play or navigate.
 
-    \l stageActivated runs once when each stage becomes current, before startup.
-    Use it for presentation resets or score queries. \l closing is a cleanup
-    notification, not a request to navigate. Inactive screens cannot start a
-    runner or change the stack. Arena starts its own runner and cannot retry.
+    \section1 Add an intro or outro
 
-    Failed result creation emits \l presentationFailed. The saved result is
-    retained; \l retryTransition retries presentation without saving again.
+    Keep \l startReady false until your intro finishes. The flow then plays
+    the ready sound and waits for \l startDelayMillis before requesting play.
+
+    For an outro, keep \l finishReady false, start the animation in
+    \l finishRequested, and set finishReady to true when it ends. The flow
+    still saves scores and opens results. An explicit \l exit skips this wait.
+    Reset per-stage visuals in \l stageActivated.
+
+    \section1 Handle courses and retries
+
+    Each chart opens a normal result, including course stages. Closing a stage
+    result advances the course. After the last stage result, the flow opens the
+    course summary; closing it returns to selection. A single chart returns to
+    selection after its result closes.
+
+    Retry buttons bind to \l retryAvailable and call \l retry with false for a
+    new random pattern or true for the same pattern. Standard quick retry is
+    unavailable for courses, autoplay, replay, battle and Arena.
+
+    In Arena, the flow requests play when presentation is ready; the session
+    waits for the shared start time. The flow submits the score before showing
+    results and releases the result presentation when that screen closes.
+
+    \section1 Recover from a failed transition
+
+    If the result screen cannot open, \l presentationFailed is emitted and the
+    saved scores are kept. Call \l retryTransition to try again without saving
+    twice. \l closing may therefore run more than once. Use it to stop or clear
+    visuals; do not navigate from its handler.
 */
 Item {
     id: root
 
-    /*! The ChartRunner or CourseRunner supplied to the gameplay screen. */
-    required property var chart
-    /*! Owning screen; set explicitly when nesting this component. */
-    property var screen: root.parent
-    /*! Whether the screen's runner is managed by Arena. */
-    property bool arenaManagedRunner: root.screen?.arenaManagedRunner === true
-    /*! Presentation readiness before playing ready audio and starting. */
+    /*! Supplies the screen context for a single chart or a course. */
+    property GameplayContext gameplay: null
+    /*! Allows ready audio and startup when true. Bind it to the completion of your intro. */
     property bool startReady: true
-    /*! Delay after ready audio, or the whole delay when no sound is available. */
+    /*!
+        Sets the delay in milliseconds after ready audio, or the full delay when no audio is
+        available.
+    */
     property int startDelayMillis: readySound.length > 0 ? 0 : 1000
-    /*! Ready audio; an empty URL disables it. */
+    /*! Sets the ready sound. Use an empty URL to disable it. */
     property url readySoundSource: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playready"
-    /*! Whether a naturally finished chart may open its result. */
+    /*! Controls whether a naturally finished chart may open its result. */
     property bool finishReady: true
-    /*! Whether Escape and \l exit are accepted. */
+    /*! Controls whether Escape and \l exit are accepted. */
     property bool exitEnabled: true
-    /*! Whether quick retry and the Start+Select gesture are accepted. */
+    /*! Controls whether quick retry and the Start+Select gesture are accepted. */
     property alias retryEnabled: input.retryEnabled
+    /*! Enables standard Start, Select and scratch speed/cover controls. Disable for custom controls. */
+    property alias speedControlsEnabled: input.speedControlsEnabled
+    /*! Whether a supported retry can be requested from a button or gesture. */
+    readonly property bool retryAvailable: input.retryAvailable
+    /*! Calls retryAction(samePattern) instead of the standard restart. */
+    property alias retryAction: input.retryAction
     /*! Start+Select hold time in milliseconds. */
     property alias retryHoldDurationMillis: input.retryHoldDurationMillis
-    /*! Attempted-exit audio; an empty URL disables it. */
+    /*! Sets the exit sound for an attempted play. Use an empty URL to disable it. */
     property url exitFeedbackSource: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "playstop"
-    /*! Whether an exit should first dismiss a skin-owned overlay. */
+    /*!
+        Called as \c dismissOverlayAction() before exit. Return true after closing an overlay
+        to keep gameplay open.
+    */
     property var dismissOverlayAction: null
-    /*! Whether the retry gesture is waiting for a release choice. */
+    /*! Reports whether the retry gesture is waiting for a release choice. */
     readonly property bool retryChoosing: input.retryChoosing
-    /*! Whether the current stage has received a scoring hit. */
-    readonly property bool attempted: input.attempted
-    /*! Current stage data, including the last stage after course completion. */
-    readonly property var chartData: session.chartData
-    /*! Whether this runner contains a course. */
-    readonly property bool isCourse: session.isCourse
-    /*! Whether this component owns the currently presented screen. */
-    readonly property bool active: root.enabled && !!root.screen
-        && globalRoot.currentScreen === root.screen
+    /*! Reports whether the current stage has received a scoring hit. */
+    readonly property bool attempted: attemptState.attempted
 
     /*! Emitted once per active stage, before standard startup. */
     signal stageActivated()
-    /*! Emitted on natural finish; start an outro and bind finishReady to it. */
+    /*!
+        Emitted when play finishes naturally. Start your outro here and bind finishReady to
+        its completion.
+    */
     signal finishRequested()
-    /*! Cleanup before departure; can repeat after failed result creation. */
+    /*!
+        Emitted before leaving so the theme can clean up. It can repeat if result creation
+        fails.
+    */
     signal closing()
-    /*! Result creation failed; retryTransition() reuses the saved scores. */
+    /*! Emitted when result creation fails. Call retryTransition() to reuse the saved scores. */
     signal presentationFailed()
 
-    /*! Retries with the same pattern when \a samePattern is true, otherwise a fresh one. */
+    /*!
+        Retries with the same pattern when \a samePattern is true, otherwise a
+        new one. Returns false when \l retryAvailable is false. A handled
+        request returns true even if loading fails and the current screen stays.
+    */
     function retry(samePattern) { return input.retry(samePattern); }
     /*! Cancels the held retry choice. */
     function cancelRetry() { input.cancelRetry(); }
     /*! Retries a failed result transition without saving the score again. */
     function retryTransition() { return session.retryTransition(); }
 
-    /*! Abandons untouched play, or completes an attempted play. */
+    /*!
+        Leaves an unattempted local chart without saving. If a scoring hit was
+        made, finishes the attempt and opens results. Arena follows its session's
+        exit rules. Returns false while disabled, choosing a retry, or unable to leave.
+        \l dismissOverlayAction may handle the request while keeping play open.
+    */
     function exit() {
-        if (!root.active || !root.exitEnabled || root.retryChoosing || !root.chart) {
+        if (!root.enabled || !root.exitEnabled || root.retryChoosing || !root.gameplay) {
             return false;
         }
         if (typeof root.dismissOverlayAction === "function" && root.dismissOverlayAction()) {
             return true;
         }
-        if (root.arenaManagedRunner && Rg.arenaSession.chatOpen) {
+        if (root.gameplay.isArena && Rg.arenaSession.chatOpen) {
             Rg.arenaSession.setChatOpen(false);
             return true;
         }
         if (session.retryTransition()) {
             return true;
         }
-        if (!input.attempted && !root.arenaManagedRunner && root.chart.status !== ChartRunner.Finished) {
+        if (root.gameplay.isArena && root.gameplay.status < ChartRunner.Running) {
+            Rg.arenaSession.abandonCurrentRound();
+            return true;
+        }
+        if (!root.attempted && !root.gameplay.isArena && root.gameplay.status !== ChartRunner.Finished) {
             return session.leave();
         }
         if (!session.complete()) {
@@ -108,12 +151,10 @@ Item {
 
     GameplaySession {
         id: session
-        chart: root.chart
+        gameplay: root.gameplay
         navigation: globalRoot
-        active: root.active && !root.retryChoosing
-        arenaManaged: root.arenaManagedRunner
-        ready: root.chart?.status === ChartRunner.Ready
-        finished: root.chart?.status === ChartRunner.Finished
+        arenaSession: Rg.arenaSession
+        active: root.enabled && !root.retryChoosing
         startReady: startup.complete && root.startReady
         finishReady: root.finishReady
         onStageActivated: {
@@ -122,6 +163,8 @@ Item {
             Qt.callLater(startup.begin);
         }
         onFinishRequested: root.finishRequested()
+        onReadyChanged: Qt.callLater(startup.begin)
+        onPlayingChanged: Qt.callLater(startup.begin)
         onClosing: {
             startup.reset();
             root.closing();
@@ -140,7 +183,7 @@ Item {
             readySound.stop();
         }
         function begin() {
-            if (!root.active || !root.startReady || root.arenaManagedRunner
+            if (!root.enabled || !root.startReady || session.startRequested
                     || !session.playing || !session.ready || startup.armed || startup.complete) {
                 return;
             }
@@ -152,7 +195,7 @@ Item {
             }
         }
         function delay() {
-            if (!startup.armed || !root.active) {
+            if (!startup.armed || !root.enabled) {
                 return;
             }
             if (root.startDelayMillis <= 0) {
@@ -165,7 +208,7 @@ Item {
 
     AudioPlayer {
         id: readySound
-        source: root.arenaManagedRunner ? "" : root.readySoundSource
+        source: root.readySoundSource
         onPlayingChanged: if (!readySound.playing) startup.delay()
     }
     AudioPlayer {
@@ -176,25 +219,24 @@ Item {
         id: startTimer
         interval: Math.max(1, root.startDelayMillis)
         onTriggered: {
-            if (startup.armed && root.active && root.startReady && session.playing && session.ready) {
+            if (startup.armed && root.enabled && root.startReady && session.playing && session.ready) {
                 startup.complete = true;
             }
         }
     }
     StandardGameplayInput {
         id: input
-        chart: root.chart
-        chartData: root.chartData
-        enabled: root.active
-        arenaOwned: root.arenaManagedRunner
+        gameplay: root.gameplay
         exitEnabled: root.exitEnabled
-        exitAction: () => root.exit()
-        completionEnabled: false
-        exitFeedbackEnabled: false
+        onExitRequested: root.exit()
+    }
+    StandardGameplayAttemptState {
+        id: attemptState
+        gameplay: root.gameplay
     }
 
-    onActiveChanged: {
-        if (!root.active) {
+    onEnabledChanged: {
+        if (!root.enabled) {
             startup.reset();
             stopSound.stop();
         } else {
@@ -205,5 +247,5 @@ Item {
         if (!root.startReady) startup.reset();
         else Qt.callLater(startup.begin);
     }
-    onChartChanged: startup.reset()
+    onGameplayChanged: startup.reset()
 }

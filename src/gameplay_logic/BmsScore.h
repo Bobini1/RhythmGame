@@ -107,10 +107,26 @@ class BmsScore final : public QObject
     auto getSource() const -> Source;
     auto getLongNoteMode() const -> LongNoteMode;
     auto getSourceName() const -> QString;
+    static auto sourceName(Source source) -> QString;
     auto isImported() const -> bool;
     void setSubmissionState(SubmissionState newState);
     auto getSubmissionState() const -> SubmissionState;
+    /** Owns a copy of the score and its attachments, independent of QML lists.
+     */
+    auto clone(QObject* parent = nullptr) const -> std::unique_ptr<BmsScore>;
+    struct PreparedData
+    {
+        QByteArray randomSequence;
+        QByteArray replay;
+        QByteArray gauges;
+    };
+
+    auto prepareSave() const -> PreparedData;
+    static auto fromRemoteJson(const QByteArray& data,
+                               const QString& expectedGuid)
+      -> std::unique_ptr<BmsScore>;
     void save(db::SqliteCppDb& db) const;
+    void save(db::SqliteCppDb& db, const PreparedData& prepared) const;
   signals:
     void submissionStateChanged();
 };

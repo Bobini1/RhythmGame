@@ -7,13 +7,13 @@ import "../common"
 Item {
     id: ir
     height: 80
-    property var rankingTotalEntries: 0
-    property var rankingPosition: 0
-    property bool loading: false
-    property string rankingLink
-    property var profile: Rg.profileList.mainProfile
+    required property StandardRanking ranking
+    readonly property int rankingTotalEntries: ranking.playerCount
+    readonly property int rankingPosition: ranking.position
+    readonly property bool loading: ranking.loading
+    readonly property var profile: ranking.profile
     readonly property var generalVars: profile.vars.generalVars
-    property var provider: OnlineRankingModel.RhythmGame
+    readonly property int provider: ranking.provider
 
     ThemeFont {
         id: rankingPositionFont
@@ -21,24 +21,9 @@ Item {
         fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
-    function syncProviderFromGeneralVars() {
-        ir.provider = ir.generalVars ? ir.generalVars.rankingProvider : OnlineRankingModel.RhythmGame;
-    }
-
     function setProvider(providerValue) {
         if (ir.generalVars) {
             ir.generalVars.rankingProvider = providerValue;
-        }
-        ir.provider = providerValue;
-    }
-
-    Component.onCompleted: syncProviderFromGeneralVars()
-
-    Connections {
-        target: ir.generalVars
-
-        function onRankingProviderChanged() {
-            ir.syncProviderFromGeneralVars();
         }
     }
 
@@ -141,10 +126,8 @@ Item {
             bottom: rankingPosition.bottom
         }
         cursorShape: enabled ? Qt.PointingHandCursor : undefined
-        enabled: ir.rankingLink !== ""
-        onClicked: {
-            Qt.openUrlExternally(ir.rankingLink)
-        }
+        enabled: ir.ranking.available && !ir.ranking.opening
+        onClicked: ir.ranking.open()
     }
     Image {
         id: rankingPosition

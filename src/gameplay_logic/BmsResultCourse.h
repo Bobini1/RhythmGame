@@ -5,7 +5,7 @@
 #ifndef BMSRESULTCOURSE_H
 #define BMSRESULTCOURSE_H
 
-#include "BmsScore.h"
+#include "BmsResult.h"
 #include "ChartData.h"
 #include "resource_managers/Tables.h"
 #include "support/Version.h"
@@ -15,6 +15,7 @@
 #include <magic_enum/magic_enum.hpp>
 
 namespace gameplay_logic {
+class BmsScore;
 class BmsResultCourse final : public QObject
 {
     Q_OBJECT
@@ -22,64 +23,65 @@ class BmsResultCourse final : public QObject
     /**
      * @brief The maximum possible points achievable in the score.
      */
-    Q_PROPERTY(double maxPoints READ getMaxPoints CONSTANT)
+    Q_PROPERTY(double maxPoints READ getMaxPoints NOTIFY changed)
     /**
      * @brief The maximum number of possible hits (normal notes + long notes)
      * in the chart.
      */
-    Q_PROPERTY(int maxHits READ getMaxHits CONSTANT)
+    Q_PROPERTY(int maxHits READ getMaxHits NOTIFY changed)
     /**
      * @brief The number of normal notes in the course.
      * @details Normal means not long notes, not mines, not invisible notes, not
      * scratches
      */
-    Q_PROPERTY(int normalNoteCount READ getNormalNoteCount CONSTANT)
+    Q_PROPERTY(int normalNoteCount READ getNormalNoteCount NOTIFY changed)
     /**
      * @brief The number of scratch notes in the course.
      * @details Scratch notes are normal notes on scratch columns.
      */
-    Q_PROPERTY(int scratchCount READ getScratchCount CONSTANT)
+    Q_PROPERTY(int scratchCount READ getScratchCount NOTIFY changed)
     /**
      * @brief The number of long notes in the course excluding BSS (scratch
      * lns).
      * @details A long note consists of an LN start and LN end. Such a pair
      * counts as one long note.
      */
-    Q_PROPERTY(int lnCount READ getLnCount CONSTANT)
+    Q_PROPERTY(int lnCount READ getLnCount NOTIFY changed)
     /**
      * @brief The number of BSS (scratch long notes) in the course.
      * @details A BSS consists of an ln start and ln end. Such a pair
      * counts as one BSS.
      */
-    Q_PROPERTY(int bssCount READ getBssCount CONSTANT)
+    Q_PROPERTY(int bssCount READ getBssCount NOTIFY changed)
     /**
      * @brief The number of mines (landmines) in the course.
      */
-    Q_PROPERTY(int mineCount READ getMineCount CONSTANT)
+    Q_PROPERTY(int mineCount READ getMineCount NOTIFY changed)
     /**
      * @brief The points achieved in the score.
      */
-    Q_PROPERTY(double points READ getPoints CONSTANT)
+    Q_PROPERTY(double points READ getPoints NOTIFY changed)
     /**
      * @brief The best combo achieved in the score.
      */
-    Q_PROPERTY(int maxCombo READ getMaxCombo CONSTANT)
+    Q_PROPERTY(int maxCombo READ getMaxCombo NOTIFY changed)
     /**
      * @brief The counts of each judgement type achieved in the score.
      * @details The order is defined in the Judgement enum.
      * @see Judgement
      */
-    Q_PROPERTY(QList<int> judgementCounts READ getJudgementCounts CONSTANT)
+    Q_PROPERTY(
+      QList<int> judgementCounts READ getJudgementCounts NOTIFY changed)
     /**
      * @brief The number of mines hit in the score.
      */
-    Q_PROPERTY(int mineHits READ getMineHits CONSTANT)
+    Q_PROPERTY(int mineHits READ getMineHits NOTIFY changed)
     /**
      * @brief The clear type achieved in the score.
      * @details This property indicates the type of clear achieved in the
      * score, such as "DAN", "EXDAN", "EXHARDDAN", "FAILED", etc.
      */
-    Q_PROPERTY(QString clearType READ getClearType CONSTANT)
+    Q_PROPERTY(QString clearType READ getClearType NOTIFY changed)
     /**
      * @brief The random sequence used for parsing the constituent charts.
      * @details If the charts use
@@ -88,7 +90,8 @@ class BmsResultCourse final : public QObject
      * the contents of the chart. If charts do not use randomization,
      * this list will be empty.
      */
-    Q_PROPERTY(QList<qint64> randomSequence READ getRandomSequence CONSTANT)
+    Q_PROPERTY(
+      QList<qint64> randomSequence READ getRandomSequence NOTIFY changed)
     /**
      * @brief The timestamp when the score was achieved, in Unix time.
      * @details This property records the time when the score on the
@@ -96,15 +99,15 @@ class BmsResultCourse final : public QObject
      * represented as the number of seconds since January 1, 1970 (the Unix
      * epoch).
      */
-    Q_PROPERTY(int64_t unixTimestamp READ getUnixTimestamp CONSTANT)
+    Q_PROPERTY(int64_t unixTimestamp READ getUnixTimestamp NOTIFY changed)
     /**
-     * @brief The length of the course in milliseconds.
+     * @brief The length of the course in nanoseconds.
      * @details This property indicates the total duration of the course from
      * start to finish, measured in nanoseconds.
      * @note This is based on the timestamp of the last visible note in each
      * chart.
      */
-    Q_PROPERTY(int64_t length READ getLength CONSTANT)
+    Q_PROPERTY(int64_t length READ getLength NOTIFY changed)
     /**
      * @brief The unique identifier of this course score.
      */
@@ -113,12 +116,12 @@ class BmsResultCourse final : public QObject
      * @brief The SHA-256 hashes of constituent charts, joined with spaces.
      * @see BmsResult::sha256
      */
-    Q_PROPERTY(QString sha256 READ getSha256 CONSTANT)
+    Q_PROPERTY(QString sha256 READ getSha256 NOTIFY changed)
     /**
      * @brief The MD5 hashes of constituent charts, joined with spaces.
      * @see BmsResult::md5
      */
-    Q_PROPERTY(QString md5 READ getMd5 CONSTANT)
+    Q_PROPERTY(QString md5 READ getMd5 NOTIFY changed)
     /**
      * @brief The note order algorithm used for the course.
      * @details This property indicates the algorithm used to modify the
@@ -126,18 +129,18 @@ class BmsResultCourse final : public QObject
      * @see resource_managers::note_order_algorithm::NoteOrderAlgorithm
      */
     Q_PROPERTY(resource_managers::NoteOrderAlgorithm noteOrderAlgorithm READ
-                 getNoteOrderAlgorithm CONSTANT)
+                 getNoteOrderAlgorithm NOTIFY changed)
     /**
      * @brief The note order algorithm used for player 2 side in DP charts.
      * @see noteOrderAlgorithm
      */
     Q_PROPERTY(resource_managers::NoteOrderAlgorithm noteOrderAlgorithmP2 READ
-                 getNoteOrderAlgorithmP2 CONSTANT)
+                 getNoteOrderAlgorithmP2 NOTIFY changed)
     /**
-     * @brief The unique identifier of the course, based on md5 hashes of charts
+     * @brief The unique identifier of the course, based on chart identifiers
      * and contraints.
      */
-    Q_PROPERTY(QString identifier READ getIdentifier CONSTANT)
+    Q_PROPERTY(QString identifier READ getIdentifier NOTIFY changed)
     /**
      * @brief The DP options used for the score.
      * @details This property indicates the DP options that were active during
@@ -145,12 +148,12 @@ class BmsResultCourse final : public QObject
      * @see resource_managers::DpOptions
      */
     Q_PROPERTY(
-      resource_managers::DpOptions dpOptions READ getDpOptions CONSTANT)
+      resource_managers::DpOptions dpOptions READ getDpOptions NOTIFY changed)
     /**
      * @brief The game version where the score was achieved.
      * @details For migrations.
      */
-    Q_PROPERTY(uint64_t gameVersion READ getGameVersion CONSTANT)
+    Q_PROPERTY(uint64_t gameVersion READ getGameVersion NOTIFY changed)
     /**
      * @brief The keymode of the chart.
      * @details Can be different from the keymode of chartData when
@@ -159,14 +162,23 @@ class BmsResultCourse final : public QObject
      * load.
      */
     Q_PROPERTY(
-      gameplay_logic::ChartData::Keymode keymode READ getKeymode CONSTANT)
+      gameplay_logic::ChartData::Keymode keymode READ getKeymode NOTIFY changed)
     /**
      * @brief The constraints of the course, like "gauge_lr2" or "grade_mirror"
      */
-    Q_PROPERTY(QStringList constraints READ getConstraints CONSTANT)
+    Q_PROPERTY(QStringList constraints READ getConstraints NOTIFY changed)
 
+    /** Ordered saved stage results. A missing record keeps its null slot. */
+    Q_PROPERTY(QList<BmsResult*> results READ getResults NOTIFY changed)
+    /** Whether every referenced stage record is available, even for an
+     * unfinished course. */
+    Q_PROPERTY(bool complete READ isComplete NOTIFY changed)
+    /** Whether every referenced stage has a recording. */
+    Q_PROPERTY(bool replayAvailable READ isReplayAvailable NOTIFY changed)
+    /** Whether any stage was imported from another game. */
+    Q_PROPERTY(bool imported READ isImported NOTIFY changed)
     QString identifier;
-    QList<BmsScore*> scores;
+    QList<BmsResult*> results;
     QString clearType;
     QList<qint64> randomSequence;
     QString guid;
@@ -174,6 +186,7 @@ class BmsResultCourse final : public QObject
     QStringList constraints;
     QList<resource_managers::Trophy> trophies;
     uint64_t gameVersion;
+    int64_t unixTimestamp = 0;
 
   public:
     struct DTO
@@ -188,9 +201,23 @@ class BmsResultCourse final : public QObject
         int64_t unixTimestamp;
         int64_t gameVersion;
     };
-    static auto load(const DTO& dto, QList<BmsScore*>& scores)
+    static auto load(const DTO& dto, const QList<BmsResult*>& results)
       -> std::unique_ptr<BmsResultCourse>;
     void save(db::SqliteCppDb& db) const;
+    BmsResultCourse(QString guid,
+                    QString identifier,
+                    const QList<BmsResult*>& results,
+                    QString clearType,
+                    int maxCombo,
+                    QStringList constraints,
+                    uint64_t gameVersion = support::currentVersion,
+                    QObject* parent = nullptr);
+    auto clone() const -> std::unique_ptr<BmsResultCourse>;
+    /** Updates cached metadata while keeping existing QML references valid. */
+    bool updateFrom(const BmsResultCourse& other);
+    bool isComplete() const;
+    bool isReplayAvailable() const;
+    bool isImported() const;
     BmsResultCourse(QString guid,
                     QString identifier,
                     QList<BmsScore*> scores,
@@ -221,13 +248,15 @@ class BmsResultCourse final : public QObject
     auto getNoteOrderAlgorithmP2() const
       -> resource_managers::NoteOrderAlgorithm;
     auto getGameVersion() const -> uint64_t;
-    auto getScores() const -> QList<BmsScore*>;
+    auto getResults() const -> const QList<BmsResult*>&;
     auto getConstraints() const -> QStringList;
     auto getTrophies() const -> QVariantList;
     auto getIdentifier() const -> QString;
     auto getDpOptions() const -> resource_managers::DpOptions;
     auto getLength() const -> int64_t;
     auto getKeymode() const -> ChartData::Keymode;
+  signals:
+    void changed();
 };
 } // namespace gameplay_logic
 

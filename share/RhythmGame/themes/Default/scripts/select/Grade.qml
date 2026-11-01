@@ -16,7 +16,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: 100
         asynchronous: true
-        source: root.iniImagesUrl + "parts.png/" + Helpers.getGrade(grade.scoreWithBestPoints?.result?.points, grade.scoreWithBestPoints?.result?.maxPoints)
+        source: root.iniImagesUrl + "parts.png/" + Helpers.getGrade(grade.scoreWithBestPoints?.points, grade.scoreWithBestPoints?.maxPoints)
     }
 
     Image {
@@ -36,7 +36,7 @@ Item {
         anchors.right: parent.right
         anchors.rightMargin: 75
 
-        text: grade.scoreWithBestPoints.result.points
+        text: grade.scoreWithBestPoints.points
 
         font.pixelSize: 42
         color: "#ff0066"
@@ -59,8 +59,8 @@ Item {
         anchors.right: exScoreNumber.right
 
         text: {
-            let points = grade.scoreWithBestPoints.result.points;
-            let maxPoints = grade.scoreWithBestPoints.result.maxPoints;
+            let points = grade.scoreWithBestPoints.points;
+            let maxPoints = grade.scoreWithBestPoints.maxPoints;
             let ratio = points / maxPoints;
 
             return (ratio * 100).toFixed(2) + "%";

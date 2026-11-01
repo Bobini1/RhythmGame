@@ -6,6 +6,8 @@
 #include "qml_components/ChartLoader.h"
 #include "qml_components/ProfileList.h"
 #include "resource_managers/Profile.h"
+#include "resource_managers/SongAssetStore.h"
+#include "support/QStringToPath.h"
 
 #include <QCryptographicHash>
 #include <QFile>
@@ -216,10 +218,12 @@ QtArenaRoundLoader::QtArenaRoundLoader(PlayConfigProvider playConfigProvider,
 {
 }
 
-QtArenaRoundLoader::QtArenaRoundLoader(qml_components::ProfileList* profileList,
-                                       db::SqliteCppDb* songDb,
-                                       qml_components::ChartLoader* chartLoader,
-                                       QObject* parent)
+QtArenaRoundLoader::QtArenaRoundLoader(
+  qml_components::ProfileList* profileList,
+  db::SqliteCppDb* songDb,
+  qml_components::ChartLoader* chartLoader,
+  resource_managers::SongAssetStore* songAssets,
+  QObject* parent)
   : QtArenaRoundLoader(
       [profileList]() -> std::optional<resource_managers::ChartPlayConfig> {
           if (profileList == nullptr ||
@@ -237,7 +241,7 @@ QtArenaRoundLoader::QtArenaRoundLoader(qml_components::ProfileList* profileList,
               .dpMode = general->getDpOptions(),
           };
       },
-      [songDb](QByteArrayView sha256) -> std::optional<QString> {
+      [songDb, songAssets](QByteArrayView sha256) -> std::optional<QString> {
           if (songDb == nullptr || sha256.size() != 32) {
               return std::nullopt;
           }
@@ -247,7 +251,9 @@ QtArenaRoundLoader::QtArenaRoundLoader(qml_components::ProfileList* profileList,
           const auto paths = query.executeAndGetAll<std::string>();
           for (const auto& path : paths) {
               const auto candidate = QString::fromStdString(path);
-              if (QFileInfo::exists(candidate)) {
+              if (QFileInfo::exists(candidate) ||
+                  (songAssets &&
+                   songAssets->isVirtual(support::qStringToPath(candidate)))) {
                   return candidate;
               }
           }
@@ -268,6 +274,7 @@ QtArenaRoundLoader::QtArenaRoundLoader(qml_components::ProfileList* profileList,
       {},
       parent)
 {
+    m_songAssets = songAssets;
 }
 
 QtArenaRoundLoader::~QtArenaRoundLoader()
@@ -280,6 +287,12 @@ QtArenaRoundLoader::~QtArenaRoundLoader()
         }
     }
     m_operations.clear();
+    for (auto* child : children()) {
+        if (auto* watcher =
+              dynamic_cast<QFutureWatcher<FileCheckResult>*>(child)) {
+            watcher->waitForFinished();
+        }
+    }
     for (const auto& runner : runners) {
         delete runner.data();
     }
@@ -514,48 +527,72 @@ QtArenaRoundLoader::startFileCheck(
                 finishFileCheck(requestId, serial);
                 watcher->deleteLater();
             });
-    watcher->setFuture(
-      QtConcurrent::run([path = std::move(path), expectedSha256, cancelled] {
-          if (cancelled->load(std::memory_order_relaxed)) {
-              return FileCheckResult{
-                  .failure = FileCheckFailure::Cancelled,
-              };
-          }
-          if (!QFileInfo::exists(path)) {
-              return FileCheckResult{
-                  .failure = FileCheckFailure::MissingFile,
-              };
-          }
-          QFile file(path);
-          if (!file.open(QIODevice::ReadOnly)) {
-              return FileCheckResult{
-                  .failure = FileCheckFailure::ReadFailed,
-              };
-          }
-          QCryptographicHash hasher(QCryptographicHash::Sha256);
-          constexpr auto chunkSize = 1024 * 1024;
-          while (!file.atEnd()) {
-              if (cancelled->load(std::memory_order_relaxed)) {
-                  return FileCheckResult{
-                      .failure = FileCheckFailure::Cancelled,
-                  };
-              }
-              const auto chunk = file.read(chunkSize);
-              if (chunk.isNull() && file.error() != QFile::NoError) {
-                  return FileCheckResult{
-                      .failure = FileCheckFailure::ReadFailed,
-                  };
-              }
-              hasher.addData(chunk);
-          }
-          auto observed = hasher.result();
-          return FileCheckResult{
-              .failure = observed == expectedSha256
-                           ? FileCheckFailure::None
-                           : FileCheckFailure::HashMismatch,
-              .observedSha256 = std::move(observed),
-          };
-      }));
+    watcher->setFuture(QtConcurrent::run([path = std::move(path),
+                                          expectedSha256,
+                                          cancelled,
+                                          songAssets = m_songAssets] {
+        if (cancelled->load(std::memory_order_relaxed)) {
+            return FileCheckResult{
+                .failure = FileCheckFailure::Cancelled,
+            };
+        }
+        if (songAssets && songAssets->isVirtual(support::qStringToPath(path))) {
+            try {
+                const auto bytes = songAssets->read(
+                  support::qStringToPath(path), cancelled.get());
+                const auto observed =
+                  QCryptographicHash::hash(bytes, QCryptographicHash::Sha256);
+                return FileCheckResult{
+                    .failure = cancelled->load(std::memory_order_relaxed)
+                                 ? FileCheckFailure::Cancelled
+                               : observed == expectedSha256
+                                 ? FileCheckFailure::None
+                                 : FileCheckFailure::HashMismatch,
+                    .observedSha256 = observed,
+                };
+            } catch (const std::exception&) {
+                return FileCheckResult{
+                    .failure = cancelled->load(std::memory_order_relaxed)
+                                 ? FileCheckFailure::Cancelled
+                                 : FileCheckFailure::ReadFailed,
+                };
+            }
+        }
+        if (!QFileInfo::exists(path)) {
+            return FileCheckResult{
+                .failure = FileCheckFailure::MissingFile,
+            };
+        }
+        QFile file(path);
+        if (!file.open(QIODevice::ReadOnly)) {
+            return FileCheckResult{
+                .failure = FileCheckFailure::ReadFailed,
+            };
+        }
+        QCryptographicHash hasher(QCryptographicHash::Sha256);
+        constexpr auto chunkSize = 1024 * 1024;
+        while (!file.atEnd()) {
+            if (cancelled->load(std::memory_order_relaxed)) {
+                return FileCheckResult{
+                    .failure = FileCheckFailure::Cancelled,
+                };
+            }
+            const auto chunk = file.read(chunkSize);
+            if (chunk.isNull() && file.error() != QFile::NoError) {
+                return FileCheckResult{
+                    .failure = FileCheckFailure::ReadFailed,
+                };
+            }
+            hasher.addData(chunk);
+        }
+        auto observed = hasher.result();
+        return FileCheckResult{
+            .failure = observed == expectedSha256
+                         ? FileCheckFailure::None
+                         : FileCheckFailure::HashMismatch,
+            .observedSha256 = std::move(observed),
+        };
+    }));
 }
 
 void

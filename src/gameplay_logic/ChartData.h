@@ -7,6 +7,7 @@
 
 #include <QQmlEngine>
 #include <QJsonObject>
+#include <QByteArray>
 #include "db/SqliteCppDb.h"
 #include "gameplay_logic/Judgement.h"
 #include <QHash>
@@ -252,6 +253,7 @@ class ChartData : public QObject
     Q_PROPERTY(QVariantList timingWindows READ getTimingWindows CONSTANT)
 
   public:
+    auto clone(QObject* parent = nullptr) const -> std::unique_ptr<ChartData>;
     ChartData(QString title,
               QString artist,
               QString subtitle,
@@ -336,8 +338,6 @@ class ChartData : public QObject
     [[nodiscard]] auto getTimingWindowsHash() const
       -> QHash<Judgement, QPair<qint64, qint64>>;
 
-    auto clone() const -> std::unique_ptr<ChartData>;
-
     struct DTO
     {
         int id;
@@ -379,7 +379,20 @@ class ChartData : public QObject
         std::string histogramData;
     };
 
+    struct PreparedData
+    {
+        QByteArray randomSequence;
+        QByteArray histogramData;
+        QByteArray bpmChanges;
+    };
+
+    auto hasNotes() const -> bool;
+    auto prepareSave() const -> PreparedData;
     auto save(db::SqliteCppDb& db) const -> void;
+    auto save(db::SqliteCppDb& db, int64_t directory) const -> void;
+    void save(db::SqliteCppDb& db,
+              int64_t directory,
+              const PreparedData& prepared) const;
     static auto load(const DTO& chartDataDto) -> std::unique_ptr<ChartData>;
     auto toJson() const -> QJsonObject;
 

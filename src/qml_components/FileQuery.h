@@ -25,7 +25,10 @@ class FileQuery : public QObject
                        QObject* parent = nullptr);
     Q_INVOKABLE bool openFolder(const QString& path) const;
     Q_INVOKABLE QString localFileUrl(const QString& path) const;
-    Q_INVOKABLE QString readTextFile(const QString& path) const;
+    /** Reads local or virtual text, honoring a BOM. The fallback is UTF-8;
+     * legacy chart readmes can request CP932 explicitly. */
+    Q_INVOKABLE QString readTextFile(const QString& path,
+                                     const QString& encoding = "UTF-8") const;
     /**
      * @brief Get a list of all files in a directory EXCLUDING ini files.
      * @param directory The directory to search.

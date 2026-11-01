@@ -68,6 +68,10 @@ class CourseRunner final : public QObject
     ChartRunner::Status status{ ChartRunner::Status::Loading };
     QList<BmsScore*> scores1;
     QList<BmsScore*> scores2;
+    QList<BmsScore*> stageScores;
+    QList<BmsScoreCourse*> courseScores;
+    bool finishingStage{};
+    bool finishingCourse{};
     resource_managers::Course course;
     CoursePlayer* coursePlayer1;
     CoursePlayer* coursePlayer2;
@@ -104,6 +108,8 @@ class CourseRunner final : public QObject
     auto getInputMapping() const -> QList<int>;
     void setInputMapping(QList<int> inputMapping);
     Q_INVOKABLE QList<BmsScore*> proceed();
+    QList<BmsScore*> finishStage();
+    bool nextStage();
     Q_INVOKABLE QList<BmsScoreCourse*> finish();
     Q_INVOKABLE void start() const;
 

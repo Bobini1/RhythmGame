@@ -28,9 +28,10 @@ find_program(
 
 set(working_dir "${PROJECT_BINARY_DIR}/docs")
 set(QDOC_OUTPUT_DIRECTORY "${DOXYGEN_OUTPUT_DIRECTORY}/html")
-set(QDOC_HTML_OUTPUT_DIRECTORY "${QDOC_OUTPUT_DIRECTORY}/qml")
 file(MAKE_DIRECTORY "${working_dir}")
-file(REMOVE_RECURSE "${QDOC_HTML_OUTPUT_DIRECTORY}")
+# Doxygen and QDoc otherwise leave pages and tutorial archives behind when a
+# source page or example directory is removed or renamed.
+file(REMOVE_RECURSE "${QDOC_OUTPUT_DIRECTORY}")
 
 configure_file(
     "${PROJECT_SOURCE_DIR}/docs/Doxyfile.in"
@@ -62,3 +63,20 @@ execute_process(
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND_ERROR_IS_FATAL ANY
 )
+
+# Publish each tutorial theme as a complete folder and an installable archive.
+set(tutorial_source "${PROJECT_SOURCE_DIR}/docs/examples/theme-tutorial")
+set(tutorial_output "${DOXYGEN_OUTPUT_DIRECTORY}/html/examples/theme-tutorial")
+file(MAKE_DIRECTORY "${tutorial_output}")
+file(GLOB tutorial_manifests "${tutorial_source}/*/theme.json")
+foreach(manifest IN LISTS tutorial_manifests)
+    get_filename_component(theme_directory "${manifest}" DIRECTORY)
+    get_filename_component(theme_name "${theme_directory}" NAME)
+    file(COPY "${theme_directory}" DESTINATION "${tutorial_output}")
+    execute_process(
+        COMMAND "${CMAKE_COMMAND}" -E tar cf "${tutorial_output}/${theme_name}.zip"
+            --format=zip "${theme_name}"
+        WORKING_DIRECTORY "${tutorial_source}"
+        COMMAND_ERROR_IS_FATAL ANY
+    )
+endforeach()

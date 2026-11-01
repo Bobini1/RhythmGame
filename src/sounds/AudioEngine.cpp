@@ -106,39 +106,8 @@ AudioEngine::setDeviceImpl(const QString& deviceName)
         throw std::runtime_error("Failed to initialize audio device.");
     }
 
-    auto resourceManagerConfig = ma_resource_manager_config_init();
-    resourceManagerConfig.jobThreadCount = std::thread::hardware_concurrency();
-
-    result =
-      ma_resource_manager_init(&resourceManagerConfig, resourceManager.get());
-    if (result != MA_SUCCESS) {
-        ma_device_uninit(device.get());
-        throw std::runtime_error("Failed to initialize resource manager.");
-    }
-
-    // create engine
-    auto engineConfig = ma_engine_config_init();
-    engineConfig.pResourceManager = resourceManager.get();
-    engineConfig.sampleRate = sampleRate;
-    engineConfig.channels = channels;
-    engineConfig.pDevice = device.get();
-    engineConfig.pContext = context.get();
-    result = ma_engine_init(&engineConfig, engine.get());
-    if (result != MA_SUCCESS) {
-        ma_device_uninit(device.get());
-        ma_resource_manager_uninit(resourceManager.get());
-        throw std::runtime_error("Failed to initialize audio engine.");
-    }
-    if (ma_engine_start(engine.get()) != MA_SUCCESS) {
-        ma_engine_uninit(engine.get());
-        ma_device_uninit(device.get());
-        ma_resource_manager_uninit(resourceManager.get());
-        throw std::runtime_error("Failed to start audio engine.");
-    }
     if (ma_device_start(device.get()) != MA_SUCCESS) {
-        ma_engine_uninit(engine.get());
         ma_device_uninit(device.get());
-        ma_resource_manager_uninit(resourceManager.get());
         throw std::runtime_error("Failed to start audio device.");
     }
 
@@ -189,25 +158,23 @@ AudioEngine::setBackendImpl(const QString& backendName)
         result != MA_SUCCESS) {
         throw std::runtime_error("Failed to initialize audio context.");
     }
-    currentBackend = ma_get_backend_name(context->backend);
-    settings.setValue("audio/backend", currentBackend);
-    auto devices = getDevices(*context);
-    deviceNames.clear();
-    deviceIds.clear();
-    for (const auto& deviceId : devices) {
-        deviceNames.append(deviceId.name);
-        deviceIds.append(deviceId.id);
-    }
-
-    currentDevice =
-      settings.value("audio/" + currentBackend + "/device", "").toString();
-
     try {
+        currentBackend = ma_get_backend_name(context->backend);
+        auto devices = getDevices(*context);
+        deviceNames.clear();
+        deviceIds.clear();
+        for (const auto& deviceId : devices) {
+            deviceNames.append(deviceId.name);
+            deviceIds.append(deviceId.id);
+        }
+        currentDevice =
+          settings.value("audio/" + currentBackend + "/device", "").toString();
         if (!deviceNames.contains(currentDevice)) {
             setDeviceImpl("");
         } else {
             setDeviceImpl(currentDevice);
         }
+        settings.setValue("audio/backend", currentBackend);
     } catch (const std::exception& e) {
         ma_context_uninit(context.get());
         throw;
@@ -239,15 +206,42 @@ AudioEngine::AudioEngine()
     if (!backendNames.contains(currentBackend)) {
         currentBackend = "";
     }
-    setBackendImpl(currentBackend);
+    auto resourceManagerConfig = ma_resource_manager_config_init();
+    resourceManagerConfig.jobThreadCount = std::thread::hardware_concurrency();
+    if (ma_resource_manager_init(&resourceManagerConfig,
+                                 resourceManager.get()) != MA_SUCCESS) {
+        ma_log_uninit(&log);
+        throw std::runtime_error("Failed to initialize resource manager.");
+    }
+    // The output device pulls from a stable mixer. Sounds do not need to be
+    // recreated when the device or backend changes.
+    auto engineConfig = ma_engine_config_init();
+    engineConfig.pResourceManager = resourceManager.get();
+    engineConfig.sampleRate = sampleRate;
+    engineConfig.channels = channels;
+    engineConfig.noDevice = MA_TRUE;
+    if (ma_engine_init(&engineConfig, engine.get()) != MA_SUCCESS) {
+        ma_resource_manager_uninit(resourceManager.get());
+        ma_log_uninit(&log);
+        throw std::runtime_error("Failed to initialize audio engine.");
+    }
+    try {
+        setBackendImpl(currentBackend);
+    } catch (...) {
+        ma_engine_uninit(engine.get());
+        ma_resource_manager_uninit(resourceManager.get());
+        ma_log_uninit(&log);
+        throw;
+    }
 }
 
 AudioEngine::~AudioEngine()
 {
     ma_device_uninit(device.get());
-    ma_resource_manager_uninit(resourceManager.get());
     ma_engine_uninit(engine.get());
+    ma_resource_manager_uninit(resourceManager.get());
     ma_context_uninit(context.get());
+    ma_log_uninit(&log);
 }
 auto
 AudioEngine::getBackend() const -> QString
@@ -264,12 +258,9 @@ AudioEngine::setBackend(const QString& backend)
         auto oldDevice = currentDevice;
         auto tempContext = std::move(context);
         auto tempDevice = std::move(device);
-        auto tempResourceManager = std::move(resourceManager);
-        auto tempEngine = std::move(engine);
+        ma_device_stop(tempDevice.get());
         context = std::make_unique<ma_context>();
         device = std::make_unique<ma_device>();
-        resourceManager = std::make_unique<ma_resource_manager>();
-        engine = std::make_unique<ma_engine>();
         try {
             setBackendImpl(backend);
             if (oldBackend != currentBackend) {
@@ -281,22 +272,18 @@ AudioEngine::setBackend(const QString& backend)
             if (oldDevice != currentDevice) {
                 emit deviceChanged();
             }
-            emit changeDeviceRequested();
         } catch (const std::exception& e) {
             spdlog::error("Failed to set audio backend: {}", e.what());
             context = std::move(tempContext);
             device = std::move(tempDevice);
-            resourceManager = std::move(tempResourceManager);
-            engine = std::move(tempEngine);
             deviceNames = std::move(oldDeviceNames);
             deviceIds = std::move(oldDeviceIds);
             currentBackend = std::move(oldBackend);
             currentDevice = std::move(oldDevice);
+            ma_device_start(device.get());
             return;
         }
         ma_device_uninit(tempDevice.get());
-        ma_resource_manager_uninit(tempResourceManager.get());
-        ma_engine_uninit(tempEngine.get());
         ma_context_uninit(tempContext.get());
     }
 }
@@ -312,28 +299,21 @@ AudioEngine::setDevice(const QString& device)
         device != currentDevice) {
         auto oldDevice = currentDevice;
         auto tempDevice = std::move(this->device);
-        auto tempResourceManager = std::move(resourceManager);
-        auto tempEngine = std::move(engine);
+        ma_device_stop(tempDevice.get());
         this->device = std::make_unique<ma_device>();
-        resourceManager = std::make_unique<ma_resource_manager>();
-        engine = std::make_unique<ma_engine>();
         try {
             setDeviceImpl(device);
             if (oldDevice != currentDevice) {
                 emit deviceChanged();
             }
-            emit changeDeviceRequested();
         } catch (const std::exception& e) {
             spdlog::error("Failed to set audio device: {}", e.what());
             currentDevice = std::move(oldDevice);
             this->device = std::move(tempDevice);
-            resourceManager = std::move(tempResourceManager);
-            engine = std::move(tempEngine);
+            ma_device_start(this->device.get());
             return;
         }
         ma_device_uninit(tempDevice.get());
-        ma_resource_manager_uninit(tempResourceManager.get());
-        ma_engine_uninit(tempEngine.get());
     }
 }
 auto

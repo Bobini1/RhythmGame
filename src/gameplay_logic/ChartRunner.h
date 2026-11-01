@@ -61,6 +61,8 @@ class ChartRunner final : public QObject
     Q_PROPERTY(qml_components::BgaContainer* bga READ getBga NOTIFY bgaLoaded)
     /** @brief The current status of the chart runner. */
     Q_PROPERTY(Status status READ getStatus NOTIFY statusChanged)
+    /** A start request waiting for resources or an external start hold. */
+    Q_PROPERTY(bool startPending READ startPending NOTIFY startPendingChanged)
     /**
      * @brief The keymode of the chart being played.
      * @details Can be different from the keymode of chartData when
@@ -123,6 +125,7 @@ class ChartRunner final : public QObject
       QObject* parent = nullptr);
 
     Q_INVOKABLE void start();
+    [[nodiscard]] auto startPending() const -> bool;
     void holdStart();
     void releaseStart();
 
@@ -147,6 +150,7 @@ class ChartRunner final : public QObject
 
   signals:
     void statusChanged();
+    void startPendingChanged();
     void bgaLoaded();
     void inputMappingChanged();
 };
@@ -173,6 +177,13 @@ class Player : public QObject
      * barlines.
      */
     Q_PROPERTY(GameplayState* state READ getState CONSTANT)
+    /**
+     * @brief Playable column indices in the default visual order.
+     * @details Uses the player's effective keymode, with the left scratch first
+     * and the right scratch last. Five-key modes omit unused columns. Themes
+     * can reorder these indices without changing the underlying column states.
+     */
+    Q_PROPERTY(QList<int> columns READ getColumns CONSTANT)
     /**
      * @brief The profile of the player.
      */
@@ -251,6 +262,9 @@ class Player : public QObject
     auto getNotes() const -> BmsNotes*;
     auto getScore() const -> BmsLiveScore*;
     auto getState() const -> GameplayState*;
+    auto getColumns() const -> QList<int>;
+    /** Whether a column index identifies a scratch lane. */
+    Q_INVOKABLE bool isScratchColumn(int column) const;
     auto getProfile() const -> resource_managers::Profile*;
     auto getPosition() const -> double;
     auto getBeatPosition() const -> double;

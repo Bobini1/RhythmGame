@@ -86,6 +86,42 @@ RootSongFoldersConfig::RootSongFoldersConfig(RootSongFolders* folders,
   , scanningQueue(scanningQueue)
 {
 }
+
+auto
+RootSongFolders::containing(const QString& path) const -> RootSongFolder*
+{
+    if (path.isEmpty()) {
+        return nullptr;
+    }
+    const auto url = QUrl(path);
+    const auto target = QDir::cleanPath(
+      QDir::fromNativeSeparators(url.isLocalFile() ? url.toLocalFile() : path));
+#ifdef Q_OS_WIN
+    constexpr auto sensitivity = Qt::CaseInsensitive;
+#else
+    constexpr auto sensitivity = Qt::CaseSensitive;
+#endif
+    RootSongFolder* best = nullptr;
+    qsizetype bestLength = -1;
+    for (const auto& folder : folders) {
+        const auto root =
+          QDir::cleanPath(QDir::fromNativeSeparators(folder->getName()));
+        const auto prefix = root.endsWith('/') ? root : root + '/';
+        if ((target.compare(root, sensitivity) == 0 ||
+             target.startsWith(prefix, sensitivity)) &&
+            root.size() > bestLength) {
+            best = folder.get();
+            bestLength = root.size();
+        }
+    }
+    return best;
+}
+
+bool
+RootSongFoldersConfig::rescan(const QString& path)
+{
+    return scanningQueue->scan(folders->containing(path));
+}
 QVariant
 ScanningQueue::at(const int index) const
 {
@@ -107,7 +143,7 @@ ScanningQueue::scan(RootSongFolder* which) -> bool
         return false;
     }
     if (std::ranges::find(scanItems, shared) != scanItems.end()) {
-        return false;
+        return true;
     }
     beginInsertRows(QModelIndex(), scanItems.size(), scanItems.size());
     scanItems.push_back(std::move(shared));
@@ -254,38 +290,51 @@ ScanningQueue::ScanningQueue(db::SqliteCppDb* db,
   , db(db)
   , scanner(scanner)
 {
-    connect(&scanFutureWatcher, &QFutureWatcher<void>::finished, [this] {
-        // fixme: what if we press stop between scanning is finished and this
-        // line?
-        scanItems.front()->updateStatus(stop
-                                          ? RootSongFolder::Status::NotScanned
-                                          : RootSongFolder::Status::Scanned);
-        updateStatus.reset();
-        updateStatus.bind(":dir", scanItems.front()->getName().toStdString());
-        updateStatus.bind(":status",
-                          static_cast<int>(scanItems.front()->getStatus()));
-        updateStatus.execute();
-        stop = false;
-        beginRemoveRows(QModelIndex(), 0, 0);
-        scanItems.pop_front();
-        endRemoveRows();
-        setCurrentScannedFolder({});
-        if (!scanItems.empty()) {
-            performTask();
-        } else {
-            emit queueDrained();
+    threadPool.setMaxThreadCount(1);
+    progressTimer.setInterval(std::chrono::milliseconds(100));
+    connect(&progressTimer, &QTimer::timeout, this, [this] {
+        QString folder;
+        {
+            const auto lock = std::lock_guard(progressMutex);
+            folder = std::exchange(pendingScannedFolder, {});
+        }
+        if (!folder.isEmpty()) {
+            setCurrentScannedFolder(std::move(folder));
         }
     });
+    connect(&scanFutureWatcher,
+            &QFutureWatcher<RootSongFolder::Status>::finished,
+            this,
+            [this] {
+                auto status = RootSongFolder::Status::NotScanned;
+                try {
+                    status = scanFutureWatcher.result();
+                } catch (const std::exception& error) {
+                    spdlog::error("Song scan failed: {}", error.what());
+                }
+                scanItems.front()->updateStatus(status);
+                stop = false;
+                beginRemoveRows(QModelIndex(), 0, 0);
+                scanItems.pop_front();
+                endRemoveRows();
+                progressTimer.stop();
+                {
+                    const auto lock = std::lock_guard(progressMutex);
+                    pendingScannedFolder.clear();
+                }
+                setCurrentScannedFolder({});
+                if (!scanItems.empty()) {
+                    performTask();
+                } else {
+                    emit queueDrained();
+                }
+            });
 }
 void
 ScanningQueue::performTask()
 {
     const auto& folder = scanItems.front();
     folder->updateStatus(RootSongFolder::Status::InProgress);
-    updateStatus.reset();
-    updateStatus.bind(":dir", folder->getName().toStdString());
-    updateStatus.bind(":status", static_cast<int>(folder->getStatus()));
-    updateStatus.execute();
     scanImpl(folder->getName());
 }
 void
@@ -305,25 +354,34 @@ ScanningQueue::remove(const int index)
 void
 ScanningQueue::scanImpl(const QString& which)
 {
-    scanFuture = QtConcurrent::run([this, which] {
+    progressTimer.start();
+    scanFuture = QtConcurrent::run(&threadPool, [this, which] {
+        saveStatus(which, RootSongFolder::Status::InProgress);
         clear(which);
         scanner.scanDirectory(
           support::qStringToPath(which),
           [this](QString newCurrentScannedFolder) {
-              QMetaObject::invokeMethod(
-                this,
-                [this,
-                 newCurrentScannedFolder = std::move(newCurrentScannedFolder)] {
-                    setCurrentScannedFolder(newCurrentScannedFolder);
-                },
-                Qt::QueuedConnection);
+              const auto lock = std::lock_guard(progressMutex);
+              pendingScannedFolder = std::move(newCurrentScannedFolder);
           },
           &stop);
-        if (stop) {
+        const auto status = stop ? RootSongFolder::Status::NotScanned
+                                 : RootSongFolder::Status::Scanned;
+        if (status == RootSongFolder::Status::NotScanned) {
             clear(which);
         }
+        saveStatus(which, status);
+        return status;
     });
     scanFutureWatcher.setFuture(scanFuture);
+}
+void
+ScanningQueue::saveStatus(const QString& folder, RootSongFolder::Status status)
+{
+    updateStatus.reset();
+    updateStatus.bind(":dir", folder.toStdString());
+    updateStatus.bind(":status", static_cast<int>(status));
+    updateStatus.execute();
 }
 void
 ScanningQueue::setCurrentScannedFolder(QString folder)
@@ -342,35 +400,28 @@ ScanningQueue::clear(const QString& which)
         sourcePrefix += '/';
     }
 
+    auto transaction = db->transaction();
     auto removeSongsStartingWith =
-      db->createStatement("DELETE FROM charts WHERE path LIKE :dir || '%'");
+      db->createStatement("DELETE FROM charts WHERE instr(path, :dir) = 1");
     removeSongsStartingWith.bind(":dir", sourcePrefix.toStdString());
     removeSongsStartingWith.execute();
-    db->execute("WITH RECURSIVE "
-                "chart_dirs(dir) AS ( "
-                "  SELECT pd.dir "
-                "  FROM parent_dir pd "
-                "  WHERE pd.id IN (SELECT directory FROM charts) "
-                "), "
-                "keep(dir) AS ( "
-                "  SELECT dir FROM chart_dirs "
-                "  UNION "
-                "  SELECT p.dir "
-                "  FROM parent_dir p "
-                "  JOIN parent_dir child ON child.parent_dir = p.dir "
-                "  JOIN keep k ON k.dir = child.dir "
-                ") "
-                "DELETE FROM parent_dir "
-                "WHERE dir NOT IN (SELECT dir FROM keep);");
+    auto removeDirectories =
+      db->createStatement("DELETE FROM parent_dir WHERE instr(dir, :dir) = 1");
+    removeDirectories.bind(":dir", sourcePrefix.toStdString());
+    removeDirectories.execute();
     db->execute("DELETE FROM note_data WHERE note_data.sha256 NOT IN "
                 "(SELECT sha256 FROM charts)");
     db->execute(
       "DELETE FROM histogram_data WHERE NOT EXISTS "
       "(SELECT 1 FROM charts WHERE charts.id = histogram_data.chart_id)");
-    db->execute("DELETE FROM preview_files WHERE directory NOT IN "
-                "(SELECT chart_directory FROM charts)");
-    db->execute("DELETE FROM readme_files WHERE directory NOT IN "
-                "(SELECT chart_directory FROM charts)");
+    for (const auto* table : { "preview_files", "readme_files" }) {
+        auto removeAssets =
+          db->createStatement(std::string("DELETE FROM ") + table +
+                              " WHERE instr(directory, :dir) = 1");
+        removeAssets.bind(":dir", sourcePrefix.toStdString());
+        removeAssets.execute();
+    }
+    transaction.commit();
 }
 auto
 ScanningQueue::rowCount(const QModelIndex& parent) const -> int

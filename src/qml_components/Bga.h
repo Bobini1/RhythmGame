@@ -41,6 +41,7 @@ class Bga : public QObject
     std::vector<std::pair<std::chrono::nanoseconds, QVideoFrame*>> images;
     decltype(images)::iterator currentImage = images.begin();
     QMediaPlayer* playedVideo = nullptr;
+    QVideoFrame displayedFrame;
 
   public:
     explicit Bga(

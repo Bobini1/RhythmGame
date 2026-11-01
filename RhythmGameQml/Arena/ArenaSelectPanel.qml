@@ -10,11 +10,11 @@ FocusScope {
     required property var session
     property Item navigationFocusTarget: null
     property string readyShortcutDescription: ""
-    readonly property bool arenaNativeSelectPresentation: true
     readonly property alias dragHandle: selectHeader
     readonly property bool chatOpen: root.session && root.session.chatOpen === true
-    readonly property bool preparingRound: root.session
-        ? String(root.session.currentRoundId || "").length > 0 : false
+    required property bool ready
+    required property bool canToggleReady
+    required property string readyDisabledReason
     readonly property real rosterColumnWidth: 360
     readonly property real normalBodyMinimumWidth: rosterColumnWidth + 8 + 220
     readonly property bool thinDetailsMode: !chatOpen
@@ -23,24 +23,6 @@ FocusScope {
         && detailsLoader.status === Loader.Ready
         && detailsLoader.item !== null
         && detailsLoader.item.inputActiveFocus === true
-    readonly property string readyDisabledReason: {
-        if (!root.session) {
-            return "";
-        }
-        if (root.session.roundsAvailable === false) {
-            return qsTr("Update required to play in this room.");
-        }
-        if (root.session.availabilitySyncing === true) {
-            return qsTr("Song libraries are still being compared.");
-        }
-        if (root.preparingRound) {
-            return qsTr("The synchronized round is already being prepared.");
-        }
-        if (root.session.ready !== true && root.session.canReady !== true) {
-            return qsTr("Choose a chart available to everyone before becoming ready.");
-        }
-        return "";
-    }
     readonly property string readyToolTipText: {
         if (root.readyDisabledReason.length === 0) {
             return root.readyShortcutDescription;
@@ -52,6 +34,7 @@ FocusScope {
     }
 
     signal chatSelected(bool chat)
+    signal readyToggleRequested()
 
     Accessible.role: Accessible.Grouping
 
@@ -183,17 +166,11 @@ FocusScope {
                 CheckBox {
                     id: readyButton
 
-                    readonly property bool ready: root.session
-                        && (root.session.ready === true || root.preparingRound)
-
                     objectName: "arenaSelectReady"
                     Accessible.description: root.readyToolTipText
                     Accessible.name: text
-                    checkState: ready ? Qt.Checked : Qt.Unchecked
-                    enabled: root.session
-                        && root.session.roundsAvailable !== false
-                        && !root.preparingRound
-                        && (ready || root.session.canReady === true)
+                    checkState: root.ready ? Qt.Checked : Qt.Unchecked
+                    enabled: root.canToggleReady
                     focusPolicy: Qt.NoFocus
                     font.pixelSize: typography.bodyPixelSize
                     nextCheckState: function() {
@@ -205,10 +182,7 @@ FocusScope {
                     ToolTip.visible: hovered
                         && root.readyToolTipText.length > 0
 
-                    onClicked: {
-                        if (root.session)
-                            root.session.setReady(!ready);
-                    }
+                    onClicked: root.readyToggleRequested()
                 }
             }
         }

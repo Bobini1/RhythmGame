@@ -1,0 +1,7 @@
+Backbeat provides the CMake target:
+
+    find_package(Backbeat CONFIG REQUIRED)
+    target_link_libraries(your_target PRIVATE Backbeat::Backbeat)
+
+Include <backbeat.h>. SQLite and other native dependencies are transitive.
+Building from source requires Rustup with the Rust 1.96.0 toolchain installed.

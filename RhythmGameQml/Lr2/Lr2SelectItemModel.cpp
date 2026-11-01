@@ -1,8 +1,10 @@
 #include "Lr2SelectItemModel.h"
+#include "support/FolderName.h"
 
 #include "Lr2SelectBarCell.h"
 #include "gameplay_logic/BmsResult.h"
 #include "gameplay_logic/BmsScore.h"
+#include "gameplay_logic/BmsScoreCourse.h"
 #include "gameplay_logic/ChartData.h"
 #include "resource_managers/Tables.h"
 
@@ -157,15 +159,6 @@ Lr2SelectItemModel::ItemKind kindFromFolderKey(const QString& key) {
 	if (key.startsWith(QStringLiteral("level:"))) return Lr2SelectItemModel::LevelKind;
 	if (key.startsWith(QStringLiteral("folder:"))) return Lr2SelectItemModel::FolderKind;
 	return Lr2SelectItemModel::UnknownKind;
-}
-
-QString normalizedFolderName(QString path) {
-	path.replace(QLatin1Char('\\'), QLatin1Char('/'));
-	if (path.endsWith(QLatin1Char('/'))) {
-		path.chop(1);
-	}
-	const int slash = path.lastIndexOf(QLatin1Char('/'));
-	return slash >= 0 ? path.mid(slash + 1) : path;
 }
 
 QVariantList paddedNumberList(const QVariant& value, int size) {
@@ -646,6 +639,9 @@ QVariantMap Lr2SelectItemModel::setFolderItems(resource_managers::ChartFolderMod
 	Q_ASSERT(folderModel);
 
 	QVariantList sortedFiltered = folderModel->filterAndSort(folderContents);
+	if (sortedFiltered.isEmpty()) {
+		sortedFiltered.append(QVariant());
+	}
 	const int realCount = sortedFiltered.size();
 	addToMinimumCount(sortedFiltered, minimumCount);
 	setItems(sortedFiltered);
@@ -984,21 +980,24 @@ void Lr2SelectItemModel::setScoreSummariesFromScores(const QVariantMap& scores) 
 
 		for (const QVariant& scoreValue : scoreList) {
 			const auto* score = scoreObject(scoreValue);
-			const auto* result = score ? score->getResult() : nullptr;
+			const QObject* result = score ? score->getResult() : scoreValue.value<QObject*>();
+			if (const auto* course = qobject_cast<const gameplay_logic::BmsScoreCourse*>(result)) {
+				result = course->getResult();
+			}
 			if (!result) {
 				continue;
 			}
 
-			const QString clearType = result->getClearType();
+			const QString clearType = result->property("clearType").toString();
 			const int clearPriority = clearTypePriority(clearType, m_useBeatorajaSelectOptions);
 			if (clearPriority > bestClearPriority) {
 				bestClearPriority = clearPriority;
 				bestClearType = skinCompatibleClearType(clearType, m_useBeatorajaSelectOptions);
 			}
 
-			const double maxPoints = result->getMaxPoints();
+			const double maxPoints = result->property("maxPoints").toDouble();
 			const bool hasMaxPoints = maxPoints > 0.0;
-			const double rate = hasMaxPoints ? result->getPoints() / maxPoints : 0.0;
+			const double rate = hasMaxPoints ? result->property("points").toDouble() / maxPoints : 0.0;
 			if (rate > bestRate || (rate == bestRate && hasMaxPoints && !bestHasMaxPoints)) {
 				bestRate = rate;
 				bestHasMaxPoints = hasMaxPoints;
@@ -1367,7 +1366,7 @@ Lr2SelectItemModel::ItemKind Lr2SelectItemModel::kindFor(const QVariant& value, 
 
 QString Lr2SelectItemModel::displayTextFor(const QVariant& value, const QVariantMap& map, ItemKind kind) {
 	if (kind == FolderKind && value.typeId() == QMetaType::QString) {
-		return normalizedFolderName(value.toString());
+		return support::folderName(value.toString());
 	}
 	const QString displayText = stringField(value, map, "displayText");
 	if (!displayText.isEmpty()) {
@@ -1387,7 +1386,7 @@ QString Lr2SelectItemModel::displayTextFor(const QVariant& value, const QVariant
 		return name;
 	}
 	if (value.typeId() == QMetaType::QString) {
-		return normalizedFolderName(value.toString());
+		return support::folderName(value.toString());
 	}
 	return {};
 }
@@ -1398,9 +1397,11 @@ QString Lr2SelectItemModel::folderLampKeyFor(const QVariant& value, const QVaria
 		return QStringLiteral("folder:%1").arg(
 			value.typeId() == QMetaType::QString ? value.toString() : stringField(value, map, "rawItem"));
 	case TableKind: {
+		const QString identifier = stringField(value, map, "identifier");
 		const QString url = stringField(value, map, "url");
 		const QString name = stringField(value, map, "name");
-		return QStringLiteral("table:%1").arg(!url.isEmpty() ? url : name);
+		return QStringLiteral("table:%1").arg(
+			!identifier.isEmpty() ? identifier : !url.isEmpty() ? url : name);
 	}
 	case LevelKind: {
 		const QString name = stringField(value, map, "name");
@@ -1465,7 +1466,7 @@ int Lr2SelectItemModel::titleTypeForItem(const QVariant& value, const QVariantMa
 	case LevelKind:
 		return withFallback(6, 0);
 	case CourseKind:
-		return withFallback(listField(value, map, "md5s").isEmpty() ? 8 : 7, 0);
+		return withFallback(listField(value, map, "chartIds").isEmpty() ? 8 : 7, 0);
 	default:
 		return 0;
 	}
@@ -1483,7 +1484,7 @@ int Lr2SelectItemModel::bodyTypeForItem(const QVariant& value, const QVariantMap
 		case LevelKind:
 			return 2;
 		case CourseKind:
-			return listField(value, map, "md5s").isEmpty() ? 9 : 8;
+			return listField(value, map, "chartIds").isEmpty() ? 9 : 8;
 		default:
 			return 1;
 		}
@@ -1506,7 +1507,7 @@ int Lr2SelectItemModel::bodyTypeForItem(const QVariant& value, const QVariantMap
 	case LevelKind:
 		return withFallback(2, 1);
 	case CourseKind:
-		return withFallback(listField(value, map, "md5s").isEmpty() ? 4 : 3, 0);
+		return withFallback(listField(value, map, "chartIds").isEmpty() ? 4 : 3, 0);
 	default:
 		return withFallback(1, 0);
 	}
@@ -1596,10 +1597,12 @@ QString Lr2SelectItemModel::keyFor(const QVariant& value, const QVariantMap& map
 			: fallbackKey);
 	}
 	case TableKind: {
+		const QString identifier = stringField(value, map, "identifier");
 		const QString url = stringField(value, map, "url");
 		const QString name = stringField(value, map, "name");
 		return QStringLiteral("table:%1").arg(
-			!url.isEmpty() ? url
+			!identifier.isEmpty() ? identifier
+			: !url.isEmpty() ? url
 			: !name.isEmpty() ? name
 			: fallbackKey);
 	}

@@ -17,6 +17,10 @@ else ()
 endif ()
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
 
+set_source_files_properties("${RhythmGame_LICENSE_FILE}" PROPERTIES
+        QT_RESOURCE_ALIAS LICENSE.md
+)
+
 qt_add_resources(
         RhythmGame_exe
         "text_files"
@@ -24,7 +28,7 @@ qt_add_resources(
         "${PROJECT_SOURCE_DIR}"
         FILES
         ${PROJECT_SOURCE_DIR}/ATTRIBUTIONS.md
-        ${PROJECT_SOURCE_DIR}/LICENSE.md
+        "${RhythmGame_LICENSE_FILE}"
 )
 
 set_target_properties(

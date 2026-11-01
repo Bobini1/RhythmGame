@@ -9,73 +9,13 @@
 #include <QFileInfo>
 #include <QFutureWatcher>
 #include <QtConcurrentRun>
+#include <QUrl>
 #include <algorithm>
 
 namespace sounds {
-void
-AudioPlayer::onDeviceChanged()
-{
-    stopOverlappingSounds();
-    if (!sound || (resolvedSource.isEmpty() && encodedSource.isEmpty())) {
-        return;
-    }
-    auto isPlayingNow = isPlaying();
-    auto cursor = ma_uint64{};
-    ma_sound_get_cursor_in_pcm_frames(sound.get(), &cursor);
-    ma_sound_uninit(sound.get());
-    sound.reset();
-    auto initialized = false;
-    if (!encodedSource.isEmpty()) {
-        clearMemoryDecoder();
-        initialized = initializeMemorySound(memoryDecoder, sound);
-    } else {
-        sound = std::make_unique<ma_sound>();
-        initialized =
-          ma_sound_init_from_file_w(engine->getEngine(),
-                                    resolvedSource.toStdWString().c_str(),
-                                    MA_SOUND_FLAG_NO_PITCH |
-                                      MA_SOUND_FLAG_NO_SPATIALIZATION,
-                                    nullptr,
-                                    nullptr,
-                                    sound.get()) == MA_SUCCESS;
-    }
-    if (!initialized) {
-        spdlog::error("Failed to load sound: {}", source.toStdString());
-        sound.reset();
-        setLoaded(false);
-        return;
-    }
-    ma_sound_set_looping(sound.get(), looping ? MA_TRUE : MA_FALSE);
-    ma_sound_set_volume(sound.get(), volume);
-    ma_sound_set_fade_in_milliseconds(sound.get(), 0, volume, fadeInMillis);
-    ma_sound_seek_to_pcm_frame(sound.get(), cursor);
-    auto lengthInSeconds = 0.0f;
-    ma_sound_get_length_in_seconds(sound.get(), &lengthInSeconds);
-    playingFinishedTimer.setInterval(static_cast<int>(lengthInSeconds * 1000));
-    auto cursorInSeconds = 0.0f;
-    ma_sound_get_cursor_in_seconds(sound.get(), &cursorInSeconds);
-    if (isPlayingNow) {
-        if (ma_sound_start(sound.get()) != MA_SUCCESS) {
-            spdlog::error("Failed to play sound: {}", source.toStdString());
-            stop();
-        } else {
-            if (!looping) {
-                QTimer::singleShot(
-                  static_cast<int>((lengthInSeconds - cursorInSeconds) * 1000),
-                  this,
-                  &AudioPlayer::onPlayingFinishedTimerTriggered);
-            }
-        }
-    }
-}
 AudioPlayer::AudioPlayer(QObject* parent)
   : QObject(parent)
 {
-    connect(engine,
-            &AudioEngine::changeDeviceRequested,
-            this,
-            &AudioPlayer::onDeviceChanged);
-
     connect(&playingFinishedTimer,
             &QTimer::timeout,
             this,
@@ -150,7 +90,11 @@ AudioPlayer::setSource(const QString& value)
         length = 0.0f;
         emit lengthChanged();
     }
+    if (value.isEmpty())
+        stop();
     emit sourceChanged();
+    if (generation != sourceGeneration)
+        return;
     if (value.isEmpty()) {
         return;
     }
@@ -194,7 +138,8 @@ AudioPlayer::setSource(const QString& value)
         }));
         return;
     }
-    loadResolvedSource(value);
+    const auto url = QUrl(value);
+    loadResolvedSource(url.isLocalFile() ? url.toLocalFile() : value);
 }
 
 void
@@ -324,24 +269,7 @@ AudioPlayer::loadEncodedSource(QByteArray value)
 void
 AudioPlayer::resetSource()
 {
-    if (sourceCancellation) {
-        sourceCancellation->store(true);
-        sourceCancellation.reset();
-    }
-    ++sourceGeneration;
-    stopOverlappingSounds();
-    if (sound) {
-        ma_sound_uninit(sound.get());
-        sound.reset();
-    }
-    clearMemoryDecoder();
-    encodedSource.clear();
-    setLoaded(false);
-    if (!source.isEmpty()) {
-        source.clear();
-        emit sourceChanged();
-    }
-    resolvedSource.clear();
+    setSource({});
 }
 auto
 AudioPlayer::isPlaying() const -> bool

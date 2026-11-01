@@ -12,8 +12,10 @@ Column {
     property var provider
     readonly property var md5: chartData?.md5
     readonly property var path: chartData?.path
-    property var bestPointsScore
-    property var bestClearTypeScore
+    StandardSelectActions { id: actions }
+
+    property var bestPointsResult
+    property var bestClearTypeResult
     property string tachiGameId
 
     ThemeFont {
@@ -96,15 +98,10 @@ Column {
                 }
             }
             function onScoreLoaded(event, score) {
-                let replay = true;
-                if (event.button === Qt.RightButton) {
-                    globalRoot.openResult([score], [Rg.profileList.mainProfile], ranking.chartData);
-                    return;
-                }
-                if (event.button === Qt.MiddleButton) {
-                    replay = false;
-                }
-                globalRoot.openChart(ranking.path, Rg.profileList.mainProfile, false, replay, score, null, false, false, null);
+                if (event.button === Qt.RightButton)
+                    actions.openResult(ranking.chartData, score);
+                else
+                    actions.openPlayable(ranking.chartData, false, event.button !== Qt.MiddleButton, score);
             }
             Item {
                 width: clearTypeImage.implicitWidth
@@ -122,8 +119,8 @@ Column {
                             || ranking.provider === OnlineRankingModel.RhythmGame
                         onClicked: (event) => {
                             if (ranking.provider === OnlineRankingModel.LR2IR) {
-                                if (ranking.bestPointsScore) {
-                                    onScoreLoaded(event, ranking.bestPointsScore);
+                                if (ranking.bestPointsResult) {
+                                    onScoreLoaded(event, ranking.bestPointsResult);
                                 }
                                 return;
                             }
@@ -174,8 +171,8 @@ Column {
                         || ranking.provider === OnlineRankingModel.RhythmGame
                     onClicked: (event) => {
                         if (ranking.provider === OnlineRankingModel.LR2IR) {
-                            if (ranking.bestPointsScore) {
-                                onScoreLoaded(event, ranking.bestPointsScore);
+                            if (ranking.bestPointsResult) {
+                                onScoreLoaded(event, ranking.bestPointsResult);
                             }
                             return;
                         }

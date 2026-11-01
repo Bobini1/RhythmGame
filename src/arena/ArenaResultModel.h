@@ -12,8 +12,8 @@ struct RoundResultSnapshot;
 class ArenaResultModel : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(bool valid READ valid NOTIFY changed FINAL)
     Q_PROPERTY(bool finalized READ finalized NOTIFY changed FINAL)
+    /** Empty when this model has no pending or finalized result. */
     Q_PROPERTY(QString roundId READ roundId NOTIFY changed FINAL)
     Q_PROPERTY(qint64 resultRevision READ resultRevision NOTIFY changed FINAL)
     Q_PROPERTY(int participantCount READ participantCount NOTIFY changed FINAL)
@@ -32,7 +32,6 @@ class ArenaResultModel : public QObject
   public:
     explicit ArenaResultModel(QObject* parent = nullptr);
 
-    auto valid() const -> bool;
     auto finalized() const -> bool;
     auto roundId() const -> const QString&;
     auto resultRevision() const -> qint64;
@@ -60,7 +59,6 @@ class ArenaResultModel : public QObject
     void changed();
 
   private:
-    bool m_valid{};
     bool m_finalized{};
     QString m_roundId{};
     qint64 m_resultRevision{};

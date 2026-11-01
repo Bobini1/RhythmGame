@@ -140,23 +140,7 @@ Rectangle {
         }
 
         function handleStartPressed(timer) {
-            if (optionOverlay.arenaSeated) {
-                if (timer.running) {
-                    timer.stop();
-                    const session = Rg.arenaSession;
-                    const preparingRound =
-                        String(session.currentRoundId || "").length > 0;
-                    if (session.roundsAvailable !== false
-                            && !preparingRound
-                            && (session.ready === true
-                                || session.canReady === true)) {
-                        session.setReady(session.ready !== true);
-                    }
-                } else {
-                    timer.restart();
-                }
-                return;
-            }
+            if (optionOverlay.arenaSeated) return;
             if ((timer.running && !login.enabled) || login.enabled) {
                 login.enabled = !login.enabled;
             } else {

@@ -1,0 +1,31 @@
+{
+  "name": "backbeat",
+  "version-string": "1.0.0",
+  "port-version": 1,
+  "description": "Backbeat C SDK for reading installed rhythm-game charts and collections",
+  "homepage": "https://github.com/zkldi/backbeat",
+  "license": "GPL-3.0-only",
+  "supports": "(x64 | arm64) & ((windows & !uwp & !mingw) | linux | osx)",
+  "dependencies": [
+    {
+      "name": "openssl",
+      "platform": "linux"
+    },
+    {
+      "name": "sqlite3",
+      "features": [
+        "fts5",
+        "json1"
+      ]
+    },
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    },
+    "zstd"
+  ]
+}

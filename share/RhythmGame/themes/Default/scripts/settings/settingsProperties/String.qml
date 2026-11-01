@@ -23,14 +23,12 @@ RowLayout {
 
     TextField {
         id: textEdit
-        text: destination[id_]
+        text: str.destination[str.id_]
         Layout.fillWidth: true
         Layout.preferredWidth: 460
         Layout.minimumWidth: 220
 
-        onTextChanged: {
-            str.destination[str.id_] = text;
-        }
+        onTextEdited: str.destination[str.id_] = text
     }
 
 

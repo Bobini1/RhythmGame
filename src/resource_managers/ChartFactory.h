@@ -10,6 +10,8 @@
 #include "gameplay_logic/ChartRunner.h"
 #include "input/InputTranslator.h"
 #include "charts/BmsNotesData.h"
+#include <QThreadPool>
+#include <stop_token>
 namespace sounds {
 class AudioEngine;
 } // namespace sounds
@@ -25,42 +27,37 @@ class SoundTask : public QObject
     Q_OBJECT
     std::filesystem::path path;
     std::unordered_map<uint64_t, std::filesystem::path> wavs;
-    charts::EncodedSounds encodedWavs;
-    bool memoryBacked = false;
     sounds::AudioEngine* engine;
+    SongAssetStore* assetStore;
+    std::stop_token stop;
 
     // bmson-specific (empty for BMS)
     std::vector<charts::BmsNotesData::BmsonSliceInfo> bmsonSlices;
     std::unordered_map<uint64_t, std::vector<uint64_t>> bmsonFusions;
-    bool isBmson = false;
 
   public:
-    /// Constructor for BMS charts.
     SoundTask(sounds::AudioEngine* engine,
-              std::filesystem::path path,
-              std::unordered_map<uint64_t, std::filesystem::path> wavs);
-    SoundTask(sounds::AudioEngine* engine, charts::EncodedSounds wavs);
-    /// Constructor for bmson charts.
-    SoundTask(sounds::AudioEngine* engine,
+              SongAssetStore* assetStore,
               std::filesystem::path path,
               std::unordered_map<uint64_t, std::filesystem::path> channelPaths,
               std::vector<charts::BmsNotesData::BmsonSliceInfo> slices,
-              std::unordered_map<uint64_t, std::vector<uint64_t>> fusions);
-    SoundTask(sounds::AudioEngine* engine,
-              charts::EncodedSounds channels,
-              std::vector<charts::BmsNotesData::BmsonSliceInfo> slices,
-              std::unordered_map<uint64_t, std::vector<uint64_t>> fusions);
+              std::unordered_map<uint64_t, std::vector<uint64_t>> fusions,
+              std::stop_token stop);
     void run();
   signals:
     void soundsLoaded(
       std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>> sounds);
 };
 
-class ChartFactory
+class ChartFactory : public QObject
 {
     sounds::AudioEngine* engine;
     input::InputTranslator* inputTranslator;
     SongAssetStore* assetStore;
+    QThreadPool loadingPool;
+    QList<std::weak_ptr<std::stop_source>> pendingLoads;
+
+    void cancelLoading();
 
   public:
     struct PlayerSpecificData
@@ -79,6 +76,7 @@ class ChartFactory
     ChartFactory(sounds::AudioEngine* engine,
                  input::InputTranslator* inputTranslator,
                  SongAssetStore* assetStore);
+    ~ChartFactory() override;
     auto createChart(ChartDataFactory::ChartComponents chartComponents,
                      PlayerSpecificData player1,
                      std::optional<PlayerSpecificData> player2,

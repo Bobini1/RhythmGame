@@ -8,13 +8,10 @@ import RhythmGameQml
 FocusScope {
     id: root
 
-    required property var session
-    required property Profile activeProfile
+    readonly property ArenaSession session: arenaFlow.session
+    readonly property Profile activeProfile: Rg.profileList.mainProfile
 
-    signal createRequested(string name, string password)
-    signal joinRequested(string roomId, string password)
-    signal retryRequested
-    signal exitRequested
+    StandardMultiplayerFlow { id: arenaFlow }
 
     property string dialogMode: "none"
     property string selectedRoomId: ""
@@ -115,7 +112,7 @@ FocusScope {
         if (dialogLoader.status === Loader.Ready && dialogLoader.item) {
             dialogLoader.item.close();
         } else {
-            root.exitRequested();
+            arenaFlow.close();
         }
         event.accepted = true;
     }
@@ -134,7 +131,7 @@ FocusScope {
                 id: exitButton
 
                 text: qsTr("Exit Arena")
-                onClicked: root.exitRequested()
+                onClicked: arenaFlow.close()
             }
 
             Label {
@@ -198,7 +195,7 @@ FocusScope {
                 Button {
                     visible: root.session.state === ArenaSession.Error
                     text: qsTr("Retry")
-                    onClicked: root.retryRequested()
+                    onClicked: root.session.retry()
                 }
             }
         }
@@ -332,7 +329,7 @@ FocusScope {
                         if (roomDelegate.passwordProtected) {
                             root.openJoinDialog(roomDelegate.roomId, roomDelegate.name, roomDelegate);
                         } else {
-                            root.joinRequested(roomDelegate.roomId, "");
+                            root.session.joinRoom(roomDelegate.roomId, "");
                         }
                     }
 
@@ -455,7 +452,7 @@ FocusScope {
                 return qsTr("%1's room").arg(playerName);
             }
 
-            onAccepted: root.createRequested(roomNameField.text.trim(), createPasswordField.text)
+            onAccepted: root.session.createRoom(roomNameField.text.trim(), createPasswordField.text)
             onClosed: root.finishDialog()
             onOpened: {
                 roomNameField.text = defaultRoomName();
@@ -518,7 +515,7 @@ FocusScope {
             title: qsTr("Join password-protected room")
             width: Math.min(480, root.width - 48)
 
-            onAccepted: root.joinRequested(root.selectedRoomId, joinPasswordField.text)
+            onAccepted: root.session.joinRoom(root.selectedRoomId, joinPasswordField.text)
             onClosed: root.finishDialog()
             onOpened: {
                 joinPasswordField.clear();

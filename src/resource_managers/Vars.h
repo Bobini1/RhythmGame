@@ -4,13 +4,15 @@
 
 #ifndef RHYTHMGAME_VARS_H
 #define RHYTHMGAME_VARS_H
+#include "SerializeConfig.h"
+#include <QTimer>
 
 #include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ThemeFamily.h"
 #include "support/CreateQmlPropertyMap.h"
 
 #include <QObject>
-#include <QThreadPool>
+#include <QSet>
 #include <QQmlPropertyMap>
 #include <filesystem>
 #include <QLocale>
@@ -108,7 +110,7 @@ enum class SelectSortMode
     ClearLamp,
     ScoreRate,
     MissCount,
-    TotalNotes,
+    Total,
 };
 Q_ENUM_NS(SelectSortMode)
 } // namespace select_sort_mode
@@ -137,7 +139,7 @@ using namespace select_keymode_filter;
  * @details
  * GeneralVars are saved to generalVars.json in the profile directory.
  * All
- * modifications to the variables cause the file to be rewritten.
+ * changes are saved after a short delay and flushed when the profile closes.
  */
 class GeneralVars final : public QObject
 {
@@ -146,6 +148,8 @@ class GeneralVars final : public QObject
      * @brief The time in milliseconds a note takes to travel from the top of
      * the screen to the judgement line.
      */
+    /** Note travel time in milliseconds. Must be finite and at least 1.
+     * Invalid assignments leave the current value unchanged. */
     Q_PROPERTY(double noteScreenTimeMillis READ getNoteScreenTimeMillis WRITE
                  setNoteScreenTimeMillis NOTIFY noteScreenTimeMillisChanged
                    RESET resetNoteScreenTimeMillis)
@@ -426,7 +430,7 @@ class GeneralVars final : public QObject
     /**
      * @brief The URL used to fetch the community table list in the Browse
      * panel of Table Settings.
-     * @details Defaults to the darksabun table list endpoint.
+     * @details Defaults to the RhythmGame table list endpoint.
      */
     Q_PROPERTY(QString tableListUrl READ getTableListUrl WRITE setTableListUrl
                  NOTIFY tableListUrlChanged RESET resetTableListUrl)
@@ -470,15 +474,8 @@ class GeneralVars final : public QObject
     QString websiteBaseUrl = "https://rhythmgame.eu";
     QString bgmPath;
     QString soundsetPath;
-    // Default darksabun community table-list endpoint.
-    inline static const QString defaultTableListUrl = QStringLiteral(
-      "https://script.googleusercontent.com/macros/echo?user_content_key="
-      "AWDtjMUPqG3VGAp2E2nnIIN6ai0Im_ai4lD3Kb998b5zNu881oh8U93tiKchKmz0"
-      "CiU21TRk2FbhTVDg_UeCGlGKMiMeQ2jJXOzkMeAz4QdAqiTffivqe9OiSxrfIS"
-      "ozhZnz1LxSk6vfXCbm-Wt6eKqKBffTcCdUrrkIDQyRLK00pAHNTLiK4899SSycq"
-      "Urh6huo4gENgokERvbeHrT8OUrVVTq1gEtFMtpGurM9HXC037qo1SMe5CSsOXb0"
-      "UfYy-14dlRmOHb-v3Nbin-Pr5pU9nApG7zcoJfqB6bEut33v"
-      "&lib=MZGF-rpGWT28d9kh49MlyleOKhrMb7MMj");
+    inline static const QString defaultTableListUrl =
+      QStringLiteral("https://rhythmgame.eu/table-list");
     QString tableListUrl = defaultTableListUrl;
     qml_components::OnlineRankingModel::Provider rankingProvider =
       qml_components::OnlineRankingModel::Provider::RhythmGame;
@@ -639,6 +636,11 @@ class GeneralVars final : public QObject
     void rankingProviderChanged();
 };
 
+// Uses the same parser as profile settings. Throws for an invalid declaration.
+void
+validateThemeSettings(const std::filesystem::path& themePath,
+                      const std::filesystem::path& settingsPath);
+
 class Vars final : public QObject
 {
     Q_OBJECT
@@ -664,10 +666,13 @@ class Vars final : public QObject
 
     void populateThemePropertyMap(
       QQmlPropertyMap& themeVars,
-      QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData,
-      const std::filesystem::path& themeVarsPath);
+      QHash<QString, QHash<QString, QHash<QString, QVariant>>> themeVarsData);
     Q_SLOT void writeGeneralVars();
-    QThreadPool writePool;
+    QTimer saveTimer;
+    bool generalDirty{};
+    QSet<QString> dirtyThemes;
+    ConfigWriter writer;
+    void flushWrites();
 
   public:
     explicit Vars(
@@ -675,6 +680,7 @@ class Vars final : public QObject
       QMap<QString, qml_components::ThemeFamily> availableThemeFamilies,
       QList<QString> assetsPaths,
       QObject* parent = nullptr);
+    ~Vars() override;
     auto getGeneralVars() -> GeneralVars*;
     auto getThemeVars() const -> QQmlPropertyMap*;
 

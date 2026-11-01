@@ -1,6 +1,7 @@
 // Created by Codex on 01.04.2026.
 
 #include "ReplayImportOperation.h"
+#include <algorithm>
 
 namespace qml_components {
 
@@ -8,18 +9,31 @@ ReplayImportOperation::ReplayImportOperation(int total, QObject* parent)
   : QAbstractListModel(parent)
   , currentTotal(total)
 {
-    if (total <= 0) {
+}
+
+void
+ReplayImportOperation::setTotal(int total)
+{
+    currentTotal = total;
+    emit progressChanged();
+}
+
+void
+ReplayImportOperation::finish()
+{
+    if (!finishedFlag) {
         finishedFlag = true;
+        emit finishedChanged();
     }
 }
 
 void
-ReplayImportOperation::checkFinished()
+ReplayImportOperation::fail(const QString& message)
 {
-    if (currentDone >= currentTotal) {
-        finishedFlag = true;
-        emit finishedChanged();
-    }
+    setTotal(std::max(currentTotal, currentDone + 1));
+    reportError(message);
+    incrementErrored();
+    finish();
 }
 
 void
@@ -28,7 +42,6 @@ ReplayImportOperation::incrementImported()
     ++importedCount;
     ++currentDone;
     emit progressChanged();
-    checkFinished();
 }
 
 void
@@ -37,7 +50,6 @@ ReplayImportOperation::incrementSkipped()
     ++skippedCount;
     ++currentDone;
     emit progressChanged();
-    checkFinished();
 }
 
 void
@@ -46,7 +58,6 @@ ReplayImportOperation::incrementErrored()
     ++erroredCount;
     ++currentDone;
     emit progressChanged();
-    checkFinished();
 }
 
 int

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/master/schemas/theme.json",
+  "scripts": {
+    "main": "main.qml"
+  },
+  "settings": {
+    "main": "main-settings.json"
+  },
+  "translations": {
+    "en": "",
+    "pl": "translations/tutorial_pl.qm"
+  }
+}

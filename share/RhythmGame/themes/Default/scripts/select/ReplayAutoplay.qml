@@ -8,56 +8,39 @@ Row {
     id: replayAutoplay
     required property var current
     required property var currentItem
+    required property StandardSelectController selection
     readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
         || Rg.arenaSession.state === ArenaSession.Reconnecting
     visible: !arenaSeated
     Image {
         id: auto
         source: root.iniImagesUrl + "parts.png/auto"
-        enabled: replayAutoplay.current?.path || (replayAutoplay.current instanceof course && courseSongs.item?.canPlay) || false
+        enabled: replayAutoplay.selection.autoplayAvailable
         opacity: enabled ? 1 : 0.5
         MouseArea {
             anchors.fill: parent
             cursorShape: enabled ? Qt.PointingHandCursor : undefined
-            onClicked: {
-                let func = replayAutoplay.current instanceof course ? globalRoot.openCourse : globalRoot.openChart;
-                let path = replayAutoplay.current instanceof course ? replayAutoplay.current : replayAutoplay.current.path;
-                if (Rg.profileList.battleActive) {
-                    func(path, Rg.profileList.battleProfiles.player1Profile, true, false, null, Rg.profileList.battleProfiles.player2Profile, true, false, null);
-                } else {
-                    func(path, Rg.profileList.mainProfile, true, false, null, null, false, false, null);
-                }
-            }
+            onClicked: replayAutoplay.selection.openAutoplay()
         }
     }
     Repeater {
-        model: 4
+        model: replayAutoplay.selection.replayOptions
         delegate: Image {
             id: replay
+            required property var modelData
             source: root.iniImagesUrl + "parts.png/replay"
             opacity: enabled ? 1 : 0.5
-            enabled: ((replayAutoplay.current?.path || (replayAutoplay.current instanceof course && courseSongs.item?.canPlay)) && replayAutoplay.currentItem?.scores?.length) || false
+            enabled: ((replayAutoplay.current?.path || (replayAutoplay.current instanceof course && courseSongs.item?.canPlay)) && replayAutoplay.currentItem?.results?.length) || false
             MouseArea {
                 anchors.fill: parent
                 cursorShape: enabled ? Qt.PointingHandCursor : undefined
                 acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                 hoverEnabled: true
                 ToolTip.visible: containsMouse
-                ToolTip.text: {
-                    switch (modelData) {
-                        case 0:
-                            return qsTr("NEWEST");
-                        case 1:
-                            return qsTr("BEST SCORE");
-                        case 2:
-                            return qsTr("BEST CLEAR");
-                        case 3:
-                            return qsTr("BEST COMBO");
-                    }
-                }
+                ToolTip.text: replay.modelData.text
                 ToolTip.delay: 500
                 onClicked: (event) => {
-                    root.openReplay(modelData, event.button);
+                    root.openReplay(replay.modelData.value, event.button);
                 }
             }
         }

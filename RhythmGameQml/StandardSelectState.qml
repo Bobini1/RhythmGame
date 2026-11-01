@@ -5,120 +5,264 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectState
     \inqmlmodule RhythmGameQml
-    \brief Owns reusable song and table browsing state.
+    \brief Tracks browsing, focus and saved choices for a song selector.
 
-    The component owns folders, history, optional metadata enrichment,
-    filtering, sorting, and activation while leaving list presentation to the
-    skin. Use the lower-level selection components when these policies do not
-    fit a custom selector.
+    Use StandardSelectController for a selector with standard input, shortcuts
+    and audio. Use this component when you want the same browsing behavior
+    with your own controls. It loads and sorts entries, remembers folder
+    history, and opens charts, courses, replays and saved results.
 
-    Unless \l autoInitialize is false, construction immediately opens the root
-    browser. The skin must handle \l focusRequested and call \l setFocused
-    whenever its visual focus changes. \l goForward opens either a folder or a
-    playable item; \l goBack performs the matching history transaction.
+    \section1 Connect browsing and focus
 
-    \l entries, \l folderContents, \l historyStack, \l scores, and
-    \l previewFiles are shallow snapshots. Reordering an array or assigning a
-    map key does not modify the selection state, but contained chart and table
-    objects are not cloned. Score, preview, and folder-stat enrichment is
-    asynchronous; consumers must react to property changes rather than assuming
-    all metadata is present when \l openedFolder is emitted.
+    The root folder opens automatically unless \l autoInitialize is false.
+    Display \l entries and handle \l focusRequested to position your view.
+    Call \l setFocused with the row's data when the user selects another row.
+
+    Call \l goForward to open an entry, \l goBack to return through folder
+    history, and \l exit to leave selection or its Arena room. \l openResult
+    opens the correct screen for a saved chart or course score. An unsuccessful
+    \l search leaves the current list in place.
+
+    \section1 Save player choices
+
+    \l sortMode, \l keymodeFilter and \l replayType follow the active profile.
+    They are read-only: use \l setSortMode, \l setKeymodeFilter and
+    \l setReplayType to save a choice. \l cycleSortMode and \l cycleReplayType
+    advance through the choices. View options such as \l difficultyFilter
+    do not change profile settings.
+
+    \l openReplay chooses a recording using \l replayType. Bind a replay
+    button's enabled state to \l replayAvailable. Use \l resultForReplayType
+    when you need to choose a saved result without opening it.
+
+    \section1 Read data as it arrives
+
+    \l results contains cached score summaries. Use ScoreDetails for replay
+    events or gauge history. Preview paths and folder clear statistics load
+    asynchronously; bind to their properties to follow updates. The state
+    refreshes them when it becomes enabled again or the main profile changes.
+
+    The arrays and maps in \l entries, \l folderContents, \l historyStack,
+    \l results and \l previewFiles are copies. Editing them does not change
+    the controller. Objects inside them, such as charts, are shared.
 */
 Item {
     id: root
 
-    StandardSelectReload { id: reloadAction }
+    StandardSelectReload { id: folderReload }
 
-    /*! Filtered and sorted logical entries before presentation adaptation. */
+    Connections {
+        target: Rg.songFolderFactory
+        function onContentsChanged() {
+            selectionState.libraryRefreshPending = true;
+            Qt.callLater(selectionState.refreshLibraryContents);
+        }
+    }
+
+    Connections {
+        target: Rg.tables
+        function onContentsChanged() {
+            selectionState.libraryRefreshPending = true;
+            Qt.callLater(selectionState.refreshLibraryContents);
+        }
+    }
+
+    Connections {
+        target: Rg.profileList
+        function onMainProfileChanged() {
+            if (root.historyStack.length > 0) root.refresh();
+        }
+    }
+
+    Connections {
+        target: Rg.profileList.mainProfile.scoreDb
+        function onResultsChanged() {
+            if (root.enabled) {
+                selectionState.refreshFolderClearStats();
+                if (chartFolderModel.sortModeUsesScores())
+                    Qt.callLater(selectionState.sortOrFilterChanged);
+            }
+        }
+    }
+
+    onEnabledChanged: {
+        if (enabled) {
+            if (selectionState.libraryRefreshPending)
+                Qt.callLater(selectionState.refreshLibraryContents);
+            else if (root.historyStack.length > 0) root.refresh();
+            if (chartFolderModel.sortModeUsesScores())
+                Qt.callLater(selectionState.sortOrFilterChanged);
+        }
+    }
+
+    /*!
+        Filtered and sorted entries before presentation adaptation. Entries can be
+        folder-path strings, ChartData objects, or entry, table, level and course
+        values. An entry value describes a table chart missing from the song database.
+        The list is empty before initialization and when browsing or filtering
+        produces no entries. It never adds presentation placeholders. See the
+        \l {Song selection entry types}{entry type table in lesson 5}.
+    */
     readonly property var entries: selectionState.entries.slice()
     /*! Raw contents of the current folder, table, level, or search. */
     readonly property var folderContents: sessionImpl.folderContents.slice()
+    onFolderContentsChanged: activationImpl.cancelScoreLoading()
     /*! Navigation history for the current selection session. */
     readonly property var historyStack: sessionImpl.historyStack.slice()
-    /*! Score data loaded for the current folder contents. */
-    readonly property var scores: Object.assign({}, sessionImpl.scores)
+    /*!
+        Map of chart MD5s and course identifiers to BmsResult or BmsResultCourse
+        lists, newest first. Results contain no recordings or gauge histories.
+        Use ScoreDetails to load one full score for statistics or graphs.
+        Child folders and table levels use separate clear-statistic requests.
+    */
+    readonly property var results: {
+        const scoreDb = Rg.profileList.mainProfile.scoreDb;
+        const charts = scoreDb.chartResults;
+        const courses = scoreDb.courseResults;
+        const lists = {};
+        for (const item of root.folderContents) {
+            if ((item instanceof ChartData || item instanceof entry) && item.md5)
+                lists[item.md5] = charts[item.md5.toUpperCase()] || [];
+            else if (item instanceof course)
+                lists[item.identifier] = courses[item.identifier] || [];
+        }
+        return lists;
+    }
     /*! Preview-file data loaded for the current folder contents. */
     readonly property var previewFiles:
         Object.assign({}, sessionImpl.previewFiles)
     /*!
-        Optional \c tryOpenPlayableAction(item,autoplay,replay,replayScore)
-        pre-handler. True consumes the operation.
+        Called as \c tryOpenPlayableAction(item,autoplay,replay,replayScore). Return true to
+        handle the request, or false to continue with the standard action.
     */
     property var tryOpenPlayableAction: null
-    /*! Whether standard score loading is active. */
-    property bool scoresEnabled: true
-    /*! Whether standard preview-file discovery is active. */
+    /*! Calls \c tryAutoplayAction(). Return true when handled, or false for standard playback. */
+    property var tryAutoplayAction: null
+    /*! Calls \c tryCycleSortModeAction(delta). Return true when handled, or false to cycle normally. */
+    property var tryCycleSortModeAction: null
+    /*! Calls reloadAction() instead of reloading the current folder or table. */
+    property var reloadAction: null
+    /*! Calls openSelectedFolderAction() instead of opening the system file browser. */
+    property var openSelectedFolderAction: null
+    /*! Calls openSettingsAction() instead of opening Settings. */
+    property var openSettingsAction: null
+    /*! Controls whether standard preview-file discovery is active. */
     property bool previewFilesEnabled: true
-    /*! Whether per-folder clear-statistic loading is active. */
+    /*! Controls whether per-folder clear-statistic loading is active. */
     property bool folderClearStatsEnabled: true
-    /*! Whether construction automatically opens the root selection folder. */
+    /*! Controls whether construction automatically opens the root selection folder. */
     property bool autoInitialize: true
-    /*! Sort mode used to prepare logical entries. */
-    property int sortMode: selectionState.generalVars.selectSortMode
-    /*! Key-mode filter used to prepare logical entries. */
-    property int keymodeFilter: selectionState.generalVars.selectKeymodeFilter
-    /*! Difficulty filter used to prepare logical entries. */
+    /*! Active profile's sort choice. Change it with setSortMode() or cycleSortMode(). */
+    readonly property int sortMode: selectionState.generalVars.selectSortMode
+    /*! Modes listed in sortOptions and visited by cycleSortMode(). Does not restrict setSortMode(). */
+    property list<int> sortModes: StandardSelectOptions.sortOptions.map(option => option.value)
+    /*! Sort choices in \l sortModes order, with stable \c value and translated \c text roles. */
+    readonly property var sortOptions: root.sortModes.map(value => ({
+        value: value, text: StandardSelectOptions.sortText(value)
+    }))
+    /*! Optional translated label for the current sort mode. */
+    readonly property string sortModeText: StandardSelectOptions.sortText(root.sortMode)
+    /*!
+        Active profile's SelectKeymodeFilter value. Change it with
+        \l setKeymodeFilter. Single includes 5K and 7K; Double includes 10K
+        and 14K. Folders, tables and courses remain visible.
+    */
+    readonly property int keymodeFilter: selectionState.generalVars.selectKeymodeFilter
+    /*! Additional difficulty filter for this view. Zero shows all difficulties. Does not save a profile choice. */
     property int difficultyFilter: 0
-    /*! Whether items without scores sort after scored items. */
+    /*! Controls whether items without scores sort after scored items. */
     property bool unscoredItemsLast: true
-    /*! Index of \l focusedItem in \l entries. */
+    /*! Index of \l focusedItem in \l entries, or -1 when no entry is selected. */
     readonly property int focusedIndex: selectionState.focusedIndex
-    /*! Logical item currently focused by the skin. */
+    /*!
+        Current entry used by selection actions. Updated by browsing or \l setFocused.
+        Null when no entry is selected, including when the view shows a
+        presentation placeholder.
+    */
     readonly property var focusedItem: selectionState.focusedItem
+    onFocusedItemChanged: activationImpl.cancelScoreLoading()
+    /*! Whether the focused chart or complete course supports standard autoplay. */
+    readonly property bool autoplayAvailable: enabled && !actions.arenaSeated
+        && !actions.loadingScore && selectionState.playableChartsAvailable
+
+    /*! Selects the newest run, best score rate, best clear, or best combo. */
+    enum ReplayType { Newest, BestScore, BestClear, BestCombo }
+    /*!
+        The active profile's replay choice: 0 for Newest, 1 for BestScore,
+        2 for BestClear and 3 for BestCombo. Change it with \l setReplayType
+        or \l cycleReplayType. Named values such as
+        \c StandardSelectState.BestScore can be used instead of numbers.
+    */
+    readonly property int replayType: selectionState.generalVars.replayType
+    /*! Replay choices with stable \c value and translated \c text roles. */
+    readonly property var replayOptions: StandardSelectOptions.replayOptions
+    /*! Optional translated label for the current replay choice. */
+    readonly property string replayTypeText: StandardSelectOptions.replayText(root.replayType)
+    /*! The saved run chosen for playback, or null if no usable recording is available. */
+    readonly property var replayResult: resultForReplayType(replayType)
+    /*! Whether the standard replay action is available for the focused entry. */
+    readonly property bool replayAvailable: enabled && !actions.arenaSeated
+        && !activationImpl.loadingScore && !!replayResult && selectionState.playableChartsAvailable
+    /*!
+        Called as \c tryReplayAction(type) before standard playback. Return true
+        when handled, or false to use the standard action. Both buttons calling
+        \l openReplay and bound replay input use this hook.
+    */
+    property var tryReplayAction: null
+    /*! Calls \c cycleReplayTypeAction() instead of cycling the profile's replay choice. */
+    property var cycleReplayTypeAction: null
+
     QtObject {
         id: selectionState
 
+        property bool libraryRefreshPending: false
         property var entries: []
-        property int focusedIndex: 0
+        property int focusedIndex: -1
         property var focusedItem: null
         property var folderClearStatsByKey: ({})
         property int folderClearStatsRevision: 0
         readonly property var generalVars:
             Rg.profileList.mainProfile.vars.generalVars
-        readonly property var searchHistoryEntry: ({ "kind": "search" })
-
-        function requestFocus(index) {
-            selectionState.focusedIndex = index;
-            selectionState.focusedItem = index >= 0
-                && index < root.entries.length ? root.entries[index] : null;
-            root.focusRequested(index);
+        readonly property bool playableChartsAvailable: {
+            if (root.focusedItem instanceof ChartData) return true;
+            if (!(root.focusedItem instanceof course)
+                    || root.focusedItem.unavailableReason) return false;
+            const charts = root.focusedItem.loadCharts();
+            return charts.length > 0
+                && charts.every(chart => chart instanceof ChartData);
         }
 
-        function refreshScores() {
-            sessionImpl.cancelScoreDbReplies();
-            if (!root.scoresEnabled) {
-                sessionImpl.scores = ({});
+        function refreshLibraryContents() {
+            if (!root.enabled || !selectionState.libraryRefreshPending || !root.historyStack.length) {
                 return;
             }
-            if (root.historyStack[root.historyStack.length - 1]
-                    === selectionState.searchHistoryEntry) {
-                let md5s = [];
-                for (let item of root.folderContents) {
-                    if (typeof item === "object" && "md5" in item) {
-                        md5s.push(item.md5);
-                    }
-                }
-                sessionImpl.trackScoreDbReply(
-                    Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s)
-                ).then(result => sessionImpl.scores = result.scores);
-            } else {
-                sessionImpl.trackScoreDbReply(
-                    Rg.profileList.mainProfile.scoreDb.getScores(
-                        sessionImpl.folderForHistoryItem(
-                            root.historyStack[root.historyStack.length - 1]))
-                ).then(result => {
-                    if (result instanceof tableQueryResult) {
-                        let newScores = result.scores.scores;
-                        for (let [key, value] of Object.entries(
-                                result.courseScores.scores)) {
-                            newScores[key] = value;
-                        }
-                        sessionImpl.scores = newScores;
-                    } else {
-                        sessionImpl.scores = result.scores;
-                    }
-                });
+            selectionState.libraryRefreshPending = false;
+            const old = root.focusedItem;
+            let folder = selectionState.open(root.historyStack[root.historyStack.length - 1]);
+            while (folder === null && root.historyStack.length > 1) {
+                sessionImpl.historyStack = root.historyStack.slice(0, -1);
+                folder = selectionState.open(root.historyStack[root.historyStack.length - 1]);
             }
+            if (folder !== null) {
+                const index = selectionState.indexOfEntry(folder, old);
+                selectionState.requestFocus(index >= 0 ? index : 0);
+            }
+        }
+
+        function clearPriority(clear) {
+            const priorities = {
+                NOPLAY: 0, FAILED: 1, AEASY: 2,
+                EASY: 4, NORMAL: 5, DAN: 5, HARD: 6,
+                EXDAN: 6, EXHARD: 7, EXHARDDAN: 7, FC: 8, PERFECT: 9, MAX: 10
+            };
+            return priorities[clear] || 0;
+        }
+
+        function requestFocus(index) {
+            index = index >= 0 && index < root.entries.length ? index : -1;
+            selectionState.focusedIndex = index;
+            selectionState.focusedItem = index >= 0 ? root.entries[index] : null;
+            root.focusRequested(index);
         }
 
         function refreshPreviewFiles() {
@@ -142,8 +286,6 @@ Item {
                 "NOPLAY": counts.NOPLAY || 0,
                 "FAILED": counts.FAILED || 0,
                 "AEASY": counts.AEASY || 0,
-                "LIGHTASSIST": counts.LIGHTASSIST
-                    || counts.LIGHT_ASSIST || 0,
                 "EASY": counts.EASY || 0,
                 "NORMAL": counts.NORMAL || 0,
                 "HARD": counts.HARD || 0,
@@ -162,7 +304,7 @@ Item {
                 return "level:" + item.name;
             }
             if (item instanceof table) {
-                return "table:" + String(item.url || "");
+                return "table:" + item.identifier;
             }
             return "";
         }
@@ -198,6 +340,10 @@ Item {
         }
 
         function sameEntry(a, b) {
+            if (a instanceof entry && b instanceof entry) {
+                return a.md5 && b.md5 ? a.md5 === b.md5
+                    : !!a.sha256 && a.sha256 === b.sha256;
+            }
             if (a instanceof ChartData && b instanceof ChartData) {
                 return a.path === b.path;
             }
@@ -208,7 +354,7 @@ Item {
                 return a.name === b.name;
             }
             if (a instanceof table && b instanceof table) {
-                return String(a.url || "") === String(b.url || "");
+                return a.identifier === b.identifier;
             }
             if (a instanceof course && b instanceof course) {
                 return a.identifier === b.identifier;
@@ -225,14 +371,21 @@ Item {
             return -1;
         }
 
+        function isSearch(item) {
+            return item !== null && typeof item === "object" && "searchQuery" in item;
+        }
+
         function open(item) {
-            let folder = sessionImpl.resolveFolderContents(item);
+            const folder = isSearch(item)
+                ? sessionImpl.resolveSearchResults(item.searchQuery)
+                : sessionImpl.resolveFolderContents(item);
             if (folder === null) {
                 return null;
             }
             sessionImpl.commitFolderContents(folder);
+            root.refresh();
             selectionState.entries = selectionState.preparedEntries(folder);
-            selectionState.publishFolderContents();
+            root.openedFolder();
             return root.entries;
         }
 
@@ -269,7 +422,12 @@ Item {
         }
     }
 
-    /*! Requests that the skin focus \a index in \l entries. */
+    /*!
+        Requests that the theme make \a index in \l entries current in its view.
+        The index is -1 when no entry is selected.
+        \l focusedItem is already updated when this signal is emitted.
+        The theme chooses how to position its list or wheel.
+    */
     signal focusRequested(int index)
     /*! Emitted after a folder or table has been opened. */
     signal openedFolder()
@@ -282,7 +440,22 @@ Item {
         id: sessionImpl
     }
 
-    StandardSelectActivation {
+    /*! Shared play, saved-result and exit actions. */
+    readonly property alias actions: activationImpl
+    /*! Calls \c exitAction() in place of leaving selection. */
+    property alias exitAction: activationImpl.exitAction
+
+    /*! Leaves selection or its Arena room. Use goBack() for folder history. */
+    function exit() { return activationImpl.exit(); }
+
+    /*!
+        Opens the saved \a score for the chart or course \a item. Both arguments
+        are required. See StandardSelectActions::openResult for accepted score
+        types and loading behavior.
+    */
+    function openResult(item, score) { return activationImpl.openResult(item, score); }
+
+    StandardSelectActions {
         id: activationImpl
 
         tryOpenPlayableAction: root.tryOpenPlayableAction
@@ -299,7 +472,7 @@ Item {
         keymodeFilter: root.keymodeFilter
         sortMode: root.sortMode
         unscoredItemsLast: root.unscoredItemsLast
-        scores: root.scores
+        scores: root.results
 
         onSortModeChanged: Qt.callLater(selectionState.sortOrFilterChanged)
         onKeymodeFilterChanged:
@@ -315,7 +488,14 @@ Item {
         }
     }
 
-    /*! Updates the logical focused \a item after the skin moves focus. */
+    /*!
+        Records \a item from \l entries as \l focusedItem after the theme changes
+        its current entry. Pass the row's data, not its QML delegate.
+        Repeated rows in StandardSelectController::presentationEntries refer to
+        the same entries and can be selected normally.
+        Passing null or an item outside \l entries clears the selection.
+        \l focusedItem becomes null and \l focusedIndex becomes -1.
+    */
     function setFocused(item) {
         let logicalIndex = selectionState.indexOfEntry(entries, item);
         selectionState.focusedIndex = logicalIndex;
@@ -323,9 +503,11 @@ Item {
             ? entries[logicalIndex] : null;
     }
 
-    /*! Refreshes score, preview-file, and folder clear-statistic metadata. */
+    /*!
+        Refreshes preview paths and folder clear statistics. To reload the
+        folder's entries or request a library scan, use \l reloadCurrentFolderOrTable.
+    */
     function refresh() {
-        selectionState.refreshScores();
         selectionState.refreshPreviewFiles();
         selectionState.refreshFolderClearStats();
     }
@@ -339,12 +521,161 @@ Item {
     }
 
     /*!
-        Opens \a item using \a autoplay, \a replay, and \a replayScore to
-        select the requested play mode.
+        Opens chart or course \a item with the requested \a autoplay,
+        \a replay and \a replayScore options. See StandardSelectActions::openPlayable
+        for the score types and return-value contract.
     */
     function openPlayable(item, autoplay = false, replay = false,
                           replayScore = null) {
         return activationImpl.openPlayable(item, autoplay, replay, replayScore);
+    }
+
+    /*! Starts autoplay for the focused chart or course, or calls the custom action. */
+    function openAutoplay() {
+        if (!root.enabled || root.actions.arenaSeated) return false;
+        if (typeof root.tryAutoplayAction === "function" && root.tryAutoplayAction()) {
+            return true;
+        }
+        return root.autoplayAvailable && root.openPlayable(root.focusedItem, true);
+    }
+
+    /*!
+        Saves \a mode in the active profile and updates \l sortMode.
+        Accepts any supported SelectSortMode value, regardless of \l sortModes.
+        Returns false for an unknown value or inactive screen, without changing the choice.
+    */
+    function setSortMode(mode) {
+        if (!root.enabled || !StandardSelectOptions.sortOptions.some(option => option.value === mode))
+            return false;
+        selectionState.generalVars.selectSortMode = mode;
+        return true;
+    }
+
+    /*!
+        Saves \a filter in the active profile and updates \l keymodeFilter.
+        Returns false for an unknown value or inactive screen, without changing the choice.
+    */
+    function setKeymodeFilter(filter) {
+        if (!root.enabled || ![SelectKeymodeFilter.All, SelectKeymodeFilter.Single,
+                SelectKeymodeFilter.Double, SelectKeymodeFilter.K5, SelectKeymodeFilter.K7,
+                SelectKeymodeFilter.K10, SelectKeymodeFilter.K14].includes(filter))
+            return false;
+        selectionState.generalVars.selectKeymodeFilter = filter;
+        return true;
+    }
+
+    /*!
+        Moves through \l sortModes by the integer \a delta and saves the choice,
+        or calls the custom action. Wraps at either end. Returns false when
+        inactive or delta is not an integer. The default action also returns
+        false if the list is empty or the next value is unsupported.
+    */
+    function cycleSortMode(delta = 1) {
+        if (!root.enabled || !Number.isInteger(delta)) return false;
+        if (typeof root.tryCycleSortModeAction === "function"
+                && root.tryCycleSortModeAction(delta)) return true;
+        const count = root.sortModes.length;
+        if (count === 0) return false;
+        const current = root.sortModes.indexOf(root.sortMode);
+        const next = current < 0 ? 0 : ((current + delta) % count + count) % count;
+        return root.setSortMode(root.sortModes[next]);
+    }
+
+    /*! Opens Settings, or calls the replacement action. */
+    function openSettings() {
+        if (!root.enabled) return false;
+        if (typeof root.openSettingsAction === "function") root.openSettingsAction();
+        else globalRoot.openSettings();
+        return true;
+    }
+
+    /*!
+        Returns a saved run for the focused chart or course using \a type.
+        Defaults to \l replayType. When \a requireReplayData is true, ignores
+        runs without recordings and courses without a recording for every stage.
+        Pass false when choosing a saved result to display. Best score compares
+        points divided by maximum points. Ties use the newer run.
+    */
+    function resultForReplayType(type = replayType, requireReplayData = true) {
+        const item = root.focusedItem;
+        const isCourse = item instanceof course;
+        if (!isCourse && !(item instanceof ChartData)) {
+            return null;
+        }
+        const candidates = root.results[isCourse ? item.identifier : item.md5] || [];
+        let best = null;
+        let bestValue = -Infinity;
+        for (const score of candidates) {
+            if (!score) continue;
+            if (requireReplayData) {
+                if (!score.replayAvailable) continue;
+                if (isCourse && (!score.results || !item.chartIds.length
+                        || score.results.length !== item.chartIds.length
+                        || !score.results.every(stage => stage && stage.replayAvailable))) {
+                    continue;
+                }
+            }
+            const result = score;
+            let value;
+            switch (type) {
+            case StandardSelectState.Newest: value = result.unixTimestamp; break;
+            case StandardSelectState.BestScore:
+                if (result.maxPoints <= 0) continue;
+                value = result.points / result.maxPoints;
+                break;
+            case StandardSelectState.BestClear:
+                value = selectionState.clearPriority(result.clearType);
+                break;
+            case StandardSelectState.BestCombo: value = result.maxCombo; break;
+            default: return null;
+            }
+            if (value > bestValue || (value === bestValue
+                    && (!best || result.unixTimestamp > best.unixTimestamp))) {
+                best = score;
+                bestValue = value;
+            }
+        }
+        return best;
+    }
+
+    /*!
+        Saves \a type in the active profile and updates \l replayType.
+        Returns false for an unknown value or inactive screen, without changing the choice.
+        Use \l cycleReplayType to advance to the next option and wrap at the end.
+    */
+    function setReplayType(type) {
+        if (!root.enabled || !root.replayOptions.some(option => option.value === type))
+            return false;
+        selectionState.generalVars.replayType = type;
+        return true;
+    }
+
+    /*! Cycles newest, best score, best clear and best combo, or calls the replacement action. */
+    function cycleReplayType() {
+        if (!root.enabled) return false;
+        if (typeof root.cycleReplayTypeAction === "function") {
+            root.cycleReplayTypeAction();
+            return true;
+        }
+        const options = root.replayOptions;
+        const index = options.findIndex(option => option.value === root.replayType);
+        return options.length > 0 && root.setReplayType(options[(index + 1) % options.length].value);
+    }
+
+    /*!
+        Opens the focused entry's replay using \a type, which defaults to
+        \l replayType. Returns false when no usable recording is available.
+        Replay playback uses the main profile alone, even in battle mode.
+        Arena and inactive screens cannot start replay playback.
+    */
+    function openReplay(type = replayType) {
+        if (!root.enabled || root.actions.arenaSeated) return false;
+        if (typeof root.tryReplayAction === "function" && root.tryReplayAction(type)) {
+            return true;
+        }
+        const score = root.resultForReplayType(type);
+        if (!score || !selectionState.playableChartsAvailable) return false;
+        return root.openPlayable(root.focusedItem, false, true, score);
     }
 
     /*! Initializes history from the configured song folders and tables. */
@@ -402,7 +733,12 @@ Item {
 
     /*! Reloads the current local folder or online table. */
     function reloadCurrentFolderOrTable() {
-        if (reloadAction.reload(root.focusedItem, root.historyStack,
+        if (!root.enabled) return false;
+        if (typeof root.reloadAction === "function") {
+            root.reloadAction();
+            return true;
+        }
+        if (folderReload.reload(root.focusedItem, root.historyStack,
                                 selectionState.selectedSongFolderPath())) {
             return true;
         }
@@ -440,7 +776,11 @@ Item {
         return true;
     }
 
-    /*! Replaces the current entries with results for \a query. */
+    /*!
+        Searches for \a query and returns the number of matches before view
+        filtering. With matches, replaces the list and records the search in
+        history. With no matches, returns zero and keeps the current list.
+    */
     function search(query) {
         let results = sessionImpl.resolveSearchResults(query);
         let resultCount = results.length;
@@ -450,23 +790,29 @@ Item {
         }
         sessionImpl.commitFolderContents(results);
         selectionState.entries = selectionState.preparedEntries(results);
-        if (historyStack[historyStack.length - 1]
-                !== selectionState.searchHistoryEntry) {
-            sessionImpl.historyStack = historyStack.concat(
-                [selectionState.searchHistoryEntry]);
-        }
+        const history = selectionState.isSearch(historyStack[historyStack.length - 1])
+            ? historyStack.slice(0, -1) : historyStack;
+        sessionImpl.historyStack = history.concat([{searchQuery: query || ""}]);
         selectionState.requestFocus(0);
         selectionState.publishFolderContents();
         return resultCount;
     }
 
-    /*! Returns whether \a item is a playable chart. */
+    /*!
+        Returns true when \a item is an installed ChartData or a missing table entry.
+        This identifies chart-like rows; it does not guarantee they can play.
+    */
     function isChartItem(item) {
         return item instanceof ChartData || item instanceof entry;
     }
 
     /*! Opens the focused chart's directory in the system file browser. */
     function openSelectedFolder() {
+        if (!root.enabled) return false;
+        if (typeof root.openSelectedFolderAction === "function") {
+            root.openSelectedFolderAction();
+            return true;
+        }
         if (focusedItem instanceof ChartData && focusedItem.chartDirectory) {
             return globalRoot.openLocalFolder(focusedItem.chartDirectory);
         }
@@ -499,12 +845,6 @@ Item {
     Component.onCompleted: {
         if (autoInitialize) {
             initialize();
-        }
-    }
-
-    onScoresEnabledChanged: {
-        if (historyStack.length > 0) {
-            selectionState.refreshScores();
         }
     }
 

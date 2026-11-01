@@ -44,6 +44,11 @@ void
 qml_components::Bga::setVideoSink(QVideoSink* newVideoSink)
 {
     if (videoSink != newVideoSink) {
+        if (playedVideo != nullptr) {
+            playedVideo->setVideoOutput(newVideoSink);
+        } else if (newVideoSink != nullptr) {
+            newVideoSink->setVideoFrame(displayedFrame);
+        }
         videoSink = newVideoSink;
         emit videoSinkChanged();
     }
@@ -88,11 +93,10 @@ qml_components::Bga::update(std::chrono::nanoseconds offsetFromStart)
             playedVideo->setVideoOutput(nullptr);
             playedVideo = nullptr;
         }
-        if (lastApplicableImage->second != nullptr) {
-            videoSink->setVideoFrame(*lastApplicableImage->second);
-        } else {
-            videoSink->setVideoFrame(*getEmptyVideoFrame());
-        }
+        displayedFrame = lastApplicableImage->second != nullptr
+                           ? *lastApplicableImage->second
+                           : *getEmptyVideoFrame();
+        videoSink->setVideoFrame(displayedFrame);
     }
 }
 qml_components::BgaContainer::BgaContainer(

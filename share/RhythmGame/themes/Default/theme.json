@@ -9,7 +9,7 @@
     "select": "scripts/select/Select.qml",
     "settings": "scripts/settings/Settings.qml",
     "result": "scripts/result/Result.qml",
-    "courseResult": "scripts/result/Result.qml",
+    "courseResult": "scripts/result/CourseResult.qml",
     "decide": "scripts/decide/Decide.qml"
   },
   "settings": {

@@ -8,28 +8,30 @@ Item {
     id: root
     focus: true
     property string csvPath
-    property string screenKey: ""
-    property string arenaRoundId: ""
-    property bool arenaManagedRunner: false
-    property var chart
-    property var scores: []
-    property var profiles: []
-    property var chartData: null
-    property var chartDatas: []
-    property var course: null
+    required property string screenKey
+    property GameplayContext gameplay: null
+    property QtObject resultContext: null
+    readonly property var chart: ScreenContexts.legacyRunner(root.gameplay)
+    readonly property var scores: root.resultContext
+        ? Array.from(root.resultContext.players, player => player.score) : []
+    readonly property var profiles: root.resultContext
+        ? Array.from(root.resultContext.players, player => player.profile) : []
+    readonly property var chartData: root.resultContext instanceof ResultContext
+        ? root.resultContext.chartData : null
+    readonly property var chartDatas: root.resultContext instanceof CourseResultContext
+        ? root.resultContext.charts : []
+    readonly property var course: root.resultContext instanceof CourseResultContext
+        ? root.resultContext.course : null
     property var skinSettings
     property string skinSettingsData: ""
     property var selectContextRef: null
     property bool componentReady: false
     property bool customizeMode: false
     property var legacySkinCustomizeItems: []
-    readonly property bool legacySkinCustomizeAvailable: true
     readonly property var arenaSession: Rg.arenaSession
     readonly property bool arenaSeated: arenaSession.state === ArenaSession.InRoom
         || arenaSession.state === ArenaSession.Reconnecting
-    readonly property bool arenaGameplayOwned: root.gameplayScreenActive
-        && arenaSession.arenaGameplayActive === true
-        && arenaSession.arenaRunner === root.chart
+    readonly property bool arenaGameplayOwned: root.gameplay?.arenaActive ?? false
     readonly property var legacySkinCustomizeThemeVars:
         root.lr2SettingDestinationForScreen(root.effectiveScreenKey)
     readonly property string legacySkinCustomizeTitle:
@@ -204,8 +206,8 @@ Item {
     property var gameplayBestSavedScoreCache: null
     property var gameplayLastSavedScoreCache: null
     property int gameplayScoresRevision: 0
-    property int gameplayScoreRequest: 0
-    property var pendingGameplayScoreDbReply: null
+    property bool gameplayScoresLoading: false
+    property var gameplayPendingReplayHits: []
     property var gameplayHeldButtonTimerStarts: ({})
     property var gameplayOffButtonTimerStarts: ({})
     property var gameplayPreviousPressedTimers: ({})
@@ -248,7 +250,6 @@ Item {
     property alias lr2SceneUptimeSeconds: wallClockState.uptimeSeconds
     property alias resultOldScores1: resultState.resultOldScores1
     property alias resultOldScores2: resultState.resultOldScores2
-    property alias resultOldScoresRequest: resultState.resultOldScoresRequest
     property alias resultTimer151SkinTime: resultState.resultTimer151SkinTime
     property alias resultTimer152SkinTime: resultState.resultTimer152SkinTime
     property alias resultGraphStartSkinTime: resultState.resultGraphStartSkinTime
@@ -487,7 +488,7 @@ Item {
             return root.toggleSelectPanel(3);
         case 6:
             if (!root.arenaSeated) {
-                globalRoot.openSettings(5);
+                globalRoot.openSettings("keys");
             }
             return true;
         case 8:
@@ -518,8 +519,8 @@ Item {
                 root.closeSelectPanel();
                 return;
             }
-            if (root.effectiveScreenKey === "select" && root.arenaSeated) {
-                Rg.arenaSession.leaveRoom();
+            if (root.effectiveScreenKey === "select") {
+                selectContext.actions.exit();
                 return;
             }
             if (root.effectiveScreenKey === "decide") {
@@ -660,21 +661,10 @@ Item {
         root.activateGameplayIfNeeded();
     }
 
-    readonly property string effectiveScreenKey: screenState.effectiveKey
+    readonly property string effectiveScreenKey: root.screenKey
     readonly property bool gameplayScreenActive: screenState.gameplayScreen
     readonly property bool resultScreenActive: screenState.resultScreen
-    readonly property bool arenaResultMatches: root.resultScreenActive
-        && root.arenaRoundId.length > 0
-        && root.arenaSession.resultPresentationActive === true
-        && root.arenaSession.presentedResult !== null
-        && root.arenaSession.presentedResult.valid === true
-        && root.arenaRoundId
-            === String(root.arenaSession.presentedResult.roundId || "")
-
-    function presentArenaResult(roundId: string) : bool {
-        root.arenaRoundId = roundId;
-        return root.arenaRoundId.length > 0;
-    }
+    readonly property bool arenaResultMatches: root.resultContext instanceof ResultContext && root.resultContext.arenaActive
 
     readonly property bool decideScreenActive: root.enabled
         && root.visible
@@ -2472,7 +2462,7 @@ Item {
     }
 
     function startGameplayFadeoutTransition() : void {
-        if (!root.gameplayFinishTransitionPending || !gameplayInput.active) {
+        if (!root.gameplayFinishTransitionPending || !gameplayInput.enabled) {
             return;
         }
         if (root.gameplayFadeoutSkinTime < 0) {
@@ -2640,7 +2630,6 @@ Item {
     function resultScoreImproved(side: var) : var { return resultState.resultScoreImproved(side); }
     function resultComboImproved(side: var) : var { return resultState.resultComboImproved(side); }
     function resultBadPoorImproved(side: var) : var { return resultState.resultBadPoorImproved(side); }
-    function updateResultOldScores() : void { resultState.updateResultOldScores(); }
 
     function resultScreenshotRankLabel(result: var) : var {
         switch (root.resultRawRank(result)) {
@@ -3005,7 +2994,7 @@ Item {
     }
 
     function gameplaySavedScorePoints(score: var) : var {
-        return score && score.result ? Math.floor(score.result.points || 0) : 0;
+        return Math.floor((score?.result || score)?.points || 0);
     }
 
     function gameplayScoreRateInteger(points: var, score: var) : var {
@@ -3019,7 +3008,7 @@ Item {
     }
 
     function gameplayBestSavedScore() : var {
-        return root.gameplayBestSavedScoreCache;
+        return gameplayBestDetails.score;
     }
 
     function updateGameplaySavedScoreCaches(scores: var) : void {
@@ -3038,7 +3027,7 @@ Item {
     }
 
     function gameplayLastSavedScore() : var {
-        return root.gameplayLastSavedScoreCache;
+        return gameplayLastDetails.score;
     }
 
     function nextRankTargetPoints(savedPoints: var, maxPoints: var) : var {
@@ -3088,7 +3077,7 @@ Item {
         if (max <= 0) {
             return 0;
         }
-        let saved = root.gameplaySavedScorePoints(root.gameplayBestSavedScore());
+        let saved = root.gameplaySavedScorePoints(root.gameplayBestSavedScoreCache);
         return root.nextRankTargetPoints(saved, max) / max;
     }
 
@@ -3098,14 +3087,12 @@ Item {
     }
 
     function gameplayHighScoreFinalPoints() : var {
-        return root.gameplaySavedScorePoints(root.gameplayBestSavedScore());
+        return root.gameplaySavedScorePoints(root.gameplayBestSavedScoreCache);
     }
 
     function arenaOpponentTargetAvailable() : bool {
         return root.arenaGameplayOwned
-            && root.arenaSession.opponentTarget !== undefined
-            && root.arenaSession.opponentTarget !== null
-            && root.arenaSession.opponentTarget.available === true;
+            && !!root.arenaSession.opponentTarget?.memberId;
     }
 
     function gameplayTargetScorePoints(side: var) : var {
@@ -3154,7 +3141,7 @@ Item {
         }
         if (root.gameplayScoreTargetMode() === ScoreTarget.NextRank) {
             return root.nextRankTargetPoints(
-                root.gameplaySavedScorePoints(root.gameplayBestSavedScore()),
+                root.gameplaySavedScorePoints(root.gameplayBestSavedScoreCache),
                 score.maxPoints || 0);
         }
         return Math.floor((score.maxPoints || 0) * root.gameplayTargetFraction());
@@ -3201,69 +3188,56 @@ Item {
         gameplayBestScoreReplayer.resetPoints();
     }
 
-    function trackGameplayScoreDbReply(reply: var) : var {
-        if (!reply || reply.resultAvailable) {
-            return reply;
-        }
-        pendingGameplayScoreDbReply = reply;
-        let forget = function() {
-            reply.finished.disconnect(forget);
-            if (pendingGameplayScoreDbReply === reply) {
-                pendingGameplayScoreDbReply = null;
-            }
-        };
-        reply.finished.connect(forget);
-        return reply;
+    ScoreDetails {
+        id: gameplayBestDetails
+        result: root.gameplayBestSavedScoreCache
+        profile: root.gameplayPlayer(1)?.profile || null
+        enabled: root.gameplayScreenActive
+        onLoadingChanged: Qt.callLater(root.finishGameplayScores)
     }
 
-    function cancelGameplayScoreDbReply() {
-        let reply = pendingGameplayScoreDbReply;
-        pendingGameplayScoreDbReply = null;
-        if (reply && !reply.resultAvailable) {
-            reply.cancel();
-        }
+    ScoreDetails {
+        id: gameplayLastDetails
+        result: root.gameplayLastSavedScoreCache
+        profile: root.gameplayPlayer(1)?.profile || null
+        enabled: root.gameplayScreenActive
+        onLoadingChanged: Qt.callLater(root.finishGameplayScores)
     }
 
-    function updateGameplaySavedScores() : var {
-        cancelGameplayScoreDbReply();
-        root.gameplayScoreRequest += 1;
-        let request = root.gameplayScoreRequest;
-        root.gameplayScores1 = [];
+    function finishGameplayScores() : void {
+        if (!root.gameplayScoresLoading || gameplayBestDetails.loading || gameplayLastDetails.loading) return;
+        root.resetGameplayScoreReplayers();
+        for (const hit of root.gameplayPendingReplayHits) {
+            gameplayTargetScoreReplayer.notifyHit(hit);
+            gameplayBestScoreReplayer.notifyHit(hit);
+        }
+        root.gameplayPendingReplayHits = [];
+        root.gameplayScoresLoading = false;
+        root.gameplayScoresRevision++;
+        root.refreshGameplayNumbers(root.gameplayNumberScoresDependency);
+    }
+
+    function updateGameplaySavedScores() : void {
+        root.gameplayPendingReplayHits = [];
+        root.gameplayScoresLoading = true;
+        const md5 = root.gameplayChartData()?.md5 || "";
+        const scoreDb = root.gameplayPlayer(1)?.profile.scoreDb;
+        root.gameplayScores1 = root.gameplayScreenActive && scoreDb && md5
+            ? scoreDb.chartResults[md5.toUpperCase()] || [] : [];
         root.updateGameplaySavedScoreCaches(root.gameplayScores1);
-        root.gameplayScoresRevision += 1;
+        root.gameplayScoresRevision++;
         root.refreshGameplayNumbers(root.gameplayNumberScoresDependency);
         root.resetGameplayScoreReplayers();
-
-        if (!root.gameplayScreenActive) {
-            return;
-        }
-
-        let chartData = root.gameplayChartData();
-        let player = root.gameplayPlayer(1);
-        let scoreDb = player && player.profile ? player.profile.scoreDb : null;
-        let md5 = chartData && chartData.md5 ? String(chartData.md5).toUpperCase() : "";
-        if (!scoreDb || md5.length === 0) {
-            return;
-        }
-
-        trackGameplayScoreDbReply(scoreDb.getScoresForMd5([md5])).then(result => {
-            if (request !== root.gameplayScoreRequest) {
-                return;
-            }
-            let scores = result && result.scores
-                ? (result.scores[md5] || result.scores[md5.toLowerCase()] || [])
-                : [];
-            root.gameplayScores1 = scores;
-            root.updateGameplaySavedScoreCaches(scores);
-            root.gameplayScoresRevision += 1;
-            root.refreshGameplayNumbers(root.gameplayNumberScoresDependency);
-            root.resetGameplayScoreReplayers();
-        });
+        Qt.callLater(root.finishGameplayScores);
     }
 
     function notifyGameplayReplayHit(side: var, hit: var) : void {
         root.appendGameplayGraphHit(side, hit);
         if (side !== 1) {
+            return;
+        }
+        if (root.gameplayScoresLoading) {
+            if (hit.noteRemoved) root.gameplayPendingReplayHits.push(hit);
             return;
         }
         if (root.gameplayTargetSavedScore()) {
@@ -4999,7 +4973,7 @@ Item {
     readonly property var selectedCourseStages: {
         if (root.effectiveScreenKey === "courseResult") {
             if (root.chartDatas && root.chartDatas.length > 0) {
-                return root.chartDatas;
+                return root.chartDatas.map((chart, index) => chart || root.course.chartIds[index]);
             }
             if (root.course && root.course.loadCharts) {
                 return root.course.loadCharts();
@@ -5169,7 +5143,6 @@ Item {
             root.resultTimer151SkinTime = -1;
             root.resultTimer152SkinTime = -1;
             selectContext.refreshPlayerStats();
-            root.updateResultOldScores();
         }
         root.updateGameplaySavedScores();
         root.handleScreenContextChanged();
@@ -5200,12 +5173,10 @@ Item {
         if (root.resultScreenActive) {
             selectContext.refreshPlayerStats();
         }
-        root.updateResultOldScores();
         root.queueResolvedTextRefresh();
         Qt.callLater(root.playScreenEntrySound);
     }
     onProfilesChanged: {
-        root.updateResultOldScores();
         root.queueResolvedTextRefresh();
     }
     onChartDataChanged: {
@@ -5213,14 +5184,11 @@ Item {
         if (root.effectiveScreenKey !== "select") {
             root.refreshSelectRuntimeActiveOptions();
         }
-        root.updateResultOldScores();
     }
     onChartDatasChanged: {
-        root.updateResultOldScores();
         root.queueResolvedTextRefresh();
     }
     onCourseChanged: {
-        root.updateResultOldScores();
         root.queueResolvedTextRefresh();
     }
     Connections {
@@ -5527,8 +5495,7 @@ Item {
 
     Lr2ScreenState {
         id: screenState
-        explicitKey: root.screenKey
-        csvPath: root.csvPath
+        screenKey: root.screenKey
         hostEnabled: root.enabled
         hostVisible: root.visible
         stackActive: root.StackView.status === StackView.Active
@@ -5655,7 +5622,9 @@ Item {
 
     StandardGameplayFlow {
         id: gameplayInput
-        chart: root.gameplayScreenActive ? root.chart : null
+        // LR2 handles its own option gestures through Lr2OptionState.
+        speedControlsEnabled: false
+        gameplay: root.gameplayScreenActive ? root.gameplay : null
         enabled: root.screenUpdatesActive && root.gameplayScreenActive
         startReady: root.gameplayReadySkinTime >= 0
         startDelayMillis: Math.max(1, skinModel.playStart || 2000)
@@ -5683,7 +5652,7 @@ Item {
 
     StandardChartRetry {
         id: resultRetry
-        fromResult: true
+        result: root.resultContext
         enabled: root.resultInputReady()
     }
 
@@ -5753,6 +5722,7 @@ Item {
     }
 
     Component.onCompleted: {
+        skinSettingsState.initializeScreen();
         root.componentReady = true;
         selectSideEffects.ready = true;
         root.commitLr2RankingRequest();
@@ -5769,11 +5739,6 @@ Item {
     }
 
     Component.onDestruction: {
-        root.cancelGameplayScoreDbReply();
-        const arenaSession = root.arenaSession;
-        if (root.arenaRoundId.length > 0 && arenaSession) {
-            arenaSession.endResultPresentation(root.arenaRoundId);
-        }
     }
 
     function pauseScreenActivity() : void {
@@ -6017,7 +5982,7 @@ Item {
             return false;
         }
         root.decideTransitionRequested = true;
-        const item = globalRoot.openGameplay(root.chart);
+        const item = globalRoot.replaceGameplay(root.gameplay);
         if (!item) {
             root.decideTransitionRequested = false;
         }
@@ -6298,9 +6263,6 @@ Item {
         if (root.handleDecideButtonPress(key)) {
             return;
         }
-        if (selectPanelController.handleArenaReadyStartPress(key)) {
-            return;
-        }
         if (root.handleLr2GameplayOptionKey(key)) {
             return;
         }
@@ -6498,6 +6460,48 @@ Item {
         selectContext: selectContext
         selectBarGeometry: selectBarGeometry
     }
+
+    StandardArenaSelectOverlay {
+        readyShortcutEnabled: screenState.selectInputReady
+        active: root.effectiveScreenKey === "select" && root.arenaSeated
+        z: 2000000
+        enabled: root.screenUpdatesActive
+        customizeMode: root.customizeMode
+        navigationFocusTarget: root
+        themeVars: root.lr2SettingDestinationForScreen("select")
+
+    }
+
+    StandardArenaGameplayOverlay {
+        id: arenaGameplayOverlay
+        gameplay: root.gameplayScreenActive ? root.gameplay : null
+        z: 2000000
+        enabled: root.screenUpdatesActive
+        customizeMode: root.customizeMode
+        themeVars: root.lr2SettingDestinationForScreen(root.effectiveScreenKey)
+
+    }
+
+    StandardArenaResultOverlay {
+        id: arenaResultOverlay
+        result: root.resultScreenActive ? root.resultContext as ResultContext : null
+        z: 2000000
+        enabled: root.screenUpdatesActive
+        customizeMode: root.customizeMode
+        themeVars: root.lr2SettingDestinationForScreen("result")
+
+    }
+
+    Loader {
+        anchors.fill: parent
+        active: root.customizeMode
+        z: 2100000
+        sourceComponent: LegacySkinCustomizeOverlay {
+            screen: root
+        }
+    }
+
+    TransientInputFocusDismissLayer {}
 
     MouseArea {
         anchors.fill: parent

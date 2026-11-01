@@ -4,42 +4,72 @@ import RhythmGameQml
 /*!
     \qmltype StandardResultInput
     \inqmlmodule RhythmGameQml
-    \brief Provides common result-screen dismissal and retry input.
+    \brief Handles Continue and Retry actions on a result screen.
 
-    Result presentation and optional button actions such as gauge cycling
-    remain with the skin.
+    Bind \l result to the supplied ResultContext or CourseResultContext. The
+    component draws no controls. A Continue button calls \l confirm and binds
+    its enabled state to \c {acceptsInput && confirmEnabled}. See the
+    \l {../theme_tutorial_results.html}{result lesson} for complete screens.
 
-    No action is accepted until \l acceptsInput becomes true. Escape closes the
-    result regardless of \l confirmEnabled; Return and skin calls to
-    \l confirm require it. \l controllerEnabled gates all controller input but
-    does not gate keyboard or pointer confirmation.
+    \section1 Confirm or close
 
-    Controller handling is ordered: \l tryHandleButtonAction, retry detection,
-    then closing for a standard play key. Start closes directly. A
-    \l tryRetryAction returning true consumes retry; otherwise retry is
-    handled by \l StandardChartRetry. Keys 5 and 7 select fresh randomization
-    and the same pattern respectively, on either player side. The runner is
-    inferred from the preceding gameplay screen. This component does not create
-    buttons or pointer areas; a skin can call \l confirm from its own UI.
+    Input waits for \l inputDelayMillis after the screen becomes active.
+    \l acceptsInput reports when this delay has passed.
+
+    Return and \l confirm also require \l confirmEnabled. By default this is
+    false while the matching Arena result's chat is open, so Return sends a
+    message without closing the result. Escape and \l close bypass that
+    confirmation rule, but still wait for the input delay.
+
+    \l controllerEnabled controls bound game buttons independently of Return,
+    Escape and calls from your own buttons. Start closes the result. Other
+    bound keys first call \l tryHandleButtonAction, then try retry, then close
+    for a standard play key. Use that callback for actions such as cycling gauges.
+
+    \section1 Retry a chart
+
+    Bind retry buttons to \l retryAvailable. Call \l retry with false for a new
+    random pattern or true for the same pattern. Bound keys 5 and 7 use these
+    same actions on either player side.
+
+    Standard retry is unavailable for courses, autoplay, replay, battle and
+    Arena. \l tryRetryAction can handle a request before StandardChartRetry.
+    \l closeAction replaces closing the result entirely. Return true from a
+    \c try...Action callback when it handled the request; return false to let
+    the standard action continue.
 */
 Item {
     id: root
 
-    /*! Optional \c closeAction() replacement for closing the result. */
+    /*! Supplies the ResultContext or CourseResultContext received by the screen. */
+    property QtObject result: null
+    /*! Calls \c closeAction() in place of closing the result. */
     property var closeAction: null
-    /*! Optional \c tryRetryAction(key) pre-handler. True consumes the retry. */
+    /*!
+        Called as \c tryRetryAction(samePattern). Return true to handle the request, or false to
+        continue with the standard action.
+    */
     property var tryRetryAction: null
-    /*! Optional \c tryHandleButtonAction(key) pre-handler. True consumes input. */
+    /*!
+        Called as \c tryHandleButtonAction(key). Return true to handle the request, or false
+        to continue with the standard action.
+    */
     property var tryHandleButtonAction: null
     /*! Delay before result input becomes active, in milliseconds. */
     property int inputDelayMillis: 500
-    /*! Whether result input currently accepts actions. */
+    /*! Reports whether result input currently accepts actions. */
     readonly property bool acceptsInput: inputDelayMillis <= 0
         || inputState.delayElapsed
-    /*! Whether semantic keyboard or pointer confirmation is active. */
-    property bool confirmEnabled: true
-    /*! Whether BMS-controller input is active. */
+    /*! Enables keyboard and pointer confirmation. Defaults to false while this result's Arena chat is open. */
+    property bool confirmEnabled: !((root.result as ResultContext)?.arenaActive
+        && Rg.arenaSession.chatOpen)
+    /*! Controls whether BMS-controller input is active. */
     property bool controllerEnabled: true
+    /*! Controls retries from both buttons and bound controller input. */
+    property bool retryEnabled: true
+    /*! Whether a supported retry can be requested now, including the input delay. */
+    readonly property bool retryAvailable: enabled && acceptsInput && retryEnabled
+        && (chartRetry.available || typeof tryRetryAction === "function")
 
     QtObject {
         id: inputState
@@ -53,7 +83,7 @@ Item {
 
     StandardChartRetry {
         id: chartRetry
-        fromResult: true
+        result: root.result
     }
 
     /*! Closes the result screen when input is accepted. */
@@ -69,29 +99,20 @@ Item {
         return true;
     }
 
-    /*! Confirms and closes from keyboard or skin-provided pointer input. */
+    /*! Confirms and closes from keyboard or theme-provided pointer input. */
     function confirm() {
         return confirmEnabled && close();
     }
 
-    /*! Retries using the play-side indicated by \a key. */
-    function retry(key) {
-        if (!enabled || !acceptsInput) {
+    /*! Retries with the same pattern when \a samePattern is true, or fresh randomization otherwise. */
+    function retry(samePattern) {
+        if (!enabled || !acceptsInput || !retryEnabled) {
             return false;
         }
-        if (typeof tryRetryAction === "function" && tryRetryAction(key)) {
+        if (typeof tryRetryAction === "function" && tryRetryAction(samePattern)) {
             return true;
         }
-        switch (key) {
-        case BmsKey.Col15:
-        case BmsKey.Col25:
-            return chartRetry.retry(false);
-        case BmsKey.Col17:
-        case BmsKey.Col27:
-            return chartRetry.retry(true);
-        default:
-            return false;
-        }
+        return chartRetry.retry(samePattern);
     }
 
     /*! Handles a standard result-screen \a key. */
@@ -103,7 +124,9 @@ Item {
                 && tryHandleButtonAction(key)) {
             return true;
         }
-        if (retry(key)) {
+        const freshPattern = key === BmsKey.Col15 || key === BmsKey.Col25;
+        const samePattern = key === BmsKey.Col17 || key === BmsKey.Col27;
+        if ((freshPattern || samePattern) && retry(samePattern)) {
             return true;
         }
         if (StandardInputKeys.isPlayKey(key)) {

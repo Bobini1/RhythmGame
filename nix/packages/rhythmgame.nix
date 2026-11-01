@@ -41,6 +41,7 @@
   zlib,
   zlib-ng,
   libremidi,
+  backbeat,
 }:
 stdenv.mkDerivation rec {
   pname = "RhythmGame";
@@ -91,18 +92,20 @@ stdenv.mkDerivation rec {
     zlib
     zlib-ng
     libremidi
+    backbeat
   ];
 
   cmakeFlags = [
     "-DCMAKE_CXX_STANDARD=23"
     "-DUSE_SYSTEM_LIBRARIES=ON"
+    "-DRhythmGame_USE_BACKBEAT=ON"
     "-Wno-dev"
   ];
 
   meta = with lib; {
     description = "A customizable BMS player for Windows and Linux";
     homepage = "https://github.com/Bobini1/RhythmGame";
-    license = licenses.mit;
+    license = licenses.gpl3Only;
     platforms = platforms.linux;
     maintainers = [maintainers.Bobini1];
     mainProgram = "RhythmGame";

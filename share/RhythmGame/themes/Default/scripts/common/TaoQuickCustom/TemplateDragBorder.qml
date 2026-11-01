@@ -1,5 +1,4 @@
-import QtQuick 2.9
-import QtQuick.Controls 2.2
+import QtQuick
 
 ResizeBorder {
     id: cusBorder
@@ -8,7 +7,6 @@ ResizeBorder {
     readonly property int borderMargin: 6
     property color color: "#ec4141"
     property color backgroundColor: "#ffffff"
-    property var controller: parent
     property alias dragEnabled: dragItem.enabled
     property alias dragged: dragItem.drag.active
     property color rotateHandleColor: "lightgreen"
@@ -149,6 +147,21 @@ ResizeBorder {
             right: parent.right
         }
     }
+    // Drag a temporary item so MouseArea never replaces the control's bindings.
+    Item {
+        id: dragPosition
+        parent: cusBorder.control.parent
+        visible: false
+
+        onXChanged: {
+            if (dragItem.drag.active)
+                cusBorder.geometryEdited(Qt.rect(x, y, cusBorder.control.width, cusBorder.control.height));
+        }
+        onYChanged: {
+            if (dragItem.drag.active)
+                cusBorder.geometryEdited(Qt.rect(x, y, cusBorder.control.width, cusBorder.control.height));
+        }
+    }
     MouseArea {
         id: dragItem
 
@@ -156,7 +169,12 @@ ResizeBorder {
         anchors.fill: parent
         anchors.margins: borderMargin * 2
         cursorShape: Qt.PointingHandCursor
-        drag.target: controller
+        drag.target: dragPosition
+
+        onPressed: {
+            dragPosition.x = cusBorder.control.x;
+            dragPosition.y = cusBorder.control.y;
+        }
 
         onClicked: mouse => cusBorder.clicked(mouse)
         onDoubleClicked: mouse => cusBorder.doubleClicked(mouse)

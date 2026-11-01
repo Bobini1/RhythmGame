@@ -77,6 +77,11 @@ set(LR2_SKIN_QML_FILES
         Lr2/Lr2SkinUtils.js
         Lr2/Lr2TimelineFrame.qml
         Lr2/Lr2SkinScreenWrapper.qml
+        Lr2/Lr2SelectScreen.qml
+        Lr2/Lr2DecideScreen.qml
+        Lr2/Lr2GameplayScreen.qml
+        Lr2/Lr2ResultScreen.qml
+        Lr2/Lr2CourseResultScreen.qml
         Lr2/Lr2SkinScene.qml
         Lr2/Lr2SkinElementDelegate.qml
         Lr2/Lr2SelectPointerSurface.qml
@@ -133,6 +138,8 @@ set(LR2_SKIN_SHADERS
 )
 
 set(RHYTHM_GAME_QML_SOURCES
+        ScreenContexts.h
+        ScreenContexts.cpp
         FontResolver.h
         FontResolver.cpp
         Rg.h
@@ -141,10 +148,10 @@ set(RHYTHM_GAME_QML_SOURCES
 )
 
 set(RHYTHM_GAME_QML_FILES
+        ScoreDetails.qml
         ContentFrame.qml
         Log.qml
         ColorChanger.qml
-        LegacySkinCustomizeHost.qml
         LegacySkinCustomizeOverlay.qml
         LegacySkinCustomizePlacementFrame.qml
         OverlayResizeHandle.qml
@@ -155,21 +162,35 @@ set(RHYTHM_GAME_QML_FILES
         TransientInputFocus.qml
         TransientInputFocusDismissLayer.qml
         PendingReplyGroup.qml
+        StandardRanking.qml
+        StandardSelectOptions.qml
         StandardSelectState.qml
         StandardSelectReload.qml
         StandardSelectSession.qml
-        StandardSelectActivation.qml
+        StandardSelectActions.qml
         StandardSelectModelAdapter.qml
         StandardSelectNavigation.qml
         StandardSelectInput.qml
         StandardSelectShortcuts.qml
         StandardSelectController.qml
+        StandardSelectListView.qml
+        StandardSelectPreview.qml
         StandardInputKeys.qml
         StandardMainActions.qml
+        StandardMainController.qml
+        StandardMultiplayerFlow.qml
+        StandardArenaOverlay.qml
+        StandardArenaSelectOverlay.qml
+        StandardArenaGameplayOverlay.qml
+        StandardArenaResultOverlay.qml
         StandardDecideFlow.qml
         StandardResultInput.qml
         StandardChartRetry.qml
         StandardGameplayFlow.qml
+        StandardGameplayBga.qml
+        StandardGameplaySpeedControls.qml
+        StandardGameplayTarget.qml
+        StandardGameplayViewport.qml
         GameplaySession.qml
         StandardGameplayInput.qml
         StandardGameplayAttemptState.qml
@@ -179,9 +200,6 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaTypography.qml
         Arena/ArenaSelectionSummary.qml
         Arena/ArenaSelectPanel.qml
-        Arena/ArenaSelectOverlay.qml
-        Arena/ArenaLegacySelectOverlay.qml
-        Arena/ArenaOverlayHost.qml
         Arena/ArenaGameplayOverlay.qml
         Arena/ArenaJudgementBreakdown.qml
         Arena/ArenaCompetitionText.qml
@@ -190,7 +208,8 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaOverlayResizeHandle.qml
 )
 
-set_source_files_properties(TransientInputFocus.qml StandardInputKeys.qml PROPERTIES
+set_source_files_properties(TransientInputFocus.qml StandardInputKeys.qml
+        StandardSelectOptions.qml PROPERTIES
         QT_QML_SINGLETON_TYPE TRUE
 )
 set_source_files_properties(GameplaySession.qml PROPERTIES QT_QML_INTERNAL_TYPE TRUE)

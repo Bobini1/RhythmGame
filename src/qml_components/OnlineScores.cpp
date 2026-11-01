@@ -46,12 +46,10 @@ class BmsScoreDelivery
         return score->thread() == thread;
     }
 
-    [[nodiscard]] auto get() const -> gameplay_logic::BmsScore*
+    [[nodiscard]] auto take() -> std::unique_ptr<gameplay_logic::BmsScore>
     {
-        return score.get();
+        return std::move(score);
     }
-
-    void release() { (void)score.release(); }
 
   private:
     std::unique_ptr<gameplay_logic::BmsScore> score;
@@ -199,6 +197,43 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
 }
 
 auto
+OnlineScores::getTachiChart(const QString& md5) -> support::PendingReply*
+{
+    auto source = support::PendingReplySource<QVariantMap>{ this };
+    auto* operation = source.reply();
+    if (stopping || md5.isEmpty()) {
+        (void)source.fail();
+        return operation;
+    }
+
+    auto* handle = resolveTachiChartId(md5);
+    handle->setParent(this);
+    source.setCancellationHandler([handle = QPointer(handle)] {
+        if (handle) {
+            emit handle->cancel();
+            handle->deleteLater();
+        }
+    });
+    connect(handle,
+            &TachiResolveHandle::resolved,
+            this,
+            [handle, source](
+              const QString& chartId, const QString& gameId, int) mutable {
+                handle->deleteLater();
+                (void)source.succeed(
+                  { { "chartId", chartId }, { "gameId", gameId } });
+            });
+    connect(handle,
+            &TachiResolveHandle::failed,
+            this,
+            [handle, source](const QString&) mutable {
+                handle->deleteLater();
+                (void)source.fail();
+            });
+    return operation;
+}
+
+auto
 OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
   -> support::PendingReply*
 {
@@ -225,7 +260,7 @@ OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
       networkReply,
       &QNetworkReply::finished,
       this,
-      [this, networkReply, source]() mutable {
+      [this, networkReply, source, guid]() mutable {
           if (networkReply->error() == QNetworkReply::OperationCanceledError &&
               source.stopToken().stop_requested()) {
               networkReply->deleteLater();
@@ -247,6 +282,7 @@ OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
           // Parse and construct BmsScore objects on the thread pool to
           // avoid blocking the main thread.
           threadPool.start([source,
+                            guid,
                             data = std::move(data),
                             parserDeliveryQueuedHook =
                               std::move(parserDeliveryQueuedHook)]() mutable {
@@ -255,39 +291,10 @@ OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
                   return;
 
               try {
-                  auto doc = QJsonDocument::fromJson(data);
-                  if (!doc.isObject()) {
-                      auto* application = QCoreApplication::instance();
-                      (void)(application && QMetaObject::invokeMethod(
-                                              application,
-                                              [source] { (void)source.fail(); },
-                                              Qt::QueuedConnection));
-                      return;
-                  }
+                  auto score =
+                    gameplay_logic::BmsScore::fromRemoteJson(data, guid);
                   if (stopToken.stop_requested())
                       return;
-
-                  auto scoreObj = doc.object();
-                  auto res = gameplay_logic::BmsResult::fromJson(scoreObj);
-                  auto replayDataList =
-                    gameplay_logic::BmsReplayData::fromJsonArray(
-                      scoreObj["replayData"].toArray());
-                  auto replayData =
-                    std::make_unique<gameplay_logic::BmsReplayData>(
-                      std::move(replayDataList), res->getGuid());
-                  auto gaugeHistoryList =
-                    gameplay_logic::BmsGaugeHistory::fromJsonArray(
-                      scoreObj["gaugeHistory"].toArray());
-                  auto gaugeHistory =
-                    std::make_unique<gameplay_logic::BmsGaugeHistory>(
-                      std::move(gaugeHistoryList), res->getGuid());
-                  if (stopToken.stop_requested())
-                      return;
-
-                  auto score = std::make_unique<gameplay_logic::BmsScore>(
-                    std::move(res),
-                    std::move(replayData),
-                    std::move(gaugeHistory));
                   score->setSubmissionState(
                     gameplay_logic::BmsScore::SubmissionState::Submitted);
                   auto delivery =
@@ -314,11 +321,7 @@ OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
                               return;
                           }
 
-                          auto* score = delivery->get();
-                          QQmlEngine::setObjectOwnership(
-                            score, QQmlEngine::JavaScriptOwnership);
-                          if (source.succeed(score))
-                              delivery->release();
+                          (void)source.succeed(delivery->take());
                       },
                       Qt::QueuedConnection);
                   if (queued && parserDeliveryQueuedHook)

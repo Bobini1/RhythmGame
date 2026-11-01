@@ -16,12 +16,6 @@ ArenaResultModel::ArenaResultModel(QObject* parent)
 }
 
 auto
-ArenaResultModel::valid() const -> bool
-{
-    return m_valid;
-}
-
-auto
 ArenaResultModel::finalized() const -> bool
 {
     return m_finalized;
@@ -102,10 +96,10 @@ ArenaResultModel::setPending(QString roundId,
 {
     if (roundId.isEmpty() || participantCount < 1 ||
         participantCount > RoomCapacity ||
-        (m_valid && (m_finalized || m_roundId != roundId))) {
+        (!m_roundId.isEmpty() && (m_finalized || m_roundId != roundId))) {
         return false;
     }
-    if (m_valid && m_participantCount == participantCount &&
+    if (!m_roundId.isEmpty() && m_participantCount == participantCount &&
         m_selectionTitle == selectionTitle &&
         m_selectionOptionsSummary == selectionOptionsSummary &&
         m_localDnf == localDnf) {
@@ -113,7 +107,6 @@ ArenaResultModel::setPending(QString roundId,
     }
 
     const auto generation = ++m_mutationGeneration;
-    m_valid = true;
     m_finalized = false;
     m_roundId = std::move(roundId);
     m_resultRevision = 0;
@@ -138,10 +131,11 @@ ArenaResultModel::replaceFinal(const RoundResultSnapshot& snapshot,
                                QStringView localMemberId,
                                QString selectionOptionsSummary) -> bool
 {
-    if (m_valid && !m_finalized && m_roundId != snapshot.roundId) {
+    if (!m_roundId.isEmpty() && !m_finalized && m_roundId != snapshot.roundId) {
         return false;
     }
-    if (m_valid && m_finalized && snapshot.resultRevision <= m_resultRevision) {
+    if (!m_roundId.isEmpty() && m_finalized &&
+        snapshot.resultRevision <= m_resultRevision) {
         return false;
     }
 
@@ -180,7 +174,6 @@ ArenaResultModel::replaceFinal(const RoundResultSnapshot& snapshot,
         winnerNamesValue.push_back(*name);
     }
 
-    const auto oldValid = m_valid;
     const auto oldFinalized = m_finalized;
     const auto oldRoundId = m_roundId;
     const auto oldResultRevision = m_resultRevision;
@@ -193,7 +186,6 @@ ArenaResultModel::replaceFinal(const RoundResultSnapshot& snapshot,
     const auto oldSelectionTitle = m_selectionTitle;
     const auto oldSelectionOptionsSummary = m_selectionOptionsSummary;
     const auto generation = ++m_mutationGeneration;
-    m_valid = true;
     m_finalized = true;
     m_roundId = snapshot.roundId;
     m_resultRevision = snapshot.resultRevision;
@@ -209,7 +201,6 @@ ArenaResultModel::replaceFinal(const RoundResultSnapshot& snapshot,
     m_selectionTitle = snapshot.selection.title;
     m_selectionOptionsSummary = std::move(selectionOptionsSummary);
     if (!m_standings.replaceFinal(snapshot)) {
-        m_valid = oldValid;
         m_finalized = oldFinalized;
         m_roundId = oldRoundId;
         m_resultRevision = oldResultRevision;
@@ -233,17 +224,15 @@ ArenaResultModel::replaceFinal(const RoundResultSnapshot& snapshot,
 void
 ArenaResultModel::clear()
 {
-    if (!m_valid && !m_finalized && m_roundId.isEmpty() &&
-        m_resultRevision == 0 && m_participantCount == 0 &&
-        m_winnerMemberIds.isEmpty() && m_winnerNames.isEmpty() &&
-        m_localRank == 0 && !m_localDnf && !m_localWinner &&
-        m_selectionTitle.isEmpty() && m_selectionOptionsSummary.isEmpty() &&
-        m_standings.rowCount() == 0) {
+    if (!m_finalized && m_roundId.isEmpty() && m_resultRevision == 0 &&
+        m_participantCount == 0 && m_winnerMemberIds.isEmpty() &&
+        m_winnerNames.isEmpty() && m_localRank == 0 && !m_localDnf &&
+        !m_localWinner && m_selectionTitle.isEmpty() &&
+        m_selectionOptionsSummary.isEmpty() && m_standings.rowCount() == 0) {
         return;
     }
 
     const auto generation = ++m_mutationGeneration;
-    m_valid = false;
     m_finalized = false;
     m_roundId.clear();
     m_resultRevision = 0;

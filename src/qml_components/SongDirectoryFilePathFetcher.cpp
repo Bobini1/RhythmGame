@@ -76,7 +76,7 @@ SongDirectoryFilePathFetcher::getPreviewFilePaths(
     for (auto iterator = result.begin(); iterator != result.end(); ++iterator) {
         const auto path = iterator.value().toString();
         const auto fsPath = support::qStringToPath(path);
-        if (assetStore->isArchived(fsPath)) {
+        if (assetStore->isVirtual(fsPath)) {
             iterator.value() =
               resource_managers::SongAssetStore::audioUrl(fsPath);
         }

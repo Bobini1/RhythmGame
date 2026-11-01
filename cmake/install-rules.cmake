@@ -70,7 +70,7 @@ if (LINUX)
             COMPONENT RhythmGame_Runtime
     )
     install(
-            FILES LICENSE.md
+            FILES "${RhythmGame_LICENSE_FILE}"
             DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses/rhythmgame"
             RENAME LICENSE
             COMPONENT RhythmGame_Runtime
@@ -79,7 +79,7 @@ endif ()
 
 set(CPACK_PACKAGE_VENDOR "Bobini")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "RhythmGame")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.md")
+set(CPACK_RESOURCE_FILE_LICENSE "${RhythmGame_LICENSE_FILE}")
 set(CPACK_COMPONENTS_ALL RhythmGame_Runtime)
 
 if (WIN32 AND RhythmGame_USE_MIMALLOC)

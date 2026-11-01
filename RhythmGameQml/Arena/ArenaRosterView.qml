@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQml.Models
+import RhythmGameQml
 
 FocusScope {
     id: root
@@ -222,7 +223,7 @@ FocusScope {
 
                         Button {
                             objectName: "arenaRosterKick-" + memberDelegate.memberId
-                            enabled: !root.session || root.session.reconnecting !== true
+                            enabled: root.session?.state !== ArenaSession.Reconnecting
                             focusPolicy: Qt.NoFocus
                             font.pixelSize: typography.supportingPixelSize
                             Layout.minimumHeight: 32

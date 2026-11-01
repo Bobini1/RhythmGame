@@ -7,9 +7,10 @@ project(RhythmGameTests LANGUAGES CXX)
 # ---- Dependencies ----
 
 find_package(Catch2 3 REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Test)
 # ---- Tests ----
 
-add_executable(RhythmGame_test
+qt_add_executable(RhythmGame_test
         arena/ArenaBinaryProtocol.test.cpp
         arena/ArenaAvailabilityIndex.test.cpp
         arena/ArenaInventorySource.test.cpp
@@ -30,6 +31,7 @@ add_executable(RhythmGame_test
         gameplay_logic/ChartStartGate.test.cpp
         gameplay_logic/BmsScore.test.cpp
         qml_components/ImportedScoreImporter.test.cpp
+        qml_components/ScoreDb.test.cpp
         gameplay_logic/NoteState.test.cpp
         charts/BmsChartReader.test.cpp
         db/SqliteCppDb.test.cpp
@@ -40,15 +42,23 @@ add_executable(RhythmGame_test
         charts/BmsChart.test.cpp
         resource_managers/loadBmsSounds.test.cpp
         resource_managers/ChartPlayConfig.test.cpp
+        resource_managers/ChartLoading.test.cpp
         resource_managers/Lr2FontCache.test.cpp
         resource_managers/Languages.test.cpp
         resource_managers/ScanThemes.test.cpp
         resource_managers/SongAssetStore.test.cpp
+        resource_managers/Backbeat.test.cpp
+        resource_managers/Database.test.cpp
+        resource_managers/OnlineOperations.test.cpp
+        resource_managers/Tables.test.cpp
         input/InputTranslator.test.cpp
         support/GeneratePermutation.test.cpp
+        support/Dxa.test.cpp
         support/FrameRateLimiter.test.cpp
         support/PendingReply.test.cpp
         qml/GameplaySession.test.cpp
+        qml/SelectOptions.test.cpp
+        qml/ScreenContexts.test.cpp
         lr2_skin/Lr2BarBaseStateResolver.test.cpp
         lr2_skin/Lr2ResolvedTextRegistry.test.cpp
         lr2_skin/Lr2SelectBarModel.test.cpp
@@ -60,11 +70,13 @@ target_link_libraries(
         RhythmGame_test PRIVATE
         RhythmGame_lib
         RhythmGame_qml
+        RhythmGame_qmlplugin
         RhythmGame_lr2_qml
         dds
         tga
         cim
         Catch2::Catch2WithMain
+        Qt6::Test
 )
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)
 target_compile_definitions(
@@ -80,6 +92,43 @@ set_target_properties(
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
 )
 include(Catch)
+
+# Complete Standard flows need a GUI application for Qt Quick shortcuts. Keep
+# them in an offscreen process, separate from the native tests' QCoreApplication.
+qt_add_executable(RhythmGame_flow_test
+        qml/StandardFlows.test.cpp
+        qml/GameplayPresentation.test.cpp
+        qml/ArenaOverlay.test.cpp
+        qml/StandardSelect.test.cpp
+        qml/DefaultThemeLayout.test.cpp)
+target_link_libraries(RhythmGame_flow_test PRIVATE
+        RhythmGame_lib RhythmGame_qml RhythmGame_qmlplugin
+        dds tga cim Catch2::Catch2 Qt6::Test)
+target_compile_definitions(RhythmGame_flow_test PRIVATE
+        RHYTHMGAME_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+set_target_properties(RhythmGame_flow_test PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>")
+add_dependencies(RhythmGame_test RhythmGame_flow_test)
+add_test(NAME StandardGameplayFlowStartup COMMAND RhythmGame_flow_test "[StandardGameplayFlow]")
+add_test(NAME DefaultThemeLayout COMMAND RhythmGame_flow_test "[DefaultTheme]")
+add_test(NAME ArenaOverlay COMMAND RhythmGame_flow_test "[ArenaOverlay]")
+add_test(NAME StandardSelect COMMAND RhythmGame_flow_test "[StandardSelect]")
+if (WIN32)
+    add_custom_command(TARGET RhythmGame_flow_test POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:RhythmGame_flow_test>/platforms"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:Qt6::QMinimalIntegrationPlugin>
+                "$<TARGET_FILE_DIR:RhythmGame_flow_test>/platforms"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_SOURCE_DIR}/staticAssets/qt.conf"
+                "$<TARGET_FILE_DIR:RhythmGame_flow_test>/qt.conf"
+            VERBATIM)
+    add_custom_command(TARGET RhythmGame_flow_test POST_BUILD
+            COMMAND $<IF:$<CONFIG:Debug>,${TOOL_WINDEPLOYQT_DEBUG},${TOOL_WINDEPLOYQT}> --no-translations --no-compiler-runtime
+                --qmldir "${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default"
+                $<TARGET_FILE:RhythmGame_flow_test>
+            VERBATIM)
+endif ()
 
 # boolean cache variable "sanitize"
 option(DISABLE_WINDOW_TESTS "Disable tests that launch windows and fail at the sanitizer")

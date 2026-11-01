@@ -42,6 +42,39 @@ Rg::Rg(
   , onlineScores(onlineScores)
   , songAssets(songAssets)
 {
+    for (auto* session : { arenaSession, arenaDirectorySession }) {
+        if (!session)
+            continue;
+        connect(session,
+                &arena::ArenaSession::activeChanged,
+                this,
+                &Rg::arenaActivityChanged);
+        connect(session,
+                &arena::ArenaSession::stateChanged,
+                this,
+                &Rg::arenaActivityChanged);
+        connect(session,
+                &arena::ArenaSession::directoryReadyChanged,
+                this,
+                &Rg::arenaActivityChanged);
+        connect(session->getRooms(),
+                &arena::ArenaRoomListModel::countChanged,
+                this,
+                &Rg::arenaActivityChanged);
+    }
+}
+
+auto
+Rg::arenaRoomCount() const -> int
+{
+    auto* session = arenaSession && arenaSession->getActive()
+                      ? arenaSession
+                      : arenaDirectorySession;
+    if (!session || !session->getDirectoryReady() ||
+        (session->getState() != arena::ArenaSession::State::Browsing &&
+         session->getState() != arena::ArenaSession::State::InRoom))
+        return -1;
+    return session->getRooms()->rowCount();
 }
 Rg*
 Rg::create(QQmlEngine* qmlEngine, QJSEngine*)

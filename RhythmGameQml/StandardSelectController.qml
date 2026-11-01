@@ -4,122 +4,129 @@ import RhythmGameQml
 /*!
     \qmltype StandardSelectController
     \inqmlmodule RhythmGameQml
-    \brief Composes the complete standard selection behavior.
+    \brief Adds browsing, input, previews and music to a song selector.
 
-    The controller extends \l StandardSelectState with presentation adaptation,
-    feedback, input, navigation, and shortcuts. Lower-level components can
-    instead be instantiated independently when a skin needs a different
-    composition.
+    Use this component as the starting point for a selection screen. It loads
+    folders and tables, opens charts and courses, and handles standard input.
+    Your theme draws the list or wheel. See the
+    \l {../theme_tutorial_select.html}{selection lesson} for a complete example.
 
-    The controller does not render a song list. Connect \l presentationEntries
-    to a circular presentation or inherited \l entries to a finite one, call
-    \l setFocused when its focus changes, and handle \l moveRequested to move
-    that focus.
+    \section1 Connect your view
 
-    A finite selector needs the following wiring. A circular wheel uses
-    \l presentationEntries instead of \l entries and maps its repeated visual
-    rows back through \l setFocused in the same way.
+    For a normal list, use StandardSelectListView. Set its \c controller to
+    this component, supply a delegate, and call its \c activate(index) method
+    when a row is clicked. Set keyboard focus on the list and its enclosing
+    focus scopes.
 
-    \qml
-    import QtQuick
-    import RhythmGameQml
+    For a custom wheel, use \l entries for one row per item or
+    \l presentationEntries for repeated rows. Handle \l moveRequested and
+    \l focusRequested, then call \l setFocused with the selected row's data.
+    Forward Up, Down, release and wheel events to \l handleUpPressed,
+    \l handleDownPressed, \l handleReleased and \l handleWheel.
 
-    FocusScope {
-        id: screen
+    The root folder opens automatically. Set \l autoInitialize to false and
+    call \l initialize when your view is ready if you need different timing.
 
-        property var openRankingAction: null
+    \section1 Use the built-in actions
 
-        StandardSelectController {
-            id: selection
+    Buttons can call the same actions as keys: \l openAutoplay, \l openReplay,
+    \l cycleSortMode, \l openSettings and \l exit. Bind replay and autoplay
+    buttons to \l replayAvailable and \l autoplayAvailable.
+    StandardSelectInput lists the controller key mappings;
+    StandardSelectShortcuts lists F2, F3, F11 and F12.
 
-            onFocusRequested: index => songList.currentIndex = index
-            onMoveRequested: steps => {
-                if (songList.count > 0) {
-                    songList.currentIndex =
-                        (songList.currentIndex + steps + songList.count)
-                        % songList.count;
-                }
-            }
-            onOpenInternetRankingRequested: {
-                if (typeof screen.openRankingAction === "function") {
-                    screen.openRankingAction(focusedItem);
-                }
-            }
-        }
+    The controller already includes StandardSelectState, StandardSelectInput
+    and StandardSelectShortcuts. Do not add a second copy beside it.
+    Add StandardArenaSelectOverlay for Arena ready controls and chat.
 
-        ListView {
-            id: songList
+    \section1 Customize audio and rankings
 
-            anchors.fill: parent
-            focus: true
-            model: selection.entries
-            currentIndex: selection.focusedIndex
-            delegate: Text {
-                required property var modelData
-                text: String(modelData)
-            }
+    Change \l preview, \l backgroundMusic or \l ranking to customize these
+    features; set one to null to omit it. The preview follows the focused chart,
+    and music stops while it plays. StandardSelectListView delays previews
+    during movement; a custom wheel must bind \c preview.moving itself.
 
-            onCurrentIndexChanged: {
-                if (currentIndex >= 0) {
-                    selection.setFocused(model[currentIndex]);
-                }
-            }
+    Set \l enterFeedbackSource and \l leaveFeedbackSource for folder sounds.
+    To play your own feedback, set \l feedbackEnabled to false and handle
+    \l enteredFolder and \l leftFolder.
 
-            Keys.onUpPressed: event => selection.handleUpPressed(event)
-            Keys.onDownPressed: event => selection.handleDownPressed(event)
-            Keys.onReleased: event => selection.handleReleased(event)
-        }
-    }
-    \endqml
+    \section1 Pause input for a popup
 
-    The controller initializes browsing on completion unless \l autoInitialize
-    is false. F2, F3, and F12 have built-in behavior. F11 only emits
-    \l openInternetRankingRequested because ranking presentation belongs to the
-    skin. Autoplay also has built-in behavior; replay requires
-    \l tryReplayAction because replay-score selection belongs to the skin.
-    Setting \l enabled to false suppresses selection input, shortcuts, and
-    feedback. \l inputEnabled, \l shortcutsEnabled, and \l feedbackEnabled can
-    disable those parts independently. Disabled forwarded keyboard handlers do
-    not accept their events, allowing the skin to replace them.
+    Disabling the controller stops its input, shortcuts, audio and ranking
+    work. To keep music playing while a popup is open, leave the controller
+    enabled and set \l inputEnabled and \l shortcutsEnabled to false.
+    Keep it outside any container you disable for that popup.
 */
 StandardSelectState {
     id: root
 
+    /*!
+        Preview for the focused chart. Plays a discovered preview file or falls
+        back to chart audio without BGA. Customize its delayMillis, moving,
+        volume or chartAudioEnabled properties. Set it to null to omit previews,
+        or supply another StandardSelectPreview with its own selection bindings.
+    */
+    property StandardSelectPreview preview: StandardSelectPreview {
+        id: defaultPreview
+
+        enabled: root.enabled && root.preview === defaultPreview
+        selectState: root
+    }
+    /*!
+        Looping selection music. Its source defaults to the active profile's
+        bgmPath followed by "select". The player accepts a local file path.
+        Playback stops while a preview plays or the controller is disabled.
+
+        Customize the player's source, volume or fadeInMillis. Set it to null
+        to omit background music, or supply another AudioPlayer. A replacement
+        owns its playback binding and must stop when the controller is disabled.
+    */
+    property AudioPlayer backgroundMusic: AudioPlayer {
+        id: defaultBackgroundMusic
+
+        source: {
+            const path = Rg.profileList.mainProfile.vars.generalVars.bgmPath;
+            return root.backgroundMusic === defaultBackgroundMusic && path
+                ? path + "select" : "";
+        }
+        playing: backgroundMusicDelay.canPlay && backgroundMusicDelay.elapsed
+            && defaultBackgroundMusic.loaded
+        looping: true
+        fadeInMillis: 1000
+    }
+    /*! Delay before background music starts or returns after a preview, in milliseconds. */
+    property int backgroundMusicDelayMillis: 500
+
+    /*!
+        Ranking for the focused chart. Uses the active profile and its chosen
+        provider. Bind a display to its entries, position and loading properties.
+        Customize its properties, or replace it with another StandardRanking.
+        Set it to null to omit ranking support.
+    */
+    property StandardRanking ranking: StandardRanking {
+        id: defaultRanking
+        enabled: root.enabled && root.ranking === defaultRanking
+        chartData: root.focusedItem
+    }
+    /*! Calls openInternetRankingAction() instead of opening the ranking website. */
+    property var openInternetRankingAction: null
     /*! Minimum number of entries produced by \l presentationEntries. */
     property int minimumEntryCount: 0
-    /*!
-        Optional \c tryAutoplayAction() pre-handler. True consumes the input;
-        false continues with standard autoplay.
-    */
-    property var tryAutoplayAction: null
-    /*!
-        Optional \c tryReplayAction() handler. Replay input is ignored when it
-        is absent or returns false.
-    */
-    property var tryReplayAction: null
-    /*! Optional \c cycleReplayTypeAction() replacement. */
-    property var cycleReplayTypeAction: null
-    /*! Optional \c tryCycleSortModeAction(delta) pre-handler. True consumes. */
-    property var tryCycleSortModeAction: null
-    /*! Optional \c reloadAction() replacement for F2. */
-    property var reloadAction: null
-    /*! Optional \c openSelectedFolderAction() replacement for F3. */
-    property var openSelectedFolderAction: null
-    /*! Optional \c openSettingsAction() replacement for F12. */
-    property var openSettingsAction: null
-    /*! Whether the F2 reload shortcut is active. */
+    /*! Controls whether the F2 reload shortcut is active. */
     property bool reloadShortcutEnabled: true
-    /*! Whether the F3 folder shortcut is active. */
+    /*! Controls whether the F3 folder shortcut is active. */
     property bool openSelectedFolderShortcutEnabled: true
-    /*! Whether the F11 Internet-ranking shortcut is active. */
+    /*! Controls whether the F11 Internet-ranking shortcut is active. */
     property bool openInternetRankingShortcutEnabled: true
-    /*! Whether the F12 settings shortcut is active. */
+    /*! Controls whether the F12 settings shortcut is active. */
     property bool openSettingsShortcutEnabled: true
-    /*! Whether standard selection input is active. */
+    /*! Controls whether standard selection input is active. */
     property bool inputEnabled: enabled
-    /*! Whether selection-specific F-key shortcuts are active. */
+    /*! Controls the Escape shortcut for leaving selection. */
+    property alias exitEnabled: input.exitEnabled
+    /*! Controls whether selection-specific F-key shortcuts are active. */
     property bool shortcutsEnabled: enabled
-    /*! Whether standard audio and replacement feedback actions are active. */
+    /*! Controls folder sounds, independently of music. */
     property bool feedbackEnabled: enabled
     /*! Number of analog scratch ticks required for one logical step. */
     property alias analogTicksPerStep: input.analogTicksPerStep
@@ -127,29 +134,28 @@ StandardSelectState {
     property alias initialRepeatDelayMillis: input.initialRepeatDelayMillis
     /*! Delay between repeated classic-scratch steps, in milliseconds. */
     property alias repeatDelayMillis: input.repeatDelayMillis
-    /*! Optional \c enterFeedbackAction() replacement for the entering sound. */
-    property var enterFeedbackAction: null
-    /*! Optional \c leaveFeedbackAction() replacement for the leaving sound. */
-    property var leaveFeedbackAction: null
-    /*! Default entering-folder sound source, loaded only for built-in feedback. */
+    /*! Entering-folder sound source. Use an empty URL to omit it. */
     property url enterFeedbackSource:
         Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-open"
-    /*! Default leaving-folder sound source, loaded only for built-in feedback. */
+    /*! Leaving-folder sound source. Use an empty URL to omit it. */
     property url leaveFeedbackSource:
         Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-close"
 
-    /*! Defensive snapshot repeated when \l minimumEntryCount requires it. */
+    /*!
+        Contains a copy of the entries, repeated to fill \l minimumEntryCount when
+        needed. When \l entries is empty, contains null placeholders instead,
+        with at least one row. The logical \l entries list stays empty.
+    */
     readonly property var presentationEntries: modelAdapter.entries.slice()
 
     /*! Emitted when F2 was not handled by the standard reload behavior. */
     signal reloadRequested()
     /*! Emitted when F3 was not handled by the standard folder behavior. */
     signal openSelectedFolderRequested()
-    /*! Emitted when F11 requests skin-owned Internet ranking. */
-    signal openInternetRankingRequested()
     /*!
-        Requests relative focus movement by \a steps. \a repeated identifies
-        held input and \a analog identifies analog-scratch input.
+        Requests that the theme move its current row by \a steps. The theme
+        chooses whether movement wraps or stops at the end of the list.
+        \a repeated identifies held input and \a analog identifies analog scratch or wheel input.
     */
     signal moveRequested(int steps, bool repeated, bool analog)
 
@@ -160,19 +166,26 @@ StandardSelectState {
         minimumCount: root.minimumEntryCount
     }
 
+    Timer {
+        id: backgroundMusicDelay
+
+        property bool elapsed: false
+        readonly property bool canPlay: root.enabled
+            && root.backgroundMusic === defaultBackgroundMusic
+            && !root.preview?.playing
+        interval: Math.max(1, root.backgroundMusicDelayMillis)
+        running: canPlay && !elapsed
+        onCanPlayChanged: elapsed = false
+        onTriggered: elapsed = true
+    }
+
     AudioPlayer {
         id: enterFeedback
 
-        source: root.feedbackEnabled
-                && typeof root.enterFeedbackAction !== "function"
-            ? root.enterFeedbackSource : ""
+        source: root.feedbackEnabled ? root.enterFeedbackSource : ""
 
         function trigger() {
             if (!root.enabled || !root.feedbackEnabled) {
-                return;
-            }
-            if (typeof root.enterFeedbackAction === "function") {
-                root.enterFeedbackAction();
                 return;
             }
             stop();
@@ -183,16 +196,10 @@ StandardSelectState {
     AudioPlayer {
         id: leaveFeedback
 
-        source: root.feedbackEnabled
-                && typeof root.leaveFeedbackAction !== "function"
-            ? root.leaveFeedbackSource : ""
+        source: root.feedbackEnabled ? root.leaveFeedbackSource : ""
 
         function trigger() {
             if (!root.enabled || !root.feedbackEnabled) {
-                return;
-            }
-            if (typeof root.leaveFeedbackAction === "function") {
-                root.leaveFeedbackAction();
                 return;
             }
             stop();
@@ -205,10 +212,6 @@ StandardSelectState {
 
         enabled: root.inputEnabled
         selectState: root
-        tryAutoplayAction: root.tryAutoplayAction
-        tryReplayAction: root.tryReplayAction
-        cycleReplayTypeAction: root.cycleReplayTypeAction
-        tryCycleSortModeAction: root.tryCycleSortModeAction
         onMoveRequested: (steps, repeated, analog) => {
             root.moveRequested(steps, repeated, analog);
         }
@@ -219,9 +222,7 @@ StandardSelectState {
 
         enabled: root.shortcutsEnabled
         selectState: root
-        reloadAction: root.reloadAction
-        openSelectedFolderAction: root.openSelectedFolderAction
-        openSettingsAction: root.openSettingsAction
+        openInternetRankingAction: root.openInternetRanking
         reloadEnabled: root.reloadShortcutEnabled
         openSelectedFolderEnabled:
             root.openSelectedFolderShortcutEnabled
@@ -231,26 +232,38 @@ StandardSelectState {
         onReloadRequested: root.reloadRequested()
         onOpenSelectedFolderRequested:
             root.openSelectedFolderRequested()
-        onOpenInternetRankingRequested:
-            root.openInternetRankingRequested()
     }
 
-    /*! Handles an Up key \a event from the skin's visual focus item. */
+    /*! Opens the selected chart's ranking page, or calls the replacement action. */
+    function openInternetRanking() {
+        if (!enabled) return false;
+        if (typeof openInternetRankingAction === "function") {
+            return openInternetRankingAction() !== false;
+        }
+        return ranking ? ranking.open() : false;
+    }
+
+    /*! Handles an Up key \a event from the theme's visual focus item. */
     function handleUpPressed(event) {
         return input.handleUpPressed(event);
     }
 
-    /*! Handles a Down key \a event from the skin's visual focus item. */
+    /*! Handles a Down key \a event from the theme's visual focus item. */
     function handleDownPressed(event) {
         return input.handleDownPressed(event);
     }
 
-    /*! Handles a keyboard direction-release \a event from the skin. */
+    /*! Handles a keyboard direction-release \a event from the theme. */
     function handleReleased(event) {
         return input.handleReleased(event);
     }
 
-    /*! Clears held directions, analog accumulation, and repeat timing. */
+    /*! Handles a wheel \a event from the theme's view. Returns true when accepted. */
+    function handleWheel(event) {
+        return input.handleWheel(event);
+    }
+
+    /*! Clears held directions, accumulated scratch and wheel movement, and repeat timing. */
     function resetNavigation() {
         input.reset();
     }

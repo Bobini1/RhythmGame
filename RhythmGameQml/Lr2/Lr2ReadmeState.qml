@@ -78,7 +78,7 @@ QtObject {
         if (normalizedPath === "") {
             return false;
         }
-        const fileText = Rg.fileQuery.readTextFile(normalizedPath) || "";
+        const fileText = Rg.fileQuery.readTextFile(normalizedPath, "CP932") || "";
         root.openText(fileText !== ""
             ? fileText
             : "HELP FILE NOT FOUND\n\n" + normalizedPath);

@@ -2,6 +2,7 @@
 #include "Lr2SelectBarCell.h"
 #include "Lr2ChartDataSnapshot.h"
 #include "gameplay_logic/ChartData.h"
+#include "resource_managers/ChartFolderModel.h"
 #include "resource_managers/Tables.h"
 
 #include <catch2/catch_test_macros.hpp>
@@ -159,6 +160,39 @@ chartWithHistogram(QObject* parent = nullptr)
 }
 
 } // namespace
+
+TEST_CASE("Empty select placeholders belong to the LR2 presentation model",
+          "[lr2][runtime][select][SelectEmpty]")
+{
+    resource_managers::ChartFolderModel folderModel;
+    auto chart = chartWithHistogram();
+    const auto chartValue = QVariant::fromValue(chart.get());
+    QVariantList contents;
+
+    SECTION("Empty folder") {}
+    SECTION("All charts excluded by the key filter")
+    {
+        contents.append(chartValue);
+        folderModel.setKeymodeFilter(6);
+    }
+
+    REQUIRE(folderModel.filterAndSort(contents).isEmpty());
+
+    Lr2SelectItemModel presentation;
+    presentation.setItems({ chartValue });
+    presentation.setFolderItems(&folderModel, contents, chartValue, 32);
+    REQUIRE(presentation.count() == 32);
+    for (const auto& row : presentation.items()) {
+        CHECK_FALSE(row.isValid());
+    }
+
+    folderModel.setKeymodeFilter(0);
+    REQUIRE(folderModel.filterAndSort({ chartValue }) ==
+            QVariantList{ chartValue });
+    presentation.setFolderItems(&folderModel, { chartValue }, chartValue, 32);
+    REQUIRE(presentation.count() == 32);
+    CHECK(presentation.currentItem() == chartValue);
+}
 
 TEST_CASE("LR2 select bar model wraps by logical count, not padded model count",
           "[lr2][runtime][select]")
@@ -514,6 +548,36 @@ TEST_CASE(
     REQUIRE(tableCell->graphValueForType(0, 0) == 1.0);
     REQUIRE(tableCell->graphValueForType(0, 1) == 2.0);
     REQUIRE(tableCell->graphValueForType(0, 2) == 3.0);
+}
+
+TEST_CASE("LR2 collection summaries distinguish providers sharing a URL",
+          "[lr2][runtime][select]")
+{
+    resource_managers::Table native;
+    native.name = "Table";
+    native.url = QUrl("https://example.test/table");
+    auto external = native;
+    external.managedExternally = true;
+    Lr2SelectItemModel source;
+    source.setItems(
+      { QVariant::fromValue(native), QVariant::fromValue(external) });
+    const auto nativeKey = QStringLiteral("table:") + native.getIdentifier();
+    const auto externalKey =
+      QStringLiteral("table:") + external.getIdentifier();
+    REQUIRE(
+      source.data(source.index(0, 0), Lr2SelectItemModel::KeyRole).toString() ==
+      nativeKey);
+    REQUIRE(
+      source.data(source.index(1, 0), Lr2SelectItemModel::KeyRole).toString() ==
+      externalKey);
+    source.setFolderSummary(nativeKey, 3, {}, {});
+    source.setFolderSummary(externalKey, 5, {}, {});
+    REQUIRE(
+      source.data(source.index(0, 0), Lr2SelectItemModel::LampRole).toInt() ==
+      3);
+    REQUIRE(
+      source.data(source.index(1, 0), Lr2SelectItemModel::LampRole).toInt() ==
+      5);
 }
 
 TEST_CASE("LR2 select item model applies score summaries by identifier",

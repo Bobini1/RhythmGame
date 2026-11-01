@@ -8,9 +8,6 @@ Rectangle {
     id: root
 
     required property var session
-    required property string placementKind
-    required property string resolvedSkinId
-    required property string layoutVariant
     property bool expanded: true
     readonly property alias dragHandle: resultHeader
     readonly property bool chatOpen: root.session && root.session.chatOpen === true
@@ -18,9 +15,10 @@ Rectangle {
         ? String(root.session.roomName || qsTr("Arena")) : qsTr("Arena")
 
     signal chatSelected(bool chat)
+    signal expandedChangeRequested(bool expanded)
 
     readonly property var result: root.session ? root.session.presentedResult : null
-    readonly property bool resultAvailable: root.result && root.result.valid === true
+    readonly property bool resultAvailable: !!root.result?.roundId
     readonly property string statusText: {
         if (!root.resultAvailable) {
             return qsTr("Arena result unavailable");
@@ -145,7 +143,7 @@ Rectangle {
                 visible: !root.chatOpen
 
                 Accessible.name: text
-                onClicked: root.expanded = !root.expanded
+                onClicked: root.expandedChangeRequested(!root.expanded)
             }
 
             ArenaPanelTabs {
@@ -268,7 +266,7 @@ Rectangle {
                 required property int bad
                 required property int poor
                 required property int emptyPoor
-                required property int gaugeValueMilli
+                required property real gaugeValue
                 required property string clearType
                 required property int lobbyWinsAfter
                 required property string dnfReason
@@ -278,7 +276,7 @@ Rectangle {
                 readonly property string winsLabel: root.winsLabel(lobbyWinsAfter)
                 readonly property string detailsLabel: competitionText.resultDetailsText(competitionState, dnfReason, maxCombo, clearType)
                 readonly property string finalClearLabel: competitionText.clearTypeText(clearType)
-                readonly property string gaugeLabel: competitionText.gaugeValueText(gaugeValueMilli)
+                readonly property string gaugeLabel: competitionText.gaugeValueText(gaugeValue)
                 readonly property int totalNotes: Math.max(0, perfect) + Math.max(0, great)
                     + Math.max(0, good) + Math.max(0, bad) + Math.max(0, poor)
                 readonly property bool focusIndicatorVisible: ListView.isCurrentItem && standingsView.activeFocus

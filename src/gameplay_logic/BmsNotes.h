@@ -18,14 +18,14 @@ class Time
     /** @brief Position expressed in beats after applying scrolls */
     Q_PROPERTY(double position MEMBER position)
     /** @brief Position expressed in beats */
-    Q_PROPERTY(double beatPosition MEMBER position)
+    Q_PROPERTY(double beatPosition MEMBER beatPosition)
   public:
-    // Timestamp in milliseconds
-    int64_t timestamp;
+    // Timestamp in nanoseconds
+    int64_t timestamp{};
     // Position in beats after applying scrolls
-    double position;
+    double position{};
     // Position in beats
-    double beatPosition;
+    double beatPosition{};
     auto operator+(const Time& other) const -> Time
     {
         return { timestamp + other.timestamp,
@@ -38,14 +38,15 @@ class Time
 inline auto
 operator<<(QDataStream& stream, const Time& time) -> QDataStream&
 {
-    return stream << static_cast<qint64>(time.timestamp) << time.position;
+    return stream << static_cast<qint64>(time.timestamp) << time.position
+                  << time.beatPosition;
 }
 
 inline auto
 operator>>(QDataStream& stream, Time& time) -> QDataStream&
 {
     auto timestamp = qint64{};
-    auto& ret = stream >> timestamp >> time.position;
+    auto& ret = stream >> timestamp >> time.position >> time.beatPosition;
     time.timestamp = timestamp;
     return ret;
 }

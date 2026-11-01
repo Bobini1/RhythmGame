@@ -789,17 +789,8 @@ createScoreFromReplay(resource_managers::Profile& profile,
           }
           return charts::ParsedBmsChart::RandomRange{ 1 };
       };
-    auto chartComponents = [&] {
-        if (!songAssetStore.isArchived(*chartPath)) {
-            return chartDataFactory.loadChartData(*chartPath, randomGenerator);
-        }
-        const auto contents = songAssetStore.read(*chartPath);
-        const auto view =
-          std::string_view{ contents.constData(),
-                            static_cast<size_t>(contents.size()) };
-        return chartDataFactory.loadChartData(
-          view, *chartPath, randomGenerator);
-    }();
+    auto chartComponents = chartDataFactory.loadChartData(
+      songAssetStore, *chartPath, std::move(randomGenerator));
     auto& chartData = chartComponents.chartData;
     if (replay.source == ReplaySource::Beatoraja && chartData->getIsRandom() &&
         chartData->getRandomSequence().size() != replay.randomSequence.size()) {
@@ -971,10 +962,11 @@ createScoreFromReplay(resource_managers::Profile& profile,
 
 } // namespace
 
-ReplayImportOperation*
+void
 startBeatorajaReplayImport(resource_managers::Profile* profile,
                            resource_managers::SongAssetStore* songAssetStore,
-                           const QString& folderPath)
+                           const QString& folderPath,
+                           ReplayImportOperation* op)
 {
     // This function is always called from a background thread
     // (Profile::importPool).
@@ -1006,25 +998,13 @@ startBeatorajaReplayImport(resource_managers::Profile* profile,
         }
     }
 
-    // Create and publish the operation on the main thread, then block until
-    // done.
-    ReplayImportOperation* op = nullptr;
     QMetaObject::invokeMethod(
-      profile,
-      [profile, count = replayFiles.size(), &op]() {
-          op = profile->beginImportOp(count);
-      },
-      Qt::BlockingQueuedConnection);
-
-    if (op == nullptr) {
-        return nullptr;
-    }
+      op,
+      [op, count = replayFiles.size()] { op->setTotal(count); },
+      Qt::QueuedConnection);
 
     if (!dirExists) {
-        QMetaObject::invokeMethod(op, [op] {
-            op->reportError(QStringLiteral("Folder does not exist"));
-        });
-        return op;
+        throw std::runtime_error("Folder does not exist");
     }
 
     // Load every existing chart hash/timestamp pair in one query so we
@@ -1051,19 +1031,6 @@ startBeatorajaReplayImport(resource_managers::Profile* profile,
         }
     }
 
-    // Wrap all writes in a single transaction – SQLite auto-commits every
-    // INSERT otherwise, which dominates runtime for large imports.
-    profile->getDb().execute("BEGIN;");
-    bool committed = false;
-    const auto rollbackGuard = qScopeGuard([&] {
-        if (!committed) {
-            try {
-                profile->getDb().execute("ROLLBACK;");
-            } catch (...) {
-            }
-        }
-    });
-
     for (const auto& replayPath : replayFiles) {
         try {
             auto replay = parseReplayPayload(replayPath);
@@ -1088,6 +1055,8 @@ startBeatorajaReplayImport(resource_managers::Profile* profile,
             }
 
             QMetaObject::invokeMethod(op, [op] { op->incrementImported(); });
+        } catch (const SQLite::Exception&) {
+            throw;
         } catch (const std::exception& e) {
             const auto msg = QStringLiteral("%1: %2").arg(
               replayPath, QString::fromUtf8(e.what()));
@@ -1100,11 +1069,6 @@ startBeatorajaReplayImport(resource_managers::Profile* profile,
             });
         }
     }
-
-    profile->getDb().execute("COMMIT;");
-    committed = true;
-
-    return op;
 }
 
 } // namespace qml_components
