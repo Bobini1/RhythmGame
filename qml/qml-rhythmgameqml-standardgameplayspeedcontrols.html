@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardGameplaySpeedControls.qml -->
+  <meta name="description" content="Adjusts note speed and covers with Start, Select and scratch input.">
+  <title>StandardGameplaySpeedControls QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardGameplaySpeedControls</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardGameplaySpeedControls QML Type</h1>
+<!-- $$$StandardGameplaySpeedControls-brief -->
+<p>Adjusts note speed and covers with Start, Select and scratch input. <a href="#details">More...</a></p>
+<!-- @@@StandardGameplaySpeedControls -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardgameplayspeedcontrols-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayspeedcontrols.html#gameplay-prop" translate="no">gameplay</a></b> : GameplayContext</li>
+</ul>
+<!-- $$$StandardGameplaySpeedControls-description -->
+<h2 id="details">Detailed Description</h2>
+<p><a href="qml-rhythmgameqml-standardgameplayflow.html" translate="no">StandardGameplayFlow</a> and <a href="qml-rhythmgameqml-standardgameplayinput.html" translate="no">StandardGameplayInput</a> already include this component. Use it separately only when supplying your own gameplay input handling. Bind <a href="qml-rhythmgameqml-standardgameplayspeedcontrols.html#gameplay-prop" translate="no">gameplay</a> to the current context and disable the item while inactive.</p>
+<p>Hold Start and turn the scratch to change noteScreenTimeMillis. Hold Select and turn the scratch to adjust lane cover, lift or hidden cover. Lane cover takes priority when enabled. Otherwise, the enabled lift or hidden cover is adjusted. When both are enabled, a short Start+Select press switches between them. Double-press Start within 500 milliseconds to toggle lane cover while preserving note speed where the duration limits allow it.</p>
+<p>Settings are saved in each player's profile. Battle uses a separate profile for each side. In double play, either side adjusts the same player's settings, and Start or Select on either side can modify either scratch. Holding both buttons suspends adjustments so the retry gesture can be used.</p>
+<!-- @@@StandardGameplaySpeedControls -->
+<h2>Property Documentation</h2>
+<!-- $$$gameplay -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="gameplay-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">gameplay</span> : <span class="type"><a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies the current players and keymode, including course stage changes.</p>
+</div></div><!-- @@@gameplay -->
+<br/>
+</body>
+</html>

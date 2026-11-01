@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- qml-api.qdoc -->
+  <title>Screen navigation | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#open-or-leave-a-screen">Open or leave a screen</a></li>
+<li class="level1"><a href="#start-a-chart-or-course">Start a chart or course</a></li>
+<li class="level1"><a href="#open-results">Open results</a></li>
+<li class="level1"><a href="#replace-or-retain-gameplay">Replace or retain gameplay</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title">Screen navigation</h1>
+<!-- $$$theme-navigation.html-description -->
+<div class="descr" id="details">
+<p>The game supplies <code translate="no">globalRoot</code> to theme screens. Use its named operations to open or leave screens. The game manages the screen stack and object lifetime. Standard controllers call these operations for their usual actions.</p>
+<h2 id="open-or-leave-a-screen">Open or leave a screen</h2>
+<div class="table"><table class="generic">
+ <thead><tr class="qt-style"><th >Operation</th><th >Effect</th></tr></thead>
+<tr valign="top" class="odd"><td ><code translate="no">globalRoot.openSelect()</code></td><td >Open song selection.</td></tr>
+<tr valign="top" class="even"><td ><code translate="no">globalRoot.openArenaBrowser()</code></td><td >Open the Multiplayer browser.</td></tr>
+<tr valign="top" class="odd"><td ><code translate="no">globalRoot.openSettings(section = &quot;&quot;)</code></td><td >Open Settings, optionally at a named section.</td></tr>
+<tr valign="top" class="even"><td ><code translate="no">globalRoot.returnToPreviousScreen()</code></td><td >Close the current screen and reveal the previous one.</td></tr>
+<tr valign="top" class="odd"><td ><code translate="no">globalRoot.quitApplication()</code></td><td >Quit the game.</td></tr>
+</table></div>
+<p>The open operations return the screen, or a falsy value if it could not be created. <code translate="no">globalRoot.currentScreen</code> is the currently presented screen. Avoid reaching into the underlying stack or destroying screens yourself.</p>
+<p>A settings screen receives <code translate="no">initialSection</code>. An empty string means its usual first page; <code translate="no">&quot;keys&quot;</code> requests input configuration. Map these names to your own layout and use the first page for unknown names. Calling openSettings() while Settings is current keeps its page; passing a nonempty section updates initialSection on that screen.</p>
+<h2 id="start-a-chart-or-course">Start a chart or course</h2>
+<p><code translate="no">globalRoot.openChart(path, players)</code> and <code translate="no">globalRoot.openCourse(course, players)</code> load play and open Decide. The <code translate="no">players</code> argument is optional and defaults to manual play with the main profile. Supply one entry for solo or double play, or two for local battle.</p>
+<p>Each player entry has these fields:</p>
+<div class="table"><table class="generic">
+ <thead><tr class="qt-style"><th >Field</th><th >Meaning</th></tr></thead>
+<tr valign="top" class="odd"><td ><code translate="no">profile</code></td><td >Required player profile.</td></tr>
+<tr valign="top" class="even"><td ><code translate="no">autoplay</code></td><td >Automatic play; defaults to false.</td></tr>
+<tr valign="top" class="odd"><td ><code translate="no">replay</code></td><td >Play a saved recording; defaults to false.</td></tr>
+<tr valign="top" class="even"><td ><code translate="no">score</code></td><td >Full BmsScore or BmsScoreCourse; defaults to null.</td></tr>
+</table></div>
+<p>Replay requires a full score with recording data. Autoplay and replay cannot be combined. A score supplied without replay uses its saved note pattern for G-Battle. Prefer StandardSelectController::openReplay for the usual replay action: it chooses a saved run and loads the full score.</p>
+<h2 id="open-results">Open results</h2>
+<div class="table"><table class="generic">
+ <thead><tr class="qt-style"><th >Operation</th><th >Input</th></tr></thead>
+<tr valign="top" class="odd"><td ><code translate="no">globalRoot.openResult(result)</code></td><td ><a href="qml-rhythmgameqml-resultcontext.html" translate="no">ResultContext</a> from <a href="qml-rhythmgameqml-gameplaycontext.html#finishStage-method" translate="no">GameplayContext::finishStage</a>().</td></tr>
+<tr valign="top" class="even"><td ><code translate="no">globalRoot.openCourseResult(result)</code></td><td ><a href="qml-rhythmgameqml-courseresultcontext.html" translate="no">CourseResultContext</a> from <a href="qml-rhythmgameqml-gameplaycontext.html#finishCourse-method" translate="no">GameplayContext::finishCourse</a>().</td></tr>
+<tr valign="top" class="odd"><td ><code translate="no">globalRoot.openSavedResult(score, profile, chartData)</code></td><td >Full saved chart score and its owner and metadata.</td></tr>
+<tr valign="top" class="even"><td ><code translate="no">globalRoot.openSavedCourseResult(score, profile, course)</code></td><td >Full saved course score and its owner and course definition.</td></tr>
+</table></div>
+<p><a href="qml-rhythmgameqml-standardgameplayflow.html" translate="no">StandardGameplayFlow</a> opens completed results for you. For saved history, <a href="qml-rhythmgameqml-standardselectactions.html#openResult-method" translate="no">StandardSelectActions::openResult</a> accepts a cached summary and loads the full score first. The two openSaved operations require the full score and copy the data needed by the new screen.</p>
+<h2 id="replace-or-retain-gameplay">Replace or retain gameplay</h2>
+<p>Custom flows can use <code translate="no">globalRoot.openGameplay(gameplay)</code> to open play above the current screen. Arena uses this to retain the screen underneath.</p>
+<p><code translate="no">globalRoot.replaceGameplay(gameplay, previous)</code> replaces the screen holding the previous <a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a> and all screens above it. Omit <code translate="no">previous</code> to replace the current screen, as Decide does. This operation accepts local gameplay only. The replacement is created first, so a failed screen load leaves the existing screens available. Both operations return the new screen or null on failure.</p>
+<p>The game owns local play for as long as its screens need it. Arena owns its own play objects. Themes must not destroy the supplied contexts or runners. Use <a href="qml-rhythmgameqml-standardchartretry.html" translate="no">StandardChartRetry</a> for retry behavior and <a href="qml-rhythmgameqml-standardgameplayflow.html" translate="no">StandardGameplayFlow</a> for normal course progression.</p>
+</div>
+<!-- @@@theme-navigation.html -->
+</body>
+</html>

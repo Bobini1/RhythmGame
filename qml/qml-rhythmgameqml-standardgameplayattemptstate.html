@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardGameplayAttemptState.qml -->
+  <meta name="description" content="Reports whether either player has made a scoring hit.">
+  <title>StandardGameplayAttemptState QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardGameplayAttemptState</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardGameplayAttemptState QML Type</h1>
+<!-- $$$StandardGameplayAttemptState-brief -->
+<p>Reports whether either player has made a scoring hit. <a href="#details">More...</a></p>
+<!-- @@@StandardGameplayAttemptState -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardgameplayattemptstate-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayattemptstate.html#attempted-prop" translate="no">attempted</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayattemptstate.html#gameplay-prop" translate="no">gameplay</a></b> : GameplayContext</li>
+</ul>
+<!-- $$$StandardGameplayAttemptState-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Use this component when writing your own gameplay exit or result flow. <a href="qml-rhythmgameqml-standardgameplayflow.html" translate="no">StandardGameplayFlow</a> already includes it.</p>
+<p>Bind <a href="qml-rhythmgameqml-standardgameplayattemptstate.html#gameplay-prop" translate="no">gameplay</a> to the supplied context. A hit sets <a href="qml-rhythmgameqml-standardgameplayattemptstate.html#attempted-prop" translate="no">attempted</a> unless its judgement is Poor, EmptyPoor, MineHit or MineAvoided. Changing the context or returning the current chart to <code translate="no">ChartRunner.Ready</code> resets the flag. The component observes both players when a second player is present.</p>
+<!-- @@@StandardGameplayAttemptState -->
+<h2>Property Documentation</h2>
+<!-- $$$attempted -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="attempted-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">attempted</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Reports whether either player has produced a scoring hit.</p>
+</div></div><!-- @@@attempted -->
+<br/>
+<!-- $$$gameplay -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="gameplay-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">gameplay</span> : <span class="type"><a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies the <a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a> whose player scores are observed.</p>
+</div></div><!-- @@@gameplay -->
+<br/>
+</body>
+</html>

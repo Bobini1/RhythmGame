@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- ScreenContexts.qdoc -->
+  <meta name="description" content="Profile and aggregate score paired within a course summary.">
+  <title>CourseResultPlayer QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>CourseResultPlayer</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">CourseResultPlayer QML Type</h1>
+<!-- $$$CourseResultPlayer-brief -->
+<p>Profile and aggregate score paired within a course summary. <a href="#details">More...</a></p>
+<!-- @@@CourseResultPlayer -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-courseresultplayer-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-courseresultplayer.html#profile-prop" translate="no">profile</a></b> : Profile</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-courseresultplayer.html#score-prop" translate="no">score</a></b> : BmsScoreCourse</li>
+</ul>
+<!-- $$$CourseResultPlayer-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Read these objects from <a href="qml-rhythmgameqml-courseresultcontext.html#players-prop" translate="no">CourseResultContext::players</a>. The game supplies each object and keeps it alive with its result context.</p>
+<!-- @@@CourseResultPlayer -->
+<h2>Property Documentation</h2>
+<!-- $$$profile -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="profile-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">profile</span> : <span class="type">Profile</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Participant's profile.</p>
+</div></div><!-- @@@profile -->
+<br/>
+<!-- $$$score -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="score-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">score</span> : <span class="type">BmsScoreCourse</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Aggregate <a href="../classgameplay__logic_1_1BmsScoreCourse.html">BmsScoreCourse</a>, including individual stage scores. Totals are in <code translate="no">score.result</code>. Replay events and gauge history combine the recorded stages for use in graphs. Check for missing replay or gauge data on imported scores.</p>
+</div></div><!-- @@@score -->
+<br/>
+</body>
+</html>

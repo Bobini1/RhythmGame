@@ -30,8 +30,7 @@ var searchData=
   ['dpmode_27',['dpmode',['../structresource__managers_1_1ChartPlayConfig.html#a3328733cc8b44bcd61611fd2c401f4e3',1,'resource_managers::ChartPlayConfig::dpMode'],['../structarena_1_1SelectionSnapshot.html#ab11d1ea33734ec321aeffe086b720f21',1,'arena::SelectionSnapshot::dpMode'],['../structarena_1_1ArenaRoundPlayConfig.html#ade70f8eb3db4f480825fa798d18558b1',1,'arena::ArenaRoundPlayConfig::dpMode']]],
   ['dpoptions_28',['dpoptions',['../structresource__managers_1_1ChartFactory_1_1PlayerSpecificData.html#a69eaa666912bbcc2365ea6ca32e97cf3',1,'resource_managers::ChartFactory::PlayerSpecificData::dpOptions'],['../structgameplay__logic_1_1BmsResult_1_1DTO.html#ab6dc6b43547a105f1b5d265888b9f098',1,'gameplay_logic::BmsResult::DTO::dpOptions']]],
   ['duplicatefallbacks_29',['duplicatefallbacks',['../Lr2SkinParser_8cpp.html#a9e1324cf85914b3eecd23d9ffc319094',1,'duplicateFallbacks:&#160;Lr2SkinParser.cpp'],['../Lr2ThemeScanner_8cpp.html#a9e1324cf85914b3eecd23d9ffc319094',1,'duplicateFallbacks:&#160;Lr2ThemeScanner.cpp']]],
-  ['dxa_5fbuffersize_5fver5_30',['DXA_BUFFERSIZE_VER5',['../namespacedxa.html#ab959aae4b535cc8baa70d46f9fb052d9',1,'dxa']]],
-  ['dxa_5fhead_5fver5_31',['DXA_HEAD_VER5',['../namespacedxa.html#a7a9c88b01a6bfdf8780fd43efad024eb',1,'dxa']]],
-  ['dxa_5fkeystr_5flength_5fver5_32',['DXA_KEYSTR_LENGTH_VER5',['../namespacedxa.html#aca6186be13a4ea69c9f47d9db7f8d5a9',1,'dxa']]],
-  ['dxa_5fver_5fver5_33',['DXA_VER_VER5',['../namespacedxa.html#ad04cf84f0de0f1ad716fc7e6719049d2',1,'dxa']]]
+  ['dxa_5fhead_5fver5_30',['DXA_HEAD_VER5',['../namespacedxa.html#a7a9c88b01a6bfdf8780fd43efad024eb',1,'dxa']]],
+  ['dxa_5fkeystr_5flength_5fver5_31',['DXA_KEYSTR_LENGTH_VER5',['../namespacedxa.html#aca6186be13a4ea69c9f47d9db7f8d5a9',1,'dxa']]],
+  ['dxa_5fver_5fver5_32',['DXA_VER_VER5',['../namespacedxa.html#ad04cf84f0de0f1ad716fc7e6719049d2',1,'dxa']]]
 ];

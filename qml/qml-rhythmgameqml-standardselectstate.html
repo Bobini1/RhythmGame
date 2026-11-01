@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardSelectState.qml -->
+  <meta name="description" content="Tracks browsing, focus and saved choices for a song selector.">
+  <title>StandardSelectState QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardSelectState</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#signals">Signals</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+<li class="level2"><a href="#connect-browsing-and-focus">Connect browsing and focus</a></li>
+<li class="level2"><a href="#save-player-choices">Save player choices</a></li>
+<li class="level2"><a href="#read-data-as-it-arrives">Read data as it arrives</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardSelectState QML Type</h1>
+<!-- $$$StandardSelectState-brief -->
+<p>Tracks browsing, focus and saved choices for a song selector. <a href="#details">More...</a></p>
+<!-- @@@StandardSelectState -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+<tr><td class="memItemLeft rightAlign topAlign"> Inherited By:</td><td class="memItemRight bottomAlign"> <p><a href="qml-rhythmgameqml-standardselectcontroller.html" translate="no">StandardSelectController</a></p>
+</td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardselectstate-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#actions-prop" translate="no">actions</a></b> : alias</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#autoInitialize-prop" translate="no">autoInitialize</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#autoplayAvailable-prop" translate="no">autoplayAvailable</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#cycleReplayTypeAction-prop" translate="no">cycleReplayTypeAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#difficultyFilter-prop" translate="no">difficultyFilter</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#entries-prop" translate="no">entries</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#exitAction-prop" translate="no">exitAction</a></b> : alias</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#focusedIndex-prop" translate="no">focusedIndex</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#focusedItem-prop" translate="no">focusedItem</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#folderClearStatsEnabled-prop" translate="no">folderClearStatsEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#folderContents-prop" translate="no">folderContents</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#historyStack-prop" translate="no">historyStack</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#keymodeFilter-prop" translate="no">keymodeFilter</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#openSelectedFolderAction-prop" translate="no">openSelectedFolderAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#openSettingsAction-prop" translate="no">openSettingsAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#previewFiles-prop" translate="no">previewFiles</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#previewFilesEnabled-prop" translate="no">previewFilesEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#reloadAction-prop" translate="no">reloadAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#replayAvailable-prop" translate="no">replayAvailable</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#replayOptions-prop" translate="no">replayOptions</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#replayResult-prop" translate="no">replayResult</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#replayType-prop" translate="no">replayType</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#replayTypeText-prop" translate="no">replayTypeText</a></b> : string</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#results-prop" translate="no">results</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#sortMode-prop" translate="no">sortMode</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#sortModeText-prop" translate="no">sortModeText</a></b> : string</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#sortModes-prop" translate="no">sortModes</a></b> : list&lt;int&gt;</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#sortOptions-prop" translate="no">sortOptions</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#tryAutoplayAction-prop" translate="no">tryAutoplayAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#tryCycleSortModeAction-prop" translate="no">tryCycleSortModeAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#tryOpenPlayableAction-prop" translate="no">tryOpenPlayableAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#tryReplayAction-prop" translate="no">tryReplayAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#unscoredItemsLast-prop" translate="no">unscoredItemsLast</a></b> : bool</li>
+</ul>
+<h2 id="signals">Signals</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#enteredFolder-signal" translate="no">enteredFolder</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#focusRequested-signal" translate="no">focusRequested</a></b>(int <i>index</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#leftFolder-signal" translate="no">leftFolder</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#openedFolder-signal" translate="no">openedFolder</a></b>()</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#cycleReplayType-method" translate="no">cycleReplayType</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#cycleSortMode-method" translate="no">cycleSortMode</a></b>(<i>delta</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#exit-method" translate="no">exit</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#folderClearStatsFor-method" translate="no">folderClearStatsFor</a></b>(<i>item</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#goBack-method" translate="no">goBack</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#goForward-method" translate="no">goForward</a></b>(<i>item</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#initialize-method" translate="no">initialize</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#isChartItem-method" translate="no">isChartItem</a></b>(<i>item</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#openAutoplay-method" translate="no">openAutoplay</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#openChartDirectory-method" translate="no">openChartDirectory</a></b>(<i>directory</i>, <i>initialItem</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#openPlayable-method" translate="no">openPlayable</a></b>(<i>item</i>, <i>autoplay</i>, <i>replay</i>, <i>replayScore</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#openReplay-method" translate="no">openReplay</a></b>(<i>type</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#openResult-method" translate="no">openResult</a></b>(<i>item</i>, <i>score</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#openSelectedFolder-method" translate="no">openSelectedFolder</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#openSelectedReadme-method" translate="no">openSelectedReadme</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#openSettings-method" translate="no">openSettings</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#refresh-method" translate="no">refresh</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#reloadCurrentFolderOrTable-method" translate="no">reloadCurrentFolderOrTable</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#resultForReplayType-method" translate="no">resultForReplayType</a></b>(<i>type</i>, <i>requireReplayData</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#search-method" translate="no">search</a></b>(<i>query</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#setFocused-method" translate="no">setFocused</a></b>(<i>item</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#setKeymodeFilter-method" translate="no">setKeymodeFilter</a></b>(<i>filter</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#setReplayType-method" translate="no">setReplayType</a></b>(<i>type</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#setSortMode-method" translate="no">setSortMode</a></b>(<i>mode</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectstate.html#showAllChartsForCurrentSong-method" translate="no">showAllChartsForCurrentSong</a></b>()</li>
+</ul>
+<!-- $$$StandardSelectState-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Use <a href="qml-rhythmgameqml-standardselectcontroller.html" translate="no">StandardSelectController</a> for a selector with standard input, shortcuts and audio. Use this component when you want the same browsing behavior with your own controls. It loads and sorts entries, remembers folder history, and opens charts, courses, replays and saved results.</p>
+<h2 id="connect-browsing-and-focus">Connect browsing and focus</h2>
+<p>The root folder opens automatically unless <a href="qml-rhythmgameqml-standardselectstate.html#autoInitialize-prop" translate="no">autoInitialize</a> is false. Display <a href="qml-rhythmgameqml-standardselectstate.html#entries-prop" translate="no">entries</a> and handle <a href="qml-rhythmgameqml-standardselectstate.html#focusRequested-signal" translate="no">focusRequested</a> to position your view. Call <a href="qml-rhythmgameqml-standardselectstate.html#setFocused-method" translate="no">setFocused</a> with the row's data when the user selects another row.</p>
+<p>Call <a href="qml-rhythmgameqml-standardselectstate.html#goForward-method" translate="no">goForward</a> to open an entry, <a href="qml-rhythmgameqml-standardselectstate.html#goBack-method" translate="no">goBack</a> to return through folder history, and <a href="qml-rhythmgameqml-standardselectstate.html#exit-method" translate="no">exit</a> to leave selection or its Arena room. <a href="qml-rhythmgameqml-standardselectstate.html#openResult-method" translate="no">openResult</a> opens the correct screen for a saved chart or course score. An unsuccessful <a href="qml-rhythmgameqml-standardselectstate.html#search-method" translate="no">search</a> leaves the current list in place.</p>
+<h2 id="save-player-choices">Save player choices</h2>
+<p><a href="qml-rhythmgameqml-standardselectstate.html#sortMode-prop" translate="no">sortMode</a>, <a href="qml-rhythmgameqml-standardselectstate.html#keymodeFilter-prop" translate="no">keymodeFilter</a> and <a href="qml-rhythmgameqml-standardselectstate.html#replayType-prop" translate="no">replayType</a> follow the active profile. They are read-only: use <a href="qml-rhythmgameqml-standardselectstate.html#setSortMode-method" translate="no">setSortMode</a>, <a href="qml-rhythmgameqml-standardselectstate.html#setKeymodeFilter-method" translate="no">setKeymodeFilter</a> and <a href="qml-rhythmgameqml-standardselectstate.html#setReplayType-method" translate="no">setReplayType</a> to save a choice. <a href="qml-rhythmgameqml-standardselectstate.html#cycleSortMode-method" translate="no">cycleSortMode</a> and <a href="qml-rhythmgameqml-standardselectstate.html#cycleReplayType-method" translate="no">cycleReplayType</a> advance through the choices. View options such as <a href="qml-rhythmgameqml-standardselectstate.html#difficultyFilter-prop" translate="no">difficultyFilter</a> do not change profile settings.</p>
+<p><a href="qml-rhythmgameqml-standardselectstate.html#openReplay-method" translate="no">openReplay</a> chooses a recording using <a href="qml-rhythmgameqml-standardselectstate.html#replayType-prop" translate="no">replayType</a>. Bind a replay button's enabled state to <a href="qml-rhythmgameqml-standardselectstate.html#replayAvailable-prop" translate="no">replayAvailable</a>. Use <a href="qml-rhythmgameqml-standardselectstate.html#resultForReplayType-method" translate="no">resultForReplayType</a> when you need to choose a saved result without opening it.</p>
+<h2 id="read-data-as-it-arrives">Read data as it arrives</h2>
+<p><a href="qml-rhythmgameqml-standardselectstate.html#results-prop" translate="no">results</a> contains cached score summaries. Use <a href="qml-rhythmgameqml-scoredetails.html" translate="no">ScoreDetails</a> for replay events or gauge history. Preview paths and folder clear statistics load asynchronously; bind to their properties to follow updates. The state refreshes them when it becomes enabled again or the main profile changes.</p>
+<p>The arrays and maps in <a href="qml-rhythmgameqml-standardselectstate.html#entries-prop" translate="no">entries</a>, <a href="qml-rhythmgameqml-standardselectstate.html#folderContents-prop" translate="no">folderContents</a>, <a href="qml-rhythmgameqml-standardselectstate.html#historyStack-prop" translate="no">historyStack</a>, <a href="qml-rhythmgameqml-standardselectstate.html#results-prop" translate="no">results</a> and <a href="qml-rhythmgameqml-standardselectstate.html#previewFiles-prop" translate="no">previewFiles</a> are copies. Editing them does not change the controller. Objects inside them, such as charts, are shared.</p>
+<!-- @@@StandardSelectState -->
+<h2>Property Documentation</h2>
+<!-- $$$actions -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="actions-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">actions</span> : <span class="type">alias</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Shared play, saved-result and exit actions.</p>
+</div></div><!-- @@@actions -->
+<br/>
+<!-- $$$autoInitialize -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="autoInitialize-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">autoInitialize</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether construction automatically opens the root selection folder.</p>
+</div></div><!-- @@@autoInitialize -->
+<br/>
+<!-- $$$autoplayAvailable -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="autoplayAvailable-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">autoplayAvailable</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Whether the focused chart or complete course supports standard autoplay.</p>
+</div></div><!-- @@@autoplayAvailable -->
+<br/>
+<!-- $$$cycleReplayTypeAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="cycleReplayTypeAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">cycleReplayTypeAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">cycleReplayTypeAction()</code> instead of cycling the profile's replay choice.</p>
+</div></div><!-- @@@cycleReplayTypeAction -->
+<br/>
+<!-- $$$difficultyFilter -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="difficultyFilter-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">difficultyFilter</span> : <span class="type">int</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Additional difficulty filter for this view. Zero shows all difficulties. Does not save a profile choice.</p>
+</div></div><!-- @@@difficultyFilter -->
+<br/>
+<!-- $$$entries -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="entries-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">entries</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Filtered and sorted entries before presentation adaptation. Entries can be folder-path strings, ChartData objects, or entry, table, level and course values. An entry value describes a table chart missing from the song database. The list is empty before initialization and when browsing or filtering produces no entries. It never adds presentation placeholders. See the <a href="../theme_tutorial_select.html#theme_tutorial_select_entry_types">entry type table in lesson 5</a>.</p>
+</div></div><!-- @@@entries -->
+<br/>
+<!-- $$$exitAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="exitAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">exitAction</span> : <span class="type">alias</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">exitAction()</code> in place of leaving selection.</p>
+</div></div><!-- @@@exitAction -->
+<br/>
+<!-- $$$focusedIndex -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="focusedIndex-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">focusedIndex</span> : <span class="type">int</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Index of <a href="qml-rhythmgameqml-standardselectstate.html#focusedItem-prop" translate="no">focusedItem</a> in <a href="qml-rhythmgameqml-standardselectstate.html#entries-prop" translate="no">entries</a>, or -1 when no entry is selected.</p>
+</div></div><!-- @@@focusedIndex -->
+<br/>
+<!-- $$$focusedItem -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="focusedItem-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">focusedItem</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Current entry used by selection actions. Updated by browsing or <a href="qml-rhythmgameqml-standardselectstate.html#setFocused-method" translate="no">setFocused</a>. Null when no entry is selected, including when the view shows a presentation placeholder.</p>
+</div></div><!-- @@@focusedItem -->
+<br/>
+<!-- $$$folderClearStatsEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="folderClearStatsEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">folderClearStatsEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether per-folder clear-statistic loading is active.</p>
+</div></div><!-- @@@folderClearStatsEnabled -->
+<br/>
+<!-- $$$folderContents -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="folderContents-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">folderContents</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Raw contents of the current folder, table, level, or search.</p>
+</div></div><!-- @@@folderContents -->
+<br/>
+<!-- $$$historyStack -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="historyStack-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">historyStack</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Navigation history for the current selection session.</p>
+</div></div><!-- @@@historyStack -->
+<br/>
+<!-- $$$keymodeFilter -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="keymodeFilter-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">keymodeFilter</span> : <span class="type">int</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Active profile's SelectKeymodeFilter value. Change it with <a href="qml-rhythmgameqml-standardselectstate.html#setKeymodeFilter-method" translate="no">setKeymodeFilter</a>. Single includes 5K and 7K; Double includes 10K and 14K. Folders, tables and courses remain visible.</p>
+</div></div><!-- @@@keymodeFilter -->
+<br/>
+<!-- $$$openSelectedFolderAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSelectedFolderAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openSelectedFolderAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls openSelectedFolderAction() instead of opening the system file browser.</p>
+</div></div><!-- @@@openSelectedFolderAction -->
+<br/>
+<!-- $$$openSettingsAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSettingsAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openSettingsAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls openSettingsAction() instead of opening Settings.</p>
+</div></div><!-- @@@openSettingsAction -->
+<br/>
+<!-- $$$previewFiles -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="previewFiles-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">previewFiles</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Preview-file data loaded for the current folder contents.</p>
+</div></div><!-- @@@previewFiles -->
+<br/>
+<!-- $$$previewFilesEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="previewFilesEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">previewFilesEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether standard preview-file discovery is active.</p>
+</div></div><!-- @@@previewFilesEnabled -->
+<br/>
+<!-- $$$reloadAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="reloadAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">reloadAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls reloadAction() instead of reloading the current folder or table.</p>
+</div></div><!-- @@@reloadAction -->
+<br/>
+<!-- $$$replayAvailable -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="replayAvailable-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">replayAvailable</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Whether the standard replay action is available for the focused entry.</p>
+</div></div><!-- @@@replayAvailable -->
+<br/>
+<!-- $$$replayOptions -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="replayOptions-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">replayOptions</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Replay choices with stable <code translate="no">value</code> and translated <code translate="no">text</code> roles.</p>
+</div></div><!-- @@@replayOptions -->
+<br/>
+<!-- $$$replayResult -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="replayResult-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">replayResult</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>The saved run chosen for playback, or null if no usable recording is available.</p>
+</div></div><!-- @@@replayResult -->
+<br/>
+<!-- $$$replayType -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="replayType-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">replayType</span> : <span class="type">int</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>The active profile's replay choice: 0 for Newest, 1 for BestScore, 2 for BestClear and 3 for BestCombo. Change it with <a href="qml-rhythmgameqml-standardselectstate.html#setReplayType-method" translate="no">setReplayType</a> or <a href="qml-rhythmgameqml-standardselectstate.html#cycleReplayType-method" translate="no">cycleReplayType</a>. Named values such as <code translate="no">StandardSelectState.BestScore</code> can be used instead of numbers.</p>
+</div></div><!-- @@@replayType -->
+<br/>
+<!-- $$$replayTypeText -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="replayTypeText-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">replayTypeText</span> : <span class="type">string</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Optional translated label for the current replay choice.</p>
+</div></div><!-- @@@replayTypeText -->
+<br/>
+<!-- $$$results -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="results-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">results</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Map of chart MD5s and course identifiers to BmsResult or BmsResultCourse lists, newest first. Results contain no recordings or gauge histories. Use <a href="qml-rhythmgameqml-scoredetails.html" translate="no">ScoreDetails</a> to load one full score for statistics or graphs. Child folders and table levels use separate clear-statistic requests.</p>
+</div></div><!-- @@@results -->
+<br/>
+<!-- $$$sortMode -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="sortMode-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">sortMode</span> : <span class="type">int</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Active profile's sort choice. Change it with <a href="qml-rhythmgameqml-standardselectstate.html#setSortMode-method" translate="no">setSortMode</a>() or <a href="qml-rhythmgameqml-standardselectstate.html#cycleSortMode-method" translate="no">cycleSortMode</a>().</p>
+</div></div><!-- @@@sortMode -->
+<br/>
+<!-- $$$sortModeText -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="sortModeText-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">sortModeText</span> : <span class="type">string</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Optional translated label for the current sort mode.</p>
+</div></div><!-- @@@sortModeText -->
+<br/>
+<!-- $$$sortModes -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="sortModes-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">sortModes</span> : <span class="type">list</span>&lt;<span class="type">int</span>&gt;</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Modes listed in <a href="qml-rhythmgameqml-standardselectstate.html#sortOptions-prop" translate="no">sortOptions</a> and visited by <a href="qml-rhythmgameqml-standardselectstate.html#cycleSortMode-method" translate="no">cycleSortMode</a>(). Does not restrict <a href="qml-rhythmgameqml-standardselectstate.html#setSortMode-method" translate="no">setSortMode</a>().</p>
+</div></div><!-- @@@sortModes -->
+<br/>
+<!-- $$$sortOptions -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="sortOptions-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">sortOptions</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Sort choices in <a href="qml-rhythmgameqml-standardselectstate.html#sortModes-prop" translate="no">sortModes</a> order, with stable <code translate="no">value</code> and translated <code translate="no">text</code> roles.</p>
+</div></div><!-- @@@sortOptions -->
+<br/>
+<!-- $$$tryAutoplayAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="tryAutoplayAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">tryAutoplayAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">tryAutoplayAction()</code>. Return true when handled, or false for standard playback.</p>
+</div></div><!-- @@@tryAutoplayAction -->
+<br/>
+<!-- $$$tryCycleSortModeAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="tryCycleSortModeAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">tryCycleSortModeAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">tryCycleSortModeAction(delta)</code>. Return true when handled, or false to cycle normally.</p>
+</div></div><!-- @@@tryCycleSortModeAction -->
+<br/>
+<!-- $$$tryOpenPlayableAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="tryOpenPlayableAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">tryOpenPlayableAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Called as <code translate="no">tryOpenPlayableAction(item,autoplay,replay,replayScore)</code>. Return true to handle the request, or false to continue with the standard action.</p>
+</div></div><!-- @@@tryOpenPlayableAction -->
+<br/>
+<!-- $$$tryReplayAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="tryReplayAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">tryReplayAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Called as <code translate="no">tryReplayAction(type)</code> before standard playback. Return true when handled, or false to use the standard action. Both buttons calling <a href="qml-rhythmgameqml-standardselectstate.html#openReplay-method" translate="no">openReplay</a> and bound replay input use this hook.</p>
+</div></div><!-- @@@tryReplayAction -->
+<br/>
+<!-- $$$unscoredItemsLast -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="unscoredItemsLast-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">unscoredItemsLast</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether items without scores sort after scored items.</p>
+</div></div><!-- @@@unscoredItemsLast -->
+<br/>
+<h2>Signal Documentation</h2>
+<!-- $$$enteredFolder[overload1]$$$enteredFolder -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="enteredFolder-signal">
+<td class="tblQmlFuncNode"><p>
+<span class="name">enteredFolder</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Emitted after entering a selection-history item.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onEnteredFolder</code>.</p>
+</div></div></div><!-- @@@enteredFolder -->
+<br/>
+<!-- $$$focusRequested[overload1]$$$focusRequestedint -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="focusRequested-signal">
+<td class="tblQmlFuncNode"><p>
+<span class="name">focusRequested</span>(<span class="type">int</span> <i>index</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Requests that the theme make <i translate="no">index</i> in <a href="qml-rhythmgameqml-standardselectstate.html#entries-prop" translate="no">entries</a> current in its view. The index is -1 when no entry is selected. <a href="qml-rhythmgameqml-standardselectstate.html#focusedItem-prop" translate="no">focusedItem</a> is already updated when this signal is emitted. The theme chooses how to position its list or wheel.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onFocusRequested</code>.</p>
+</div></div></div><!-- @@@focusRequested -->
+<br/>
+<!-- $$$leftFolder[overload1]$$$leftFolder -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="leftFolder-signal">
+<td class="tblQmlFuncNode"><p>
+<span class="name">leftFolder</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Emitted after leaving a selection-history item.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onLeftFolder</code>.</p>
+</div></div></div><!-- @@@leftFolder -->
+<br/>
+<!-- $$$openedFolder[overload1]$$$openedFolder -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openedFolder-signal">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openedFolder</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Emitted after a folder or table has been opened.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onOpenedFolder</code>.</p>
+</div></div></div><!-- @@@openedFolder -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$cycleReplayType[overload1]$$$cycleReplayType -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="cycleReplayType-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">cycleReplayType</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Cycles newest, best score, best clear and best combo, or calls the replacement action.</p>
+</div></div><!-- @@@cycleReplayType -->
+<br/>
+<!-- $$$cycleSortMode[overload1]$$$cycleSortMode -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="cycleSortMode-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">cycleSortMode</span>(<i>delta</i> = 1)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Moves through <a href="qml-rhythmgameqml-standardselectstate.html#sortModes-prop" translate="no">sortModes</a> by the integer <i translate="no">delta</i> and saves the choice, or calls the custom action. Wraps at either end. Returns false when inactive or delta is not an integer. The default action also returns false if the list is empty or the next value is unsupported.</p>
+</div></div><!-- @@@cycleSortMode -->
+<br/>
+<!-- $$$exit[overload1]$$$exit -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="exit-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">exit</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Leaves selection or its Arena room. Use <a href="qml-rhythmgameqml-standardselectstate.html#goBack-method" translate="no">goBack</a>() for folder history.</p>
+</div></div><!-- @@@exit -->
+<br/>
+<!-- $$$folderClearStatsFor[overload1]$$$folderClearStatsFor -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="folderClearStatsFor-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">folderClearStatsFor</span>(<i>item</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Returns loaded clear statistics for folder-like <i translate="no">item</i>, or null.</p>
+</div></div><!-- @@@folderClearStatsFor -->
+<br/>
+<!-- $$$goBack[overload1]$$$goBack -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="goBack-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">goBack</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Leaves the current history entry. Returns whether navigation occurred.</p>
+</div></div><!-- @@@goBack -->
+<br/>
+<!-- $$$goForward[overload1]$$$goForward -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="goForward-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">goForward</span>(<i>item</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens <i translate="no">item</i> as a folder or playable item.</p>
+</div></div><!-- @@@goForward -->
+<br/>
+<!-- $$$initialize[overload1]$$$initialize -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="initialize-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">initialize</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Initializes history from the configured song folders and tables.</p>
+</div></div><!-- @@@initialize -->
+<br/>
+<!-- $$$isChartItem[overload1]$$$isChartItem -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="isChartItem-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">isChartItem</span>(<i>item</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Returns true when <i translate="no">item</i> is an installed ChartData or a missing table entry. This identifies chart-like rows; it does not guarantee they can play.</p>
+</div></div><!-- @@@isChartItem -->
+<br/>
+<!-- $$$openAutoplay[overload1]$$$openAutoplay -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openAutoplay-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openAutoplay</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Starts autoplay for the focused chart or course, or calls the custom action.</p>
+</div></div><!-- @@@openAutoplay -->
+<br/>
+<!-- $$$openChartDirectory[overload1]$$$openChartDirectory -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openChartDirectory-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openChartDirectory</span>(<i>directory</i>, <i>initialItem</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens <i translate="no">directory</i> and initially focuses <i translate="no">initialItem</i>.</p>
+</div></div><!-- @@@openChartDirectory -->
+<br/>
+<!-- $$$openPlayable[overload1]$$$openPlayable -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openPlayable-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openPlayable</span>(<i>item</i>, <i>autoplay</i> = false, <i>replay</i> = false, <i>replayScore</i> = null)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens chart or course <i translate="no">item</i> with the requested <i translate="no">autoplay</i>, <i translate="no">replay</i> and <i translate="no">replayScore</i> options. See <a href="qml-rhythmgameqml-standardselectactions.html#openPlayable-method" translate="no">StandardSelectActions::openPlayable</a> for the score types and return-value contract.</p>
+</div></div><!-- @@@openPlayable -->
+<br/>
+<!-- $$$openReplay[overload1]$$$openReplay -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openReplay-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openReplay</span>(<i>type</i> = replayType)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens the focused entry's replay using <i translate="no">type</i>, which defaults to <a href="qml-rhythmgameqml-standardselectstate.html#replayType-prop" translate="no">replayType</a>. Returns false when no usable recording is available. Replay playback uses the main profile alone, even in battle mode. Arena and inactive screens cannot start replay playback.</p>
+</div></div><!-- @@@openReplay -->
+<br/>
+<!-- $$$openResult[overload1]$$$openResult -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openResult-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openResult</span>(<i>item</i>, <i>score</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens the saved <i translate="no">score</i> for the chart or course <i translate="no">item</i>. Both arguments are required. See <a href="qml-rhythmgameqml-standardselectactions.html#openResult-method" translate="no">StandardSelectActions::openResult</a> for accepted score types and loading behavior.</p>
+</div></div><!-- @@@openResult -->
+<br/>
+<!-- $$$openSelectedFolder[overload1]$$$openSelectedFolder -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSelectedFolder-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openSelectedFolder</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens the focused chart's directory in the system file browser.</p>
+</div></div><!-- @@@openSelectedFolder -->
+<br/>
+<!-- $$$openSelectedReadme[overload1]$$$openSelectedReadme -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSelectedReadme-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openSelectedReadme</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens the README associated with the focused item, if one exists.</p>
+</div></div><!-- @@@openSelectedReadme -->
+<br/>
+<!-- $$$openSettings[overload1]$$$openSettings -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSettings-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openSettings</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens Settings, or calls the replacement action.</p>
+</div></div><!-- @@@openSettings -->
+<br/>
+<!-- $$$refresh[overload1]$$$refresh -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="refresh-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">refresh</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Refreshes preview paths and folder clear statistics. To reload the folder's entries or request a library scan, use <a href="qml-rhythmgameqml-standardselectstate.html#reloadCurrentFolderOrTable-method" translate="no">reloadCurrentFolderOrTable</a>.</p>
+</div></div><!-- @@@refresh -->
+<br/>
+<!-- $$$reloadCurrentFolderOrTable[overload1]$$$reloadCurrentFolderOrTable -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="reloadCurrentFolderOrTable-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">reloadCurrentFolderOrTable</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Reloads the current local folder or online table.</p>
+</div></div><!-- @@@reloadCurrentFolderOrTable -->
+<br/>
+<!-- $$$resultForReplayType[overload1]$$$resultForReplayType -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="resultForReplayType-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">resultForReplayType</span>(<i>type</i> = replayType, <i>requireReplayData</i> = true)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Returns a saved run for the focused chart or course using <i translate="no">type</i>. Defaults to <a href="qml-rhythmgameqml-standardselectstate.html#replayType-prop" translate="no">replayType</a>. When <i translate="no">requireReplayData</i> is true, ignores runs without recordings and courses without a recording for every stage. Pass false when choosing a saved result to display. Best score compares points divided by maximum points. Ties use the newer run.</p>
+</div></div><!-- @@@resultForReplayType -->
+<br/>
+<!-- $$$search[overload1]$$$search -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="search-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">search</span>(<i>query</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Searches for <i translate="no">query</i> and returns the number of matches before view filtering. With matches, replaces the list and records the search in history. With no matches, returns zero and keeps the current list.</p>
+</div></div><!-- @@@search -->
+<br/>
+<!-- $$$setFocused[overload1]$$$setFocused -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="setFocused-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">setFocused</span>(<i>item</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Records <i translate="no">item</i> from <a href="qml-rhythmgameqml-standardselectstate.html#entries-prop" translate="no">entries</a> as <a href="qml-rhythmgameqml-standardselectstate.html#focusedItem-prop" translate="no">focusedItem</a> after the theme changes its current entry. Pass the row's data, not its QML delegate. Repeated rows in <a href="qml-rhythmgameqml-standardselectcontroller.html#presentationEntries-prop" translate="no">StandardSelectController::presentationEntries</a> refer to the same entries and can be selected normally. Passing null or an item outside <a href="qml-rhythmgameqml-standardselectstate.html#entries-prop" translate="no">entries</a> clears the selection. <a href="qml-rhythmgameqml-standardselectstate.html#focusedItem-prop" translate="no">focusedItem</a> becomes null and <a href="qml-rhythmgameqml-standardselectstate.html#focusedIndex-prop" translate="no">focusedIndex</a> becomes -1.</p>
+</div></div><!-- @@@setFocused -->
+<br/>
+<!-- $$$setKeymodeFilter[overload1]$$$setKeymodeFilter -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="setKeymodeFilter-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">setKeymodeFilter</span>(<i>filter</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Saves <i translate="no">filter</i> in the active profile and updates <a href="qml-rhythmgameqml-standardselectstate.html#keymodeFilter-prop" translate="no">keymodeFilter</a>. Returns false for an unknown value or inactive screen, without changing the choice.</p>
+</div></div><!-- @@@setKeymodeFilter -->
+<br/>
+<!-- $$$setReplayType[overload1]$$$setReplayType -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="setReplayType-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">setReplayType</span>(<i>type</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Saves <i translate="no">type</i> in the active profile and updates <a href="qml-rhythmgameqml-standardselectstate.html#replayType-prop" translate="no">replayType</a>. Returns false for an unknown value or inactive screen, without changing the choice. Use <a href="qml-rhythmgameqml-standardselectstate.html#cycleReplayType-method" translate="no">cycleReplayType</a> to advance to the next option and wrap at the end.</p>
+</div></div><!-- @@@setReplayType -->
+<br/>
+<!-- $$$setSortMode[overload1]$$$setSortMode -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="setSortMode-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">setSortMode</span>(<i>mode</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Saves <i translate="no">mode</i> in the active profile and updates <a href="qml-rhythmgameqml-standardselectstate.html#sortMode-prop" translate="no">sortMode</a>. Accepts any supported SelectSortMode value, regardless of <a href="qml-rhythmgameqml-standardselectstate.html#sortModes-prop" translate="no">sortModes</a>. Returns false for an unknown value or inactive screen, without changing the choice.</p>
+</div></div><!-- @@@setSortMode -->
+<br/>
+<!-- $$$showAllChartsForCurrentSong[overload1]$$$showAllChartsForCurrentSong -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="showAllChartsForCurrentSong-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">showAllChartsForCurrentSong</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Shows every chart that belongs to the currently focused song.</p>
+</div></div><!-- @@@showAllChartsForCurrentSong -->
+<br/>
+</body>
+</html>

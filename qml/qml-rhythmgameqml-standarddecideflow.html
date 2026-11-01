@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardDecideFlow.qml -->
+  <meta name="description" content="Starts or cancels play from a decide screen.">
+  <title>StandardDecideFlow QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardDecideFlow</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardDecideFlow QML Type</h1>
+<!-- $$$StandardDecideFlow-brief -->
+<p>Starts or cancels play from a decide screen. <a href="#details">More...</a></p>
+<!-- @@@StandardDecideFlow -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standarddecideflow-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standarddecideflow.html#cancelAction-prop" translate="no">cancelAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standarddecideflow.html#controllerEnabled-prop" translate="no">controllerEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standarddecideflow.html#gameplay-prop" translate="no">gameplay</a></b> : GameplayContext</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standarddecideflow.html#keyboardEnabled-prop" translate="no">keyboardEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standarddecideflow.html#pointerEnabled-prop" translate="no">pointerEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standarddecideflow.html#startAction-prop" translate="no">startAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standarddecideflow.html#timeoutMillis-prop" translate="no">timeoutMillis</a></b> : int</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standarddecideflow.html#cancel-method" translate="no">cancel</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standarddecideflow.html#start-method" translate="no">start</a></b>()</li>
+</ul>
+<!-- $$$StandardDecideFlow-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Bind <a href="qml-rhythmgameqml-standarddecideflow.html#gameplay-prop" translate="no">gameplay</a> to the <a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a> supplied to the screen. The same property supports a single chart or a course. Your theme draws the title and other details, while the component handles input and the timeout.</p>
+<p>The default controls are:</p>
+<div class="table"><table class="generic">
+ <thead><tr class="qt-style"><th >Input</th><th >Operation</th></tr></thead>
+<tr valign="top" class="odd"><td >Return, Enter, left click or any play key</td><td ><a href="qml-rhythmgameqml-standarddecideflow.html#start-method" translate="no">start</a></td></tr>
+<tr valign="top" class="even"><td >Escape, right click or Start+Select</td><td ><a href="qml-rhythmgameqml-standarddecideflow.html#cancel-method" translate="no">cancel</a></td></tr>
+<tr valign="top" class="odd"><td >The <a href="qml-rhythmgameqml-standarddecideflow.html#timeoutMillis-prop" translate="no">timeoutMillis</a> delay expires</td><td ><a href="qml-rhythmgameqml-standarddecideflow.html#start-method" translate="no">start</a></td></tr>
+</table></div>
+<p>The pointer area fills the parent. Set <a href="qml-rhythmgameqml-standarddecideflow.html#pointerEnabled-prop" translate="no">pointerEnabled</a> to false when your theme has its own buttons, and call <a href="qml-rhythmgameqml-standarddecideflow.html#start-method" translate="no">start</a> or <a href="qml-rhythmgameqml-standarddecideflow.html#cancel-method" translate="no">cancel</a> from those buttons. Only the first transition request is accepted. If the standard transition fails, the component accepts another attempt.</p>
+<p>Starting replaces decide with gameplay, passing along the same context. Cancelling returns to the previous screen. The game keeps the play objects alive for the screen that needs them and destroys them when that screen leaves. The theme must not destroy them itself.</p>
+<p>A replacement <a href="qml-rhythmgameqml-standarddecideflow.html#startAction-prop" translate="no">startAction</a> or <a href="qml-rhythmgameqml-standarddecideflow.html#cancelAction-prop" translate="no">cancelAction</a> handles the whole transition. The standard action does not run afterward. See the <a href="../theme_tutorial_decide.html">decide lesson</a> for an installable example.</p>
+<!-- @@@StandardDecideFlow -->
+<h2>Property Documentation</h2>
+<!-- $$$cancelAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="cancelAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">cancelAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">cancelAction()</code> to handle the whole cancel transition.</p>
+</div></div><!-- @@@cancelAction -->
+<br/>
+<!-- $$$controllerEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="controllerEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">controllerEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether BMS-controller input is active.</p>
+</div></div><!-- @@@controllerEnabled -->
+<br/>
+<!-- $$$gameplay -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="gameplay-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">gameplay</span> : <span class="type"><a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies the <a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a> received by the decide screen.</p>
+</div></div><!-- @@@gameplay -->
+<br/>
+<!-- $$$keyboardEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="keyboardEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">keyboardEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether keyboard input is active.</p>
+</div></div><!-- @@@keyboardEnabled -->
+<br/>
+<!-- $$$pointerEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="pointerEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">pointerEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether pointer input is active.</p>
+</div></div><!-- @@@pointerEnabled -->
+<br/>
+<!-- $$$startAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="startAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">startAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">startAction()</code> to handle the whole start transition.</p>
+</div></div><!-- @@@startAction -->
+<br/>
+<!-- $$$timeoutMillis -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="timeoutMillis-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">timeoutMillis</span> : <span class="type">int</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Sets the delay in milliseconds before starting automatically. Use zero to disable the timeout.</p>
+</div></div><!-- @@@timeoutMillis -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$cancel[overload1]$$$cancel -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="cancel-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">cancel</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Returns to the previous screen. Returns false when disabled, already transitioning, or the standard navigation fails. A replacement <a href="qml-rhythmgameqml-standarddecideflow.html#cancelAction-prop" translate="no">cancelAction</a> counts as handled and returns true.</p>
+</div></div><!-- @@@cancel -->
+<br/>
+<!-- $$$start[overload1]$$$start -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="start-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">start</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens gameplay with the supplied context. Returns false when disabled, missing gameplay, already transitioning, or the standard screen cannot open. A replacement <a href="qml-rhythmgameqml-standarddecideflow.html#startAction-prop" translate="no">startAction</a> counts as handled and returns true.</p>
+</div></div><!-- @@@start -->
+<br/>
+</body>
+</html>

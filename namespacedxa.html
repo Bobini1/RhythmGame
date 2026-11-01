@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -71,6 +71,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#typedef-members">Typedefs</a> &#124;
+<a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">dxa Namespace Reference</div></div>
 </div><!--header-->
@@ -99,16 +100,20 @@ Typedefs</h2></td></tr>
 <tr class="memitem:a44d81e8ab1e241b49165f770c2ae3086" id="r_a44d81e8ab1e241b49165f770c2ae3086"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedxa.html#a44d81e8ab1e241b49165f770c2ae3086">DARC_DIRECTORY_VER5</a> = tagDARC_DIRECTORY_VER5 { <a class="el" href="namespacedxa.html#a2bd395d710914da545ce92749ac78984">u32</a> DirectoryAddress</td></tr>
 <tr class="separator:a44d81e8ab1e241b49165f770c2ae3086"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a8c388949794ba9240e32a9d8019f4c67" id="r_a8c388949794ba9240e32a9d8019f4c67"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a8c388949794ba9240e32a9d8019f4c67"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedxa.html#a8c388949794ba9240e32a9d8019f4c67">record</a> (std::span&lt; const <a class="el" href="namespacedxa.html#a955973fdd8e7abf02bf5f7ac872877d5">u8</a> &gt; bytes, size_t offset) -&gt; T</td></tr>
+<tr class="separator:a8c388949794ba9240e32a9d8019f4c67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:ac2bb3b579f9709fe04fabccb8c2860ab" id="r_ac2bb3b579f9709fe04fabccb8c2860ab"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacedxa.html#a2bd395d710914da545ce92749ac78984">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedxa.html#ac2bb3b579f9709fe04fabccb8c2860ab">MIN_COMPRESS_VER5</a> = 4</td></tr>
 <tr class="separator:ac2bb3b579f9709fe04fabccb8c2860ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a9c88b01a6bfdf8780fd43efad024eb" id="r_a7a9c88b01a6bfdf8780fd43efad024eb"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacedxa.html#ab30765c63c58691e098910b39d63375e">u16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedxa.html#a7a9c88b01a6bfdf8780fd43efad024eb">DXA_HEAD_VER5</a> = *reinterpret_cast&lt;const <a class="el" href="namespacedxa.html#ab30765c63c58691e098910b39d63375e">u16</a>*&gt;(&quot;DX&quot;)</td></tr>
+<tr class="memitem:a7a9c88b01a6bfdf8780fd43efad024eb" id="r_a7a9c88b01a6bfdf8780fd43efad024eb"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacedxa.html#ab30765c63c58691e098910b39d63375e">u16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedxa.html#a7a9c88b01a6bfdf8780fd43efad024eb">DXA_HEAD_VER5</a> = 0x5844</td></tr>
 <tr class="separator:a7a9c88b01a6bfdf8780fd43efad024eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad04cf84f0de0f1ad716fc7e6719049d2" id="r_ad04cf84f0de0f1ad716fc7e6719049d2"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacedxa.html#ab30765c63c58691e098910b39d63375e">u16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedxa.html#ad04cf84f0de0f1ad716fc7e6719049d2">DXA_VER_VER5</a> = (0x0005)</td></tr>
 <tr class="separator:ad04cf84f0de0f1ad716fc7e6719049d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab959aae4b535cc8baa70d46f9fb052d9" id="r_ab959aae4b535cc8baa70d46f9fb052d9"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacedxa.html#a2bd395d710914da545ce92749ac78984">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedxa.html#ab959aae4b535cc8baa70d46f9fb052d9">DXA_BUFFERSIZE_VER5</a></td></tr>
-<tr class="separator:ab959aae4b535cc8baa70d46f9fb052d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca6186be13a4ea69c9f47d9db7f8d5a9" id="r_aca6186be13a4ea69c9f47d9db7f8d5a9"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacedxa.html#a2bd395d710914da545ce92749ac78984">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedxa.html#aca6186be13a4ea69c9f47d9db7f8d5a9">DXA_KEYSTR_LENGTH_VER5</a> = (12)</td></tr>
 <tr class="separator:aca6186be13a4ea69c9f47d9db7f8d5a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af9559f3bda0b51cbd93d06f32011a938" id="r_af9559f3bda0b51cbd93d06f32011a938"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedxa.html#ab30765c63c58691e098910b39d63375e">u16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedxa.html#af9559f3bda0b51cbd93d06f32011a938">Version</a></td></tr>
@@ -287,6 +292,38 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="a8c388949794ba9240e32a9d8019f4c67" name="a8c388949794ba9240e32a9d8019f4c67"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c388949794ba9240e32a9d8019f4c67">&#9670;&#160;</a></span>record()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">auto dxa::record </td>
+          <td>(</td>
+          <td class="paramtype">std::span&lt; const <a class="el" href="namespacedxa.html#a955973fdd8e7abf02bf5f7ac872877d5">u8</a> &gt;&#160;</td>
+          <td class="paramname"><em>bytes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>offset</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; T
+</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Variable Documentation</h2>
 <a id="a17635c436fa2834cf8231a9856039340" name="a17635c436fa2834cf8231a9856039340"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a17635c436fa2834cf8231a9856039340">&#9670;&#160;</a></span>Attributes</h2>
@@ -386,22 +423,6 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="ab959aae4b535cc8baa70d46f9fb052d9" name="ab959aae4b535cc8baa70d46f9fb052d9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab959aae4b535cc8baa70d46f9fb052d9">&#9670;&#160;</a></span>DXA_BUFFERSIZE_VER5</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const <a class="el" href="namespacedxa.html#a2bd395d710914da545ce92749ac78984">u32</a> dxa::DXA_BUFFERSIZE_VER5</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">  (0x1000000)</div>
-</div><!-- fragment -->
-</div>
-</div>
 <a id="a7a9c88b01a6bfdf8780fd43efad024eb" name="a7a9c88b01a6bfdf8780fd43efad024eb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7a9c88b01a6bfdf8780fd43efad024eb">&#9670;&#160;</a></span>DXA_HEAD_VER5</h2>
 
@@ -409,7 +430,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="namespacedxa.html#ab30765c63c58691e098910b39d63375e">u16</a> dxa::DXA_HEAD_VER5 = *reinterpret_cast&lt;const <a class="el" href="namespacedxa.html#ab30765c63c58691e098910b39d63375e">u16</a>*&gt;(&quot;DX&quot;)</td>
+          <td class="memname">const <a class="el" href="namespacedxa.html#ab30765c63c58691e098910b39d63375e">u16</a> dxa::DXA_HEAD_VER5 = 0x5844</td>
         </tr>
       </table>
 </div><div class="memdoc">

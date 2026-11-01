@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -85,6 +85,8 @@ $(function() {
   <tr class="odd"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a65fe4b894c1be77458da00c95431acd0">done</a></td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a1eee1c4e7d705ecd25905da873243af8">error</a>(const QString &amp;message)</td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"><span class="mlabel">signal</span></td></tr>
   <tr class="odd"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a26c37046fa895ceef74569b4e96fa44d">errored</a></td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a418e9ed8f383bac29f4c6a97e2df395c">fail</a>(const QString &amp;message)</td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"></td></tr>
+  <tr class="odd"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a2c37d8f43f28a815f168b9ddd9883d28">finish</a>()</td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a86ad9f5a0d9edcc981172f912647edb6">finished</a></td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"></td></tr>
   <tr class="odd"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a4a4dcdad3d5ea3548828d4d2d629e052">finishedChanged</a>()</td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"><span class="mlabel">signal</span></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a7009a781da1e914247401de6beaefc29">getDone</a>() const -&gt; int</td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
@@ -104,8 +106,9 @@ $(function() {
   <tr class="even"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#afef8b8f95f975bdfdd3de92564083695">roleNames</a>() const override</td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"></td></tr>
   <tr class="odd"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#ae26590ec1842bd15b37ab5e7227ed577">Roles</a> enum name</td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a6a47f302f85a2727aa5753d50074885d">rowCount</a>(const QModelIndex &amp;parent=QModelIndex()) const override</td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"></td></tr>
-  <tr class="odd"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a2a62dae9bfaf515087fe6ea0ac181468">skipped</a></td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a804ff81efc5cc0a84f8553c01afb9048">total</a></td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"></td></tr>
+  <tr class="odd"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a2e9157fa477c4ee0ad7a66a5a3580eb1">setTotal</a>(int total)</td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a2a62dae9bfaf515087fe6ea0ac181468">skipped</a></td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"></td></tr>
+  <tr class="odd"><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a804ff81efc5cc0a84f8553c01afb9048">total</a></td><td class="entry"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a></td><td class="entry"></td></tr>
 </table></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

@@ -38,10 +38,12 @@ var searchData=
   ['audioengine_35',['AudioEngine',['../classsounds_1_1AudioEngine.html',1,'sounds']]],
   ['audioengineforeign_36',['AudioEngineForeign',['../structrhythm__game__qml_1_1AudioEngineForeign.html',1,'rhythm_game_qml']]],
   ['audioplayer_37',['AudioPlayer',['../classsounds_1_1AudioPlayer.html',1,'sounds']]],
-  ['autoplayer_38',['AutoPlayer',['../classgameplay__logic_1_1AutoPlayer.html',1,'gameplay_logic']]],
-  ['availabilityapplied_39',['AvailabilityApplied',['../structarena_1_1AvailabilityApplied.html',1,'arena']]],
-  ['availabilityresync_40',['AvailabilityResync',['../structarena_1_1AvailabilityResync.html',1,'arena']]],
-  ['availabilitytransferbegin_41',['AvailabilityTransferBegin',['../structarena_1_1AvailabilityTransferBegin.html',1,'arena']]],
-  ['availabilitytransfercommit_42',['AvailabilityTransferCommit',['../structarena_1_1AvailabilityTransferCommit.html',1,'arena']]],
-  ['avatarimageprovider_43',['AvatarImageProvider',['../classresource__managers_1_1AvatarImageProvider.html',1,'resource_managers']]]
+  ['audioplayerforeign_38',['AudioPlayerForeign',['../structrhythm__game__qml_1_1AudioPlayerForeign.html',1,'rhythm_game_qml']]],
+  ['autoplayer_39',['AutoPlayer',['../classgameplay__logic_1_1AutoPlayer.html',1,'gameplay_logic']]],
+  ['autoplayerforeign_40',['AutoPlayerForeign',['../structrhythm__game__qml_1_1AutoPlayerForeign.html',1,'rhythm_game_qml']]],
+  ['availabilityapplied_41',['AvailabilityApplied',['../structarena_1_1AvailabilityApplied.html',1,'arena']]],
+  ['availabilityresync_42',['AvailabilityResync',['../structarena_1_1AvailabilityResync.html',1,'arena']]],
+  ['availabilitytransferbegin_43',['AvailabilityTransferBegin',['../structarena_1_1AvailabilityTransferBegin.html',1,'arena']]],
+  ['availabilitytransfercommit_44',['AvailabilityTransferCommit',['../structarena_1_1AvailabilityTransferCommit.html',1,'arena']]],
+  ['avatarimageprovider_45',['AvatarImageProvider',['../classresource__managers_1_1AvatarImageProvider.html',1,'resource_managers']]]
 ];

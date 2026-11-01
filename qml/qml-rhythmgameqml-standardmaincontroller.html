@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardMainController.qml -->
+  <meta name="description" content="Supplies main-menu actions, Start input and background music.">
+  <title>StandardMainController QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardMainController</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardMainController QML Type</h1>
+<!-- $$$StandardMainController-brief -->
+<p>Supplies main-menu actions, Start input and background music. <a href="#details">More...</a></p>
+<!-- @@@StandardMainController -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+<tr><td class="memItemLeft rightAlign topAlign"> Inherits:</td><td class="memItemRight bottomAlign"> <p><a href="qml-rhythmgameqml-standardmainactions.html" translate="no">StandardMainActions</a></p>
+</td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardmaincontroller-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardmaincontroller.html#backgroundMusic-prop" translate="no">backgroundMusic</a></b> : AudioPlayer</li>
+</ul>
+<!-- $$$StandardMainController-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Place this component inside the main screen. It inherits the screen's enabled state and includes <a href="qml-rhythmgameqml-standardmainactions.html" translate="no">StandardMainActions</a>, so buttons can call openSelect(), openArena(), openSettings() and quit().</p>
+<p>The included <a href="qml-rhythmgameqml-standardmaincontroller.html#backgroundMusic-prop" translate="no">backgroundMusic</a> plays the active profile's main-menu track while the controller is enabled. Change its source, volume or fadeInMillis to customize playback. Set <a href="qml-rhythmgameqml-standardmaincontroller.html#backgroundMusic-prop" translate="no">backgroundMusic</a> to null to omit it. <a href="qml-rhythmgameqml-standardmainactions.html" translate="no">StandardMainActions</a> is also available on its own for menus that only need the actions and Start input.</p>
+<!-- @@@StandardMainController -->
+<h2>Property Documentation</h2>
+<!-- $$$backgroundMusic -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="backgroundMusic-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">backgroundMusic</span> : <span class="type">AudioPlayer</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Looping main-menu music. Its source defaults to the active profile's bgmPath followed by &quot;main&quot;. The player accepts a local file path. Disabling the controller stops playback.</p>
+<p>Customize the player's properties, set it to null, or supply another AudioPlayer. A replacement owns its playback binding and must stop when the controller is disabled.</p>
+</div></div><!-- @@@backgroundMusic -->
+<br/>
+</body>
+</html>

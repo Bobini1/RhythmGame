@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardGameplayTarget.qml -->
+  <meta name="description" content="Supplies the score target and personal best for a gameplay display.">
+  <title>StandardGameplayTarget QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardGameplayTarget</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardGameplayTarget QML Type</h1>
+<!-- $$$StandardGameplayTarget-brief -->
+<p>Supplies the score target and personal best for a gameplay display. <a href="#details">More...</a></p>
+<!-- @@@StandardGameplayTarget -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardgameplaytarget-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplaytarget.html#available-prop" translate="no">available</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplaytarget.html#bestFinalPoints-prop" translate="no">bestFinalPoints</a></b> : real</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplaytarget.html#bestMaxPoints-prop" translate="no">bestMaxPoints</a></b> : real</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplaytarget.html#bestPoints-prop" translate="no">bestPoints</a></b> : real</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplaytarget.html#finalPoints-prop" translate="no">finalPoints</a></b> : real</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplaytarget.html#fraction-prop" translate="no">fraction</a></b> : real</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplaytarget.html#gameplay-prop" translate="no">gameplay</a></b> : GameplayContext</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplaytarget.html#loading-prop" translate="no">loading</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplaytarget.html#mode-prop" translate="no">mode</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplaytarget.html#playerIndex-prop" translate="no">playerIndex</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplaytarget.html#points-prop" translate="no">points</a></b> : real</li>
+</ul>
+<!-- $$$StandardGameplayTarget-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Bind <a href="qml-rhythmgameqml-standardgameplaytarget.html#gameplay-prop" translate="no">gameplay</a> to the screen context and choose <a href="qml-rhythmgameqml-standardgameplaytarget.html#playerIndex-prop" translate="no">playerIndex</a> for battle. The component follows the player's score-target settings. It loads saved scores for each course stage, chooses the best or latest run, and advances recorded targets as the player consumes notes. Scores without a recording use their final score rate multiplied by the points available so far.</p>
+<p>Battle uses the other player's current score. Arena uses the session's opponent target, and <a href="qml-rhythmgameqml-standardgameplaytarget.html#available-prop" translate="no">available</a> is false until that target is available. Local play uses <a href="qml-rhythmgameqml-standardgameplaytarget.html#mode-prop" translate="no">mode</a> and <a href="qml-rhythmgameqml-standardgameplaytarget.html#fraction-prop" translate="no">fraction</a>. Overriding either changes this target display without changing the player's saved settings.</p>
+<p>Bind a graph or label to <a href="qml-rhythmgameqml-standardgameplaytarget.html#points-prop" translate="no">points</a> and <a href="qml-rhythmgameqml-standardgameplaytarget.html#finalPoints-prop" translate="no">finalPoints</a>. The <a href="qml-rhythmgameqml-standardgameplaytarget.html#bestPoints-prop" translate="no">bestPoints</a>, <a href="qml-rhythmgameqml-standardgameplaytarget.html#bestFinalPoints-prop" translate="no">bestFinalPoints</a> and <a href="qml-rhythmgameqml-standardgameplaytarget.html#bestMaxPoints-prop" translate="no">bestMaxPoints</a> properties describe the personal best independently of the chosen target. The component draws nothing. Pending queries are cancelled when the stage changes or it is disabled.</p>
+<!-- @@@StandardGameplayTarget -->
+<h2>Property Documentation</h2>
+<!-- $$$available -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="available-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">available</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Whether the current target can be displayed.</p>
+</div></div><!-- @@@available -->
+<br/>
+<!-- $$$bestFinalPoints -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="bestFinalPoints-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">bestFinalPoints</span> : <span class="type">real</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Final points from the personal best, or zero before scores are loaded.</p>
+</div></div><!-- @@@bestFinalPoints -->
+<br/>
+<!-- $$$bestMaxPoints -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="bestMaxPoints-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">bestMaxPoints</span> : <span class="type">real</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Maximum points for the personal-best score.</p>
+</div></div><!-- @@@bestMaxPoints -->
+<br/>
+<!-- $$$bestPoints -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="bestPoints-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">bestPoints</span> : <span class="type">real</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Personal-best points at the current progress, using a recording when present.</p>
+</div></div><!-- @@@bestPoints -->
+<br/>
+<!-- $$$finalPoints -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="finalPoints-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">finalPoints</span> : <span class="type">real</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Final target points. Live battle opponents have no fixed final target.</p>
+</div></div><!-- @@@finalPoints -->
+<br/>
+<!-- $$$fraction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="fraction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">fraction</span> : <span class="type">real</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Target points as a fraction of maximum points, for example 0.8 for 80%. Used by ScoreTarget.Fraction and when a saved target is unavailable.</p>
+</div></div><!-- @@@fraction -->
+<br/>
+<!-- $$$gameplay -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="gameplay-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">gameplay</span> : <span class="type"><a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies the context for a single chart or course.</p>
+</div></div><!-- @@@gameplay -->
+<br/>
+<!-- $$$loading -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="loading-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">loading</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Whether the selected player's saved scores are being loaded.</p>
+</div></div><!-- @@@loading -->
+<br/>
+<!-- $$$mode -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="mode-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">mode</span> : <span class="type">int</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore or ScoreTarget.NextRank. Defaults to the player's saved choice. An override affects this display only and does not save a profile setting.</p>
+</div></div><!-- @@@mode -->
+<br/>
+<!-- $$$playerIndex -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="playerIndex-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">playerIndex</span> : <span class="type">int</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Player whose profile and progress are used. Zero selects the first player.</p>
+</div></div><!-- @@@playerIndex -->
+<br/>
+<!-- $$$points -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="points-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">points</span> : <span class="type">real</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Current target points, at the player's progress through the chart.</p>
+</div></div><!-- @@@points -->
+<br/>
+</body>
+</html>

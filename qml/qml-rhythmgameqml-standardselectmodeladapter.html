@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardSelectModelAdapter.qml -->
+  <meta name="description" content="Repeats entries to fill the visible rows of a circular selector.">
+  <title>StandardSelectModelAdapter QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardSelectModelAdapter</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardSelectModelAdapter QML Type</h1>
+<!-- $$$StandardSelectModelAdapter-brief -->
+<p>Repeats entries to fill the visible rows of a circular selector. <a href="#details">More...</a></p>
+<!-- @@@StandardSelectModelAdapter -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardselectmodeladapter-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectmodeladapter.html#entries-prop" translate="no">entries</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectmodeladapter.html#minimumCount-prop" translate="no">minimumCount</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectmodeladapter.html#source-prop" translate="no">source</a></b> : var</li>
+</ul>
+<!-- $$$StandardSelectModelAdapter-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Supply a list in <a href="qml-rhythmgameqml-standardselectmodeladapter.html#source-prop" translate="no">source</a> and the number of rows needed in <a href="qml-rhythmgameqml-standardselectmodeladapter.html#minimumCount-prop" translate="no">minimumCount</a>. If the source is already long enough, <a href="qml-rhythmgameqml-standardselectmodeladapter.html#entries-prop" translate="no">entries</a> contains it unchanged. Otherwise, complete copies of the list are repeated until the minimum is met. An empty source produces null placeholders, with at least one row. These placeholders belong only to the presentation model.</p>
+<p>Repeated entries still refer to the same items. The adapter doesn't clone objects or track focus. A normal list can use <a href="qml-rhythmgameqml-standardselectstate.html#entries-prop" translate="no">StandardSelectState::entries</a> directly without this adapter.</p>
+<!-- @@@StandardSelectModelAdapter -->
+<h2>Property Documentation</h2>
+<!-- $$$entries -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="entries-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">entries</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Contains repeated source entries, or null placeholders for an empty source.</p>
+</div></div><!-- @@@entries -->
+<br/>
+<!-- $$$minimumCount -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="minimumCount-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">minimumCount</span> : <span class="type">int</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Sets the minimum number of rows needed by the view.</p>
+</div></div><!-- @@@minimumCount -->
+<br/>
+<!-- $$$source -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="source-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">source</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies the source list, with one entry per item.</p>
+</div></div><!-- @@@source -->
+<br/>
+</body>
+</html>

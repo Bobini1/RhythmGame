@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardRanking.qml -->
+  <meta name="description" content="Loads a chart's online ranking and opens its ranking website.">
+  <title>StandardRanking QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardRanking</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#signals">Signals</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+<li class="level2"><a href="#display-a-ranking">Display a ranking</a></li>
+<li class="level2"><a href="#open-the-website">Open the website</a></li>
+<li class="level2"><a href="#change-the-provider">Change the provider</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardRanking QML Type</h1>
+<!-- $$$StandardRanking-brief -->
+<p>Loads a chart's online ranking and opens its ranking website. <a href="#details">More...</a></p>
+<!-- @@@StandardRanking -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardranking-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#available-prop" translate="no">available</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#bestClearTypeResult-prop" translate="no">bestClearTypeResult</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#bestPointsResult-prop" translate="no">bestPointsResult</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#chartData-prop" translate="no">chartData</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#clearCounts-prop" translate="no">clearCounts</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#entries-prop" translate="no">entries</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#entriesEnabled-prop" translate="no">entriesEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#loading-prop" translate="no">loading</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#md5-prop" translate="no">md5</a></b> : string</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#openUrlAction-prop" translate="no">openUrlAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#opening-prop" translate="no">opening</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#playerCount-prop" translate="no">playerCount</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#position-prop" translate="no">position</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#previousPosition-prop" translate="no">previousPosition</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#profile-prop" translate="no">profile</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#provider-prop" translate="no">provider</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#score-prop" translate="no">score</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#tachiGameId-prop" translate="no">tachiGameId</a></b> : string</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#url-prop" translate="no">url</a></b> : string</li>
+</ul>
+<h2 id="signals">Signals</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#openFailed-signal" translate="no">openFailed</a></b>()</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#open-method" translate="no">open</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardranking.html#refresh-method" translate="no">refresh</a></b>()</li>
+</ul>
+<!-- $$$StandardRanking-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Set <a href="qml-rhythmgameqml-standardranking.html#chartData-prop" translate="no">chartData</a> to the chart you want to display. The active profile supplies the account, server and provider by default. <a href="qml-rhythmgameqml-standardselectcontroller.html" translate="no">StandardSelectController</a> already includes this component as <code translate="no">ranking</code>. For a result screen, create one per player and also set <a href="qml-rhythmgameqml-standardranking.html#profile-prop" translate="no">profile</a> and <a href="qml-rhythmgameqml-standardranking.html#score-prop" translate="no">score</a>. Course summaries have no ranking; individual course stages do.</p>
+<h2 id="display-a-ranking">Display a ranking</h2>
+<p>Check <a href="qml-rhythmgameqml-standardranking.html#available-prop" translate="no">available</a>, then bind your display to <a href="qml-rhythmgameqml-standardranking.html#entries-prop" translate="no">entries</a>, <a href="qml-rhythmgameqml-standardranking.html#position-prop" translate="no">position</a>, <a href="qml-rhythmgameqml-standardranking.html#playerCount-prop" translate="no">playerCount</a> and <a href="qml-rhythmgameqml-standardranking.html#loading-prop" translate="no">loading</a>. Positions start at one; zero means the player has no entry. <a href="qml-rhythmgameqml-standardranking.html#clearCounts-prop" translate="no">clearCounts</a> supplies totals by clear type.</p>
+<p>LR2IR entries include the profile's local best score because LR2IR cannot identify that profile's account. Saves and imports update the local data. On results, score submission refreshes the ranking. <a href="qml-rhythmgameqml-standardranking.html#previousPosition-prop" translate="no">previousPosition</a> compares the earlier best score against the current opponents.</p>
+<h2 id="open-the-website">Open the website</h2>
+<p>Call <a href="qml-rhythmgameqml-standardranking.html#open-method" translate="no">open</a> from a button. Set <a href="qml-rhythmgameqml-standardranking.html#entriesEnabled-prop" translate="no">entriesEnabled</a> to false if you only need the link; this avoids downloading the leaderboard. Tachi may still need a chart-ID lookup. <a href="qml-rhythmgameqml-standardranking.html#opening-prop" translate="no">opening</a> reports that wait, and <a href="qml-rhythmgameqml-standardranking.html#openFailed-signal" translate="no">openFailed</a> reports a failed lookup or browser open.</p>
+<p>Changing the chart, provider or profile, or disabling the component, cancels a pending website request.</p>
+<h2 id="change-the-provider">Change the provider</h2>
+<p>Override <a href="qml-rhythmgameqml-standardranking.html#provider-prop" translate="no">provider</a> or <a href="qml-rhythmgameqml-standardranking.html#url-prop" translate="no">url</a> for this display, or <a href="qml-rhythmgameqml-standardranking.html#openUrlAction-prop" translate="no">openUrlAction</a> to handle the link yourself. These overrides do not save a profile preference. To save the user's provider choice, set <code translate="no">profile.vars.generalVars.rankingProvider</code>.</p>
+<!-- @@@StandardRanking -->
+<h2>Property Documentation</h2>
+<!-- $$$available -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="available-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">available</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Whether the current selection has a supported ranking provider.</p>
+</div></div><!-- @@@available -->
+<br/>
+<!-- $$$bestClearTypeResult -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="bestClearTypeResult-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">bestClearTypeResult</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Best local clear score, including score when supplied.</p>
+</div></div><!-- @@@bestClearTypeResult -->
+<br/>
+<!-- $$$bestPointsResult -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="bestPointsResult-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">bestPointsResult</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Best local points score, including score when supplied.</p>
+</div></div><!-- @@@bestPointsResult -->
+<br/>
+<!-- $$$chartData -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="chartData-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">chartData</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Chart metadata, or null when a folder or course is selected.</p>
+</div></div><!-- @@@chartData -->
+<br/>
+<!-- $$$clearCounts -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="clearCounts-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">clearCounts</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Map from clear-type strings to row counts. Use zero for a missing key.</p>
+</div></div><!-- @@@clearCounts -->
+<br/>
+<!-- $$$entries -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="entries-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">entries</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Ranking rows, including the local best score for LR2IR. Each row has userId, userName, bestPoints and bestClearType fields. Empty when disabled, unsupported, or <a href="qml-rhythmgameqml-standardranking.html#entriesEnabled-prop" translate="no">entriesEnabled</a> is false.</p>
+</div></div><!-- @@@entries -->
+<br/>
+<!-- $$$entriesEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="entriesEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">entriesEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls leaderboard loading. The open action remains available when false.</p>
+</div></div><!-- @@@entriesEnabled -->
+<br/>
+<!-- $$$loading -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="loading-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">loading</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Whether ranking data or the previous result position is being loaded.</p>
+</div></div><!-- @@@loading -->
+<br/>
+<!-- $$$md5 -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="md5-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">md5</span> : <span class="type">string</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Chart hash used by the ranking. Empty for unsupported selections.</p>
+</div></div><!-- @@@md5 -->
+<br/>
+<!-- $$$openUrlAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openUrlAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openUrlAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">openUrlAction(websiteUrl)</code> instead of opening the browser. Return false on failure; any other return value counts as handled.</p>
+</div></div><!-- @@@openUrlAction -->
+<br/>
+<!-- $$$opening -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="opening-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">opening</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Whether open is waiting for a website link.</p>
+</div></div><!-- @@@opening -->
+<br/>
+<!-- $$$playerCount -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="playerCount-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">playerCount</span> : <span class="type">int</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Number of rows, including the local LR2IR entry when present.</p>
+</div></div><!-- @@@playerCount -->
+<br/>
+<!-- $$$position -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="position-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">position</span> : <span class="type">int</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>The profile's position, or zero if it has no entry.</p>
+</div></div><!-- @@@position -->
+<br/>
+<!-- $$$previousPosition -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="previousPosition-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">previousPosition</span> : <span class="type">int</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Position of the player's earlier best score among the current opponents. Zero means no earlier score is available. This is not a historical snapshot of all players' ranks.</p>
+</div></div><!-- @@@previousPosition -->
+<br/>
+<!-- $$$profile -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="profile-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">profile</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Profile whose account, saved scores and server settings are used.</p>
+</div></div><!-- @@@profile -->
+<br/>
+<!-- $$$provider -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="provider-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">provider</span> : <span class="type">int</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>OnlineRankingModel.RhythmGame, OnlineRankingModel.Tachi or OnlineRankingModel.LR2IR. Follows the profile's choice unless overridden.</p>
+</div></div><!-- @@@provider -->
+<br/>
+<!-- $$$score -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="score-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">score</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Normal chart score being shown on a result screen, or null on selection.</p>
+</div></div><!-- @@@score -->
+<br/>
+<!-- $$$tachiGameId -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="tachiGameId-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">tachiGameId</span> : <span class="type">string</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Resolved Tachi game ID, such as bms-7k. Empty before it is known.</p>
+</div></div><!-- @@@tachiGameId -->
+<br/>
+<!-- $$$url -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="url-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">url</span> : <span class="type">string</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Website link. Tachi's link is empty until its chart ID is resolved.</p>
+</div></div><!-- @@@url -->
+<br/>
+<h2>Signal Documentation</h2>
+<!-- $$$openFailed[overload1]$$$openFailed -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openFailed-signal">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openFailed</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Emitted when a requested website lookup or open operation fails.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onOpenFailed</code>.</p>
+</div></div></div><!-- @@@openFailed -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$open[overload1]$$$open -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="open-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">open</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens the ranking page. True means the request was accepted, possibly with a pending Tachi lookup. False means unavailable or not handled. Handle <a href="qml-rhythmgameqml-standardranking.html#openFailed-signal" translate="no">openFailed</a> for a failed lookup or browser open.</p>
+</div></div><!-- @@@open -->
+<br/>
+<!-- $$$refresh[overload1]$$$refresh -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="refresh-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">refresh</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Reloads ranking data for the current chart and profile.</p>
+</div></div><!-- @@@refresh -->
+<br/>
+</body>
+</html>

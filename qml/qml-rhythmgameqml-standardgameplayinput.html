@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardGameplayInput.qml -->
+  <meta name="description" content="Maps gameplay exit, retry, and speed and cover adjustments.">
+  <title>StandardGameplayInput QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardGameplayInput</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#signals">Signals</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardGameplayInput QML Type</h1>
+<!-- $$$StandardGameplayInput-brief -->
+<p>Maps gameplay exit, retry, and speed and cover adjustments. <a href="#details">More...</a></p>
+<!-- @@@StandardGameplayInput -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardgameplayinput-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayinput.html#exitEnabled-prop" translate="no">exitEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayinput.html#gameplay-prop" translate="no">gameplay</a></b> : GameplayContext</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayinput.html#retryAction-prop" translate="no">retryAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayinput.html#retryAvailable-prop" translate="no">retryAvailable</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayinput.html#retryChoosing-prop" translate="no">retryChoosing</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayinput.html#retryEnabled-prop" translate="no">retryEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayinput.html#retryHoldDurationMillis-prop" translate="no">retryHoldDurationMillis</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayinput.html#speedControlsEnabled-prop" translate="no">speedControlsEnabled</a></b> : bool</li>
+</ul>
+<h2 id="signals">Signals</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayinput.html#exitRequested-signal" translate="no">exitRequested</a></b>()</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayinput.html#cancelRetry-method" translate="no">cancelRetry</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayinput.html#exit-method" translate="no">exit</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayinput.html#retry-method" translate="no">retry</a></b>(<i>samePattern</i>)</li>
+</ul>
+<!-- $$$StandardGameplayInput-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Use <a href="qml-rhythmgameqml-standardgameplayflow.html" translate="no">StandardGameplayFlow</a> for a complete gameplay screen. It already includes this component. Use StandardGameplayInput separately only when your theme supplies its own gameplay flow. Handle <a href="qml-rhythmgameqml-standardgameplayinput.html#exitRequested-signal" translate="no">exitRequested</a> to leave gameplay or finish the stage. This component does not save scores or open results. It includes <a href="qml-rhythmgameqml-standardgameplayspeedcontrols.html" translate="no">StandardGameplaySpeedControls</a>. Set <a href="qml-rhythmgameqml-standardgameplayinput.html#speedControlsEnabled-prop" translate="no">speedControlsEnabled</a> to false when supplying different speed or cover input handling.</p>
+<p>Hold Start+Select for <a href="qml-rhythmgameqml-standardgameplayinput.html#retryHoldDurationMillis-prop" translate="no">retryHoldDurationMillis</a> to enter <a href="qml-rhythmgameqml-standardgameplayinput.html#retryChoosing-prop" translate="no">retryChoosing</a>. Release Start for the same pattern, Select for fresh randomization, or both to cancel. While choosing, exit is blocked. Delay completion and disable your other controls with <code translate="no">!retryChoosing</code>, but leave this component enabled so it can receive the releases.</p>
+<p><a href="qml-rhythmgameqml-standardgameplayinput.html#retryEnabled-prop" translate="no">retryEnabled</a> and <a href="qml-rhythmgameqml-standardgameplayinput.html#exitEnabled-prop" translate="no">exitEnabled</a> disable the corresponding methods and input mappings. <a href="qml-rhythmgameqml-standardgameplayinput.html#retryAction-prop" translate="no">retryAction</a> replaces restarting, and <a href="qml-rhythmgameqml-standardgameplayinput.html#retry-method" translate="no">retry</a> can also be called by a button. Standard retry excludes courses, autoplay, replay, battle and Arena. Use <a href="qml-rhythmgameqml-standardchartretry.html" translate="no">StandardChartRetry</a> if you only need the retry operation.</p>
+<!-- @@@StandardGameplayInput -->
+<h2>Property Documentation</h2>
+<!-- $$$exitEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="exitEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">exitEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether Escape and calls to <a href="qml-rhythmgameqml-standardgameplayinput.html#exit-method" translate="no">exit</a> are accepted.</p>
+</div></div><!-- @@@exitEnabled -->
+<br/>
+<!-- $$$gameplay -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="gameplay-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">gameplay</span> : <span class="type"><a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies the <a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a> received by the gameplay screen.</p>
+</div></div><!-- @@@gameplay -->
+<br/>
+<!-- $$$retryAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="retryAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">retryAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">retryAction(samePattern)</code> in place of restarting.</p>
+</div></div><!-- @@@retryAction -->
+<br/>
+<!-- $$$retryAvailable -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="retryAvailable-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">retryAvailable</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Whether a retry button or gesture can request a supported restart now.</p>
+</div></div><!-- @@@retryAvailable -->
+<br/>
+<!-- $$$retryChoosing -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="retryChoosing-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">retryChoosing</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Reports whether the Start+Select gesture is waiting for a release choice.</p>
+</div></div><!-- @@@retryChoosing -->
+<br/>
+<!-- $$$retryEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="retryEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">retryEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether retry and the Start+Select gesture are enabled.</p>
+</div></div><!-- @@@retryEnabled -->
+<br/>
+<!-- $$$retryHoldDurationMillis -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="retryHoldDurationMillis-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">retryHoldDurationMillis</span> : <span class="type">int</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Start+Select hold duration before choosing a retry, in milliseconds.</p>
+</div></div><!-- @@@retryHoldDurationMillis -->
+<br/>
+<!-- $$$speedControlsEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="speedControlsEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">speedControlsEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Enables <a href="qml-rhythmgameqml-standardgameplayspeedcontrols.html" translate="no">StandardGameplaySpeedControls</a>. Disable when supplying your own speed/cover input.</p>
+</div></div><!-- @@@speedControlsEnabled -->
+<br/>
+<h2>Signal Documentation</h2>
+<!-- $$$exitRequested[overload1]$$$exitRequested -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="exitRequested-signal">
+<td class="tblQmlFuncNode"><p>
+<span class="name">exitRequested</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Emitted by Escape or <a href="qml-rhythmgameqml-standardgameplayinput.html#exit-method" translate="no">exit</a>. The owning flow decides how to leave.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onExitRequested</code>.</p>
+</div></div></div><!-- @@@exitRequested -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$cancelRetry[overload1]$$$cancelRetry -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="cancelRetry-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">cancelRetry</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Cancels the hold/release choice.</p>
+</div></div><!-- @@@cancelRetry -->
+<br/>
+<!-- $$$exit[overload1]$$$exit -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="exit-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">exit</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Emits <a href="qml-rhythmgameqml-standardgameplayinput.html#exitRequested-signal" translate="no">exitRequested</a>() if exit input is allowed.</p>
+</div></div><!-- @@@exit -->
+<br/>
+<!-- $$$retry[overload1]$$$retry -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="retry-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">retry</span>(<i>samePattern</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Retries with the same pattern if <i translate="no">samePattern</i> is true, or a fresh one.</p>
+</div></div><!-- @@@retry -->
+<br/>
+</body>
+</html>

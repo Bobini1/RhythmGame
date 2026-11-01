@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -95,6 +95,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a4cc44cd754f328b4f7f5f2f5a8b145a5" id="r_a4cc44cd754f328b4f7f5f2f5a8b145a5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsupport_1_1PendingReplySource.html#a4cc44cd754f328b4f7f5f2f5a8b145a5">succeed</a> (const T &amp;<a class="el" href="BmsNotesData_8cpp.html#aee90379adb0307effb138f4871edbc5c">value</a>) const</td></tr>
 <tr class="memdesc:a4cc44cd754f328b4f7f5f2f5a8b145a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempts to settle the reply successfully with <code>value</code>.  <br /></td></tr>
 <tr class="separator:a4cc44cd754f328b4f7f5f2f5a8b145a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5d685d3f765129d86204b2bc4da2ea1" id="r_ac5d685d3f765129d86204b2bc4da2ea1"><td class="memTemplParams" colspan="2">template&lt;typename Object &gt; <br />
+requires std::is_base_of_v&lt;QObject, Object&gt; &amp;&amp; (std::is_same_v&lt;T, QVariant&gt; || std::is_convertible_v&lt;Object*, T&gt;)</td></tr>
+<tr class="memitem:ac5d685d3f765129d86204b2bc4da2ea1"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classsupport_1_1PendingReplySource.html#ac5d685d3f765129d86204b2bc4da2ea1">succeed</a> (std::unique_ptr&lt; Object &gt; object) const</td></tr>
+<tr class="separator:ac5d685d3f765129d86204b2bc4da2ea1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab1ab2b6717281ebda3bdfef8890c0cd1" id="r_ab1ab2b6717281ebda3bdfef8890c0cd1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsupport_1_1PendingReplySource.html#ab1ab2b6717281ebda3bdfef8890c0cd1">fail</a> () const</td></tr>
 <tr class="memdesc:ab1ab2b6717281ebda3bdfef8890c0cd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempts to settle the reply as a failure without requesting cancellation.  <br /></td></tr>
 <tr class="separator:ab1ab2b6717281ebda3bdfef8890c0cd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -284,7 +288,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a4cc44cd754f328b4f7f5f2f5a8b145a5" name="a4cc44cd754f328b4f7f5f2f5a8b145a5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4cc44cd754f328b4f7f5f2f5a8b145a5">&#9670;&#160;</a></span>succeed()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a4cc44cd754f328b4f7f5f2f5a8b145a5">&#9670;&#160;</a></span>succeed() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -313,6 +317,38 @@ template&lt;typename T &gt; </div>
 <dl class="section return"><dt>Returns</dt><dd>True only when this call supplies the first terminal result. Returns false when the reply is gone or already settled.</dd></dl>
 <dl class="section note"><dt>Note</dt><dd>This function does not change ownership of QObject pointer values. A producer transferring an owned QObject result must select its QObject ownership separately and relinquish producer cleanup only when this function returns true; a rejected result remains the producer's responsibility. </dd></dl>
 <dl class="section pre"><dt>Precondition</dt><dd>Called on the application thread. </dd></dl>
+
+</div>
+</div>
+<a id="ac5d685d3f765129d86204b2bc4da2ea1" name="ac5d685d3f765129d86204b2bc4da2ea1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5d685d3f765129d86204b2bc4da2ea1">&#9670;&#160;</a></span>succeed() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+<div class="memtemplate">
+template&lt;typename Object &gt; <br />
+requires std::is_base_of_v&lt;QObject, Object&gt; &amp;&amp; (std::is_same_v&lt;T, QVariant&gt; || std::is_convertible_v&lt;Object*, T&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="classsupport_1_1PendingReplySource.html">support::PendingReplySource</a>&lt; T &gt;::succeed </td>
+          <td>(</td>
+          <td class="paramtype">std::unique_ptr&lt; Object &gt;&#160;</td>
+          <td class="paramname"><em>object</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Transfers an independent QObject result. A QML caller can retain either the reply or the value. A native caller borrows it from the reply, or gives it another QObject parent before deleting the reply. Rejected deliveries are destroyed here. </p>
 
 </div>
 </div>

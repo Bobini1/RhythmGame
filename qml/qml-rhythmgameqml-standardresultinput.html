@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardResultInput.qml -->
+  <meta name="description" content="Handles Continue and Retry actions on a result screen.">
+  <title>StandardResultInput QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardResultInput</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+<li class="level2"><a href="#confirm-or-close">Confirm or close</a></li>
+<li class="level2"><a href="#retry-a-chart">Retry a chart</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardResultInput QML Type</h1>
+<!-- $$$StandardResultInput-brief -->
+<p>Handles Continue and Retry actions on a result screen. <a href="#details">More...</a></p>
+<!-- @@@StandardResultInput -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardresultinput-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#acceptsInput-prop" translate="no">acceptsInput</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#closeAction-prop" translate="no">closeAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#confirmEnabled-prop" translate="no">confirmEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#controllerEnabled-prop" translate="no">controllerEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#inputDelayMillis-prop" translate="no">inputDelayMillis</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#result-prop" translate="no">result</a></b> : QtObject</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#retryAvailable-prop" translate="no">retryAvailable</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#retryEnabled-prop" translate="no">retryEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#tryHandleButtonAction-prop" translate="no">tryHandleButtonAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#tryRetryAction-prop" translate="no">tryRetryAction</a></b> : var</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#close-method" translate="no">close</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#confirm-method" translate="no">confirm</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#handleButton-method" translate="no">handleButton</a></b>(<i>key</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardresultinput.html#retry-method" translate="no">retry</a></b>(<i>samePattern</i>)</li>
+</ul>
+<!-- $$$StandardResultInput-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Bind <a href="qml-rhythmgameqml-standardresultinput.html#result-prop" translate="no">result</a> to the supplied <a href="qml-rhythmgameqml-resultcontext.html" translate="no">ResultContext</a> or <a href="qml-rhythmgameqml-courseresultcontext.html" translate="no">CourseResultContext</a>. The component draws no controls. A Continue button calls <a href="qml-rhythmgameqml-standardresultinput.html#confirm-method" translate="no">confirm</a> and binds its enabled state to <code translate="no">acceptsInput &amp;&amp; confirmEnabled</code>. See the <a href="../theme_tutorial_results.html">result lesson</a> for complete screens.</p>
+<h2 id="confirm-or-close">Confirm or close</h2>
+<p>Input waits for <a href="qml-rhythmgameqml-standardresultinput.html#inputDelayMillis-prop" translate="no">inputDelayMillis</a> after the screen becomes active. <a href="qml-rhythmgameqml-standardresultinput.html#acceptsInput-prop" translate="no">acceptsInput</a> reports when this delay has passed.</p>
+<p>Return and <a href="qml-rhythmgameqml-standardresultinput.html#confirm-method" translate="no">confirm</a> also require <a href="qml-rhythmgameqml-standardresultinput.html#confirmEnabled-prop" translate="no">confirmEnabled</a>. By default this is false while the matching Arena result's chat is open, so Return sends a message without closing the result. Escape and <a href="qml-rhythmgameqml-standardresultinput.html#close-method" translate="no">close</a> bypass that confirmation rule, but still wait for the input delay.</p>
+<p><a href="qml-rhythmgameqml-standardresultinput.html#controllerEnabled-prop" translate="no">controllerEnabled</a> controls bound game buttons independently of Return, Escape and calls from your own buttons. Start closes the result. Other bound keys first call <a href="qml-rhythmgameqml-standardresultinput.html#tryHandleButtonAction-prop" translate="no">tryHandleButtonAction</a>, then try retry, then close for a standard play key. Use that callback for actions such as cycling gauges.</p>
+<h2 id="retry-a-chart">Retry a chart</h2>
+<p>Bind retry buttons to <a href="qml-rhythmgameqml-standardresultinput.html#retryAvailable-prop" translate="no">retryAvailable</a>. Call <a href="qml-rhythmgameqml-standardresultinput.html#retry-method" translate="no">retry</a> with false for a new random pattern or true for the same pattern. Bound keys 5 and 7 use these same actions on either player side.</p>
+<p>Standard retry is unavailable for courses, autoplay, replay, battle and Arena. <a href="qml-rhythmgameqml-standardresultinput.html#tryRetryAction-prop" translate="no">tryRetryAction</a> can handle a request before <a href="qml-rhythmgameqml-standardchartretry.html" translate="no">StandardChartRetry</a>. <a href="qml-rhythmgameqml-standardresultinput.html#closeAction-prop" translate="no">closeAction</a> replaces closing the result entirely. Return true from a <code translate="no">try...Action</code> callback when it handled the request; return false to let the standard action continue.</p>
+<!-- @@@StandardResultInput -->
+<h2>Property Documentation</h2>
+<!-- $$$acceptsInput -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="acceptsInput-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">acceptsInput</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Reports whether result input currently accepts actions.</p>
+</div></div><!-- @@@acceptsInput -->
+<br/>
+<!-- $$$closeAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="closeAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">closeAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">closeAction()</code> in place of closing the result.</p>
+</div></div><!-- @@@closeAction -->
+<br/>
+<!-- $$$confirmEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="confirmEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">confirmEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Enables keyboard and pointer confirmation. Defaults to false while this result's Arena chat is open.</p>
+</div></div><!-- @@@confirmEnabled -->
+<br/>
+<!-- $$$controllerEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="controllerEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">controllerEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether BMS-controller input is active.</p>
+</div></div><!-- @@@controllerEnabled -->
+<br/>
+<!-- $$$inputDelayMillis -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="inputDelayMillis-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">inputDelayMillis</span> : <span class="type">int</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Delay before result input becomes active, in milliseconds.</p>
+</div></div><!-- @@@inputDelayMillis -->
+<br/>
+<!-- $$$result -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="result-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">result</span> : <span class="type">QtObject</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies the <a href="qml-rhythmgameqml-resultcontext.html" translate="no">ResultContext</a> or <a href="qml-rhythmgameqml-courseresultcontext.html" translate="no">CourseResultContext</a> received by the screen.</p>
+</div></div><!-- @@@result -->
+<br/>
+<!-- $$$retryAvailable -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="retryAvailable-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">retryAvailable</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Whether a supported retry can be requested now, including the input delay.</p>
+</div></div><!-- @@@retryAvailable -->
+<br/>
+<!-- $$$retryEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="retryEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">retryEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls retries from both buttons and bound controller input.</p>
+</div></div><!-- @@@retryEnabled -->
+<br/>
+<!-- $$$tryHandleButtonAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="tryHandleButtonAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">tryHandleButtonAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Called as <code translate="no">tryHandleButtonAction(key)</code>. Return true to handle the request, or false to continue with the standard action.</p>
+</div></div><!-- @@@tryHandleButtonAction -->
+<br/>
+<!-- $$$tryRetryAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="tryRetryAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">tryRetryAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Called as <code translate="no">tryRetryAction(samePattern)</code>. Return true to handle the request, or false to continue with the standard action.</p>
+</div></div><!-- @@@tryRetryAction -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$close[overload1]$$$close -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="close-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">close</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Closes the result screen when input is accepted.</p>
+</div></div><!-- @@@close -->
+<br/>
+<!-- $$$confirm[overload1]$$$confirm -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="confirm-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">confirm</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Confirms and closes from keyboard or theme-provided pointer input.</p>
+</div></div><!-- @@@confirm -->
+<br/>
+<!-- $$$handleButton[overload1]$$$handleButton -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="handleButton-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">handleButton</span>(<i>key</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Handles a standard result-screen <i translate="no">key</i>.</p>
+</div></div><!-- @@@handleButton -->
+<br/>
+<!-- $$$retry[overload1]$$$retry -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="retry-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">retry</span>(<i>samePattern</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Retries with the same pattern when <i translate="no">samePattern</i> is true, or fresh randomization otherwise.</p>
+</div></div><!-- @@@retry -->
+<br/>
+</body>
+</html>

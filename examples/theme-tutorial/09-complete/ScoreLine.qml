@@ -1,0 +1,27 @@
+import QtQuick
+import QtQuick.Controls.FluentWinUI3
+import QtQuick.Layouts
+
+// [score-line]
+ColumnLayout {
+    id: line
+
+    required property string playerLabel
+    required property var score
+
+    Label {
+        Layout.fillWidth: true
+        text: line.playerLabel
+        font.bold: true
+    }
+
+    Label {
+        Layout.fillWidth: true
+        text: qsTr("%1 / %2 points, %3")
+            .arg(line.score.result.points)
+            .arg(line.score.result.maxPoints)
+            .arg(line.score.result.clearType)
+        wrapMode: Text.Wrap
+    }
+}
+// [score-line]

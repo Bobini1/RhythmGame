@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['development_0',['development',['../md_DEV__ENGINE.html',1,'Engine Development'],['../md_DEV__THEME.html',1,'Theme Development']]]
+  ['3_20read_20a_20profile_20and_20save_20a_20theme_20setting_0',['3. Read a profile and save a theme setting',['../theme_tutorial_rg.html',1,'theme_tutorial']]]
 ];

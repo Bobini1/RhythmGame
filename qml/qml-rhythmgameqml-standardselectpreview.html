@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardSelectPreview.qml -->
+  <meta name="description" content="Plays the focused chart's preview after a short delay.">
+  <title>StandardSelectPreview QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardSelectPreview</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardSelectPreview QML Type</h1>
+<!-- $$$StandardSelectPreview-brief -->
+<p>Plays the focused chart's preview after a short delay. <a href="#details">More...</a></p>
+<!-- @@@StandardSelectPreview -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardselectpreview-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectpreview.html#chartAudioEnabled-prop" translate="no">chartAudioEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectpreview.html#chartData-prop" translate="no">chartData</a></b> : ChartData</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectpreview.html#delayMillis-prop" translate="no">delayMillis</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectpreview.html#fadeInMillis-prop" translate="no">fadeInMillis</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectpreview.html#moving-prop" translate="no">moving</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectpreview.html#playing-prop" translate="no">playing</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectpreview.html#previewSource-prop" translate="no">previewSource</a></b> : string</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectpreview.html#selectState-prop" translate="no">selectState</a></b> : StandardSelectState</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectpreview.html#volume-prop" translate="no">volume</a></b> : real</li>
+</ul>
+<!-- $$$StandardSelectPreview-description -->
+<h2 id="details">Detailed Description</h2>
+<p><a href="qml-rhythmgameqml-standardselectcontroller.html" translate="no">StandardSelectController</a> includes this component as its preview property and coordinates it with background music. Customize that property instead of adding a second preview player.</p>
+<p>For a custom selector, set <a href="qml-rhythmgameqml-standardselectpreview.html#selectState-prop" translate="no">selectState</a> to a <a href="qml-rhythmgameqml-standardselectstate.html" translate="no">StandardSelectState</a>. The component uses its focused chart and discovered preview file. Without a preview file, it plays the chart's audio through ChartAudioPlayer, which does not load BGA. Set <a href="qml-rhythmgameqml-standardselectpreview.html#chartAudioEnabled-prop" translate="no">chartAudioEnabled</a> to false to omit that fallback. For custom browsing, supply <a href="qml-rhythmgameqml-standardselectpreview.html#chartData-prop" translate="no">chartData</a> and <a href="qml-rhythmgameqml-standardselectpreview.html#previewSource-prop" translate="no">previewSource</a> directly.</p>
+<p>Bind <a href="qml-rhythmgameqml-standardselectpreview.html#moving-prop" translate="no">moving</a> to your list's movement state to wait until scrolling stops. Changing the source cancels the previous load and starts the delay again. Disabling the component stops audio and clears its sources. Bind a theme's background music to the inverse of <a href="qml-rhythmgameqml-standardselectpreview.html#playing-prop" translate="no">playing</a> if it should stop during previews, for example <code translate="no">screen.enabled &amp;&amp; !preview.playing</code>.</p>
+<!-- @@@StandardSelectPreview -->
+<h2>Property Documentation</h2>
+<!-- $$$chartAudioEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="chartAudioEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">chartAudioEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Allows audio-only chart playback when no preview file is present.</p>
+</div></div><!-- @@@chartAudioEnabled -->
+<br/>
+<!-- $$$chartData -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="chartData-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">chartData</span> : <span class="type">ChartData</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Chart to preview. Follows the selection unless supplied directly.</p>
+</div></div><!-- @@@chartData -->
+<br/>
+<!-- $$$delayMillis -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="delayMillis-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">delayMillis</span> : <span class="type">int</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Delay after the source changes or scrolling stops, in milliseconds.</p>
+</div></div><!-- @@@delayMillis -->
+<br/>
+<!-- $$$fadeInMillis -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="fadeInMillis-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">fadeInMillis</span> : <span class="type">int</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Fade-in duration for either kind of preview, in milliseconds.</p>
+</div></div><!-- @@@fadeInMillis -->
+<br/>
+<!-- $$$moving -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="moving-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">moving</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Delays a pending preview while the theme's list is moving.</p>
+</div></div><!-- @@@moving -->
+<br/>
+<!-- $$$playing -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="playing-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">playing</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Whether loaded preview audio is currently playing.</p>
+</div></div><!-- @@@playing -->
+<br/>
+<!-- $$$previewSource -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="previewSource-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">previewSource</span> : <span class="type">string</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Preview file or song-asset source. Empty enables the chart-audio fallback.</p>
+</div></div><!-- @@@previewSource -->
+<br/>
+<!-- $$$selectState -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="selectState-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">selectState</span> : <span class="type"><a href="qml-rhythmgameqml-standardselectstate.html" translate="no">StandardSelectState</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies the current chart and preview paths. Optional for custom browsing.</p>
+</div></div><!-- @@@selectState -->
+<br/>
+<!-- $$$volume -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="volume-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">volume</span> : <span class="type">real</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Playback volume, from zero to one.</p>
+</div></div><!-- @@@volume -->
+<br/>
+</body>
+</html>

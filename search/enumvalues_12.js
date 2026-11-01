@@ -12,6 +12,6 @@ var searchData=
   ['titletyperole_9',['titletyperole',['../classLr2SelectBarModel.html#a25a41f80af69df74bf1ce52e0b03c544a87e8f3ac8e87c7ed3c1fb24fddd75282',1,'Lr2SelectBarModel::TitleTypeRole'],['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a49646c5207dbd06d79c5980b8b76f1fe',1,'Lr2SelectItemModel::TitleTypeRole']]],
   ['tlsfailed_10',['TlsFailed',['../classarena_1_1ArenaTransport.html#af58d489751758c249f0adcc385e3cb23ae58729c639c5883e015c8718ca62db4a',1,'arena::ArenaTransport']]],
   ['toomanycharts_11',['TooManyCharts',['../namespacearena.html#a39157bb6623b3176a6cf447f71a3c3e4a2f11dc03c5559018ec5772389effb5f4',1,'arena']]],
-  ['totalnotes_12',['TotalNotes',['../namespaceresource__managers_1_1select__sort__mode.html#a6a1dbecf9939d2bdabf678269921d950adf285e6e1883bb0b03b0749f915903fd',1,'resource_managers::select_sort_mode']]],
+  ['total_12',['Total',['../namespaceresource__managers_1_1select__sort__mode.html#a6a1dbecf9939d2bdabf678269921d950a96b0141273eabab320119c467cdcaf17',1,'resource_managers::select_sort_mode']]],
   ['typerole_13',['TypeRole',['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a7d981e12ba4ce6936f30fe360133c2c8a058b24f534021677bce92d5bfa4cf59a',1,'gameplay_logic::lr2_skin::Lr2SkinModel']]]
 ];

@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -78,8 +78,10 @@ $(function() {
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#signals">Signals</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="#properties">Properties</a> &#124;
+<a href="#friends">Friends</a> &#124;
 <a href="classresource__managers_1_1Profile-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">resource_managers::Profile Class Reference<span class="mlabels"><span class="mlabel">final</span></span></div></div>
 </div><!--header-->
@@ -136,6 +138,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a6285b1aca43e08b598fc0a6ae38b8e34" id="r_a6285b1aca43e08b598fc0a6ae38b8e34"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a6285b1aca43e08b598fc0a6ae38b8e34">Profile</a> (const std::filesystem::path &amp;mainDbPath, const std::filesystem::path &amp;dbPath, const QMap&lt; QString, <a class="el" href="classqml__components_1_1ThemeFamily.html">qml_components::ThemeFamily</a> &gt; &amp;themeFamilies, QList&lt; QString &gt; assetsPaths, QNetworkAccessManager *networkManager, <a class="el" href="classresource__managers_1_1SongAssetStore.html">SongAssetStore</a> *songAssetStore, QObject *parent=nullptr)</td></tr>
 <tr class="memdesc:a6285b1aca43e08b598fc0a6ae38b8e34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a profile object living in the given database.  <br /></td></tr>
 <tr class="separator:a6285b1aca43e08b598fc0a6ae38b8e34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12bbd5bdc82f57293e33e5a401edee11" id="r_a12bbd5bdc82f57293e33e5a401edee11"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a12bbd5bdc82f57293e33e5a401edee11">~Profile</a> () override</td></tr>
+<tr class="separator:a12bbd5bdc82f57293e33e5a401edee11"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d9535a6b1c1a39f271136cdb9ac00e1" id="r_a0d9535a6b1c1a39f271136cdb9ac00e1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a0d9535a6b1c1a39f271136cdb9ac00e1">getPath</a> () const -&gt; std::filesystem::path</td></tr>
 <tr class="separator:a0d9535a6b1c1a39f271136cdb9ac00e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad30f568aa6bcd6647c4e62f516bbacf1" id="r_ad30f568aa6bcd6647c4e62f516bbacf1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#ad30f568aa6bcd6647c4e62f516bbacf1">getPathQString</a> () const -&gt; QString</td></tr>
@@ -183,13 +187,18 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a5aceb6cda738e8e0c8cbfd8b9c45d003"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad6b10a25fcecd287890f7549495d1848" id="r_ad6b10a25fcecd287890f7549495d1848"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#ad6b10a25fcecd287890f7549495d1848">getScoreImportOperation</a> () const -&gt; <a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a> *</td></tr>
 <tr class="separator:ad6b10a25fcecd287890f7549495d1848"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a672ab3bcd1fa49f5ecde6fe4993c0cef" id="r_a672ab3bcd1fa49f5ecde6fe4993c0cef"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a672ab3bcd1fa49f5ecde6fe4993c0cef">beginImportOp</a> (int fileCount) -&gt; <a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a> *</td></tr>
-<tr class="memdesc:a672ab3bcd1fa49f5ecde6fe4993c0cef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create and publish a new import operation.  <br /></td></tr>
-<tr class="separator:a672ab3bcd1fa49f5ecde6fe4993c0cef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac024da3b731ec9caee355409aeff6fec" id="r_ac024da3b731ec9caee355409aeff6fec"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#ac024da3b731ec9caee355409aeff6fec">beginScoreImportOp</a> (int scoreCount) -&gt; <a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a> *</td></tr>
-<tr class="separator:ac024da3b731ec9caee355409aeff6fec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a521554d0efa03c80a0dfce5ae7e3abb0" id="r_a521554d0efa03c80a0dfce5ae7e3abb0"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a521554d0efa03c80a0dfce5ae7e3abb0">beginImportOp</a> () -&gt; <a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a> *</td></tr>
+<tr class="memdesc:a521554d0efa03c80a0dfce5ae7e3abb0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create and publish a new import operation.  <br /></td></tr>
+<tr class="separator:a521554d0efa03c80a0dfce5ae7e3abb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc7e03e0d449ff9840cb8700f3a22742" id="r_adc7e03e0d449ff9840cb8700f3a22742"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#adc7e03e0d449ff9840cb8700f3a22742">beginScoreImportOp</a> () -&gt; <a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a> *</td></tr>
+<tr class="separator:adc7e03e0d449ff9840cb8700f3a22742"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a48ce49fc0329bbec37215aa648cf6fcb" id="r_a48ce49fc0329bbec37215aa648cf6fcb"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a48ce49fc0329bbec37215aa648cf6fcb">submitScore</a> (const <a class="el" href="classgameplay__logic_1_1BmsScore.html">gameplay_logic::BmsScore</a> &amp;score, const <a class="el" href="classgameplay__logic_1_1ChartData.html">gameplay_logic::ChartData</a> &amp;chartData) const -&gt; QNetworkReply *</td></tr>
 <tr class="separator:a48ce49fc0329bbec37215aa648cf6fcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:af7f89daa9fd47832a4d9c546fef06582" id="r_af7f89daa9fd47832a4d9c546fef06582"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#af7f89daa9fd47832a4d9c546fef06582">credentialKey</a> (const QString &amp;<a class="el" href="classresource__managers_1_1Profile.html#ae2ec6a8b2415139c9bc0333fcc9dd771">guid</a>) -&gt; QString</td></tr>
+<tr class="separator:af7f89daa9fd47832a4d9c546fef06582"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -224,6 +233,11 @@ Properties</h2></td></tr>
 <tr class="separator:aa7061f9c6f9586263c22d011cd929c0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5c03fb3572ecb39414408352753f6eeb" id="r_a5c03fb3572ecb39414408352753f6eeb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a> *scoreImportOperation READ&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a5c03fb3572ecb39414408352753f6eeb">getScoreImportOperation</a></td></tr>
 <tr class="separator:a5c03fb3572ecb39414408352753f6eeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
+Friends</h2></td></tr>
+<tr class="memitem:a97bebe8c53eeef6d3ad53e316c35bed5" id="r_a97bebe8c53eeef6d3ad53e316c35bed5"><td class="memItemLeft" align="right" valign="top">struct&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classresource__managers_1_1Profile.html#a97bebe8c53eeef6d3ad53e316c35bed5">ProfileTestAccess</a></td></tr>
+<tr class="separator:a97bebe8c53eeef6d3ad53e316c35bed5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="a24ca795ca1e26537ba6acf5815cc3d14" name="a24ca795ca1e26537ba6acf5815cc3d14"></a>
@@ -334,9 +348,34 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a id="a12bbd5bdc82f57293e33e5a401edee11" name="a12bbd5bdc82f57293e33e5a401edee11"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12bbd5bdc82f57293e33e5a401edee11">&#9670;&#160;</a></span>~Profile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">resource_managers::Profile::~Profile </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a672ab3bcd1fa49f5ecde6fe4993c0cef" name="a672ab3bcd1fa49f5ecde6fe4993c0cef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a672ab3bcd1fa49f5ecde6fe4993c0cef">&#9670;&#160;</a></span>beginImportOp()</h2>
+<a id="a521554d0efa03c80a0dfce5ae7e3abb0" name="a521554d0efa03c80a0dfce5ae7e3abb0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a521554d0efa03c80a0dfce5ae7e3abb0">&#9670;&#160;</a></span>beginImportOp()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -344,20 +383,19 @@ Properties</h2></td></tr>
         <tr>
           <td class="memname">auto resource_managers::Profile::beginImportOp </td>
           <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>fileCount</em></td><td>)</td>
+          <td class="paramname"></td><td>)</td>
           <td> -&gt; <a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a>*</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Create and publish a new import operation. </p>
-<p>Must only be called on the main thread. Intended to be invoked from a background import task via Qt::BlockingQueuedConnection. </p>
+<p>Must only be called on the main thread, before starting the worker. </p>
 
 </div>
 </div>
-<a id="ac024da3b731ec9caee355409aeff6fec" name="ac024da3b731ec9caee355409aeff6fec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac024da3b731ec9caee355409aeff6fec">&#9670;&#160;</a></span>beginScoreImportOp()</h2>
+<a id="adc7e03e0d449ff9840cb8700f3a22742" name="adc7e03e0d449ff9840cb8700f3a22742"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc7e03e0d449ff9840cb8700f3a22742">&#9670;&#160;</a></span>beginScoreImportOp()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -365,11 +403,36 @@ Properties</h2></td></tr>
         <tr>
           <td class="memname">auto resource_managers::Profile::beginScoreImportOp </td>
           <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>scoreCount</em></td><td>)</td>
+          <td class="paramname"></td><td>)</td>
           <td> -&gt; <a class="el" href="classqml__components_1_1ReplayImportOperation.html">qml_components::ReplayImportOperation</a>*</td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af7f89daa9fd47832a4d9c546fef06582" name="af7f89daa9fd47832a4d9c546fef06582"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7f89daa9fd47832a4d9c546fef06582">&#9670;&#160;</a></span>credentialKey()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto resource_managers::Profile::credentialKey </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>guid</em></td><td>)</td>
+          <td> -&gt; QString</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
@@ -946,6 +1009,29 @@ Properties</h2></td></tr>
 
 <p>Upload local scores to the server. </p>
 <p>Compares local GUIDs to the server and uploads each missing score individually. Returns a ScoreSyncOperation that reports progress and per-score errors. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Friends And Related Symbol Documentation</h2>
+<a id="a97bebe8c53eeef6d3ad53e316c35bed5" name="a97bebe8c53eeef6d3ad53e316c35bed5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97bebe8c53eeef6d3ad53e316c35bed5">&#9670;&#160;</a></span>ProfileTestAccess</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">friend struct ProfileTestAccess</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>

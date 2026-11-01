@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -74,13 +74,15 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#signals">Signals</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#properties">Properties</a> &#124;
 <a href="classqml__components_1_1ScoreDb-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">qml_components::ScoreDb Class Reference<span class="mlabels"><span class="mlabel">final</span></span></div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Provides asynchronous access to a profile's score database.  
+<p>Provides cached results and asynchronous full scores for one profile.  
  <a href="classqml__components_1_1ScoreDb.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="ScoreDb_8h_source.html">ScoreDb.h</a>&gt;</code></p>
@@ -89,7 +91,7 @@ Inheritance diagram for qml_components::ScoreDb:</div>
 <div class="dyncontent">
 <div class="center"><img src="classqml__components_1_1ScoreDb__inherit__graph.png" border="0" usemap="#aqml__components_1_1ScoreDb_inherit__map" alt="Inheritance graph"/></div>
 <map name="aqml__components_1_1ScoreDb_inherit__map" id="aqml__components_1_1ScoreDb_inherit__map">
-<area shape="rect" title="Provides asynchronous access to a profile&#39;s score database." alt="" coords="5,79,201,104"/>
+<area shape="rect" title="Provides cached results and asynchronous full scores for one profile." alt="" coords="5,79,201,104"/>
 <area shape="rect" title=" " alt="" coords="66,5,141,31"/>
 <area shape="poly" title=" " alt="" coords="106,44,106,79,101,79,101,44"/>
 </map>
@@ -99,28 +101,35 @@ Collaboration diagram for qml_components::ScoreDb:</div>
 <div class="dyncontent">
 <div class="center"><img src="classqml__components_1_1ScoreDb__coll__graph.png" border="0" usemap="#aqml__components_1_1ScoreDb_coll__map" alt="Collaboration graph"/></div>
 <map name="aqml__components_1_1ScoreDb_coll__map" id="aqml__components_1_1ScoreDb_coll__map">
-<area shape="rect" title="Provides asynchronous access to a profile&#39;s score database." alt="" coords="5,79,201,104"/>
+<area shape="rect" title="Provides cached results and asynchronous full scores for one profile." alt="" coords="5,79,201,104"/>
 <area shape="rect" title=" " alt="" coords="66,5,141,31"/>
 <area shape="poly" title=" " alt="" coords="106,44,106,79,101,79,101,44"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="signals" name="signals"></a>
+Signals</h2></td></tr>
+<tr class="memitem:a11067ef79008d1b38199791b3d80f790" id="r_a11067ef79008d1b38199791b3d80f790"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a11067ef79008d1b38199791b3d80f790">resultsChanged</a> ()</td></tr>
+<tr class="separator:a11067ef79008d1b38199791b3d80f790"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aaf888958bee0ca9475989553cbbc11f3" id="r_aaf888958bee0ca9475989553cbbc11f3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#aaf888958bee0ca9475989553cbbc11f3">ScoreDb</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> *scoreDb)</td></tr>
 <tr class="separator:aaf888958bee0ca9475989553cbbc11f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5dcc6ce34100f08c5838abf668ce53ac" id="r_a5dcc6ce34100f08c5838abf668ce53ac"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a5dcc6ce34100f08c5838abf668ce53ac">~ScoreDb</a> () override</td></tr>
 <tr class="separator:a5dcc6ce34100f08c5838abf668ce53ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae1b4a92da8dbb3736a3649f04f32cb48" id="r_ae1b4a92da8dbb3736a3649f04f32cb48"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#ae1b4a92da8dbb3736a3649f04f32cb48">getScoresForMd5</a> (const QList&lt; QString &gt; &amp;md5s)</td></tr>
-<tr class="separator:ae1b4a92da8dbb3736a3649f04f32cb48"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7783b7bf0f0119b62e6b0f1e797c0d91" id="r_a7783b7bf0f0119b62e6b0f1e797c0d91"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a7783b7bf0f0119b62e6b0f1e797c0d91">getScoresForCourseId</a> (const QList&lt; QString &gt; &amp;courseIds)</td></tr>
-<tr class="separator:a7783b7bf0f0119b62e6b0f1e797c0d91"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afee865ef9150387c16915e1ce2f496fa" id="r_afee865ef9150387c16915e1ce2f496fa"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#afee865ef9150387c16915e1ce2f496fa">getScores</a> (const QString &amp;folder)</td></tr>
-<tr class="separator:afee865ef9150387c16915e1ce2f496fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af0a12a820bf4c33c164cde3a14979b76" id="r_af0a12a820bf4c33c164cde3a14979b76"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#af0a12a820bf4c33c164cde3a14979b76">getScores</a> (const <a class="el" href="structresource__managers_1_1Table.html">resource_managers::Table</a> &amp;table)</td></tr>
-<tr class="separator:af0a12a820bf4c33c164cde3a14979b76"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae39112cbe771dadb8e02dfee1feb220d" id="r_ae39112cbe771dadb8e02dfee1feb220d"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#ae39112cbe771dadb8e02dfee1feb220d">getScores</a> (const <a class="el" href="structresource__managers_1_1Level.html">resource_managers::Level</a> &amp;level)</td></tr>
-<tr class="separator:ae39112cbe771dadb8e02dfee1feb220d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a94b6089238b53c9070e312c2d07b781b" id="r_a94b6089238b53c9070e312c2d07b781b"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a94b6089238b53c9070e312c2d07b781b">getScore</a> (QObject *<a class="el" href="ScoreDb_8cpp.html#afbb329fbfdef81b93d95f33c6757bd5b">result</a>)</td></tr>
+<tr class="separator:a94b6089238b53c9070e312c2d07b781b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84297c3281f4a465fd5041a259d1fd66" id="r_a84297c3281f4a465fd5041a259d1fd66"><td class="memItemLeft" align="right" valign="top">const QVariantMap &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a84297c3281f4a465fd5041a259d1fd66">getChartResults</a> () const</td></tr>
+<tr class="separator:a84297c3281f4a465fd5041a259d1fd66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a3bb28f1061805264688a3d08e206d6" id="r_a9a3bb28f1061805264688a3d08e206d6"><td class="memItemLeft" align="right" valign="top">const QVariantMap &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a9a3bb28f1061805264688a3d08e206d6">getCourseResults</a> () const</td></tr>
+<tr class="separator:a9a3bb28f1061805264688a3d08e206d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af54201e5f08c47615018bb5e91514050" id="r_af54201e5f08c47615018bb5e91514050"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#af54201e5f08c47615018bb5e91514050">refreshResults</a> (const QStringList &amp;guids={})</td></tr>
+<tr class="separator:af54201e5f08c47615018bb5e91514050"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59411d42712b33ed69ac0efa18bc4488" id="r_a59411d42712b33ed69ac0efa18bc4488"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a59411d42712b33ed69ac0efa18bc4488">rememberScore</a> (const <a class="el" href="classgameplay__logic_1_1BmsScore.html">gameplay_logic::BmsScore</a> *score)</td></tr>
+<tr class="separator:a59411d42712b33ed69ac0efa18bc4488"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab22f329b0cd7946d817b524f700c626a" id="r_ab22f329b0cd7946d817b524f700c626a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#ab22f329b0cd7946d817b524f700c626a">rememberCourseScore</a> (const <a class="el" href="classgameplay__logic_1_1BmsScoreCourse.html">gameplay_logic::BmsScoreCourse</a> *score)</td></tr>
+<tr class="separator:ab22f329b0cd7946d817b524f700c626a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6003157010e778821f6de3745e647118" id="r_a6003157010e778821f6de3745e647118"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a6003157010e778821f6de3745e647118">getScoreSummary</a> (const QString &amp;folder)</td></tr>
 <tr class="separator:a6003157010e778821f6de3745e647118"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a078812994e8c20a300237669486af253" id="r_a078812994e8c20a300237669486af253"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE <a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a078812994e8c20a300237669486af253">getScoreSummary</a> (const <a class="el" href="structresource__managers_1_1Table.html">resource_managers::Table</a> &amp;table)</td></tr>
@@ -131,10 +140,17 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af8cfca4d8e197d5d9f987759c7c0b24c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1c64c6ad001561d1e92218a195ca441" id="r_ac1c64c6ad001561d1e92218a195ca441"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#ac1c64c6ad001561d1e92218a195ca441">getTotalScoreCount</a> () const</td></tr>
 <tr class="separator:ac1c64c6ad001561d1e92218a195ca441"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
+Properties</h2></td></tr>
+<tr class="memitem:a2171d988f56592f99e52cf35fe5d5fc5" id="r_a2171d988f56592f99e52cf35fe5d5fc5"><td class="memItemLeft" align="right" valign="top">QVariantMap&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a2171d988f56592f99e52cf35fe5d5fc5">chartResults</a></td></tr>
+<tr class="separator:a2171d988f56592f99e52cf35fe5d5fc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a305ec528e20e4c927a449b415817a9da" id="r_a305ec528e20e4c927a449b415817a9da"><td class="memItemLeft" align="right" valign="top">QVariantMap&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ScoreDb.html#a305ec528e20e4c927a449b415817a9da">courseResults</a></td></tr>
+<tr class="separator:a305ec528e20e4c927a449b415817a9da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Provides asynchronous access to a profile's score database. </p>
-<p>Queries execute in the thread pool. Each returned PendingReply owns its cancellation; callers retain and cancel only the work they started. </p>
+<div class="textblock"><p>Provides cached results and asynchronous full scores for one profile. </p>
+<p>Results are loaded into memory when the profile opens and refreshed after saves and imports. chartResults and courseResults update QML bindings automatically, without SQL or replay decoding when read. Result objects keep their identity and live as long as this profile's <a class="el" href="classqml__components_1_1ScoreDb.html" title="Provides cached results and asynchronous full scores for one profile.">ScoreDb</a>. Imports update their properties in place. Deleted runs leave the maps, but retained objects remain readable until the profile closes. Full-score queries execute in the thread pool. Each returned PendingReply owns its cancellation; callers retain and cancel only the work they started. Full scores returned to QML live independently of their reply. For C++-only queries, score objects are children of the reply and share its lifetime. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aaf888958bee0ca9475989553cbbc11f3" name="aaf888958bee0ca9475989553cbbc11f3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaf888958bee0ca9475989553cbbc11f3">&#9670;&#160;</a></span>ScoreDb()</h2>
@@ -188,93 +204,56 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="afee865ef9150387c16915e1ce2f496fa" name="afee865ef9150387c16915e1ce2f496fa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afee865ef9150387c16915e1ce2f496fa">&#9670;&#160;</a></span>getScores() <span class="overload">[1/3]</span></h2>
+<a id="a84297c3281f4a465fd5041a259d1fd66" name="a84297c3281f4a465fd5041a259d1fd66"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a84297c3281f4a465fd5041a259d1fd66">&#9670;&#160;</a></span>getChartResults()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">auto qml_components::ScoreDb::getScores </td>
+          <td class="memname">const QVariantMap &amp; qml_components::ScoreDb::getChartResults </td>
           <td>(</td>
-          <td class="paramtype">const QString &amp;&#160;</td>
-          <td class="paramname"><em>folder</em></td><td>)</td>
-          <td></td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="ae39112cbe771dadb8e02dfee1feb220d" name="ae39112cbe771dadb8e02dfee1feb220d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae39112cbe771dadb8e02dfee1feb220d">&#9670;&#160;</a></span>getScores() <span class="overload">[2/3]</span></h2>
+<a id="a9a3bb28f1061805264688a3d08e206d6" name="a9a3bb28f1061805264688a3d08e206d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a3bb28f1061805264688a3d08e206d6">&#9670;&#160;</a></span>getCourseResults()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">auto qml_components::ScoreDb::getScores </td>
+          <td class="memname">const QVariantMap &amp; qml_components::ScoreDb::getCourseResults </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structresource__managers_1_1Level.html">resource_managers::Level</a> &amp;&#160;</td>
-          <td class="paramname"><em>level</em></td><td>)</td>
-          <td></td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="af0a12a820bf4c33c164cde3a14979b76" name="af0a12a820bf4c33c164cde3a14979b76"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af0a12a820bf4c33c164cde3a14979b76">&#9670;&#160;</a></span>getScores() <span class="overload">[3/3]</span></h2>
+<a id="a94b6089238b53c9070e312c2d07b781b" name="a94b6089238b53c9070e312c2d07b781b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a94b6089238b53c9070e312c2d07b781b">&#9670;&#160;</a></span>getScore()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">auto qml_components::ScoreDb::getScores </td>
+          <td class="memname"><a class="el" href="classsupport_1_1PendingReply.html">support::PendingReply</a> * qml_components::ScoreDb::getScore </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structresource__managers_1_1Table.html">resource_managers::Table</a> &amp;&#160;</td>
-          <td class="paramname"><em>table</em></td><td>)</td>
+          <td class="paramtype">QObject *&#160;</td>
+          <td class="paramname"><em>result</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7783b7bf0f0119b62e6b0f1e797c0d91" name="a7783b7bf0f0119b62e6b0f1e797c0d91"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7783b7bf0f0119b62e6b0f1e797c0d91">&#9670;&#160;</a></span>getScoresForCourseId()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto qml_components::ScoreDb::getScoresForCourseId </td>
-          <td>(</td>
-          <td class="paramtype">const QList&lt; QString &gt; &amp;&#160;</td>
-          <td class="paramname"><em>courseIds</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ae1b4a92da8dbb3736a3649f04f32cb48" name="ae1b4a92da8dbb3736a3649f04f32cb48"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae1b4a92da8dbb3736a3649f04f32cb48">&#9670;&#160;</a></span>getScoresForMd5()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto qml_components::ScoreDb::getScoresForMd5 </td>
-          <td>(</td>
-          <td class="paramtype">const QList&lt; QString &gt; &amp;&#160;</td>
-          <td class="paramname"><em>md5s</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
+<p>Loads a BmsScore or BmsScoreCourse for a result from this profile. Concurrent requests share decoding but have independent cancellation and object lifetimes. Decoded lists share their backing storage. An idle cache retains up to 64 MiB of estimated payload; live consumers may retain more. Missing records and malformed attachments fail the reply. Imported scores may succeed without a recording or gauge history. ScoreDetails supplies a declarative QML interface to this operation. </p>
 
 </div>
 </div>
@@ -363,6 +342,133 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="af54201e5f08c47615018bb5e91514050" name="af54201e5f08c47615018bb5e91514050"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af54201e5f08c47615018bb5e91514050">&#9670;&#160;</a></span>refreshResults()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void qml_components::ScoreDb::refreshResults </td>
+          <td>(</td>
+          <td class="paramtype">const QStringList &amp;&#160;</td>
+          <td class="paramname"><em>guids</em> = <code>{}</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Refresh after a committed import, or just the changed run after saving. </p>
+
+</div>
+</div>
+<a id="ab22f329b0cd7946d817b524f700c626a" name="ab22f329b0cd7946d817b524f700c626a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab22f329b0cd7946d817b524f700c626a">&#9670;&#160;</a></span>rememberCourseScore()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void qml_components::ScoreDb::rememberCourseScore </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classgameplay__logic_1_1BmsScoreCourse.html">gameplay_logic::BmsScoreCourse</a> *&#160;</td>
+          <td class="paramname"><em>score</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a59411d42712b33ed69ac0efa18bc4488" name="a59411d42712b33ed69ac0efa18bc4488"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59411d42712b33ed69ac0efa18bc4488">&#9670;&#160;</a></span>rememberScore()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void qml_components::ScoreDb::rememberScore </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classgameplay__logic_1_1BmsScore.html">gameplay_logic::BmsScore</a> *&#160;</td>
+          <td class="paramname"><em>score</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a11067ef79008d1b38199791b3d80f790" name="a11067ef79008d1b38199791b3d80f790"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11067ef79008d1b38199791b3d80f790">&#9670;&#160;</a></span>resultsChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void qml_components::ScoreDb::resultsChanged </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Property Documentation</h2>
+<a id="a2171d988f56592f99e52cf35fe5d5fc5" name="a2171d988f56592f99e52cf35fe5d5fc5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2171d988f56592f99e52cf35fe5d5fc5">&#9670;&#160;</a></span>chartResults</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QVariantMap qml_components::ScoreDb::chartResults</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Chart MD5s (upper-case) mapped to BmsResult lists, newest first. </p>
+
+</div>
+</div>
+<a id="a305ec528e20e4c927a449b415817a9da" name="a305ec528e20e4c927a449b415817a9da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a305ec528e20e4c927a449b415817a9da">&#9670;&#160;</a></span>courseResults</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QVariantMap qml_components::ScoreDb::courseResults</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Course identifiers mapped to BmsResultCourse lists, newest first. </p>
 
 </div>
 </div>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardSelectInput.qml -->
+  <meta name="description" content="Maps bound selection actions and forwards movement requests.">
+  <title>StandardSelectInput QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardSelectInput</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardSelectInput QML Type</h1>
+<!-- $$$StandardSelectInput-brief -->
+<p>Maps bound selection actions and forwards movement requests. <a href="#details">More...</a></p>
+<!-- @@@StandardSelectInput -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+<tr><td class="memItemLeft rightAlign topAlign"> Inherits:</td><td class="memItemRight bottomAlign"> <p><a href="qml-rhythmgameqml-standardselectnavigation.html" translate="no">StandardSelectNavigation</a></p>
+</td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardselectinput-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#actions-prop" translate="no">actions</a></b> : StandardSelectActions</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#activateAction-prop" translate="no">activateAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#atTopLevel-prop" translate="no">atTopLevel</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#cycleReplayTypeAction-prop" translate="no">cycleReplayTypeAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#exitEnabled-prop" translate="no">exitEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#goBackAction-prop" translate="no">goBackAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#selectState-prop" translate="no">selectState</a></b> : StandardSelectState</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#tryAutoplayAction-prop" translate="no">tryAutoplayAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#tryCycleSortModeAction-prop" translate="no">tryCycleSortModeAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#tryReplayAction-prop" translate="no">tryReplayAction</a></b> : var</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#activate-method" translate="no">activate</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#activateAutoplay-method" translate="no">activateAutoplay</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#activateReplay-method" translate="no">activateReplay</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#goBack-method" translate="no">goBack</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#handleDownPressed-method" translate="no">handleDownPressed</a></b>(<i>event</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#handleReleased-method" translate="no">handleReleased</a></b>(<i>event</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#handleTopLevelSortKey-method" translate="no">handleTopLevelSortKey</a></b>(<i>key</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectinput.html#handleUpPressed-method" translate="no">handleUpPressed</a></b>(<i>event</i>)</li>
+</ul>
+<!-- $$$StandardSelectInput-description -->
+<h2 id="details">Detailed Description</h2>
+<p>The component extends <a href="qml-rhythmgameqml-standardselectnavigation.html" translate="no">StandardSelectNavigation</a> with activation, autoplay, replay, sorting and leaving selection. Use <a href="qml-rhythmgameqml-standardselectnavigation.html" translate="no">StandardSelectNavigation</a> alone if you only need movement. <a href="qml-rhythmgameqml-standardselectcontroller.html" translate="no">StandardSelectController</a> already includes both.</p>
+<p>The bound controller keys work on either player side:</p>
+<div class="table"><table class="generic">
+ <thead><tr class="qt-style"><th >Input</th><th >Action</th></tr></thead>
+<tr valign="top" class="odd"><td >Keys 1 and 3</td><td >Activate the focused item.</td></tr>
+<tr valign="top" class="even"><td >Key 5</td><td >Start autoplay.</td></tr>
+<tr valign="top" class="odd"><td >Key 7</td><td >Open the selected replay.</td></tr>
+<tr valign="top" class="even"><td >Key 6</td><td >Cycle newest, best score, best clear and best combo.</td></tr>
+<tr valign="top" class="odd"><td >Keys 2 and 4 at the root</td><td >Cycle the sort mode backward or forward.</td></tr>
+<tr valign="top" class="even"><td >Keys 2 and 4 below the root</td><td >Go back.</td></tr>
+<tr valign="top" class="odd"><td >Scratch directions</td><td >Emit moveRequested.</td></tr>
+<tr valign="top" class="even"><td >Escape</td><td >Leave selection or the current Arena room.</td></tr>
+</table></div>
+<p>Autoplay calls <a href="qml-rhythmgameqml-standardselectstate.html#openAutoplay-method" translate="no">StandardSelectState::openAutoplay</a> unless <a href="qml-rhythmgameqml-standardselectinput.html#tryAutoplayAction-prop" translate="no">tryAutoplayAction</a> handles it first. On folders, the autoplay key enters the folder. Replay calls <a href="qml-rhythmgameqml-standardselectstate.html#openReplay-method" translate="no">StandardSelectState::openReplay</a> unless <a href="qml-rhythmgameqml-standardselectinput.html#tryReplayAction-prop" translate="no">tryReplayAction</a> handles it first. Key 6 calls <a href="qml-rhythmgameqml-standardselectstate.html#cycleReplayType-method" translate="no">StandardSelectState::cycleReplayType</a> unless <a href="qml-rhythmgameqml-standardselectinput.html#cycleReplayTypeAction-prop" translate="no">cycleReplayTypeAction</a> is supplied.</p>
+<p>Keyboard arrows must come from the focused visual item. Forward presses and releases to <a href="qml-rhythmgameqml-standardselectinput.html#handleUpPressed-method" translate="no">handleUpPressed</a>, <a href="qml-rhythmgameqml-standardselectinput.html#handleDownPressed-method" translate="no">handleDownPressed</a> and <a href="qml-rhythmgameqml-standardselectinput.html#handleReleased-method" translate="no">handleReleased</a>. Assign <a href="qml-rhythmgameqml-standardselectinput.html#selectState-prop" translate="no">selectState</a> for standard activation and back behavior. For your own browsing state, supply <a href="qml-rhythmgameqml-standardselectinput.html#activateAction-prop" translate="no">activateAction</a>, <a href="qml-rhythmgameqml-standardselectinput.html#goBackAction-prop" translate="no">goBackAction</a> and <a href="qml-rhythmgameqml-standardselectinput.html#atTopLevel-prop" translate="no">atTopLevel</a>. Assign <a href="qml-rhythmgameqml-standardselectinput.html#actions-prop" translate="no">actions</a> to a <a href="qml-rhythmgameqml-standardselectactions.html" translate="no">StandardSelectActions</a> instance for Escape, or disable it with <a href="qml-rhythmgameqml-standardselectinput.html#exitEnabled-prop" translate="no">exitEnabled</a>. <a href="qml-rhythmgameqml-standardarenaselectoverlay.html" translate="no">StandardArenaSelectOverlay</a> supplies Arena ready input.</p>
+<!-- @@@StandardSelectInput -->
+<h2>Property Documentation</h2>
+<!-- $$$actions -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="actions-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">actions</span> : <span class="type"><a href="qml-rhythmgameqml-standardselectactions.html" translate="no">StandardSelectActions</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Shared selector actions. Defaults to the supplied state's actions.</p>
+</div></div><!-- @@@actions -->
+<br/>
+<!-- $$$activateAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="activateAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">activateAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">activateAction()</code> in place of focused-item activation.</p>
+</div></div><!-- @@@activateAction -->
+<br/>
+<!-- $$$atTopLevel -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="atTopLevel-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">atTopLevel</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether sort-key handling is currently at the top selection level.</p>
+</div></div><!-- @@@atTopLevel -->
+<br/>
+<!-- $$$cycleReplayTypeAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="cycleReplayTypeAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">cycleReplayTypeAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">cycleReplayTypeAction()</code> instead of <a href="qml-rhythmgameqml-standardselectstate.html#cycleReplayType-method" translate="no">StandardSelectState::cycleReplayType</a>.</p>
+</div></div><!-- @@@cycleReplayTypeAction -->
+<br/>
+<!-- $$$exitEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="exitEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">exitEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls the Escape shortcut for leaving selection or its Arena room.</p>
+</div></div><!-- @@@exitEnabled -->
+<br/>
+<!-- $$$goBackAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="goBackAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">goBackAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">goBackAction()</code> in place of leaving the current entry.</p>
+</div></div><!-- @@@goBackAction -->
+<br/>
+<!-- $$$selectState -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="selectState-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">selectState</span> : <span class="type"><a href="qml-rhythmgameqml-standardselectstate.html" translate="no">StandardSelectState</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Standard selection state that receives activation and history actions.</p>
+</div></div><!-- @@@selectState -->
+<br/>
+<!-- $$$tryAutoplayAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="tryAutoplayAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">tryAutoplayAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Called as <code translate="no">tryAutoplayAction()</code>. Return true to handle the request, or false to continue with the standard action.</p>
+</div></div><!-- @@@tryAutoplayAction -->
+<br/>
+<!-- $$$tryCycleSortModeAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="tryCycleSortModeAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">tryCycleSortModeAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Called as <code translate="no">tryCycleSortModeAction(delta)</code>. Return true to handle the request, or false to continue with the standard action.</p>
+</div></div><!-- @@@tryCycleSortModeAction -->
+<br/>
+<!-- $$$tryReplayAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="tryReplayAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">tryReplayAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Called as <code translate="no">tryReplayAction()</code> to choose and open a replay. Return true when handled. Return false to continue with <a href="qml-rhythmgameqml-standardselectstate.html#openReplay-method" translate="no">StandardSelectState::openReplay</a>.</p>
+</div></div><!-- @@@tryReplayAction -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$activate[overload1]$$$activate -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="activate-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">activate</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Activates the focused item.</p>
+</div></div><!-- @@@activate -->
+<br/>
+<!-- $$$activateAutoplay[overload1]$$$activateAutoplay -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="activateAutoplay-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">activateAutoplay</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Starts autoplay for the focused chart or course, or enters the focused folder.</p>
+</div></div><!-- @@@activateAutoplay -->
+<br/>
+<!-- $$$activateReplay[overload1]$$$activateReplay -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="activateReplay-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">activateReplay</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Starts a saved replay for the focused chart or course.</p>
+</div></div><!-- @@@activateReplay -->
+<br/>
+<!-- $$$goBack[overload1]$$$goBack -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="goBack-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">goBack</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Leaves the current selection entry.</p>
+</div></div><!-- @@@goBack -->
+<br/>
+<!-- $$$handleDownPressed[overload1]$$$handleDownPressed -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="handleDownPressed-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">handleDownPressed</span>(<i>event</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Handles a Down key <i translate="no">event</i>.</p>
+</div></div><!-- @@@handleDownPressed -->
+<br/>
+<!-- $$$handleReleased[overload1]$$$handleReleased -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="handleReleased-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">handleReleased</span>(<i>event</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Handles a keyboard direction-release <i translate="no">event</i>.</p>
+</div></div><!-- @@@handleReleased -->
+<br/>
+<!-- $$$handleTopLevelSortKey[overload1]$$$handleTopLevelSortKey -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="handleTopLevelSortKey-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">handleTopLevelSortKey</span>(<i>key</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Handles top-level sort-mode input for <i translate="no">key</i>.</p>
+</div></div><!-- @@@handleTopLevelSortKey -->
+<br/>
+<!-- $$$handleUpPressed[overload1]$$$handleUpPressed -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="handleUpPressed-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">handleUpPressed</span>(<i>event</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Handles an Up key <i translate="no">event</i>.</p>
+</div></div><!-- @@@handleUpPressed -->
+<br/>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- ScreenContexts.qdoc -->
+  <meta name="description" content="Profile and score paired within a normal result.">
+  <title>ResultPlayer QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>ResultPlayer</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">ResultPlayer QML Type</h1>
+<!-- $$$ResultPlayer-brief -->
+<p>Profile and score paired within a normal result. <a href="#details">More...</a></p>
+<!-- @@@ResultPlayer -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-resultplayer-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-resultplayer.html#profile-prop" translate="no">profile</a></b> : Profile</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-resultplayer.html#score-prop" translate="no">score</a></b> : BmsScore</li>
+</ul>
+<!-- $$$ResultPlayer-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Read these objects from <a href="qml-rhythmgameqml-resultcontext.html#players-prop" translate="no">ResultContext::players</a>. Use this player's profile for names and preferences; the main profile may belong to another player. The game supplies the object and keeps it alive with its result context.</p>
+<!-- @@@ResultPlayer -->
+<h2>Property Documentation</h2>
+<!-- $$$profile -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="profile-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">profile</span> : <span class="type">Profile</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Participant's profile.</p>
+</div></div><!-- @@@profile -->
+<br/>
+<!-- $$$score -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="score-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">score</span> : <span class="type">BmsScore</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Completed <a href="../classgameplay__logic_1_1BmsScore.html">BmsScore</a>. Totals are in <code translate="no">score.result</code>. Imported scores may have no <code translate="no">replayData</code> or <code translate="no">gaugeHistory</code>; check those before drawing graphs.</p>
+</div></div><!-- @@@score -->
+<br/>
+</body>
+</html>

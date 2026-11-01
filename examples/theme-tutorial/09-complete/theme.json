@@ -1,0 +1,23 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/master/schemas/theme.json",
+  "scripts": {
+    "main": "main.qml",
+    "select": "Select.qml",
+    "decide": "Decide.qml",
+    "k5": "Gameplay.qml",
+    "k7": "Gameplay.qml",
+    "k5battle": "Gameplay.qml",
+    "k7battle": "Gameplay.qml",
+    "k10": "Gameplay.qml",
+    "k14": "Gameplay.qml",
+    "result": "Result.qml",
+    "courseResult": "CourseResult.qml"
+  },
+  "settings": {
+    "main": "main-settings.json"
+  },
+  "translations": {
+    "en": "",
+    "pl": "translations/tutorial_pl.qm"
+  }
+}

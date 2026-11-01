@@ -3,7 +3,7 @@ var searchData=
   ['gameplaylanecoverspritestateoverride_0',['GameplayLaneCoverSpriteStateOverride',['../namespacelr2skin_1_1runtime.html#a71e0a29ac46dac1eb14ed85c9f154d62a805269b79c8e69c17d100d4baf4762ce',1,'lr2skin::runtime']]],
   ['gameplayprogressspritestateoverride_1',['GameplayProgressSpriteStateOverride',['../namespacelr2skin_1_1runtime.html#a71e0a29ac46dac1eb14ed85c9f154d62abc4903c84e1661770458663556a586d3',1,'lr2skin::runtime']]],
   ['gaugetyperole_2',['GaugeTypeRole',['../classarena_1_1ArenaStandingsModel.html#a9c401e972ca35f735cce25597a9cb39aa05b6a07e55d2afed30c5cd66076ae512',1,'arena::ArenaStandingsModel']]],
-  ['gaugevaluemillirole_3',['GaugeValueMilliRole',['../classarena_1_1ArenaStandingsModel.html#a9c401e972ca35f735cce25597a9cb39aa4fdf48c1128cf88e55966819a724cccc',1,'arena::ArenaStandingsModel']]],
+  ['gaugevaluerole_3',['GaugeValueRole',['../classarena_1_1ArenaStandingsModel.html#a9c401e972ca35f735cce25597a9cb39aa9c681996f9ef165d776633c60b3e366d',1,'arena::ArenaStandingsModel']]],
   ['genericsliderspritestateoverride_4',['GenericSliderSpriteStateOverride',['../namespacelr2skin_1_1runtime.html#a71e0a29ac46dac1eb14ed85c9f154d62a2b44f40c620f30414d9cc2bbd8a39e9d',1,'lr2skin::runtime']]],
   ['genrerole_5',['GenreRole',['../classLr2SelectItemModel.html#a1846b901a9b01848a923c1a878412167a55945fb09c3cb928c70b66c67b76b4d6',1,'Lr2SelectItemModel']]],
   ['globalclock_6',['globalclock',['../classLr2TimelineState.html#af6b0f396292eb6a9c861bee3329d0ce9ab237b2804d0bb6bbc94ea01bb9fd7446',1,'Lr2TimelineState::GlobalClock'],['../namespacelr2skin_1_1runtime.html#a05647d294875cca35ca54a58510fcc71ae6f4310a8cbdbf00eee30b6f9af2066e',1,'lr2skin::runtime::GlobalClock']]],

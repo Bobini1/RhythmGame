@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -147,6 +147,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a0cf0415a29b24642c857cc334f14f2c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac2ce09668cd8c322e9ac5805105947a0" id="r_ac2ce09668cd8c322e9ac5805105947a0"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#ac2ce09668cd8c322e9ac5805105947a0">isFinished</a> () const -&gt; bool</td></tr>
 <tr class="separator:ac2ce09668cd8c322e9ac5805105947a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e9157fa477c4ee0ad7a66a5a3580eb1" id="r_a2e9157fa477c4ee0ad7a66a5a3580eb1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a2e9157fa477c4ee0ad7a66a5a3580eb1">setTotal</a> (int <a class="el" href="classqml__components_1_1ReplayImportOperation.html#a804ff81efc5cc0a84f8553c01afb9048">total</a>)</td></tr>
+<tr class="separator:a2e9157fa477c4ee0ad7a66a5a3580eb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c37d8f43f28a815f168b9ddd9883d28" id="r_a2c37d8f43f28a815f168b9ddd9883d28"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a2c37d8f43f28a815f168b9ddd9883d28">finish</a> ()</td></tr>
+<tr class="separator:a2c37d8f43f28a815f168b9ddd9883d28"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a418e9ed8f383bac29f4c6a97e2df395c" id="r_a418e9ed8f383bac29f4c6a97e2df395c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a418e9ed8f383bac29f4c6a97e2df395c">fail</a> (const QString &amp;message)</td></tr>
+<tr class="separator:a418e9ed8f383bac29f4c6a97e2df395c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91bb3e603662145f55dff4cdf8103462" id="r_a91bb3e603662145f55dff4cdf8103462"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a91bb3e603662145f55dff4cdf8103462">incrementImported</a> ()</td></tr>
 <tr class="separator:a91bb3e603662145f55dff4cdf8103462"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2bd45dd3b4fb5ea8a450423fd5672a3f" id="r_a2bd45dd3b4fb5ea8a450423fd5672a3f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1ReplayImportOperation.html#a2bd45dd3b4fb5ea8a450423fd5672a3f">incrementSkipped</a> ()</td></tr>
@@ -316,6 +322,43 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a418e9ed8f383bac29f4c6a97e2df395c" name="a418e9ed8f383bac29f4c6a97e2df395c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a418e9ed8f383bac29f4c6a97e2df395c">&#9670;&#160;</a></span>fail()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void qml_components::ReplayImportOperation::fail </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>message</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Reports a fatal worker failure and finishes the operation (main thread). </p>
+
+</div>
+</div>
+<a id="a2c37d8f43f28a815f168b9ddd9883d28" name="a2c37d8f43f28a815f168b9ddd9883d28"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2c37d8f43f28a815f168b9ddd9883d28">&#9670;&#160;</a></span>finish()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void qml_components::ReplayImportOperation::finish </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Called on the main thread after the worker has committed all its saves. </p>
 
 </div>
 </div>
@@ -640,6 +683,25 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2e9157fa477c4ee0ad7a66a5a3580eb1" name="a2e9157fa477c4ee0ad7a66a5a3580eb1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e9157fa477c4ee0ad7a66a5a3580eb1">&#9670;&#160;</a></span>setTotal()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void qml_components::ReplayImportOperation::setTotal </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>total</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Called on the main thread after discovering the work to import. </p>
 
 </div>
 </div>

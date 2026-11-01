@@ -1,7 +1,17 @@
 <map id="src/qml_components/ScoreSyncOperation.h" name="src/qml_components/ScoreSyncOperation.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="23,5,193,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="293,5,462,45"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,93,80,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,47,63,84,59,81,90,44"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="104,93,243,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="126,44,157,81,153,84,122,47"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="298,48,94,95,93,90,297,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="105,93,229,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="328,48,211,91,210,86,326,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="253,93,307,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="355,48,307,87,303,82,352,43"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="331,93,424,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="380,46,380,79,375,79,375,46"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="448,93,515,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="404,43,457,83,453,87,401,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="539,93,626,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="427,43,540,86,539,91,426,48"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="651,93,789,119"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="460,43,657,88,656,93,459,48"/>
 </map>

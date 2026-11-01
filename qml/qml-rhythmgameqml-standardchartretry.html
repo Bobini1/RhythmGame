@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardChartRetry.qml -->
+  <meta name="description" content="Restarts a supported play without choosing an input gesture.">
+  <title>StandardChartRetry QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardChartRetry</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardChartRetry QML Type</h1>
+<!-- $$$StandardChartRetry-brief -->
+<p>Restarts a supported play without choosing an input gesture. <a href="#details">More...</a></p>
+<!-- @@@StandardChartRetry -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardchartretry-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardchartretry.html#available-prop" translate="no">available</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardchartretry.html#gameplay-prop" translate="no">gameplay</a></b> : GameplayContext</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardchartretry.html#result-prop" translate="no">result</a></b> : QtObject</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardchartretry.html#retry-method" translate="no">retry</a></b>(<i>samePattern</i>)</li>
+</ul>
+<!-- $$$StandardChartRetry-description -->
+<h2 id="details">Detailed Description</h2>
+<p>For a gameplay button, supply <a href="qml-rhythmgameqml-standardchartretry.html#gameplay-prop" translate="no">gameplay</a>. For a normal result button, supply <a href="qml-rhythmgameqml-standardchartretry.html#result-prop" translate="no">result</a>. <a href="qml-rhythmgameqml-standardgameplayinput.html" translate="no">StandardGameplayInput</a> and <a href="qml-rhythmgameqml-standardresultinput.html" translate="no">StandardResultInput</a> already use this component internally.</p>
+<p><a href="qml-rhythmgameqml-standardchartretry.html#retry-method" translate="no">retry</a> replaces gameplay and any result above it without opening selection or decide. The game destroys the old play with the old screen. An unfinished attempt is not saved, and a result that was already saved is kept.</p>
+<p>Standard retry is available for manual single-chart play. It excludes courses, autoplay, replay, battle and Arena. Check <a href="qml-rhythmgameqml-standardchartretry.html#available-prop" translate="no">available</a> before offering a custom retry button. A course summary never offers single-chart retry.</p>
+<!-- @@@StandardChartRetry -->
+<h2>Property Documentation</h2>
+<!-- $$$available -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="available-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">available</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Reports whether the current screen and runner support standard retry.</p>
+</div></div><!-- @@@available -->
+<br/>
+<!-- $$$gameplay -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="gameplay-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">gameplay</span> : <span class="type"><a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies the gameplay context when retry is offered during play.</p>
+</div></div><!-- @@@gameplay -->
+<br/>
+<!-- $$$result -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="result-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">result</span> : <span class="type">QtObject</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies the result context. Course summaries do not support chart retry.</p>
+</div></div><!-- @@@result -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$retry[overload1]$$$retry -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="retry-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">retry</span>(<i>samePattern</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Retries with the same pattern when <i translate="no">samePattern</i> is true, or fresh randomization otherwise. Returns false when disabled or unsupported. A supported request is consumed even if loading fails; in that case the current screen remains. No call to finish() is made.</p>
+</div></div><!-- @@@retry -->
+<br/>
+</body>
+</html>

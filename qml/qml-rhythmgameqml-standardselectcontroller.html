@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardSelectController.qml -->
+  <meta name="description" content="Adds browsing, input, previews and music to a song selector.">
+  <title>StandardSelectController QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardSelectController</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#signals">Signals</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+<li class="level2"><a href="#connect-your-view">Connect your view</a></li>
+<li class="level2"><a href="#use-the-built-in-actions">Use the built-in actions</a></li>
+<li class="level2"><a href="#customize-audio-and-rankings">Customize audio and rankings</a></li>
+<li class="level2"><a href="#pause-input-for-a-popup">Pause input for a popup</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardSelectController QML Type</h1>
+<!-- $$$StandardSelectController-brief -->
+<p>Adds browsing, input, previews and music to a song selector. <a href="#details">More...</a></p>
+<!-- @@@StandardSelectController -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+<tr><td class="memItemLeft rightAlign topAlign"> Inherits:</td><td class="memItemRight bottomAlign"> <p><a href="qml-rhythmgameqml-standardselectstate.html" translate="no">StandardSelectState</a></p>
+</td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardselectcontroller-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#analogTicksPerStep-prop" translate="no">analogTicksPerStep</a></b> : alias</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#backgroundMusic-prop" translate="no">backgroundMusic</a></b> : AudioPlayer</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#backgroundMusicDelayMillis-prop" translate="no">backgroundMusicDelayMillis</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#enterFeedbackSource-prop" translate="no">enterFeedbackSource</a></b> : url</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#exitEnabled-prop" translate="no">exitEnabled</a></b> : alias</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#feedbackEnabled-prop" translate="no">feedbackEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#initialRepeatDelayMillis-prop" translate="no">initialRepeatDelayMillis</a></b> : alias</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#inputEnabled-prop" translate="no">inputEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#leaveFeedbackSource-prop" translate="no">leaveFeedbackSource</a></b> : url</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#minimumEntryCount-prop" translate="no">minimumEntryCount</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#openInternetRankingAction-prop" translate="no">openInternetRankingAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#openInternetRankingShortcutEnabled-prop" translate="no">openInternetRankingShortcutEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#openSelectedFolderShortcutEnabled-prop" translate="no">openSelectedFolderShortcutEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#openSettingsShortcutEnabled-prop" translate="no">openSettingsShortcutEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#presentationEntries-prop" translate="no">presentationEntries</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#preview-prop" translate="no">preview</a></b> : StandardSelectPreview</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#ranking-prop" translate="no">ranking</a></b> : StandardRanking</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#reloadShortcutEnabled-prop" translate="no">reloadShortcutEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#repeatDelayMillis-prop" translate="no">repeatDelayMillis</a></b> : alias</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#shortcutsEnabled-prop" translate="no">shortcutsEnabled</a></b> : bool</li>
+</ul>
+<h2 id="signals">Signals</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#moveRequested-signal" translate="no">moveRequested</a></b>(int <i>steps</i>, bool <i>repeated</i>, bool <i>analog</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#openSelectedFolderRequested-signal" translate="no">openSelectedFolderRequested</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#reloadRequested-signal" translate="no">reloadRequested</a></b>()</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#handleDownPressed-method" translate="no">handleDownPressed</a></b>(<i>event</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#handleReleased-method" translate="no">handleReleased</a></b>(<i>event</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#handleUpPressed-method" translate="no">handleUpPressed</a></b>(<i>event</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#handleWheel-method" translate="no">handleWheel</a></b>(<i>event</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#openInternetRanking-method" translate="no">openInternetRanking</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectcontroller.html#resetNavigation-method" translate="no">resetNavigation</a></b>()</li>
+</ul>
+<!-- $$$StandardSelectController-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Use this component as the starting point for a selection screen. It loads folders and tables, opens charts and courses, and handles standard input. Your theme draws the list or wheel. See the <a href="../theme_tutorial_select.html">selection lesson</a> for a complete example.</p>
+<h2 id="connect-your-view">Connect your view</h2>
+<p>For a normal list, use <a href="qml-rhythmgameqml-standardselectlistview.html" translate="no">StandardSelectListView</a>. Set its <code translate="no">controller</code> to this component, supply a delegate, and call its <code translate="no">activate(index)</code> method when a row is clicked. Set keyboard focus on the list and its enclosing focus scopes.</p>
+<p>For a custom wheel, use entries for one row per item or <a href="qml-rhythmgameqml-standardselectcontroller.html#presentationEntries-prop" translate="no">presentationEntries</a> for repeated rows. Handle <a href="qml-rhythmgameqml-standardselectcontroller.html#moveRequested-signal" translate="no">moveRequested</a> and focusRequested, then call setFocused with the selected row's data. Forward Up, Down, release and wheel events to <a href="qml-rhythmgameqml-standardselectcontroller.html#handleUpPressed-method" translate="no">handleUpPressed</a>, <a href="qml-rhythmgameqml-standardselectcontroller.html#handleDownPressed-method" translate="no">handleDownPressed</a>, <a href="qml-rhythmgameqml-standardselectcontroller.html#handleReleased-method" translate="no">handleReleased</a> and <a href="qml-rhythmgameqml-standardselectcontroller.html#handleWheel-method" translate="no">handleWheel</a>.</p>
+<p>The root folder opens automatically. Set autoInitialize to false and call initialize when your view is ready if you need different timing.</p>
+<h2 id="use-the-built-in-actions">Use the built-in actions</h2>
+<p>Buttons can call the same actions as keys: openAutoplay, openReplay, cycleSortMode, openSettings and exit. Bind replay and autoplay buttons to replayAvailable and autoplayAvailable. <a href="qml-rhythmgameqml-standardselectinput.html" translate="no">StandardSelectInput</a> lists the controller key mappings; <a href="qml-rhythmgameqml-standardselectshortcuts.html" translate="no">StandardSelectShortcuts</a> lists F2, F3, F11 and F12.</p>
+<p>The controller already includes <a href="qml-rhythmgameqml-standardselectstate.html" translate="no">StandardSelectState</a>, <a href="qml-rhythmgameqml-standardselectinput.html" translate="no">StandardSelectInput</a> and <a href="qml-rhythmgameqml-standardselectshortcuts.html" translate="no">StandardSelectShortcuts</a>. Do not add a second copy beside it. Add <a href="qml-rhythmgameqml-standardarenaselectoverlay.html" translate="no">StandardArenaSelectOverlay</a> for Arena ready controls and chat.</p>
+<h2 id="customize-audio-and-rankings">Customize audio and rankings</h2>
+<p>Change <a href="qml-rhythmgameqml-standardselectcontroller.html#preview-prop" translate="no">preview</a>, <a href="qml-rhythmgameqml-standardselectcontroller.html#backgroundMusic-prop" translate="no">backgroundMusic</a> or <a href="qml-rhythmgameqml-standardselectcontroller.html#ranking-prop" translate="no">ranking</a> to customize these features; set one to null to omit it. The preview follows the focused chart, and music stops while it plays. <a href="qml-rhythmgameqml-standardselectlistview.html" translate="no">StandardSelectListView</a> delays previews during movement; a custom wheel must bind <code translate="no">preview.moving</code> itself.</p>
+<p>Set <a href="qml-rhythmgameqml-standardselectcontroller.html#enterFeedbackSource-prop" translate="no">enterFeedbackSource</a> and <a href="qml-rhythmgameqml-standardselectcontroller.html#leaveFeedbackSource-prop" translate="no">leaveFeedbackSource</a> for folder sounds. To play your own feedback, set <a href="qml-rhythmgameqml-standardselectcontroller.html#feedbackEnabled-prop" translate="no">feedbackEnabled</a> to false and handle enteredFolder and leftFolder.</p>
+<h2 id="pause-input-for-a-popup">Pause input for a popup</h2>
+<p>Disabling the controller stops its input, shortcuts, audio and ranking work. To keep music playing while a popup is open, leave the controller enabled and set <a href="qml-rhythmgameqml-standardselectcontroller.html#inputEnabled-prop" translate="no">inputEnabled</a> and <a href="qml-rhythmgameqml-standardselectcontroller.html#shortcutsEnabled-prop" translate="no">shortcutsEnabled</a> to false. Keep it outside any container you disable for that popup.</p>
+<!-- @@@StandardSelectController -->
+<h2>Property Documentation</h2>
+<!-- $$$analogTicksPerStep -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="analogTicksPerStep-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">analogTicksPerStep</span> : <span class="type">alias</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Number of analog scratch ticks required for one logical step.</p>
+</div></div><!-- @@@analogTicksPerStep -->
+<br/>
+<!-- $$$backgroundMusic -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="backgroundMusic-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">backgroundMusic</span> : <span class="type">AudioPlayer</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Looping selection music. Its source defaults to the active profile's bgmPath followed by &quot;select&quot;. The player accepts a local file path. Playback stops while a preview plays or the controller is disabled.</p>
+<p>Customize the player's source, volume or fadeInMillis. Set it to null to omit background music, or supply another AudioPlayer. A replacement owns its playback binding and must stop when the controller is disabled.</p>
+</div></div><!-- @@@backgroundMusic -->
+<br/>
+<!-- $$$backgroundMusicDelayMillis -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="backgroundMusicDelayMillis-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">backgroundMusicDelayMillis</span> : <span class="type">int</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Delay before background music starts or returns after a preview, in milliseconds.</p>
+</div></div><!-- @@@backgroundMusicDelayMillis -->
+<br/>
+<!-- $$$enterFeedbackSource -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="enterFeedbackSource-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">enterFeedbackSource</span> : <span class="type">url</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Entering-folder sound source. Use an empty URL to omit it.</p>
+</div></div><!-- @@@enterFeedbackSource -->
+<br/>
+<!-- $$$exitEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="exitEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">exitEnabled</span> : <span class="type">alias</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls the Escape shortcut for leaving selection.</p>
+</div></div><!-- @@@exitEnabled -->
+<br/>
+<!-- $$$feedbackEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="feedbackEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">feedbackEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls folder sounds, independently of music.</p>
+</div></div><!-- @@@feedbackEnabled -->
+<br/>
+<!-- $$$initialRepeatDelayMillis -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="initialRepeatDelayMillis-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">initialRepeatDelayMillis</span> : <span class="type">alias</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Delay before classic-scratch repeat begins, in milliseconds.</p>
+</div></div><!-- @@@initialRepeatDelayMillis -->
+<br/>
+<!-- $$$inputEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="inputEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">inputEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether standard selection input is active.</p>
+</div></div><!-- @@@inputEnabled -->
+<br/>
+<!-- $$$leaveFeedbackSource -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="leaveFeedbackSource-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">leaveFeedbackSource</span> : <span class="type">url</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Leaving-folder sound source. Use an empty URL to omit it.</p>
+</div></div><!-- @@@leaveFeedbackSource -->
+<br/>
+<!-- $$$minimumEntryCount -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="minimumEntryCount-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">minimumEntryCount</span> : <span class="type">int</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Minimum number of entries produced by <a href="qml-rhythmgameqml-standardselectcontroller.html#presentationEntries-prop" translate="no">presentationEntries</a>.</p>
+</div></div><!-- @@@minimumEntryCount -->
+<br/>
+<!-- $$$openInternetRankingAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openInternetRankingAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openInternetRankingAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls openInternetRankingAction() instead of opening the ranking website.</p>
+</div></div><!-- @@@openInternetRankingAction -->
+<br/>
+<!-- $$$openInternetRankingShortcutEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openInternetRankingShortcutEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openInternetRankingShortcutEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether the F11 Internet-ranking shortcut is active.</p>
+</div></div><!-- @@@openInternetRankingShortcutEnabled -->
+<br/>
+<!-- $$$openSelectedFolderShortcutEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSelectedFolderShortcutEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openSelectedFolderShortcutEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether the F3 folder shortcut is active.</p>
+</div></div><!-- @@@openSelectedFolderShortcutEnabled -->
+<br/>
+<!-- $$$openSettingsShortcutEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSettingsShortcutEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openSettingsShortcutEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether the F12 settings shortcut is active.</p>
+</div></div><!-- @@@openSettingsShortcutEnabled -->
+<br/>
+<!-- $$$presentationEntries -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="presentationEntries-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">presentationEntries</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Contains a copy of the entries, repeated to fill <a href="qml-rhythmgameqml-standardselectcontroller.html#minimumEntryCount-prop" translate="no">minimumEntryCount</a> when needed. When entries is empty, contains null placeholders instead, with at least one row. The logical entries list stays empty.</p>
+</div></div><!-- @@@presentationEntries -->
+<br/>
+<!-- $$$preview -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="preview-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">preview</span> : <span class="type"><a href="qml-rhythmgameqml-standardselectpreview.html" translate="no">StandardSelectPreview</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Preview for the focused chart. Plays a discovered preview file or falls back to chart audio without BGA. Customize its delayMillis, moving, volume or chartAudioEnabled properties. Set it to null to omit previews, or supply another <a href="qml-rhythmgameqml-standardselectpreview.html" translate="no">StandardSelectPreview</a> with its own selection bindings.</p>
+</div></div><!-- @@@preview -->
+<br/>
+<!-- $$$ranking -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="ranking-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">ranking</span> : <span class="type"><a href="qml-rhythmgameqml-standardranking.html" translate="no">StandardRanking</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Ranking for the focused chart. Uses the active profile and its chosen provider. Bind a display to its entries, position and loading properties. Customize its properties, or replace it with another <a href="qml-rhythmgameqml-standardranking.html" translate="no">StandardRanking</a>. Set it to null to omit ranking support.</p>
+</div></div><!-- @@@ranking -->
+<br/>
+<!-- $$$reloadShortcutEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="reloadShortcutEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">reloadShortcutEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether the F2 reload shortcut is active.</p>
+</div></div><!-- @@@reloadShortcutEnabled -->
+<br/>
+<!-- $$$repeatDelayMillis -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="repeatDelayMillis-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">repeatDelayMillis</span> : <span class="type">alias</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Delay between repeated classic-scratch steps, in milliseconds.</p>
+</div></div><!-- @@@repeatDelayMillis -->
+<br/>
+<!-- $$$shortcutsEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="shortcutsEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">shortcutsEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether selection-specific F-key shortcuts are active.</p>
+</div></div><!-- @@@shortcutsEnabled -->
+<br/>
+<h2>Signal Documentation</h2>
+<!-- $$$moveRequested[overload1]$$$moveRequestedintboolbool -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="moveRequested-signal">
+<td class="tblQmlFuncNode"><p>
+<span class="name">moveRequested</span>(<span class="type">int</span> <i>steps</i>, <span class="type">bool</span> <i>repeated</i>, <span class="type">bool</span> <i>analog</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Requests that the theme move its current row by <i translate="no">steps</i>. The theme chooses whether movement wraps or stops at the end of the list. <i translate="no">repeated</i> identifies held input and <i translate="no">analog</i> identifies analog scratch or wheel input.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onMoveRequested</code>.</p>
+</div></div></div><!-- @@@moveRequested -->
+<br/>
+<!-- $$$openSelectedFolderRequested[overload1]$$$openSelectedFolderRequested -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSelectedFolderRequested-signal">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openSelectedFolderRequested</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Emitted when F3 was not handled by the standard folder behavior.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onOpenSelectedFolderRequested</code>.</p>
+</div></div></div><!-- @@@openSelectedFolderRequested -->
+<br/>
+<!-- $$$reloadRequested[overload1]$$$reloadRequested -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="reloadRequested-signal">
+<td class="tblQmlFuncNode"><p>
+<span class="name">reloadRequested</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Emitted when F2 was not handled by the standard reload behavior.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onReloadRequested</code>.</p>
+</div></div></div><!-- @@@reloadRequested -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$handleDownPressed[overload1]$$$handleDownPressed -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="handleDownPressed-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">handleDownPressed</span>(<i>event</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Handles a Down key <i translate="no">event</i> from the theme's visual focus item.</p>
+</div></div><!-- @@@handleDownPressed -->
+<br/>
+<!-- $$$handleReleased[overload1]$$$handleReleased -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="handleReleased-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">handleReleased</span>(<i>event</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Handles a keyboard direction-release <i translate="no">event</i> from the theme.</p>
+</div></div><!-- @@@handleReleased -->
+<br/>
+<!-- $$$handleUpPressed[overload1]$$$handleUpPressed -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="handleUpPressed-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">handleUpPressed</span>(<i>event</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Handles an Up key <i translate="no">event</i> from the theme's visual focus item.</p>
+</div></div><!-- @@@handleUpPressed -->
+<br/>
+<!-- $$$handleWheel[overload1]$$$handleWheel -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="handleWheel-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">handleWheel</span>(<i>event</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Handles a wheel <i translate="no">event</i> from the theme's view. Returns true when accepted.</p>
+</div></div><!-- @@@handleWheel -->
+<br/>
+<!-- $$$openInternetRanking[overload1]$$$openInternetRanking -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openInternetRanking-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openInternetRanking</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens the selected chart's ranking page, or calls the replacement action.</p>
+</div></div><!-- @@@openInternetRanking -->
+<br/>
+<!-- $$$resetNavigation[overload1]$$$resetNavigation -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="resetNavigation-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">resetNavigation</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Clears held directions, accumulated scratch and wheel movement, and repeat timing.</p>
+</div></div><!-- @@@resetNavigation -->
+<br/>
+</body>
+</html>

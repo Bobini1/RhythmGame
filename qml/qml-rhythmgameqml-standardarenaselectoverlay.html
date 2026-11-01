@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardArenaSelectOverlay.qml -->
+  <meta name="description" content="Shows the Arena room, ready controls and chat on song selection.">
+  <title>StandardArenaSelectOverlay QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardArenaSelectOverlay</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardArenaSelectOverlay QML Type</h1>
+<!-- $$$StandardArenaSelectOverlay-brief -->
+<p>Shows the Arena room, ready controls and chat on song selection. <a href="#details">More...</a></p>
+<!-- @@@StandardArenaSelectOverlay -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+<tr><td class="memItemLeft rightAlign topAlign"> Inherits:</td><td class="memItemRight bottomAlign"> <p><a href="qml-rhythmgameqml-standardarenaoverlay.html" translate="no">StandardArenaOverlay</a></p>
+</td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardarenaselectoverlay-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaselectoverlay.html#canToggleReady-prop" translate="no">canToggleReady</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaselectoverlay.html#navigationFocusTarget-prop" translate="no">navigationFocusTarget</a></b> : Item</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaselectoverlay.html#ready-prop" translate="no">ready</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaselectoverlay.html#readyDisabledReason-prop" translate="no">readyDisabledReason</a></b> : string</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaselectoverlay.html#readyShortcutDescription-prop" translate="no">readyShortcutDescription</a></b> : string</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaselectoverlay.html#readyShortcutEnabled-prop" translate="no">readyShortcutEnabled</a></b> : bool</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaselectoverlay.html#toggleReady-method" translate="no">toggleReady</a></b>()</li>
+</ul>
+<!-- $$$StandardArenaSelectOverlay-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Place this component in a selection screen. It appears while seated in an Arena room, including reconnection. Bind <a href="qml-rhythmgameqml-standardarenaselectoverlay.html#navigationFocusTarget-prop" translate="no">navigationFocusTarget</a> to the song list so closing chat can return keyboard focus there.</p>
+<p>Pressing Start twice on the same player side toggles ready. Set <a href="qml-rhythmgameqml-standardarenaselectoverlay.html#readyShortcutEnabled-prop" translate="no">readyShortcutEnabled</a> to false to provide your own ready input. The panel uses <a href="qml-rhythmgameqml-standardarenaselectoverlay.html#readyShortcutDescription-prop" translate="no">readyShortcutDescription</a> for its hint. Replacing <code translate="no">panelComponent</code> keeps the shortcut. Hidden or disabled overlays do not handle ready input.</p>
+<p>A custom Ready button calls <a href="qml-rhythmgameqml-standardarenaselectoverlay.html#toggleReady-method" translate="no">toggleReady</a> and binds its enabled state to <a href="qml-rhythmgameqml-standardarenaselectoverlay.html#canToggleReady-prop" translate="no">canToggleReady</a>. Use <a href="qml-rhythmgameqml-standardarenaselectoverlay.html#ready-prop" translate="no">ready</a> for its label or check state and <a href="qml-rhythmgameqml-standardarenaselectoverlay.html#readyDisabledReason-prop" translate="no">readyDisabledReason</a> for a hint. The button and double-Start gesture use the same rules, including cancelling readiness. Disabling the shortcut leaves the public action available.</p>
+<p>The panel supplies its own chat tab. The chat shortcut is disabled by default because some selectors use F8 for another action. Set <code translate="no">chatShortcutEnabled</code> to true to enable it. Replace <code translate="no">panelComponent</code> to supply your own room UI.</p>
+<!-- @@@StandardArenaSelectOverlay -->
+<h2>Property Documentation</h2>
+<!-- $$$canToggleReady -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="canToggleReady-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">canToggleReady</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Whether a button or gesture can change readiness now.</p>
+</div></div><!-- @@@canToggleReady -->
+<br/>
+<!-- $$$navigationFocusTarget -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="navigationFocusTarget-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">navigationFocusTarget</span> : <span class="type">Item</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Receives keyboard focus after chat closes. Defaults to the parent item.</p>
+</div></div><!-- @@@navigationFocusTarget -->
+<br/>
+<!-- $$$ready -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="ready-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">ready</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Whether the local player is ready or the round is already being prepared.</p>
+</div></div><!-- @@@ready -->
+<br/>
+<!-- $$$readyDisabledReason -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="readyDisabledReason-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">readyDisabledReason</span> : <span class="type">string</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Explains why readiness is unavailable. Empty when the room permits the action.</p>
+</div></div><!-- @@@readyDisabledReason -->
+<br/>
+<!-- $$$readyShortcutDescription -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="readyShortcutDescription-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">readyShortcutDescription</span> : <span class="type">string</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Describes the ready gesture. Empty when <a href="qml-rhythmgameqml-standardarenaselectoverlay.html#readyShortcutEnabled-prop" translate="no">readyShortcutEnabled</a> is false.</p>
+</div></div><!-- @@@readyShortcutDescription -->
+<br/>
+<!-- $$$readyShortcutEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="readyShortcutEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">readyShortcutEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Enables the double-Start ready gesture while the overlay is presented.</p>
+</div></div><!-- @@@readyShortcutEnabled -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$toggleReady[overload1]$$$toggleReady -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="toggleReady-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">toggleReady</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Toggles readiness for a button or custom gesture. Returns false when unavailable.</p>
+</div></div><!-- @@@toggleReady -->
+<br/>
+</body>
+</html>

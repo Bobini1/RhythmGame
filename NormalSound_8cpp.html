@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -79,6 +79,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="NormalSound_8h_source.html">NormalSound.h</a>&quot;</code><br />
+<code>#include &lt;stdexcept&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &quot;<a class="el" href="AudioEngine_8h_source.html">AudioEngine.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="SoundBuffer_8h_source.html">sounds/SoundBuffer.h</a>&quot;</code><br />
@@ -87,38 +88,39 @@ Include dependency graph for NormalSound.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="NormalSound_8cpp__incl.png" border="0" usemap="#asrc_2sounds_2NormalSound_8cpp" alt=""/></div>
 <map name="asrc_2sounds_2NormalSound_8cpp" id="asrc_2sounds_2NormalSound_8cpp">
-<area shape="rect" title=" " alt="" coords="195,5,405,31"/>
-<area shape="rect" href="NormalSound_8h.html" title=" " alt="" coords="77,79,200,104"/>
-<area shape="poly" title=" " alt="" coords="275,33,179,75,176,71,273,28"/>
-<area shape="rect" title=" " alt="" coords="224,79,301,104"/>
-<area shape="poly" title=" " alt="" coords="296,32,277,68,273,65,291,30"/>
-<area shape="rect" href="AudioEngine_8h.html" title=" " alt="" coords="281,152,396,177"/>
-<area shape="poly" title=" " alt="" coords="306,30,335,138,329,139,301,32"/>
-<area shape="rect" href="SoundBuffer_8h.html" title=" " alt="" coords="376,79,539,104"/>
-<area shape="poly" title=" " alt="" coords="326,28,420,71,418,75,324,33"/>
-<area shape="rect" href="Sound_8h.html" title=" " alt="" coords="111,152,185,177"/>
-<area shape="poly" title=" " alt="" coords="143,104,147,138,142,139,138,105"/>
+<area shape="rect" title=" " alt="" coords="295,5,505,31"/>
+<area shape="rect" href="NormalSound_8h.html" title=" " alt="" coords="103,79,225,104"/>
+<area shape="poly" title=" " alt="" coords="363,33,216,77,215,72,361,28"/>
+<area shape="rect" title=" " alt="" coords="250,79,337,104"/>
+<area shape="poly" title=" " alt="" coords="384,33,324,73,321,69,381,28"/>
+<area shape="rect" title=" " alt="" coords="361,79,439,104"/>
+<area shape="poly" title=" " alt="" coords="403,31,403,65,397,65,397,31"/>
+<area shape="rect" href="AudioEngine_8h.html" title=" " alt="" coords="417,152,532,177"/>
+<area shape="poly" title=" " alt="" coords="415,29,434,50,453,77,466,108,473,138,468,139,460,110,448,80,430,54,411,33"/>
+<area shape="rect" href="SoundBuffer_8h.html" title=" " alt="" coords="513,79,676,104"/>
+<area shape="poly" title=" " alt="" coords="432,28,551,71,549,76,430,33"/>
+<area shape="rect" href="Sound_8h.html" title=" " alt="" coords="129,152,204,177"/>
+<area shape="poly" title=" " alt="" coords="167,104,168,138,163,139,162,104"/>
 <area shape="rect" title=" " alt="" coords="5,225,80,251"/>
-<area shape="poly" title=" " alt="" coords="133,106,101,153,60,215,56,212,96,151,129,103"/>
-<area shape="poly" title=" " alt="" coords="133,180,72,220,70,215,130,175"/>
+<area shape="poly" title=" " alt="" coords="148,180,76,221,73,216,145,175"/>
 <area shape="rect" title=" " alt="" coords="105,225,229,251"/>
-<area shape="poly" title=" " alt="" coords="154,177,163,212,158,213,149,178"/>
-<area shape="rect" href="MiniaudioBackend_8h.html" title=" " alt="" coords="253,225,406,251"/>
-<area shape="poly" title=" " alt="" coords="178,175,288,218,286,223,176,180"/>
+<area shape="poly" title=" " alt="" coords="169,178,169,212,164,212,164,178"/>
+<area shape="rect" href="MiniaudioBackend_8h.html" title=" " alt="" coords="254,225,407,251"/>
+<area shape="poly" title=" " alt="" coords="194,175,293,217,290,222,192,180"/>
 <area shape="rect" title=" " alt="" coords="218,299,318,324"/>
-<area shape="poly" title=" " alt="" coords="321,253,289,290,285,286,317,249"/>
+<area shape="poly" title=" " alt="" coords="322,253,289,290,285,286,318,249"/>
 <area shape="rect" title=" " alt="" coords="343,299,441,324"/>
-<area shape="poly" title=" " alt="" coords="342,249,375,286,371,290,338,253"/>
-<area shape="poly" title=" " alt="" coords="340,178,335,212,330,211,334,177"/>
-<area shape="rect" title=" " alt="" coords="431,225,516,251"/>
-<area shape="poly" title=" " alt="" coords="362,175,440,216,438,221,359,180"/>
-<area shape="poly" title=" " alt="" coords="440,106,371,147,369,142,437,102"/>
-<area shape="rect" title=" " alt="" coords="421,152,483,177"/>
-<area shape="poly" title=" " alt="" coords="459,105,457,139,451,138,454,104"/>
-<area shape="rect" title=" " alt="" coords="508,152,599,177"/>
-<area shape="poly" title=" " alt="" coords="474,102,528,141,525,146,471,106"/>
-<area shape="rect" title=" " alt="" coords="623,152,676,177"/>
-<area shape="poly" title=" " alt="" coords="489,102,610,146,608,151,487,107"/>
+<area shape="poly" title=" " alt="" coords="343,249,375,286,371,290,339,253"/>
+<area shape="poly" title=" " alt="" coords="453,180,368,221,365,217,450,175"/>
+<area shape="rect" title=" " alt="" coords="432,225,517,251"/>
+<area shape="poly" title=" " alt="" coords="477,178,477,212,472,212,472,178"/>
+<area shape="poly" title=" " alt="" coords="577,106,508,147,505,142,574,102"/>
+<area shape="rect" title=" " alt="" coords="557,152,619,177"/>
+<area shape="poly" title=" " alt="" coords="596,105,593,139,588,138,591,104"/>
+<area shape="rect" title=" " alt="" coords="644,152,735,177"/>
+<area shape="poly" title=" " alt="" coords="611,102,664,141,661,146,608,106"/>
+<area shape="rect" title=" " alt="" coords="759,152,812,177"/>
+<area shape="poly" title=" " alt="" coords="626,102,747,146,745,151,624,107"/>
 </map>
 </div>
 </div><table class="memberdecls">

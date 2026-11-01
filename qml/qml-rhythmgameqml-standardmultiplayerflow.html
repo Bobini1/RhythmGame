@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardMultiplayerFlow.qml -->
+  <meta name="description" content="Connects the Arena browser and opens room selection and gameplay.">
+  <title>StandardMultiplayerFlow QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardMultiplayerFlow</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardMultiplayerFlow QML Type</h1>
+<!-- $$$StandardMultiplayerFlow-brief -->
+<p>Connects the Arena browser and opens room selection and gameplay. <a href="#details">More...</a></p>
+<!-- @@@StandardMultiplayerFlow -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardmultiplayerflow-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardmultiplayerflow.html#screen-prop" translate="no">screen</a></b> : Item</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardmultiplayerflow.html#session-prop" translate="no">session</a></b> : ArenaSession</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardmultiplayerflow.html#close-method" translate="no">close</a></b>()</li>
+</ul>
+<!-- $$$StandardMultiplayerFlow-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Place this component directly inside a multiplayer screen. If it is nested in another container, set <a href="qml-rhythmgameqml-standardmultiplayerflow.html#screen-prop" translate="no">screen</a> to the screen root. Use <a href="qml-rhythmgameqml-standardmultiplayerflow.html#session-prop" translate="no">session</a> for the room list, createRoom(), joinRoom() and retry(); their arguments are listed in the <a href="../classarena_1_1ArenaSession.html">ArenaSession reference</a>. Call <a href="qml-rhythmgameqml-standardmultiplayerflow.html#close-method" translate="no">close</a> from the Back button. Removing the browser disconnects from Arena.</p>
+<p>Joining a room opens the configured selector on the ordinary screen stack. <a href="qml-rhythmgameqml-standardselectcontroller.html" translate="no">StandardSelectController</a> returns to the browser when the room is left. Prepared charts open gameplay even while another screen, such as Settings, covers the selector. The theme requests its start after its intro, and Arena waits for every participant before releasing playback. Closing gameplay returns to the retained screen.</p>
+<!-- @@@StandardMultiplayerFlow -->
+<h2>Property Documentation</h2>
+<!-- $$$screen -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="screen-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">screen</span> : <span class="type">Item</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>The multiplayer screen that contains this flow.</p>
+</div></div><!-- @@@screen -->
+<br/>
+<!-- $$$session -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="session-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">session</span> : <span class="type">ArenaSession</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>The Arena session used by this browser.</p>
+</div></div><!-- @@@session -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$close[overload1]$$$close -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="close-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">close</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Closes this browser when it is the current screen.</p>
+</div></div><!-- @@@close -->
+<br/>
+</body>
+</html>

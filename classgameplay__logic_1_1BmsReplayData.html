@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -128,10 +128,16 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:adac3b09af5a7b6ece52711465334a855"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00d9c6ab8f41633acc5ae17e7ca3e6da" id="r_a00d9c6ab8f41633acc5ae17e7ca3e6da"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsReplayData.html#a00d9c6ab8f41633acc5ae17e7ca3e6da">save</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db) const</td></tr>
 <tr class="separator:a00d9c6ab8f41633acc5ae17e7ca3e6da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3ddac9bbab8486553adc95cea20c2e1" id="r_aa3ddac9bbab8486553adc95cea20c2e1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsReplayData.html#aa3ddac9bbab8486553adc95cea20c2e1">serialize</a> () const -&gt; QByteArray</td></tr>
+<tr class="separator:aa3ddac9bbab8486553adc95cea20c2e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a257cfe74151030d58a577c7bd62db840" id="r_a257cfe74151030d58a577c7bd62db840"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsReplayData.html#a257cfe74151030d58a577c7bd62db840">save</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db, const QByteArray &amp;serialized) const</td></tr>
+<tr class="separator:a257cfe74151030d58a577c7bd62db840"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0b1b251b8f69c50d939489b708dbed9" id="r_ae0b1b251b8f69c50d939489b708dbed9"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsReplayData.html#ae0b1b251b8f69c50d939489b708dbed9">toJsonArray</a> () const -&gt; QJsonArray</td></tr>
 <tr class="separator:ae0b1b251b8f69c50d939489b708dbed9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a617147f964c5af20d8dc5d11290cbf20" id="r_a617147f964c5af20d8dc5d11290cbf20"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsReplayData.html#a617147f964c5af20d8dc5d11290cbf20">updateTimingCounts</a> ()</td></tr>
 <tr class="separator:a617147f964c5af20d8dc5d11290cbf20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a546eb5db59d61aeab2eff1d52d63107b" id="r_a546eb5db59d61aeab2eff1d52d63107b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsReplayData.html#a546eb5db59d61aeab2eff1d52d63107b">clone</a> () const -&gt; std::unique_ptr&lt; <a class="el" href="classgameplay__logic_1_1BmsReplayData.html">BmsReplayData</a> &gt;</td></tr>
+<tr class="separator:a546eb5db59d61aeab2eff1d52d63107b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -203,6 +209,23 @@ Properties</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a546eb5db59d61aeab2eff1d52d63107b" name="a546eb5db59d61aeab2eff1d52d63107b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a546eb5db59d61aeab2eff1d52d63107b">&#9670;&#160;</a></span>clone()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::BmsReplayData::clone </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; std::unique_ptr&lt;<a class="el" href="classgameplay__logic_1_1BmsReplayData.html">BmsReplayData</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aa0aef9d3c043a9710ec51029527606b4" name="aa0aef9d3c043a9710ec51029527606b4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa0aef9d3c043a9710ec51029527606b4">&#9670;&#160;</a></span>fromJsonArray()</h2>
 
@@ -384,7 +407,7 @@ Properties</h2></td></tr>
 </div>
 </div>
 <a id="a00d9c6ab8f41633acc5ae17e7ca3e6da" name="a00d9c6ab8f41633acc5ae17e7ca3e6da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a00d9c6ab8f41633acc5ae17e7ca3e6da">&#9670;&#160;</a></span>save()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a00d9c6ab8f41633acc5ae17e7ca3e6da">&#9670;&#160;</a></span>save() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -395,6 +418,51 @@ Properties</h2></td></tr>
           <td class="paramtype"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;&#160;</td>
           <td class="paramname"><em>db</em></td><td>)</td>
           <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a257cfe74151030d58a577c7bd62db840" name="a257cfe74151030d58a577c7bd62db840"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a257cfe74151030d58a577c7bd62db840">&#9670;&#160;</a></span>save() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void gameplay_logic::BmsReplayData::save </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;&#160;</td>
+          <td class="paramname"><em>db</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QByteArray &amp;&#160;</td>
+          <td class="paramname"><em>serialized</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa3ddac9bbab8486553adc95cea20c2e1" name="aa3ddac9bbab8486553adc95cea20c2e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa3ddac9bbab8486553adc95cea20c2e1">&#9670;&#160;</a></span>serialize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::BmsReplayData::serialize </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; QByteArray</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -455,6 +523,7 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Timing buckets: Perfect, Great, Good, Bad, Poor, EmptyPoor. Negative deviation is early; zero and positive deviation are late. Calculated from the loaded replay, not stored in the score database. </p>
 
 </div>
 </div>
@@ -547,6 +616,7 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Totals include only Perfect through Bad (the first four buckets). </p>
 
 </div>
 </div>

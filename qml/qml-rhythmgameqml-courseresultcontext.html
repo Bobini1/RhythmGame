@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- ScreenContexts.qdoc -->
+  <meta name="description" content="Completed course summary supplied to the course-result screen.">
+  <title>CourseResultContext QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>CourseResultContext</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">CourseResultContext QML Type</h1>
+<!-- $$$CourseResultContext-brief -->
+<p>Completed course summary supplied to the course-result screen. <a href="#details">More...</a></p>
+<!-- @@@CourseResultContext -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-courseresultcontext-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-courseresultcontext.html#charts-prop" translate="no">charts</a></b> : list&lt;ChartData&gt;</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-courseresultcontext.html#course-prop" translate="no">course</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-courseresultcontext.html#players-prop" translate="no">players</a></b> : list&lt;CourseResultPlayer&gt;</li>
+</ul>
+<!-- $$$CourseResultContext-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Declare <code translate="no">required property CourseResultContext result</code> on a course result screen. The game selects the course result separately from the normal result. A theme can provide one screen or both, with a separate contract for each.</p>
+<p><a href="qml-rhythmgameqml-standardresultinput.html" translate="no">StandardResultInput</a> can close a course summary. Single-chart retry is unavailable because the result describes the whole course. The game owns this context and its data; do not destroy them from the theme.</p>
+<!-- @@@CourseResultContext -->
+<h2>Property Documentation</h2>
+<!-- $$$charts -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="charts-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">charts</span> : <span class="type">list</span>&lt;<span class="type">ChartData</span>&gt; <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Chart metadata in stage order. A saved course can contain null entries for charts no longer installed. Keep those stages in the display: their identifiers remain in <code translate="no">course.chartIds</code> at the same indices. <code translate="no">Rg.tables.search(identifier)</code> can supply a title from a table; otherwise display the identifier. Installed metadata remains valid for this context's lifetime, even if the library changes.</p>
+</div></div><!-- @@@charts -->
+<br/>
+<!-- $$$course -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="course-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">course</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Completed course definition.</p>
+</div></div><!-- @@@course -->
+<br/>
+<!-- $$$players -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="players-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">players</span> : <span class="type">list</span>&lt;<span class="type"><a href="qml-rhythmgameqml-courseresultplayer.html" translate="no">CourseResultPlayer</a></span>&gt; <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Contains one or two <a href="qml-rhythmgameqml-courseresultplayer.html" translate="no">CourseResultPlayer</a> entries. Each pairs a profile with an aggregate course score.</p>
+</div></div><!-- @@@players -->
+<br/>
+</body>
+</html>

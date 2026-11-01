@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -121,6 +121,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae2c446215b4b2ad6f3b6a8395b1097fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c8b78644e89e08eb3c5c81b29a86c63" id="r_a8c8b78644e89e08eb3c5c81b29a86c63"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScoreCourse.html#a8c8b78644e89e08eb3c5c81b29a86c63">save</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db) const</td></tr>
 <tr class="separator:a8c8b78644e89e08eb3c5c81b29a86c63"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae86ae5a13e5b5bb14251369591c38009" id="r_ae86ae5a13e5b5bb14251369591c38009"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScoreCourse.html#ae86ae5a13e5b5bb14251369591c38009">clone</a> (QObject *parent=nullptr) const -&gt; std::unique_ptr&lt; <a class="el" href="classgameplay__logic_1_1BmsScoreCourse.html">BmsScoreCourse</a> &gt;</td></tr>
+<tr class="separator:ae86ae5a13e5b5bb14251369591c38009"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -200,6 +202,24 @@ Properties</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="ae86ae5a13e5b5bb14251369591c38009" name="ae86ae5a13e5b5bb14251369591c38009"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae86ae5a13e5b5bb14251369591c38009">&#9670;&#160;</a></span>clone()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::BmsScoreCourse::clone </td>
+          <td>(</td>
+          <td class="paramtype">QObject *&#160;</td>
+          <td class="paramname"><em>parent</em> = <code>nullptr</code></td><td>)</td>
+          <td> const -&gt; std::unique_ptr&lt;<a class="el" href="classgameplay__logic_1_1BmsScoreCourse.html">BmsScoreCourse</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a02d4432cc9b86c2fecec24d9f544d40b" name="a02d4432cc9b86c2fecec24d9f544d40b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a02d4432cc9b86c2fecec24d9f544d40b">&#9670;&#160;</a></span>fromScores()</h2>
 
@@ -374,6 +394,7 @@ Properties</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The combined replay data of the course. </p>
+<p>Timestamps include the lengths of earlier stages. <a class="el" href="classgameplay__logic_1_1Note.html">Note</a> indices and columns remain local to each stage. Use scores for stage-specific note matching. </p>
 
 </div>
 </div>

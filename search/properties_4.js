@@ -21,8 +21,9 @@ var searchData=
   ['entry_18',['entry',['../structresource__managers_1_1TableInfo.html#a54ccdf1703d3d4d50cf8eb8e871a9147',1,'resource_managers::TableInfo::entry'],['../classLr2SelectBarCell.html#a4ba7aedf33065dd579a63fcfb99c8185',1,'Lr2SelectBarCell::entry']]],
   ['entrylike_19',['entryLike',['../classLr2SelectBarCell.html#a88efdec9a543f9e2b4bb07721ecd338f',1,'Lr2SelectBarCell']]],
   ['errorcode_20',['errorCode',['../classarena_1_1ArenaSession.html#af16207a6b8900818853e6f720d1c2ea2',1,'arena::ArenaSession']]],
-  ['errored_21',['errored',['../classqml__components_1_1ReplayImportOperation.html#a26c37046fa895ceef74569b4e96fa44d',1,'qml_components::ReplayImportOperation']]],
-  ['errormessagekey_22',['errorMessageKey',['../classarena_1_1ArenaSession.html#ae797c4bfd509ebfa62e4dba317d8477f',1,'arena::ArenaSession']]],
-  ['exhard_23',['exhard',['../classLr2SelectScoreCounts.html#a446fd089b63563c8fff12a94f9bec0ce',1,'Lr2SelectScoreCounts']]],
-  ['exscore_24',['exscore',['../classLr2SelectScoreStats.html#a5d351f82ec0fb1414875c20c6c8dfe70',1,'Lr2SelectScoreStats::exscore'],['../classarena_1_1ArenaOpponentTarget.html#aec8d7949e2d1d5128032c8bbd212dd1e',1,'arena::ArenaOpponentTarget::exScore']]]
+  ['errorcount_21',['errorCount',['../classqml__components_1_1ScoreSyncOperation.html#a7c6e6b602202603ecc49fd4a6db09a44',1,'qml_components::ScoreSyncOperation']]],
+  ['errored_22',['errored',['../classqml__components_1_1ReplayImportOperation.html#a26c37046fa895ceef74569b4e96fa44d',1,'qml_components::ReplayImportOperation']]],
+  ['errormessagekey_23',['errorMessageKey',['../classarena_1_1ArenaSession.html#ae797c4bfd509ebfa62e4dba317d8477f',1,'arena::ArenaSession']]],
+  ['exhard_24',['exhard',['../classLr2SelectScoreCounts.html#a446fd089b63563c8fff12a94f9bec0ce',1,'Lr2SelectScoreCounts']]],
+  ['exscore_25',['exscore',['../classLr2SelectScoreStats.html#a5d351f82ec0fb1414875c20c6c8dfe70',1,'Lr2SelectScoreStats::exscore'],['../classarena_1_1ArenaOpponentTarget.html#aec8d7949e2d1d5128032c8bbd212dd1e',1,'arena::ArenaOpponentTarget::exScore']]]
 ];

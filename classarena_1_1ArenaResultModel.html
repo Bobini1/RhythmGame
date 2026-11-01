@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -113,8 +113,6 @@ Signals</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a98801326c0026d2b651c54a224594db7" id="r_a98801326c0026d2b651c54a224594db7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classarena_1_1ArenaResultModel.html#a98801326c0026d2b651c54a224594db7">ArenaResultModel</a> (QObject *parent=nullptr)</td></tr>
 <tr class="separator:a98801326c0026d2b651c54a224594db7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5281f0656d24aabc02ec242218447be2" id="r_a5281f0656d24aabc02ec242218447be2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classarena_1_1ArenaResultModel.html#a5281f0656d24aabc02ec242218447be2">valid</a> () const -&gt; bool</td></tr>
-<tr class="separator:a5281f0656d24aabc02ec242218447be2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca4da09e5dcaeb9dce35dc5c169ed0bd" id="r_aca4da09e5dcaeb9dce35dc5c169ed0bd"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classarena_1_1ArenaResultModel.html#aca4da09e5dcaeb9dce35dc5c169ed0bd">finalized</a> () const -&gt; bool</td></tr>
 <tr class="separator:aca4da09e5dcaeb9dce35dc5c169ed0bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac0ba94605422e0e24ef154f37e355cfd" id="r_ac0ba94605422e0e24ef154f37e355cfd"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classarena_1_1ArenaResultModel.html#ac0ba94605422e0e24ef154f37e355cfd">roundId</a> () const -&gt; const QString &amp;</td></tr>
@@ -148,8 +146,6 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
 Properties</h2></td></tr>
-<tr class="memitem:a4da8d668f35063b1cc1a27cea9a869df" id="r_a4da8d668f35063b1cc1a27cea9a869df"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classarena_1_1ArenaResultModel.html#a4da8d668f35063b1cc1a27cea9a869df">valid</a></td></tr>
-<tr class="separator:a4da8d668f35063b1cc1a27cea9a869df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d1d31d9e59cfae1943be79e49fd10ef" id="r_a4d1d31d9e59cfae1943be79e49fd10ef"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classarena_1_1ArenaResultModel.html#a4d1d31d9e59cfae1943be79e49fd10ef">finalized</a></td></tr>
 <tr class="separator:a4d1d31d9e59cfae1943be79e49fd10ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad84a11e07f338ac8f5ea1a522a4256b3" id="r_ad84a11e07f338ac8f5ea1a522a4256b3"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classarena_1_1ArenaResultModel.html#ad84a11e07f338ac8f5ea1a522a4256b3">roundId</a></td></tr>
@@ -495,23 +491,6 @@ Properties</h2></td></tr>
 
 </div>
 </div>
-<a id="a5281f0656d24aabc02ec242218447be2" name="a5281f0656d24aabc02ec242218447be2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5281f0656d24aabc02ec242218447be2">&#9670;&#160;</a></span>valid()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto arena::ArenaResultModel::valid </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const -&gt; bool</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a38cbfc156a686fc54bffce5621217382" name="a38cbfc156a686fc54bffce5621217382"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a38cbfc156a686fc54bffce5621217382">&#9670;&#160;</a></span>winnerMemberIds()</h2>
 
@@ -698,6 +677,7 @@ Properties</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Empty when this model has no pending or finalized result. </p>
 
 </div>
 </div>
@@ -756,28 +736,6 @@ Properties</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">auto arena::ArenaResultModel::standings</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">read</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a4da8d668f35063b1cc1a27cea9a869df" name="a4da8d668f35063b1cc1a27cea9a869df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4da8d668f35063b1cc1a27cea9a869df">&#9670;&#160;</a></span>valid</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool arena::ArenaResultModel::valid</td>
         </tr>
       </table>
   </td>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- ScreenContexts.qdoc -->
+  <meta name="description" content="Supplies a completed chart result, including a course stage.">
+  <title>ResultContext QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>ResultContext</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">ResultContext QML Type</h1>
+<!-- $$$ResultContext-brief -->
+<p>Supplies a completed chart result, including a course stage. <a href="#details">More...</a></p>
+<!-- @@@ResultContext -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-resultcontext-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-resultcontext.html#arenaActive-prop" translate="no">arenaActive</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-resultcontext.html#arenaRoundId-prop" translate="no">arenaRoundId</a></b> : string</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-resultcontext.html#chartData-prop" translate="no">chartData</a></b> : ChartData</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-resultcontext.html#course-prop" translate="no">course</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-resultcontext.html#gameplay-prop" translate="no">gameplay</a></b> : GameplayContext</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-resultcontext.html#players-prop" translate="no">players</a></b> : list&lt;ResultPlayer&gt;</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-resultcontext.html#stageCount-prop" translate="no">stageCount</a></b> : int</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-resultcontext.html#stageIndex-prop" translate="no">stageIndex</a></b> : int</li>
+</ul>
+<!-- $$$ResultContext-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Declare <code translate="no">required property ResultContext result</code> on a normal result screen. The game supplies the completed chart and scores when it opens the screen. Chart metadata and totals stay fixed after a course advances, although online score submission state can still change.</p>
+<p>Bind the context to <a href="qml-rhythmgameqml-standardresultinput.html#result-prop" translate="no">StandardResultInput::result</a> for confirmation and supported single-chart retry. Read the result's own metadata when showing the completed stage, since the originating play may have advanced. The game keeps the context and its scores alive while the result screen needs them. Do not destroy them from the theme.</p>
+<!-- @@@ResultContext -->
+<h2>Property Documentation</h2>
+<!-- $$$arenaActive -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="arenaActive-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">arenaActive</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Reports whether the Arena session still presents this result's round. Use it for standings and chat input rules, including in themes that draw their own panel. The context checks the round ID and session state, so the theme doesn't need to repeat those checks. Local results and saved scores return false.</p>
+</div></div><!-- @@@arenaActive -->
+<br/>
+<!-- $$$arenaRoundId -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="arenaRoundId-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">arenaRoundId</span> : <span class="type">string</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Identifies the Arena round for this result. It is empty for local play and saved-score views. Standard gameplay supplies it before the screen is created, so a result screen doesn't need an initialization callback from the host.</p>
+</div></div><!-- @@@arenaRoundId -->
+<br/>
+<!-- $$$chartData -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="chartData-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">chartData</span> : <span class="type">ChartData</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Describes the completed chart, regardless of the current gameplay stage.</p>
+</div></div><!-- @@@chartData -->
+<br/>
+<!-- $$$course -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="course-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">course</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Contains the course definition for a stage result. It is undefined for a single chart.</p>
+</div></div><!-- @@@course -->
+<br/>
+<!-- $$$gameplay -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="gameplay-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">gameplay</span> : <span class="type"><a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a></span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Refers to the originating play, or null if the result was opened without one. Standard retry uses this reference. The play remains live and may describe the next stage, so use the result's chart and stage fields for the completed stage.</p>
+</div></div><!-- @@@gameplay -->
+<br/>
+<!-- $$$players -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="players-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">players</span> : <span class="type">list</span>&lt;<span class="type"><a href="qml-rhythmgameqml-resultplayer.html" translate="no">ResultPlayer</a></span>&gt; <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Contains one or two <a href="qml-rhythmgameqml-resultplayer.html" translate="no">ResultPlayer</a> entries. Each pairs a profile with a completed BmsScore.</p>
+</div></div><!-- @@@players -->
+<br/>
+<!-- $$$stageCount -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="stageCount-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">stageCount</span> : <span class="type">int</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Gives the stage count of the originating play. It stays fixed and is one for a single chart.</p>
+</div></div><!-- @@@stageCount -->
+<br/>
+<!-- $$$stageIndex -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="stageIndex-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">stageIndex</span> : <span class="type">int</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Gives the completed stage index, starting at zero. It stays fixed and is zero for a single chart.</p>
+</div></div><!-- @@@stageIndex -->
+<br/>
+</body>
+</html>

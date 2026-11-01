@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardGameplayViewport.qml -->
+  <meta name="description" content="Applies the player's note speed and keeps visible note models in sync.">
+  <title>StandardGameplayViewport QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardGameplayViewport</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardGameplayViewport QML Type</h1>
+<!-- $$$StandardGameplayViewport-brief -->
+<p>Applies the player's note speed and keeps visible note models in sync. <a href="#details">More...</a></p>
+<!-- @@@StandardGameplayViewport -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardgameplayviewport-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayviewport.html#barLineHeight-prop" translate="no">barLineHeight</a></b> : real</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayviewport.html#chartData-prop" translate="no">chartData</a></b> : ChartData</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayviewport.html#noteHeight-prop" translate="no">noteHeight</a></b> : real</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayviewport.html#pixelsPerBeat-prop" translate="no">pixelsPerBeat</a></b> : real</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayviewport.html#player-prop" translate="no">player</a></b> : Player</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplayviewport.html#visibleHeight-prop" translate="no">visibleHeight</a></b> : real</li>
+</ul>
+<!-- $$$StandardGameplayViewport-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Bind <a href="qml-rhythmgameqml-standardgameplayviewport.html#player-prop" translate="no">player</a> and <a href="qml-rhythmgameqml-standardgameplayviewport.html#chartData-prop" translate="no">chartData</a> to the current stage, and set <a href="qml-rhythmgameqml-standardgameplayviewport.html#noteHeight-prop" translate="no">noteHeight</a> to the distance from the top clipping edge to the judgement line. Use <a href="qml-rhythmgameqml-standardgameplayviewport.html#pixelsPerBeat-prop" translate="no">pixelsPerBeat</a> to place notes relative to player.position. The component updates the player's filtered note and bar-line models when the dimensions, profile settings or stage change.</p>
+<p>Speed follows the profile's noteScreenTimeMillis and HiSpeedFix setting. Off uses 120 BPM. Main, Start, Min, Max and Avg use the corresponding chart BPM. BPM and scroll changes within the chart still affect note movement.</p>
+<p>A field with lane cover or lift should set <a href="qml-rhythmgameqml-standardgameplayviewport.html#visibleHeight-prop" translate="no">visibleHeight</a> to the distance from the lane cover to the judgement line. Hidden cover does not reduce this distance for speed calculation. <a href="qml-rhythmgameqml-standardgameplayviewport.html#barLineHeight-prop" translate="no">barLineHeight</a> can describe a separate clipped area for bar lines. All heights use the renderer's local coordinates. The component draws nothing and does not occupy layout space.</p>
+<p>It owns the calls to GameplayState::setVisiblePositionSpans() for the player. Fields sharing a player, such as two sides in double play, share the filtered models and must use the same visible position spans.</p>
+<!-- @@@StandardGameplayViewport -->
+<h2>Property Documentation</h2>
+<!-- $$$barLineHeight -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="barLineHeight-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">barLineHeight</span> : <span class="type">real</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Height used to draw bar lines. Defaults to <a href="qml-rhythmgameqml-standardgameplayviewport.html#noteHeight-prop" translate="no">noteHeight</a>.</p>
+</div></div><!-- @@@barLineHeight -->
+<br/>
+<!-- $$$chartData -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="chartData-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">chartData</span> : <span class="type">ChartData</span> <code class="details extra" translate="no">[required]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Metadata for the chart currently playing, including a course stage.</p>
+</div></div><!-- @@@chartData -->
+<br/>
+<!-- $$$noteHeight -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="noteHeight-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">noteHeight</span> : <span class="type">real</span> <code class="details extra" translate="no">[required]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Distance from the top note clipping edge to the judgement line.</p>
+</div></div><!-- @@@noteHeight -->
+<br/>
+<!-- $$$pixelsPerBeat -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="pixelsPerBeat-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">pixelsPerBeat</span> : <span class="type">real</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Distance for one unit of notePosition or player.position. Zero for an empty field.</p>
+</div></div><!-- @@@pixelsPerBeat -->
+<br/>
+<!-- $$$player -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="player-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">player</span> : <span class="type">Player</span> <code class="details extra" translate="no">[required]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Player whose settings and filtered note models are used.</p>
+</div></div><!-- @@@player -->
+<br/>
+<!-- $$$visibleHeight -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="visibleHeight-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">visibleHeight</span> : <span class="type">real</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Note travel distance after lane cover and lift. Defaults to <a href="qml-rhythmgameqml-standardgameplayviewport.html#noteHeight-prop" translate="no">noteHeight</a>.</p>
+</div></div><!-- @@@visibleHeight -->
+<br/>
+</body>
+</html>

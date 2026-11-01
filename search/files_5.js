@@ -1,11 +1,7 @@
 var searchData=
 [
-  ['filequery_2ecpp_0',['FileQuery.cpp',['../FileQuery_8cpp.html',1,'']]],
-  ['filequery_2eh_1',['FileQuery.h',['../FileQuery_8h.html',1,'']]],
-  ['finddatafolder_2ecpp_2',['FindDataFolder.cpp',['../FindDataFolder_8cpp.html',1,'']]],
-  ['finddatafolder_2eh_3',['FindDataFolder.h',['../FindDataFolder_8h.html',1,'']]],
-  ['fontresolver_2ecpp_4',['FontResolver.cpp',['../FontResolver_8cpp.html',1,'']]],
-  ['fontresolver_2eh_5',['FontResolver.h',['../FontResolver_8h.html',1,'']]],
-  ['frameratelimiter_2ecpp_6',['FrameRateLimiter.cpp',['../FrameRateLimiter_8cpp.html',1,'']]],
-  ['frameratelimiter_2eh_7',['FrameRateLimiter.h',['../FrameRateLimiter_8h.html',1,'']]]
+  ['enablesharedfrombase_2ecpp_0',['EnableSharedFromBase.cpp',['../EnableSharedFromBase_8cpp.html',1,'']]],
+  ['enablesharedfrombase_2eh_1',['EnableSharedFromBase.h',['../EnableSharedFromBase_8h.html',1,'']]],
+  ['exception_2ecpp_2',['Exception.cpp',['../Exception_8cpp.html',1,'']]],
+  ['exception_2eh_3',['Exception.h',['../Exception_8h.html',1,'']]]
 ];

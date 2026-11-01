@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['valid_0',['valid',['../classarena_1_1ArenaResultModel.html#a5281f0656d24aabc02ec242218447be2',1,'arena::ArenaResultModel']]],
-  ['validat_1',['validAt',['../classLr2BarPositionMap.html#ad33eec96afd92ae000fdfa3bf3e3f4f6',1,'Lr2BarPositionMap']]],
-  ['validateparams_2',['validateParams',['../namespaceqml__components.html#af322aeaef1fc8e3c274202e22f05b43a',1,'qml_components']]],
+  ['validat_0',['validAt',['../classLr2BarPositionMap.html#ad33eec96afd92ae000fdfa3bf3e3f4f6',1,'Lr2BarPositionMap']]],
+  ['validateparams_1',['validateParams',['../namespaceqml__components.html#af322aeaef1fc8e3c274202e22f05b43a',1,'qml_components']]],
+  ['validatethemesettings_2',['validateThemeSettings',['../namespaceresource__managers.html#a1b9c58ace5a4a9dfa46d93e69a8c9a48',1,'resource_managers']]],
   ['validchanged_3',['validChanged',['../classLr2SelectBarCell.html#a08c27588ca837cb8e693c4ea73dd92d6',1,'Lr2SelectBarCell']]],
   ['value_4',['value',['../classsupport_1_1PendingReply.html#adfc8350cf6248f26b43d57e1bd6d8a22',1,'support::PendingReply']]],
   ['values_5',['values',['../classLr2SelectScoreStats.html#ac52f886e2991cf0a3cc773d55b9a66f4',1,'Lr2SelectScoreStats']]],

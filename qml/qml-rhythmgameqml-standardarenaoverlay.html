@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardArenaOverlay.qml -->
+  <meta name="description" content="Places an Arena panel and saves its position and chat preferences.">
+  <title>StandardArenaOverlay QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardArenaOverlay</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+<li class="level2"><a href="#replace-the-panel">Replace the panel</a></li>
+<li class="level2"><a href="#choose-placement-and-persistence">Choose placement and persistence</a></li>
+<li class="level2"><a href="#control-visibility-and-chat">Control visibility and chat</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardArenaOverlay QML Type</h1>
+<!-- $$$StandardArenaOverlay-brief -->
+<p>Places an Arena panel and saves its position and chat preferences. <a href="#details">More...</a></p>
+<!-- @@@StandardArenaOverlay -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+<tr><td class="memItemLeft rightAlign topAlign"> Inherited By:</td><td class="memItemRight bottomAlign"> <p><a href="qml-rhythmgameqml-standardarenagameplayoverlay.html" translate="no">StandardArenaGameplayOverlay</a>, <a href="qml-rhythmgameqml-standardarenaresultoverlay.html" translate="no">StandardArenaResultOverlay</a>, and <a href="qml-rhythmgameqml-standardarenaselectoverlay.html" translate="no">StandardArenaSelectOverlay</a></p>
+</td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardarenaoverlay-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaoverlay.html#active-prop" translate="no">active</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaoverlay.html#chatShortcut-prop" translate="no">chatShortcut</a></b> : string</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaoverlay.html#chatShortcutEnabled-prop" translate="no">chatShortcutEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaoverlay.html#panel-prop" translate="no">panel</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaoverlay.html#panelComponent-prop" translate="no">panelComponent</a></b> : Component</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaoverlay.html#presentationActive-prop" translate="no">presentationActive</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaoverlay.html#session-prop" translate="no">session</a></b> : var</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaoverlay.html#setChatOpen-method" translate="no">setChatOpen</a></b>(<i>open</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaoverlay.html#toggleChat-method" translate="no">toggleChat</a></b>()</li>
+</ul>
+<!-- $$$StandardArenaOverlay-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Use <a href="qml-rhythmgameqml-standardarenaselectoverlay.html" translate="no">StandardArenaSelectOverlay</a>, <a href="qml-rhythmgameqml-standardarenagameplayoverlay.html" translate="no">StandardArenaGameplayOverlay</a> or <a href="qml-rhythmgameqml-standardarenaresultoverlay.html" translate="no">StandardArenaResultOverlay</a> for a screen. They supply the default panel and decide when it should appear. This base component provides placement and chat behavior for those overlays.</p>
+<p>Place an overlay directly inside the screen root, or set its visual parent to the item whose coordinates it should use. The <code translate="no">viewport</code> property is that parent. Each screen owns its overlay; the game does not add one.</p>
+<h2 id="replace-the-panel">Replace the panel</h2>
+<p>Set <a href="qml-rhythmgameqml-standardarenaoverlay.html#panelComponent-prop" translate="no">panelComponent</a> to your own Component. The loader sizes it to the overlay, but does not inject session or presentation properties. Bind your panel explicitly to the overlay's <a href="qml-rhythmgameqml-standardarenaoverlay.html#session-prop" translate="no">session</a> and <code translate="no">expanded</code> properties. Call <code translate="no">setExpanded(bool)</code> when the user changes its size mode, and <a href="qml-rhythmgameqml-standardarenaoverlay.html#setChatOpen-method" translate="no">setChatOpen</a> when the user opens or closes chat.</p>
+<p>An Item property named <code translate="no">dragHandle</code> on your panel becomes its move handle. Alternatively, set the overlay's <code translate="no">moveHandle</code>. Without either, the panel has no drag handle. Use <a href="qml-rhythmgameqml-standardarenaoverlay.html#panel-prop" translate="no">panel</a> to access the loaded item, checking for null while the overlay is inactive.</p>
+<h2 id="choose-placement-and-persistence">Choose placement and persistence</h2>
+<p>The placement frame supplies these additional properties:</p>
+<div class="table"><table class="generic">
+ <thead><tr class="qt-style"><th >Property</th><th >Use</th></tr></thead>
+<tr valign="top" class="odd"><td ><code translate="no">defaultPixelRectHint</code></td><td >Initial rectangle in the viewport's coordinates, used when no saved rectangle exists.</td></tr>
+<tr valign="top" class="even"><td ><code translate="no">minimumPixelSize</code></td><td >Minimum panel size at the 1920 by 1080 design scale; scaled and limited to fit the viewport.</td></tr>
+<tr valign="top" class="odd"><td ><code translate="no">customizeMode</code></td><td >Show move, resize and visibility controls.</td></tr>
+<tr valign="top" class="even"><td ><code translate="no">visibilityCustomizable</code></td><td >Allow the player to hide the panel. The selection overlay sets this to false.</td></tr>
+<tr valign="top" class="odd"><td ><code translate="no">themeVars</code></td><td >Settings object used for saved position and preferences; null keeps changes only in memory.</td></tr>
+<tr valign="top" class="even"><td ><code translate="no">layoutVariant</code></td><td >Screen key used for settings: select, result, k5, k7, k10 or k14. Screen-specific overlays set it for you.</td></tr>
+</table></div>
+<p>themeVars defaults to the active profile's settings for layoutVariant. Saved positions are normalized to the viewport size and kept within its bounds. Use <code translate="no">z</code> to choose the overlay's stacking order.</p>
+<h2 id="control-visibility-and-chat">Control visibility and chat</h2>
+<p><code translate="no">expanded</code>, <code translate="no">overlayVisible</code> and <code translate="no">chatSelected</code> are read-only settings. Use <code translate="no">setExpanded(bool)</code>, <code translate="no">setOverlayVisible(bool)</code> and <a href="qml-rhythmgameqml-standardarenaoverlay.html#setChatOpen-method" translate="no">setChatOpen</a> to change them. <a href="qml-rhythmgameqml-standardarenaoverlay.html#setChatOpen-method" translate="no">setChatOpen</a> updates both the session and saved preference; <a href="qml-rhythmgameqml-standardarenaoverlay.html#toggleChat-method" translate="no">toggleChat</a> switches between chat and standings.</p>
+<p>Hidden or disabled overlays ignore chat actions and shortcuts. The panel can remain loaded while hidden, so use <a href="qml-rhythmgameqml-standardarenaoverlay.html#presentationActive-prop" translate="no">presentationActive</a> when custom panel behavior should run only while it is shown.</p>
+<!-- @@@StandardArenaOverlay -->
+<h2>Property Documentation</h2>
+<!-- $$$active -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="active-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">active</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether this screen has an Arena panel.</p>
+</div></div><!-- @@@active -->
+<br/>
+<!-- $$$chatShortcut -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="chatShortcut-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">chatShortcut</span> : <span class="type">string</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Sets the chat shortcut. The default is F8.</p>
+</div></div><!-- @@@chatShortcut -->
+<br/>
+<!-- $$$chatShortcutEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="chatShortcutEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">chatShortcutEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Enables the chat shortcut while the overlay is presented.</p>
+</div></div><!-- @@@chatShortcutEnabled -->
+<br/>
+<!-- $$$panel -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="panel-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">panel</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Provides the loaded panel, or null while it is inactive.</p>
+</div></div><!-- @@@panel -->
+<br/>
+<!-- $$$panelComponent -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="panelComponent-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">panelComponent</span> : <span class="type">Component</span> <code class="details extra" translate="no">[required]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies the panel's visual content. See the type description for its bindings.</p>
+</div></div><!-- @@@panelComponent -->
+<br/>
+<!-- $$$presentationActive -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="presentationActive-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">presentationActive</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Reports whether the overlay is active, visible and enabled.</p>
+</div></div><!-- @@@presentationActive -->
+<br/>
+<!-- $$$session -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="session-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">session</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies the Arena state. Defaults to Rg.arenaSession.</p>
+</div></div><!-- @@@session -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$setChatOpen[overload1]$$$setChatOpen -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="setChatOpen-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">setChatOpen</span>(<i>open</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens chat when <i translate="no">open</i> is true, or closes it otherwise. Inactive overlays ignore the action.</p>
+</div></div><!-- @@@setChatOpen -->
+<br/>
+<!-- $$$toggleChat[overload1]$$$toggleChat -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="toggleChat-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">toggleChat</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Toggles chat and saves the choice, when the overlay is presented.</p>
+</div></div><!-- @@@toggleChat -->
+<br/>
+</body>
+</html>

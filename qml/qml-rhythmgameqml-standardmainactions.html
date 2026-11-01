@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardMainActions.qml -->
+  <meta name="description" content="Opens the standard destinations from a main menu.">
+  <title>StandardMainActions QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardMainActions</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardMainActions QML Type</h1>
+<!-- $$$StandardMainActions-brief -->
+<p>Opens the standard destinations from a main menu. <a href="#details">More...</a></p>
+<!-- @@@StandardMainActions -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+<tr><td class="memItemLeft rightAlign topAlign"> Inherited By:</td><td class="memItemRight bottomAlign"> <p><a href="qml-rhythmgameqml-standardmaincontroller.html" translate="no">StandardMainController</a></p>
+</td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardmainactions-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardmainactions.html#openArenaAction-prop" translate="no">openArenaAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardmainactions.html#openSelectAction-prop" translate="no">openSelectAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardmainactions.html#openSettingsAction-prop" translate="no">openSettingsAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardmainactions.html#quitAction-prop" translate="no">quitAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardmainactions.html#startOpensSelect-prop" translate="no">startOpensSelect</a></b> : bool</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardmainactions.html#openArena-method" translate="no">openArena</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardmainactions.html#openSelect-method" translate="no">openSelect</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardmainactions.html#openSettings-method" translate="no">openSettings</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardmainactions.html#quit-method" translate="no">quit</a></b>()</li>
+</ul>
+<!-- $$$StandardMainActions-description -->
+<h2 id="details">Detailed Description</h2>
+<p><a href="qml-rhythmgameqml-standardmaincontroller.html" translate="no">StandardMainController</a> includes this component and background music. Use StandardMainActions on its own when you only want actions and Start input.</p>
+<p>Create buttons in your theme and connect them to <a href="qml-rhythmgameqml-standardmainactions.html#openSelect-method" translate="no">openSelect</a>, <a href="qml-rhythmgameqml-standardmainactions.html#openArena-method" translate="no">openArena</a>, <a href="qml-rhythmgameqml-standardmainactions.html#openSettings-method" translate="no">openSettings</a> or <a href="qml-rhythmgameqml-standardmainactions.html#quit-method" translate="no">quit</a>. The component draws no menu. Each method uses the corresponding <code translate="no">globalRoot</code> operation unless you provide a replacement action. A replacement handles the whole operation, and its return value is ignored.</p>
+<p>The component also listens for either player's bound Start button. Start opens song selection while <code translate="no">enabled</code> and <a href="qml-rhythmgameqml-standardmainactions.html#startOpensSelect-prop" translate="no">startOpensSelect</a> are true. Set <a href="qml-rhythmgameqml-standardmainactions.html#startOpensSelect-prop" translate="no">startOpensSelect</a> to false if your theme handles Start itself.</p>
+<p>See the <a href="../theme_tutorial_first_screen.html">first menu lesson</a> for an installable example.</p>
+<!-- @@@StandardMainActions -->
+<h2>Property Documentation</h2>
+<!-- $$$openArenaAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openArenaAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openArenaAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">openArenaAction()</code> in place of the standard action.</p>
+</div></div><!-- @@@openArenaAction -->
+<br/>
+<!-- $$$openSelectAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSelectAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openSelectAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">openSelectAction()</code> in place of the standard action.</p>
+</div></div><!-- @@@openSelectAction -->
+<br/>
+<!-- $$$openSettingsAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSettingsAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openSettingsAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">openSettingsAction()</code> in place of the standard action.</p>
+</div></div><!-- @@@openSettingsAction -->
+<br/>
+<!-- $$$quitAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="quitAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">quitAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">quitAction()</code> in place of the standard action.</p>
+</div></div><!-- @@@quitAction -->
+<br/>
+<!-- $$$startOpensSelect -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="startOpensSelect-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">startOpensSelect</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether the controller Start button opens song selection.</p>
+</div></div><!-- @@@startOpensSelect -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$openArena[overload1]$$$openArena -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openArena-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openArena</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens the Arena browser using the replacement or built-in action.</p>
+</div></div><!-- @@@openArena -->
+<br/>
+<!-- $$$openSelect[overload1]$$$openSelect -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSelect-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openSelect</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens song selection using the replacement or built-in action.</p>
+</div></div><!-- @@@openSelect -->
+<br/>
+<!-- $$$openSettings[overload1]$$$openSettings -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSettings-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openSettings</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Opens settings using the replacement or built-in action.</p>
+</div></div><!-- @@@openSettings -->
+<br/>
+<!-- $$$quit[overload1]$$$quit -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="quit-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">quit</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Quits using the replacement or built-in action.</p>
+</div></div><!-- @@@quit -->
+<br/>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- ScoreDetails.qml -->
+  <meta name="description" content="Loads replay events and gauge history for a saved score summary.">
+  <title>ScoreDetails QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>ScoreDetails</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+<li class="level2"><a href="#display-the-loading-state">Display the loading state</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">ScoreDetails QML Type</h1>
+<!-- $$$ScoreDetails-brief -->
+<p>Loads replay events and gauge history for a saved score summary. <a href="#details">More...</a></p>
+<!-- @@@ScoreDetails -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-scoredetails-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-scoredetails.html#loading-prop" translate="no">loading</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-scoredetails.html#profile-prop" translate="no">profile</a></b> : Profile</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-scoredetails.html#result-prop" translate="no">result</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-scoredetails.html#score-prop" translate="no">score</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-scoredetails.html#status-prop" translate="no">status</a></b> : int</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-scoredetails.html#reload-method" translate="no">reload</a></b>()</li>
+</ul>
+<!-- $$$ScoreDetails-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Use this component when a graph or other display needs more than the points and clear type in a cached result. Set <a href="qml-rhythmgameqml-scoredetails.html#result-prop" translate="no">result</a> to a BmsResult or BmsResultCourse from the profile's score database, and set <a href="qml-rhythmgameqml-scoredetails.html#profile-prop" translate="no">profile</a> to the score's owner. The profile defaults to the main profile.</p>
+<p>Selection exposes summaries through <a href="qml-rhythmgameqml-standardselectstate.html#results-prop" translate="no">StandardSelectState::results</a>. Other screens can read <code translate="no">profile.scoreDb.chartResults[md5.toUpperCase()]</code> or <code translate="no">profile.scoreDb.courseResults[identifier]</code>. Each value is a list of summaries; use an empty list when the key is absent.</p>
+<p><a href="qml-rhythmgameqml-scoredetails.html#score-prop" translate="no">score</a> is null while loading or after failure. When ready, it contains a BmsScore or BmsScoreCourse. Check its <code translate="no">replayData</code> and <code translate="no">gaugeHistory</code> separately: an imported score can be ready without either. A course score includes individual stage scores and combined data for graphs.</p>
+<p>Place the component inside the screen or panel that needs it. Changing result or profile, disabling it, or destroying it cancels its request. Other consumers of the same score keep their requests. Saves and imports refresh the data automatically. Call <a href="qml-rhythmgameqml-scoredetails.html#reload-method" translate="no">reload</a> to retry after an error.</p>
+<h2 id="display-the-loading-state">Display the loading state</h2>
+<div class="table"><table class="generic">
+ <thead><tr class="qt-style"><th >Status</th><th >What to show</th></tr></thead>
+<tr valign="top" class="odd"><td ><code translate="no">ScoreDetails.Idle</code></td><td >Result or profile is missing, or the component is disabled.</td></tr>
+<tr valign="top" class="even"><td ><code translate="no">ScoreDetails.Loading</code></td><td >A loading message; score is null.</td></tr>
+<tr valign="top" class="odd"><td ><code translate="no">ScoreDetails.Ready</code></td><td >The score, with separate messages for missing graph data.</td></tr>
+<tr valign="top" class="even"><td ><code translate="no">ScoreDetails.Error</code></td><td >A failure message and a button calling <a href="qml-rhythmgameqml-scoredetails.html#reload-method" translate="no">reload</a>().</td></tr>
+</table></div>
+<p>See the <a href="../theme_tutorial_select.html">chart details example</a> for a graph that distinguishes these states.</p>
+<!-- @@@ScoreDetails -->
+<h2>Property Documentation</h2>
+<!-- $$$loading -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="loading-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">loading</span> : <span class="type">bool</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Whether the requested score is loading.</p>
+</div></div><!-- @@@loading -->
+<br/>
+<!-- $$$profile -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="profile-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">profile</span> : <span class="type">Profile</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Profile whose database contains result.</p>
+</div></div><!-- @@@profile -->
+<br/>
+<!-- $$$result -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="result-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">result</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Result to load, or null when no saved run is selected.</p>
+</div></div><!-- @@@result -->
+<br/>
+<!-- $$$score -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="score-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">score</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Loaded score, or null while disabled, loading, or after failure.</p>
+</div></div><!-- @@@score -->
+<br/>
+<!-- $$$status -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="status-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">status</span> : <span class="type">int</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Current loading state. Ready does not imply a recording exists.</p>
+</div></div><!-- @@@status -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$reload[overload1]$$$reload -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="reload-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">reload</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Loads the current result again.</p>
+</div></div><!-- @@@reload -->
+<br/>
+</body>
+</html>

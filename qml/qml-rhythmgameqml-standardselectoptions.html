@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardSelectOptions.qml -->
+  <meta name="description" content="Provides optional translated labels for sorting and replay choices.">
+  <title>StandardSelectOptions QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardSelectOptions</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardSelectOptions QML Type</h1>
+<!-- $$$StandardSelectOptions-brief -->
+<p>Provides optional translated labels for sorting and replay choices. <a href="#details">More...</a></p>
+<!-- @@@StandardSelectOptions -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardselectoptions-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectoptions.html#replayOptions-prop" translate="no">replayOptions</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectoptions.html#sortOptions-prop" translate="no">sortOptions</a></b> : var</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectoptions.html#replayText-method" translate="no">replayText</a></b>(<i>type</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectoptions.html#sortText-method" translate="no">sortText</a></b>(<i>mode</i>)</li>
+</ul>
+<!-- $$$StandardSelectOptions-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Each option has a stable <code translate="no">value</code> and a translated <code translate="no">text</code>. Use the value when changing a setting. Labels and list positions are not identifiers. The labels update when the game language changes.</p>
+<p><a href="qml-rhythmgameqml-standardselectstate.html" translate="no">StandardSelectState</a> exposes these choices through its display properties. You can also use this singleton directly, for example in Settings. It does not read or change profile settings, sort entries, or choose a replay. Themes can use their own text, models or artwork instead.</p>
+<p>To customize a label, format it in the theme's binding or build a separate model. Compare the stable value, not its position in the list. For example, a ComboBox can use this model with <code translate="no">textRole</code> set to <code translate="no">text</code> and <code translate="no">valueRole</code> set to <code translate="no">value</code>:</p>
+<pre class="cpp" translate="no">model: selection<span class="operator">.</span>replayOptions<span class="operator">.</span>map(option <span class="operator">=</span><span class="operator">&gt;</span> ({
+    value: option<span class="operator">.</span>value<span class="operator">,</span>
+    text: option<span class="operator">.</span>value <span class="operator">=</span><span class="operator">=</span><span class="operator">=</span> StandardSelectState<span class="operator">.</span>BestCombo
+        <span class="operator">?</span> qsTr(<span class="string">&quot;Longest combo&quot;</span>) : option<span class="operator">.</span>text
+}))</pre>
+<!-- @@@StandardSelectOptions -->
+<h2>Property Documentation</h2>
+<!-- $$$replayOptions -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="replayOptions-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">replayOptions</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Replay choices as <code translate="no">value, text</code> objects.</p>
+</div></div><!-- @@@replayOptions -->
+<br/>
+<!-- $$$sortOptions -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="sortOptions-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">sortOptions</span> : <span class="type">var</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>All sort choices as <code translate="no">value, text</code> objects in the default cycle order. Total sorts by the chart's TOTAL gauge value, not its note count.</p>
+</div></div><!-- @@@sortOptions -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$replayText[overload1]$$$replayText -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="replayText-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">replayText</span>(<i>type</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Returns the display label for <i translate="no">type</i>, or an empty string for an unknown value.</p>
+</div></div><!-- @@@replayText -->
+<br/>
+<!-- $$$sortText[overload1]$$$sortText -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="sortText-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">sortText</span>(<i>mode</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Returns the display label for <i translate="no">mode</i>, or an empty string for an unknown value.</p>
+</div></div><!-- @@@sortText -->
+<br/>
+</body>
+</html>

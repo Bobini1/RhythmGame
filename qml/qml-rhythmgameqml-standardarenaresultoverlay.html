@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardArenaResultOverlay.qml -->
+  <meta name="description" content="Shows standings and chat for an Arena result.">
+  <title>StandardArenaResultOverlay QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardArenaResultOverlay</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardArenaResultOverlay QML Type</h1>
+<!-- $$$StandardArenaResultOverlay-brief -->
+<p>Shows standings and chat for an Arena result. <a href="#details">More...</a></p>
+<!-- @@@StandardArenaResultOverlay -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+<tr><td class="memItemLeft rightAlign topAlign"> Inherits:</td><td class="memItemRight bottomAlign"> <p><a href="qml-rhythmgameqml-standardarenaoverlay.html" translate="no">StandardArenaOverlay</a></p>
+</td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardarenaresultoverlay-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardarenaresultoverlay.html#result-prop" translate="no">result</a></b> : ResultContext</li>
+</ul>
+<!-- $$$StandardArenaResultOverlay-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Bind <a href="qml-rhythmgameqml-standardarenaresultoverlay.html#result-prop" translate="no">result</a> to the screen's <a href="qml-rhythmgameqml-resultcontext.html" translate="no">ResultContext</a>. The panel appears only while its round matches the session's presented result. Local results and saved scores have no round ID and do not show the panel. Course summaries use <a href="qml-rhythmgameqml-courseresultcontext.html" translate="no">CourseResultContext</a> and do not need this component.</p>
+<p>F8 switches between standings and chat. A theme can replace <code translate="no">panelComponent</code> while keeping placement and chat behavior, as Default does for its result design. <a href="qml-rhythmgameqml-standardresultinput.html" translate="no">StandardResultInput</a> blocks Return confirmation while this result's chat is open. Custom result input should apply the same rule.</p>
+<!-- @@@StandardArenaResultOverlay -->
+<h2>Property Documentation</h2>
+<!-- $$$result -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="result-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">result</span> : <span class="type"><a href="qml-rhythmgameqml-resultcontext.html" translate="no">ResultContext</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies a chart result, or null when no chart result is presented.</p>
+</div></div><!-- @@@result -->
+<br/>
+</body>
+</html>

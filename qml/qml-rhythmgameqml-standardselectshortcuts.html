@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardSelectShortcuts.qml -->
+  <meta name="description" content="Adds F2, F3, F11 and F12 actions to a selector.">
+  <title>StandardSelectShortcuts QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardSelectShortcuts</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#signals">Signals</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardSelectShortcuts QML Type</h1>
+<!-- $$$StandardSelectShortcuts-brief -->
+<p>Adds F2, F3, F11 and F12 actions to a selector. <a href="#details">More...</a></p>
+<!-- @@@StandardSelectShortcuts -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardselectshortcuts-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectshortcuts.html#openInternetRankingAction-prop" translate="no">openInternetRankingAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectshortcuts.html#openInternetRankingEnabled-prop" translate="no">openInternetRankingEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectshortcuts.html#openSelectedFolderAction-prop" translate="no">openSelectedFolderAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectshortcuts.html#openSelectedFolderEnabled-prop" translate="no">openSelectedFolderEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectshortcuts.html#openSettingsAction-prop" translate="no">openSettingsAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectshortcuts.html#openSettingsEnabled-prop" translate="no">openSettingsEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectshortcuts.html#reloadAction-prop" translate="no">reloadAction</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectshortcuts.html#reloadEnabled-prop" translate="no">reloadEnabled</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectshortcuts.html#selectState-prop" translate="no">selectState</a></b> : StandardSelectState</li>
+</ul>
+<h2 id="signals">Signals</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectshortcuts.html#openInternetRankingRequested-signal" translate="no">openInternetRankingRequested</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectshortcuts.html#openSelectedFolderRequested-signal" translate="no">openSelectedFolderRequested</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectshortcuts.html#reloadRequested-signal" translate="no">reloadRequested</a></b>()</li>
+</ul>
+<!-- $$$StandardSelectShortcuts-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Assign <a href="qml-rhythmgameqml-standardselectshortcuts.html#selectState-prop" translate="no">selectState</a> for the standard reload and open-folder operations. <a href="qml-rhythmgameqml-standardselectcontroller.html" translate="no">StandardSelectController</a> already includes the shortcuts, so use this component separately only when composing your own selector.</p>
+<div class="table"><table class="generic">
+ <thead><tr class="qt-style"><th >Key</th><th >Action</th></tr></thead>
+<tr valign="top" class="odd"><td >F2</td><td >Use <a href="qml-rhythmgameqml-standardselectshortcuts.html#reloadAction-prop" translate="no">reloadAction</a> if set. Otherwise ask the state to reload, then emit <a href="qml-rhythmgameqml-standardselectshortcuts.html#reloadRequested-signal" translate="no">reloadRequested</a> if it cannot handle the request.</td></tr>
+<tr valign="top" class="even"><td >F3</td><td >Use <a href="qml-rhythmgameqml-standardselectshortcuts.html#openSelectedFolderAction-prop" translate="no">openSelectedFolderAction</a> if set. Otherwise ask the state to open the folder, then emit <a href="qml-rhythmgameqml-standardselectshortcuts.html#openSelectedFolderRequested-signal" translate="no">openSelectedFolderRequested</a> if unhandled.</td></tr>
+<tr valign="top" class="odd"><td >F11</td><td >Use <a href="qml-rhythmgameqml-standardselectshortcuts.html#openInternetRankingAction-prop" translate="no">openInternetRankingAction</a> if set, otherwise emit <a href="qml-rhythmgameqml-standardselectshortcuts.html#openInternetRankingRequested-signal" translate="no">openInternetRankingRequested</a>.</td></tr>
+<tr valign="top" class="even"><td >F12</td><td >Use <a href="qml-rhythmgameqml-standardselectshortcuts.html#openSettingsAction-prop" translate="no">openSettingsAction</a> if set, otherwise open Settings.</td></tr>
+</table></div>
+<p>Without <a href="qml-rhythmgameqml-standardselectshortcuts.html#selectState-prop" translate="no">selectState</a>, F2 and F3 emit their request signals unless a replacement action is supplied. A replacement handles the whole operation, and its return value is ignored. Each shortcut can be disabled separately. Disabling the component disables all four.</p>
+<!-- @@@StandardSelectShortcuts -->
+<h2>Property Documentation</h2>
+<!-- $$$openInternetRankingAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openInternetRankingAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openInternetRankingAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls openInternetRankingAction() in place of the F11 request signal.</p>
+</div></div><!-- @@@openInternetRankingAction -->
+<br/>
+<!-- $$$openInternetRankingEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openInternetRankingEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openInternetRankingEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether the F11 shortcut is active.</p>
+</div></div><!-- @@@openInternetRankingEnabled -->
+<br/>
+<!-- $$$openSelectedFolderAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSelectedFolderAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openSelectedFolderAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">openSelectedFolderAction()</code> in place of F3.</p>
+</div></div><!-- @@@openSelectedFolderAction -->
+<br/>
+<!-- $$$openSelectedFolderEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSelectedFolderEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openSelectedFolderEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether the F3 shortcut is active.</p>
+</div></div><!-- @@@openSelectedFolderEnabled -->
+<br/>
+<!-- $$$openSettingsAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSettingsAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openSettingsAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">openSettingsAction()</code> in place of F12.</p>
+</div></div><!-- @@@openSettingsAction -->
+<br/>
+<!-- $$$openSettingsEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSettingsEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">openSettingsEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether the F12 settings shortcut is active.</p>
+</div></div><!-- @@@openSettingsEnabled -->
+<br/>
+<!-- $$$reloadAction -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="reloadAction-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">reloadAction</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Calls <code translate="no">reloadAction()</code> in place of F2.</p>
+</div></div><!-- @@@reloadAction -->
+<br/>
+<!-- $$$reloadEnabled -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="reloadEnabled-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">reloadEnabled</span> : <span class="type">bool</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Controls whether the F2 shortcut is active.</p>
+</div></div><!-- @@@reloadEnabled -->
+<br/>
+<!-- $$$selectState -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="selectState-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">selectState</span> : <span class="type"><a href="qml-rhythmgameqml-standardselectstate.html" translate="no">StandardSelectState</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Standard selection state used by the built-in F2 and F3 implementations.</p>
+</div></div><!-- @@@selectState -->
+<br/>
+<h2>Signal Documentation</h2>
+<!-- $$$openInternetRankingRequested[overload1]$$$openInternetRankingRequested -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openInternetRankingRequested-signal">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openInternetRankingRequested</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Emitted when F11 requests the theme's ranking view.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onOpenInternetRankingRequested</code>.</p>
+</div></div></div><!-- @@@openInternetRankingRequested -->
+<br/>
+<!-- $$$openSelectedFolderRequested[overload1]$$$openSelectedFolderRequested -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="openSelectedFolderRequested-signal">
+<td class="tblQmlFuncNode"><p>
+<span class="name">openSelectedFolderRequested</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Emitted when no replacement handles F3 and the state cannot open the folder.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onOpenSelectedFolderRequested</code>.</p>
+</div></div></div><!-- @@@openSelectedFolderRequested -->
+<br/>
+<!-- $$$reloadRequested[overload1]$$$reloadRequested -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="reloadRequested-signal">
+<td class="tblQmlFuncNode"><p>
+<span class="name">reloadRequested</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Emitted when no replacement handles F2 and the state cannot reload.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onReloadRequested</code>.</p>
+</div></div></div><!-- @@@reloadRequested -->
+<br/>
+</body>
+</html>

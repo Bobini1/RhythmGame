@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardSelectReload.qml -->
+  <meta name="description" content="Reloads a table or scans the root folder containing the current song.">
+  <title>StandardSelectReload QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardSelectReload</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardSelectReload QML Type</h1>
+<!-- $$$StandardSelectReload-brief -->
+<p>Reloads a table or scans the root folder containing the current song. <a href="#details">More...</a></p>
+<!-- @@@StandardSelectReload -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardselectreload-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectreload.html#reload-method" translate="no">reload</a></b>(<i>focusedItem</i>, <i>history</i>, <i>folderPath</i>)</li>
+</ul>
+<!-- $$$StandardSelectReload-description -->
+<h2 id="details">Detailed Description</h2>
+<p><a href="qml-rhythmgameqml-standardselectstate.html" translate="no">StandardSelectState</a> and <a href="qml-rhythmgameqml-standardselectcontroller.html" translate="no">StandardSelectController</a> already include this behavior. Use the component separately when writing your own selector.</p>
+<p>Call <a href="qml-rhythmgameqml-standardselectreload.html#reload-method" translate="no">reload</a> with the focused item, browsing history and folder path. A true return means a reload or scan was requested. A false return means the caller should refresh its current folder contents instead. The caller keeps responsibility for navigation and focus.</p>
+<!-- @@@StandardSelectReload -->
+<h2>Method Documentation</h2>
+<!-- $$$reload[overload1]$$$reload -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="reload-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">reload</span>(<i>focusedItem</i>, <i>history</i>, <i>folderPath</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Reloads the table at <i translate="no">focusedItem</i> or in <i translate="no">history</i>, or scans the root containing <i translate="no">folderPath</i>. Returns true when a reload or scan was requested.</p>
+</div></div><!-- @@@reload -->
+<br/>
+</body>
+</html>

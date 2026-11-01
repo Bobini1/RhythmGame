@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardGameplayBga.qml -->
+  <meta name="description" content="Draws the current stage's background animation and miss layer.">
+  <title>StandardGameplayBga QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardGameplayBga</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardGameplayBga QML Type</h1>
+<!-- $$$StandardGameplayBga-brief -->
+<p>Draws the current stage's background animation and miss layer. <a href="#details">More...</a></p>
+<!-- @@@StandardGameplayBga -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardgameplaybga-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardgameplaybga.html#gameplay-prop" translate="no">gameplay</a></b> : GameplayContext</li>
+</ul>
+<!-- $$$StandardGameplayBga-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Bind <a href="qml-rhythmgameqml-standardgameplaybga.html#gameplay-prop" translate="no">gameplay</a> and give the item a size. It connects the four BGA layers to video outputs and follows course stage changes. The two overlay layers treat black as transparent. A Bad or Poor judgement shows the miss layer for 400 milliseconds. Image proportions and relative layer sizes are kept.</p>
+<p>Visibility follows the player's bgaOn setting, or the main profile's setting in battle. Override visible to choose differently. This item is optional; themes can instead connect gameplay.bga.layers to their own video sinks.</p>
+<!-- @@@StandardGameplayBga -->
+<h2>Property Documentation</h2>
+<!-- $$$gameplay -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="gameplay-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">gameplay</span> : <span class="type"><a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a></span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Supplies the current BGA layers and the players whose misses are shown.</p>
+</div></div><!-- @@@gameplay -->
+<br/>
+</body>
+</html>

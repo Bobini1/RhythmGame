@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['engine_20development_0',['Engine Development',['../md_DEV__ENGINE.html',1,'']]]
+  ['4_20add_20a_20translation_0',['4. Add a translation',['../theme_tutorial_translations.html',1,'theme_tutorial']]]
 ];

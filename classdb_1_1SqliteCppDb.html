@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -75,7 +75,9 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="classdb_1_1SqliteCppDb-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">db::SqliteCppDb Class Reference</div></div>
 </div><!--header-->
@@ -91,27 +93,71 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb_1_1Statement.html">Statement</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrapper for SQLiteCpp::Statement.  <a href="classdb_1_1SqliteCppDb_1_1Statement.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb_1_1Transaction.html">Transaction</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Isolates a transaction from other users of this connection.  <a href="classdb_1_1SqliteCppDb_1_1Transaction.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:ac45d7676757bc284575eb97744a0c2ae" id="r_ac45d7676757bc284575eb97744a0c2ae"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb.html#ac45d7676757bc284575eb97744a0c2ae">Durability</a> { <a class="el" href="classdb_1_1SqliteCppDb.html#ac45d7676757bc284575eb97744a0c2aea960b44c579bc2f6818d2daaf9e4c16f0">Normal</a>
+, <a class="el" href="classdb_1_1SqliteCppDb.html#ac45d7676757bc284575eb97744a0c2aeabbd47109890259c0127154db1af26c75">Full</a>
+ }</td></tr>
+<tr class="separator:ac45d7676757bc284575eb97744a0c2ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a8a6cd925b08f9594f45f0f12deee1346" id="r_a8a6cd925b08f9594f45f0f12deee1346"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb.html#a8a6cd925b08f9594f45f0f12deee1346">SqliteCppDb</a> (const std::filesystem::path &amp;dbPath)</td></tr>
-<tr class="memdesc:a8a6cd925b08f9594f45f0f12deee1346"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a database wrapper.  <br /></td></tr>
-<tr class="separator:a8a6cd925b08f9594f45f0f12deee1346"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4995b59a52608ec568d044b6e83b4925" id="r_a4995b59a52608ec568d044b6e83b4925"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb.html#a4995b59a52608ec568d044b6e83b4925">execute</a> (const std::string &amp;query) -&gt; int64_t</td></tr>
-<tr class="memdesc:a4995b59a52608ec568d044b6e83b4925"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a query.  <br /></td></tr>
-<tr class="separator:a4995b59a52608ec568d044b6e83b4925"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4fa15ea9306b16276bb462ddd27ad74e" id="r_a4fa15ea9306b16276bb462ddd27ad74e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb.html#a4fa15ea9306b16276bb462ddd27ad74e">transaction</a> () -&gt; <a class="el" href="classdb_1_1SqliteCppDb_1_1Transaction.html">Transaction</a></td></tr>
+<tr class="separator:a4fa15ea9306b16276bb462ddd27ad74e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0361107da6fddd48f142ebb4d9243a82" id="r_a0361107da6fddd48f142ebb4d9243a82"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb.html#a0361107da6fddd48f142ebb4d9243a82">SqliteCppDb</a> (const std::filesystem::path &amp;dbPath, std::chrono::milliseconds busyTimeout=std::chrono::milliseconds{ 0 }, <a class="el" href="classdb_1_1SqliteCppDb.html#ac45d7676757bc284575eb97744a0c2ae">Durability</a> durability=<a class="el" href="classdb_1_1SqliteCppDb.html#ac45d7676757bc284575eb97744a0c2aea960b44c579bc2f6818d2daaf9e4c16f0">Durability::Normal</a>)</td></tr>
+<tr class="memdesc:a0361107da6fddd48f142ebb4d9243a82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a database wrapper.  <br /></td></tr>
+<tr class="separator:a0361107da6fddd48f142ebb4d9243a82"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d7fdd2737e2a3d7a3cab9669da6ded5" id="r_a9d7fdd2737e2a3d7a3cab9669da6ded5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb.html#a9d7fdd2737e2a3d7a3cab9669da6ded5">execute</a> (const std::string &amp;query)</td></tr>
+<tr class="memdesc:a9d7fdd2737e2a3d7a3cab9669da6ded5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a query.  <br /></td></tr>
+<tr class="separator:a9d7fdd2737e2a3d7a3cab9669da6ded5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a31c2f3f7bf2fded47b0732367d4ca55a" id="r_a31c2f3f7bf2fded47b0732367d4ca55a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb.html#a31c2f3f7bf2fded47b0732367d4ca55a">createStatement</a> (const std::string &amp;query) -&gt; <a class="el" href="classdb_1_1SqliteCppDb_1_1Statement.html">Statement</a></td></tr>
 <tr class="separator:a31c2f3f7bf2fded47b0732367d4ca55a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a07372d90f97c8a9eadce34d02595550c" id="r_a07372d90f97c8a9eadce34d02595550c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb.html#a07372d90f97c8a9eadce34d02595550c">hasTable</a> (const std::string &amp;table) const -&gt; bool</td></tr>
 <tr class="memdesc:a07372d90f97c8a9eadce34d02595550c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queries the database to inspect whether the table with the provided name exists.  <br /></td></tr>
 <tr class="separator:a07372d90f97c8a9eadce34d02595550c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a708dd1fa4dc7ec3116f05cba4cace1f9" id="r_a708dd1fa4dc7ec3116f05cba4cace1f9"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdb_1_1SqliteCppDb.html#a708dd1fa4dc7ec3116f05cba4cace1f9">openReadOnly</a> (const std::filesystem::path &amp;dbPath, std::chrono::milliseconds busyTimeout=std::chrono::milliseconds{ 0 }) -&gt; <a class="el" href="classdb_1_1SqliteCppDb.html">SqliteCppDb</a></td></tr>
+<tr class="separator:a708dd1fa4dc7ec3116f05cba4cace1f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Database wrapper for SQLiteCpp. </p>
-<dl class="section note"><dt>Note</dt><dd>This class is thread safe. </dd></dl>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a8a6cd925b08f9594f45f0f12deee1346" name="a8a6cd925b08f9594f45f0f12deee1346"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8a6cd925b08f9594f45f0f12deee1346">&#9670;&#160;</a></span>SqliteCppDb()</h2>
+<dl class="section note"><dt>Note</dt><dd>Independent statements may share a connection across threads. Use a transaction to isolate a sequence of operations on that connection. </dd></dl>
+</div><h2 class="groupheader">Member Enumeration Documentation</h2>
+<a id="ac45d7676757bc284575eb97744a0c2ae" name="ac45d7676757bc284575eb97744a0c2ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac45d7676757bc284575eb97744a0c2ae">&#9670;&#160;</a></span>Durability</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="classdb_1_1SqliteCppDb.html#ac45d7676757bc284575eb97744a0c2ae">db::SqliteCppDb::Durability</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ac45d7676757bc284575eb97744a0c2aea960b44c579bc2f6818d2daaf9e4c16f0" name="ac45d7676757bc284575eb97744a0c2aea960b44c579bc2f6818d2daaf9e4c16f0"></a>Normal&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="ac45d7676757bc284575eb97744a0c2aeabbd47109890259c0127154db1af26c75" name="ac45d7676757bc284575eb97744a0c2aeabbd47109890259c0127154db1af26c75"></a>Full&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a0361107da6fddd48f142ebb4d9243a82" name="a0361107da6fddd48f142ebb4d9243a82"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0361107da6fddd48f142ebb4d9243a82">&#9670;&#160;</a></span>SqliteCppDb()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -123,8 +169,24 @@ Public Member Functions</h2></td></tr>
           <td class="memname">db::SqliteCppDb::SqliteCppDb </td>
           <td>(</td>
           <td class="paramtype">const std::filesystem::path &amp;&#160;</td>
-          <td class="paramname"><em>dbPath</em></td><td>)</td>
+          <td class="paramname"><em>dbPath</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">std::chrono::milliseconds&#160;</td>
+          <td class="paramname"><em>busyTimeout</em> = <code>std::chrono::milliseconds{&#160;0&#160;}</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classdb_1_1SqliteCppDb.html#ac45d7676757bc284575eb97744a0c2ae">Durability</a>&#160;</td>
+          <td class="paramname"><em>durability</em> = <code><a class="el" href="classdb_1_1SqliteCppDb.html#ac45d7676757bc284575eb97744a0c2aea960b44c579bc2f6818d2daaf9e4c16f0">Durability::Normal</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -138,6 +200,8 @@ Public Member Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">dbPath</td><td>Path to the database file. The database file will be created if it does not exist. </td></tr>
+    <tr><td class="paramname">busyTimeout</td><td>How long to wait for locks held by other connections. Shared-connection transactions are serialized independently of this timeout. </td></tr>
+    <tr><td class="paramname">durability</td><td>Full synchronizes each WAL commit for persistent user data. </td></tr>
   </table>
   </dd>
 </dl>
@@ -163,18 +227,18 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a4995b59a52608ec568d044b6e83b4925" name="a4995b59a52608ec568d044b6e83b4925"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4995b59a52608ec568d044b6e83b4925">&#9670;&#160;</a></span>execute()</h2>
+<a id="a9d7fdd2737e2a3d7a3cab9669da6ded5" name="a9d7fdd2737e2a3d7a3cab9669da6ded5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d7fdd2737e2a3d7a3cab9669da6ded5">&#9670;&#160;</a></span>execute()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">auto db::SqliteCppDb::execute </td>
+          <td class="memname">void db::SqliteCppDb::execute </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&#160;</td>
           <td class="paramname"><em>query</em></td><td>)</td>
-          <td> -&gt; int64_t</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -187,7 +251,6 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The last inserted row id. </dd></dl>
 
 </div>
 </div>
@@ -215,6 +278,60 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>True if the table exists, false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="a708dd1fa4dc7ec3116f05cba4cace1f9" name="a708dd1fa4dc7ec3116f05cba4cace1f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a708dd1fa4dc7ec3116f05cba4cace1f9">&#9670;&#160;</a></span>openReadOnly()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto db::SqliteCppDb::openReadOnly </td>
+          <td>(</td>
+          <td class="paramtype">const std::filesystem::path &amp;&#160;</td>
+          <td class="paramname"><em>dbPath</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::chrono::milliseconds&#160;</td>
+          <td class="paramname"><em>busyTimeout</em> = <code>std::chrono::milliseconds{&#160;0&#160;}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; <a class="el" href="classdb_1_1SqliteCppDb.html">SqliteCppDb</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Opens an existing database for reads, without write-side maintenance. </p>
+
+</div>
+</div>
+<a id="a4fa15ea9306b16276bb462ddd27ad74e" name="a4fa15ea9306b16276bb462ddd27ad74e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4fa15ea9306b16276bb462ddd27ad74e">&#9670;&#160;</a></span>transaction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto db::SqliteCppDb::transaction </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> -&gt; <a class="el" href="classdb_1_1SqliteCppDb_1_1Transaction.html">Transaction</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

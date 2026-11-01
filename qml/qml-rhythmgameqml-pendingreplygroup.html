@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- PendingReplyGroup.qml -->
+  <meta name="description" content="Cancels a set of asynchronous requests together.">
+  <title>PendingReplyGroup QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>PendingReplyGroup</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">PendingReplyGroup QML Type</h1>
+<!-- $$$PendingReplyGroup-brief -->
+<p>Cancels a set of asynchronous requests together. <a href="#details">More...</a></p>
+<!-- @@@PendingReplyGroup -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-pendingreplygroup-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-pendingreplygroup.html#count-prop" translate="no">count</a></b> : int</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-pendingreplygroup.html#cancelAll-method" translate="no">cancelAll</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-pendingreplygroup.html#track-method" translate="no">track</a></b>(<i>reply</i>)</li>
+</ul>
+<!-- $$$PendingReplyGroup-description -->
+<h2 id="details">Detailed Description</h2>
+<p>Use one group for requests that should be cancelled together, such as data for the currently selected chart. Call <a href="qml-rhythmgameqml-pendingreplygroup.html#cancelAll-method" translate="no">cancelAll</a> before loading a new selection. Finished replies leave the group automatically; destroying the group cancels any unfinished replies.</p>
+<p><a href="qml-rhythmgameqml-pendingreplygroup.html#track-method" translate="no">track</a> returns the same reply, so the caller can still use its <code translate="no">then()</code> method. This helper requests a full score belonging to the main profile and cancels the previous request:</p>
+<pre class="qml" translate="no">import QtQuick
+import RhythmGameQml
+
+<span class="type">Item</span> {
+    <span class="type"><a href="qml-rhythmgameqml-pendingreplygroup.html" translate="no">PendingReplyGroup</a></span> { <span class="name">id</span>: <span class="name">scoreReplies</span> }
+
+    <span class="keyword">function</span> <span class="name">requestScore</span>(result) {
+        <span class="name">scoreReplies</span>.<span class="name">cancelAll</span>();
+        <span class="keyword">return</span> <span class="name">scoreReplies</span>.<span class="name">track</span>(
+            <span class="name">Rg</span>.<span class="name">profileList</span>.<span class="name">mainProfile</span>.<span class="name">scoreDb</span>.<span class="name">getScore</span>(<span class="name">result</span>));
+    }
+}</pre>
+<p>For an ordinary score display, use <a href="qml-rhythmgameqml-scoredetails.html" translate="no">ScoreDetails</a> instead. It also tracks the selected result, profile and loading state.</p>
+<p>A reply must provide a <code translate="no">resultAvailable</code> property, a <code translate="no">finished</code> signal and a <code translate="no">cancel()</code> method. Null and already-finished replies are returned unchanged and are not retained. Disabling the group does not cancel its requests; call <a href="qml-rhythmgameqml-pendingreplygroup.html#cancelAll-method" translate="no">cancelAll</a> when your custom flow needs that behavior.</p>
+<!-- @@@PendingReplyGroup -->
+<h2>Property Documentation</h2>
+<!-- $$$count -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="count-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">count</span> : <span class="type">int</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Number of unfinished replies currently owned by the group.</p>
+</div></div><!-- @@@count -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$cancelAll[overload1]$$$cancelAll -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="cancelAll-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">cancelAll</span>()</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Cancels and releases every unfinished reply owned by the group.</p>
+</div></div><!-- @@@cancelAll -->
+<br/>
+<!-- $$$track[overload1]$$$track -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="track-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">track</span>(<i>reply</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Retains <i translate="no">reply</i> until it finishes or the group cancels it.</p>
+</div></div><!-- @@@track -->
+<br/>
+</body>
+</html>

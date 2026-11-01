@@ -20,6 +20,6 @@ var searchData=
   ['press_17',['Press',['../classgameplay__logic_1_1HitEvent.html#a90790c3562f52b83f1c52d0c3764f767a0610123bdd4ffc191a3ea05a847e1307',1,'gameplay_logic::HitEvent']]],
   ['probetimeout_18',['ProbeTimeout',['../namespacearena.html#a0ec07907e6c8305e89875fdebaa2da00a57107109d3ae706db551f5c20f7cccd8',1,'arena']]],
   ['probing_19',['probing',['../namespacearena.html#a1737a5b8ca74ae6c37f5fc4920430901ac9775416f8be0f7b5ff451587182eabb',1,'arena::Probing'],['../namespacearena.html#a265e7430a7620ecbe9e2f14718398800ac9775416f8be0f7b5ff451587182eabb',1,'arena::Probing']]],
-  ['progresspermillerole_20',['ProgressPermilleRole',['../classarena_1_1ArenaStandingsModel.html#a9c401e972ca35f735cce25597a9cb39aa75987b4d7cf8ec95f82d43e72241f636',1,'arena::ArenaStandingsModel']]],
+  ['progressrole_20',['ProgressRole',['../classarena_1_1ArenaStandingsModel.html#a9c401e972ca35f735cce25597a9cb39aa5846e734674eab49fbd999816ff1094d',1,'arena::ArenaStandingsModel']]],
   ['protocolincompatible_21',['protocolincompatible',['../namespacearena.html#a637cb22414955263c13c9619f8e91224a157edbf8c2bda7ce06239048abe1e450',1,'arena::ProtocolIncompatible'],['../namespacearena.html#a91dd963eac2b98e4ff3dfcdc35a51447a157edbf8c2bda7ce06239048abe1e450',1,'arena::ProtocolIncompatible']]]
 ];

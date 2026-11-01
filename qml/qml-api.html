@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- qml-api.qdoc -->
+  <title>QML API reference | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#choose-a-starting-component">Choose a starting component</a></li>
+<li class="level1"><a href="#receive-screen-data">Receive screen data</a></li>
+<li class="level1"><a href="#add-a-feature">Add a feature</a></li>
+<li class="level1"><a href="#change-behavior">Change behavior</a></li>
+<li class="level1"><a href="#handle-inactive-screens">Handle inactive screens</a></li>
+<li class="level1"><a href="#build-a-custom-flow">Build a custom flow</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title">QML API reference</h1>
+<!-- $$$qml-api.html-description -->
+<div class="descr" id="details">
+<p>Your theme draws the interface. The Standard components handle common game behavior, such as browsing songs, starting play and opening results. Import <code translate="no">RhythmGameQml</code> to use them. For a first theme, follow the <a href="../theme_tutorial.html">tutorial</a>; use this reference to look up inputs, actions and customization options.</p>
+<h2 id="choose-a-starting-component">Choose a starting component</h2>
+<p>Add one of these components to the screen you are building:</p>
+<div class="table"><table class="generic">
+ <thead><tr class="qt-style"><th >Screen</th><th >Component</th><th >What your theme supplies</th></tr></thead>
+<tr valign="top" class="odd"><td >Main menu</td><td ><a href="qml-rhythmgameqml-standardmaincontroller.html" translate="no">StandardMainController</a></td><td >Menu buttons and artwork</td></tr>
+<tr valign="top" class="even"><td >Song selection</td><td ><a href="qml-rhythmgameqml-standardselectcontroller.html" translate="no">StandardSelectController</a></td><td ><a href="qml-rhythmgameqml-standardselectlistview.html" translate="no">StandardSelectListView</a> delegates, or a custom wheel</td></tr>
+<tr valign="top" class="odd"><td >Decide</td><td ><a href="qml-rhythmgameqml-standarddecideflow.html" translate="no">StandardDecideFlow</a></td><td >Chart or course details</td></tr>
+<tr valign="top" class="even"><td >Gameplay</td><td ><a href="qml-rhythmgameqml-standardgameplayflow.html" translate="no">StandardGameplayFlow</a></td><td >Lanes, notes, scores and other visuals</td></tr>
+<tr valign="top" class="odd"><td >Chart or course result</td><td ><a href="qml-rhythmgameqml-standardresultinput.html" translate="no">StandardResultInput</a></td><td >Score displays and Continue/Retry buttons</td></tr>
+<tr valign="top" class="even"><td >Multiplayer browser</td><td ><a href="qml-rhythmgameqml-standardmultiplayerflow.html" translate="no">StandardMultiplayerFlow</a></td><td >Room list and room controls</td></tr>
+</table></div>
+<p>Each includes the helpers it needs. For example, <a href="qml-rhythmgameqml-standardgameplayflow.html" translate="no">StandardGameplayFlow</a> already includes <a href="qml-rhythmgameqml-standardgameplayinput.html" translate="no">StandardGameplayInput</a>. Adding both would handle input twice. Each type page lists its included components.</p>
+<h2 id="receive-screen-data">Receive screen data</h2>
+<p>Declare the matching required property on your screen's root object:</p>
+<div class="table"><table class="generic">
+ <thead><tr class="qt-style"><th >Screen</th><th >Root declaration</th></tr></thead>
+<tr valign="top" class="odd"><td >Decide or gameplay</td><td ><code translate="no">required property GameplayContext gameplay</code></td></tr>
+<tr valign="top" class="even"><td >Chart result, including a course stage</td><td ><code translate="no">required property ResultContext result</code></td></tr>
+<tr valign="top" class="odd"><td >Course summary</td><td ><code translate="no">required property CourseResultContext result</code></td></tr>
+<tr valign="top" class="even"><td >Settings</td><td ><code translate="no">required property string initialSection</code></td></tr>
+</table></div>
+<p>The game supplies these values when it creates a screen. Bind gameplay or result to the screen's Standard component. Do not construct or destroy the supplied contexts or scores yourself.</p>
+<p><a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a> follows the current chart and players as a course advances. <a href="qml-rhythmgameqml-resultcontext.html" translate="no">ResultContext</a> keeps the completed chart's metadata and scores fixed. <a href="qml-rhythmgameqml-courseresultcontext.html" translate="no">CourseResultContext</a> describes the whole course. Read their type pages for player counts, missing data and lifetime rules.</p>
+<p><a href="theme-navigation.html">Screen navigation</a> explains globalRoot operations, settings section names, and opening charts or saved results.</p>
+<p>For shared services, start with the <a href="../classRg.html">Rg singleton</a>. <code translate="no">Rg.profileList.mainProfile</code> supplies the active profile. During play or results, use each player's supplied profile instead. The <a href="../classgameplay__logic_1_1Player.html">Player reference</a> describes live scores, columns, note models and timing.</p>
+<h2 id="add-a-feature">Add a feature</h2>
+<p>These components can be added without replacing the screen's standard flow:</p>
+<div class="table"><table class="generic">
+ <thead><tr class="qt-style"><th >Task</th><th >Component</th></tr></thead>
+<tr valign="top" class="odd"><td >Connect a song list to a controller</td><td ><a href="qml-rhythmgameqml-standardselectlistview.html" translate="no">StandardSelectListView</a></td></tr>
+<tr valign="top" class="even"><td >Load saved replay events or gauge history</td><td ><a href="qml-rhythmgameqml-scoredetails.html" translate="no">ScoreDetails</a></td></tr>
+<tr valign="top" class="odd"><td >Show an online rank or open its website</td><td ><a href="qml-rhythmgameqml-standardranking.html" translate="no">StandardRanking</a></td></tr>
+<tr valign="top" class="even"><td >Convert saved note speed into drawing coordinates</td><td ><a href="qml-rhythmgameqml-standardgameplayviewport.html" translate="no">StandardGameplayViewport</a></td></tr>
+<tr valign="top" class="odd"><td >Show a score target or personal best</td><td ><a href="qml-rhythmgameqml-standardgameplaytarget.html" translate="no">StandardGameplayTarget</a></td></tr>
+<tr valign="top" class="even"><td >Draw BGA and the miss layer</td><td ><a href="qml-rhythmgameqml-standardgameplaybga.html" translate="no">StandardGameplayBga</a></td></tr>
+<tr valign="top" class="odd"><td >Add Arena ready controls and chat</td><td ><a href="qml-rhythmgameqml-standardarenaselectoverlay.html" translate="no">StandardArenaSelectOverlay</a></td></tr>
+<tr valign="top" class="even"><td >Add Arena standings during play</td><td ><a href="qml-rhythmgameqml-standardarenagameplayoverlay.html" translate="no">StandardArenaGameplayOverlay</a></td></tr>
+<tr valign="top" class="odd"><td >Add Arena standings on results</td><td ><a href="qml-rhythmgameqml-standardarenaresultoverlay.html" translate="no">StandardArenaResultOverlay</a></td></tr>
+</table></div>
+<p>Selection already supplies <a href="qml-rhythmgameqml-standardranking.html" translate="no">StandardRanking</a> as its <code translate="no">ranking</code> property and <a href="qml-rhythmgameqml-standardselectpreview.html" translate="no">StandardSelectPreview</a> as <code translate="no">preview</code>. Customize those instances instead of creating duplicates. Arena overlays belong to the screen; the game does not add them automatically.</p>
+<h2 id="change-behavior">Change behavior</h2>
+<p>Start with properties and signals on the complete component. For example, <a href="qml-rhythmgameqml-standardgameplayflow.html#startReady-prop" translate="no">StandardGameplayFlow::startReady</a> and <a href="qml-rhythmgameqml-standardgameplayflow.html#finishReady-prop" translate="no">StandardGameplayFlow::finishReady</a> let an animation delay play or results while the flow still saves scores.</p>
+<p>Action callbacks have two common forms:</p>
+<ul>
+<li>A replacement action handles the entire operation. The standard action does not run afterward, and its return value is ignored unless the property's documentation says otherwise.</li>
+<li>A <code translate="no">try...Action</code> callback runs first. Return true when it handled the request; return false or undefined to use the standard action.</li>
+</ul>
+<p>A request signal asks your theme to act; it does not report success. For example, <a href="qml-rhythmgameqml-standardselectcontroller.html#moveRequested-signal" translate="no">StandardSelectController::moveRequested</a> asks your wheel to move. Read each method's return-value description: accepting a request does not always mean a screen opened or a load succeeded.</p>
+<h2 id="handle-inactive-screens">Handle inactive screens</h2>
+<p>A screen may stay loaded while another screen is shown. The game disables inactive screens. Child Items, including the Standard components, inherit that state. Standard components stop their own input, timers and audio.</p>
+<p>Your own Shortcut and Connections objects do not inherit an Item's enabled state. Bind their enabled properties to your screen where appropriate, and stop screen-owned audio and animations while inactive. Hiding an Item alone does not disable all of its behavior.</p>
+<h2 id="build-a-custom-flow">Build a custom flow</h2>
+<p>Use these smaller pieces when the complete component does not fit:</p>
+<div class="table"><table class="generic">
+ <thead><tr class="qt-style"><th >Task</th><th >Starting point</th></tr></thead>
+<tr valign="top" class="odd"><td >Menu actions without music</td><td ><a href="qml-rhythmgameqml-standardmainactions.html" translate="no">StandardMainActions</a></td></tr>
+<tr valign="top" class="even"><td >Standard browsing with custom controls</td><td ><a href="qml-rhythmgameqml-standardselectstate.html" translate="no">StandardSelectState</a></td></tr>
+<tr valign="top" class="odd"><td >Custom folder loading and history</td><td ><a href="qml-rhythmgameqml-standardselectsession.html" translate="no">StandardSelectSession</a></td></tr>
+<tr valign="top" class="even"><td >Open selections with custom browsing</td><td ><a href="qml-rhythmgameqml-standardselectactions.html" translate="no">StandardSelectActions</a></td></tr>
+<tr valign="top" class="odd"><td >Navigation or bound selection keys</td><td ><a href="qml-rhythmgameqml-standardselectnavigation.html" translate="no">StandardSelectNavigation</a> or <a href="qml-rhythmgameqml-standardselectinput.html" translate="no">StandardSelectInput</a></td></tr>
+<tr valign="top" class="even"><td >Selection function keys</td><td ><a href="qml-rhythmgameqml-standardselectshortcuts.html" translate="no">StandardSelectShortcuts</a></td></tr>
+<tr valign="top" class="odd"><td >Repeat entries for a circular wheel</td><td ><a href="qml-rhythmgameqml-standardselectmodeladapter.html" translate="no">StandardSelectModelAdapter</a></td></tr>
+<tr valign="top" class="even"><td >Shared sort and replay labels</td><td ><a href="qml-rhythmgameqml-standardselectoptions.html" translate="no">StandardSelectOptions</a></td></tr>
+<tr valign="top" class="odd"><td >Preview audio or library reload</td><td ><a href="qml-rhythmgameqml-standardselectpreview.html" translate="no">StandardSelectPreview</a> or <a href="qml-rhythmgameqml-standardselectreload.html" translate="no">StandardSelectReload</a></td></tr>
+<tr valign="top" class="even"><td >Gameplay input without the standard flow</td><td ><a href="qml-rhythmgameqml-standardgameplayinput.html" translate="no">StandardGameplayInput</a></td></tr>
+<tr valign="top" class="odd"><td >Retry without an input gesture</td><td ><a href="qml-rhythmgameqml-standardchartretry.html" translate="no">StandardChartRetry</a></td></tr>
+<tr valign="top" class="even"><td >Detect a scoring hit</td><td ><a href="qml-rhythmgameqml-standardgameplayattemptstate.html" translate="no">StandardGameplayAttemptState</a></td></tr>
+<tr valign="top" class="odd"><td >Bound lane-key checks</td><td ><a href="qml-rhythmgameqml-standardinputkeys.html" translate="no">StandardInputKeys</a></td></tr>
+<tr valign="top" class="even"><td >Speed and cover input</td><td ><a href="qml-rhythmgameqml-standardgameplayspeedcontrols.html" translate="no">StandardGameplaySpeedControls</a></td></tr>
+<tr valign="top" class="odd"><td >Cancel a group of asynchronous requests</td><td ><a href="qml-rhythmgameqml-pendingreplygroup.html" translate="no">PendingReplyGroup</a></td></tr>
+</table></div>
+<p>Replacing <a href="qml-rhythmgameqml-standardgameplayflow.html" translate="no">StandardGameplayFlow</a> makes your theme responsible for startup, score saving, results and course progression. <a href="qml-rhythmgameqml-gameplaycontext.html" translate="no">GameplayContext</a> documents the operations for that case. Use the complete flow when you only need to change the screen's appearance.</p>
+</div>
+<!-- @@@qml-api.html -->
+</body>
+</html>

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['wav_0',['Wav',['../structcharts_1_1Wav.html',1,'charts']]],
-  ['wavtag_1',['WavTag',['../structcharts_1_1WavTag.html',1,'charts']]]
+  ['vars_0',['Vars',['../classresource__managers_1_1Vars.html',1,'resource_managers']]],
+  ['varsforeign_1',['VarsForeign',['../structrhythm__game__qml_1_1VarsForeign.html',1,'rhythm_game_qml']]]
 ];

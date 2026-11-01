@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- StandardSelectSession.qml -->
+  <meta name="description" content="Loads folder contents and stores browsing history.">
+  <title>StandardSelectSession QML Type | RhythmGameQml 1.4.0</title>
+<link rel="stylesheet" type="text/css" href="style/qdoc.css" />
+</head>
+<body>
+<li><a href="rhythmgameqml-qmlmodule.html" translate="no">RhythmGameQml</a></li>
+<li>StandardSelectSession</li>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">StandardSelectSession QML Type</h1>
+<!-- $$$StandardSelectSession-brief -->
+<p>Loads folder contents and stores browsing history. <a href="#details">More...</a></p>
+<!-- @@@StandardSelectSession -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import RhythmGameQml</code></td></tr>
+</table></div>
+<ul>
+<li><a href="qml-rhythmgameqml-standardselectsession-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectsession.html#folderContents-prop" translate="no">folderContents</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectsession.html#historyStack-prop" translate="no">historyStack</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectsession.html#previewFiles-prop" translate="no">previewFiles</a></b> : var</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectsession.html#tableCoursesProvider-prop" translate="no">tableCoursesProvider</a></b> : var</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectsession.html#commitFolderContents-method" translate="no">commitFolderContents</a></b>(<i>contents</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectsession.html#folderForHistoryItem-method" translate="no">folderForHistoryItem</a></b>(<i>item</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectsession.html#resolveChartDirectory-method" translate="no">resolveChartDirectory</a></b>(<i>directory</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectsession.html#resolveFolderContents-method" translate="no">resolveFolderContents</a></b>(<i>item</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-rhythmgameqml-standardselectsession.html#resolveSearchResults-method" translate="no">resolveSearchResults</a></b>(<i>query</i>)</li>
+</ul>
+<!-- $$$StandardSelectSession-description -->
+<h2 id="details">Detailed Description</h2>
+<p><a href="qml-rhythmgameqml-standardselectstate.html" translate="no">StandardSelectState</a> already uses this component. Use it directly only for custom browsing. It stores folder contents, history and preview paths; your code decides when to load them, sort them and choose a focused row.</p>
+<p>The <code translate="no">resolve...</code> methods return data without changing <a href="qml-rhythmgameqml-standardselectsession.html#folderContents-prop" translate="no">folderContents</a> or <a href="qml-rhythmgameqml-standardselectsession.html#historyStack-prop" translate="no">historyStack</a>. Call <a href="qml-rhythmgameqml-standardselectsession.html#commitFolderContents-method" translate="no">commitFolderContents</a> and update the history together when the navigation is ready to take effect.</p>
+<p>To supply custom table courses, set <a href="qml-rhythmgameqml-standardselectsession.html#tableCoursesProvider-prop" translate="no">tableCoursesProvider</a> to a function that accepts a <code translate="no">tableItem</code> and returns its course list.</p>
+<!-- @@@StandardSelectSession -->
+<h2>Property Documentation</h2>
+<!-- $$$folderContents -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="folderContents-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">folderContents</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Raw contents of the current folder, table, level, or search.</p>
+</div></div><!-- @@@folderContents -->
+<br/>
+<!-- $$$historyStack -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="historyStack-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">historyStack</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>History entries in navigation order. The root folder is an empty string. <a href="qml-rhythmgameqml-standardselectstate.html" translate="no">StandardSelectState</a> also uses table and level values, ChartData for a song's chart directory, and objects with a searchQuery field for searches.</p>
+</div></div><!-- @@@historyStack -->
+<br/>
+<!-- $$$previewFiles -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="previewFiles-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">previewFiles</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Preview-file data loaded for the current contents.</p>
+</div></div><!-- @@@previewFiles -->
+<br/>
+<!-- $$$tableCoursesProvider -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="tableCoursesProvider-prop">
+<td class="tblQmlPropNode"><p>
+<span class="name">tableCoursesProvider</span> : <span class="type">var</span></p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Called as <code translate="no">tableCoursesProvider(tableItem)</code> to return a custom list of courses.</p>
+</div></div><!-- @@@tableCoursesProvider -->
+<br/>
+<h2>Method Documentation</h2>
+<!-- $$$commitFolderContents[overload1]$$$commitFolderContents -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="commitFolderContents-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">commitFolderContents</span>(<i>contents</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Replaces <a href="qml-rhythmgameqml-standardselectsession.html#folderContents-prop" translate="no">folderContents</a> with a copy of <i translate="no">contents</i> and returns true. Null or undefined returns false without changing the current contents. Update <a href="qml-rhythmgameqml-standardselectsession.html#historyStack-prop" translate="no">historyStack</a> separately when navigation succeeds.</p>
+</div></div><!-- @@@commitFolderContents -->
+<br/>
+<!-- $$$folderForHistoryItem[overload1]$$$folderForHistoryItem -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="folderForHistoryItem-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">folderForHistoryItem</span>(<i>item</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Resolves a history <i translate="no">item</i> to the folder it represents.</p>
+</div></div><!-- @@@folderForHistoryItem -->
+<br/>
+<!-- $$$resolveChartDirectory[overload1]$$$resolveChartDirectory -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="resolveChartDirectory-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">resolveChartDirectory</span>(<i>directory</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Returns the chart entries in <i translate="no">directory</i>.</p>
+</div></div><!-- @@@resolveChartDirectory -->
+<br/>
+<!-- $$$resolveFolderContents[overload1]$$$resolveFolderContents -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="resolveFolderContents-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">resolveFolderContents</span>(<i>item</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Returns raw entries for folder, table or level <i translate="no">item</i>. An empty string opens the root. Returns an empty list for an empty folder, or null for an unsupported item. Does not change history or <a href="qml-rhythmgameqml-standardselectsession.html#folderContents-prop" translate="no">folderContents</a>.</p>
+</div></div><!-- @@@resolveFolderContents -->
+<br/>
+<!-- $$$resolveSearchResults[overload1]$$$resolveSearchResults -->
+<div class="qmlitem"><div class="qmlproto" translate="no">
+<div class="table"><table class="qmlname">
+<tr valign="top" class="odd" id="resolveSearchResults-method">
+<td class="tblQmlFuncNode"><p>
+<span class="name">resolveSearchResults</span>(<i>query</i>)</p></td></tr>
+</table></div></div>
+<div class="qmldoc"><p>Returns search results for <i translate="no">query</i>.</p>
+</div></div><!-- @@@resolveSearchResults -->
+<br/>
+</body>
+</html>

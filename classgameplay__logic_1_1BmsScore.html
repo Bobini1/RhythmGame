@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -74,6 +74,7 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#signals">Signals</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
@@ -109,6 +110,11 @@ Collaboration diagram for gameplay_logic::BmsScore:</div>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structgameplay__logic_1_1BmsScore_1_1PreparedData.html">PreparedData</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:ac6ccdc921134d0339824c5b8284a7bdb" id="r_ac6ccdc921134d0339824c5b8284a7bdb"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#ac6ccdc921134d0339824c5b8284a7bdb">Source</a> { <a class="el" href="classgameplay__logic_1_1BmsScore.html#ac6ccdc921134d0339824c5b8284a7bdba8dfcb7a3c9e1764b43937abf0e4c06d7">RhythmGame</a> = 0
@@ -163,14 +169,24 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:afc280624c60a5a57459475bdb9ac04b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91bf597f43504d68c29b1508fc1717a1" id="r_a91bf597f43504d68c29b1508fc1717a1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a91bf597f43504d68c29b1508fc1717a1">getSubmissionState</a> () const -&gt; <a class="el" href="classgameplay__logic_1_1BmsScore.html#a884ea7325dac70efb1ae5d5ddd9f028e">SubmissionState</a></td></tr>
 <tr class="separator:a91bf597f43504d68c29b1508fc1717a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa1211b2347d2a4d07e26d7d9c82a0282" id="r_aa1211b2347d2a4d07e26d7d9c82a0282"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#aa1211b2347d2a4d07e26d7d9c82a0282">clone</a> (QObject *parent=nullptr) const -&gt; std::unique_ptr&lt; <a class="el" href="classgameplay__logic_1_1BmsScore.html">BmsScore</a> &gt;</td></tr>
+<tr class="separator:aa1211b2347d2a4d07e26d7d9c82a0282"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81d94a8d9d7fda18866be4cbcdcd6792" id="r_a81d94a8d9d7fda18866be4cbcdcd6792"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a81d94a8d9d7fda18866be4cbcdcd6792">prepareSave</a> () const -&gt; <a class="el" href="structgameplay__logic_1_1BmsScore_1_1PreparedData.html">PreparedData</a></td></tr>
+<tr class="separator:a81d94a8d9d7fda18866be4cbcdcd6792"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2b50f567a935a86e721aa759c9faf3c9" id="r_a2b50f567a935a86e721aa759c9faf3c9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a2b50f567a935a86e721aa759c9faf3c9">save</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db) const</td></tr>
 <tr class="separator:a2b50f567a935a86e721aa759c9faf3c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a3aed6fcb4099d47d4d1c56a99ae1d5" id="r_a1a3aed6fcb4099d47d4d1c56a99ae1d5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a1a3aed6fcb4099d47d4d1c56a99ae1d5">save</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db, const <a class="el" href="structgameplay__logic_1_1BmsScore_1_1PreparedData.html">PreparedData</a> &amp;prepared) const</td></tr>
+<tr class="separator:a1a3aed6fcb4099d47d4d1c56a99ae1d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a6c752ae68f2a177d1eb46740bc6f9d43" id="r_a6c752ae68f2a177d1eb46740bc6f9d43"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a6c752ae68f2a177d1eb46740bc6f9d43">fromImportedResult</a> (std::unique_ptr&lt; <a class="el" href="classgameplay__logic_1_1BmsResult.html">BmsResult</a> &gt; <a class="el" href="classgameplay__logic_1_1BmsScore.html#a8b249001f144b67963b5cdca911b4fe0">result</a>, <a class="el" href="classgameplay__logic_1_1BmsScore.html#ac6ccdc921134d0339824c5b8284a7bdb">Source</a> <a class="el" href="classgameplay__logic_1_1BmsScore.html#ad1bc0324e2c230ea6a1786733d5e1ff5">source</a>, <a class="el" href="classgameplay__logic_1_1BmsScore.html#a1abd7142e924658e4746fb5b6ff18caa">LongNoteMode</a> longNoteMode=<a class="el" href="classgameplay__logic_1_1BmsScore.html#a1abd7142e924658e4746fb5b6ff18caaa9acdbc05ab7c5f2b2576422f0400963a">LongNoteMode::Ln</a>, QObject *parent=nullptr) -&gt; std::unique_ptr&lt; <a class="el" href="classgameplay__logic_1_1BmsScore.html">BmsScore</a> &gt;</td></tr>
 <tr class="memdesc:a6c752ae68f2a177d1eb46740bc6f9d43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct an incomplete score from imported aggregate result data.  <br /></td></tr>
 <tr class="separator:a6c752ae68f2a177d1eb46740bc6f9d43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37021c972ff811bb303744ab23cc6b4a" id="r_a37021c972ff811bb303744ab23cc6b4a"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a37021c972ff811bb303744ab23cc6b4a">sourceName</a> (<a class="el" href="classgameplay__logic_1_1BmsScore.html#ac6ccdc921134d0339824c5b8284a7bdb">Source</a> <a class="el" href="classgameplay__logic_1_1BmsScore.html#ad1bc0324e2c230ea6a1786733d5e1ff5">source</a>) -&gt; QString</td></tr>
+<tr class="separator:a37021c972ff811bb303744ab23cc6b4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4abd0885a2828f8a01be8f73919fe780" id="r_a4abd0885a2828f8a01be8f73919fe780"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsScore.html#a4abd0885a2828f8a01be8f73919fe780">fromRemoteJson</a> (const QByteArray &amp;<a class="el" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>, const QString &amp;expectedGuid) -&gt; std::unique_ptr&lt; <a class="el" href="classgameplay__logic_1_1BmsScore.html">BmsScore</a> &gt;</td></tr>
+<tr class="separator:a4abd0885a2828f8a01be8f73919fe780"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
 Properties</h2></td></tr>
@@ -384,6 +400,25 @@ Properties</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="aa1211b2347d2a4d07e26d7d9c82a0282" name="aa1211b2347d2a4d07e26d7d9c82a0282"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa1211b2347d2a4d07e26d7d9c82a0282">&#9670;&#160;</a></span>clone()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::BmsScore::clone </td>
+          <td>(</td>
+          <td class="paramtype">QObject *&#160;</td>
+          <td class="paramname"><em>parent</em> = <code>nullptr</code></td><td>)</td>
+          <td> const -&gt; std::unique_ptr&lt;<a class="el" href="classgameplay__logic_1_1BmsScore.html">BmsScore</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Owns a copy of the score and its attachments, independent of QML lists. </p>
+
+</div>
+</div>
 <a id="a6c752ae68f2a177d1eb46740bc6f9d43" name="a6c752ae68f2a177d1eb46740bc6f9d43"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6c752ae68f2a177d1eb46740bc6f9d43">&#9670;&#160;</a></span>fromImportedResult()</h2>
 
@@ -432,6 +467,42 @@ Properties</h2></td></tr>
 
 <p>Construct an incomplete score from imported aggregate result data. </p>
 <p>Imported scores intentionally have no replay or gauge history. </p>
+
+</div>
+</div>
+<a id="a4abd0885a2828f8a01be8f73919fe780" name="a4abd0885a2828f8a01be8f73919fe780"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4abd0885a2828f8a01be8f73919fe780">&#9670;&#160;</a></span>fromRemoteJson()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::BmsScore::fromRemoteJson </td>
+          <td>(</td>
+          <td class="paramtype">const QByteArray &amp;&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>expectedGuid</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; std::unique_ptr&lt;<a class="el" href="classgameplay__logic_1_1BmsScore.html">BmsScore</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -571,8 +642,25 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a id="a81d94a8d9d7fda18866be4cbcdcd6792" name="a81d94a8d9d7fda18866be4cbcdcd6792"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81d94a8d9d7fda18866be4cbcdcd6792">&#9670;&#160;</a></span>prepareSave()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::BmsScore::prepareSave </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="structgameplay__logic_1_1BmsScore_1_1PreparedData.html">PreparedData</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a2b50f567a935a86e721aa759c9faf3c9" name="a2b50f567a935a86e721aa759c9faf3c9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2b50f567a935a86e721aa759c9faf3c9">&#9670;&#160;</a></span>save()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b50f567a935a86e721aa759c9faf3c9">&#9670;&#160;</a></span>save() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -583,6 +671,34 @@ Properties</h2></td></tr>
           <td class="paramtype"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;&#160;</td>
           <td class="paramname"><em>db</em></td><td>)</td>
           <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1a3aed6fcb4099d47d4d1c56a99ae1d5" name="a1a3aed6fcb4099d47d4d1c56a99ae1d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a3aed6fcb4099d47d4d1c56a99ae1d5">&#9670;&#160;</a></span>save() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void gameplay_logic::BmsScore::save </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;&#160;</td>
+          <td class="paramname"><em>db</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structgameplay__logic_1_1BmsScore_1_1PreparedData.html">PreparedData</a> &amp;&#160;</td>
+          <td class="paramname"><em>prepared</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -603,6 +719,32 @@ Properties</h2></td></tr>
           <td></td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a37021c972ff811bb303744ab23cc6b4a" name="a37021c972ff811bb303744ab23cc6b4a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a37021c972ff811bb303744ab23cc6b4a">&#9670;&#160;</a></span>sourceName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::BmsScore::sourceName </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classgameplay__logic_1_1BmsScore.html#ac6ccdc921134d0339824c5b8284a7bdb">Source</a>&#160;</td>
+          <td class="paramname"><em>source</em></td><td>)</td>
+          <td> -&gt; QString</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>

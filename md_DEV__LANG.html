@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -72,17 +72,14 @@ $(function() {
   <div class="headertitle"><div class="title">Translating the game</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md42"></a> Translations are theme-specific. The C++ part of the game does not contain any translatable strings.</p>
-<p>In a theme, translatable string come in two forms:</p>
-<ul>
-<li>Theme settings strings (used only in the settings screen)</li>
-<li>Strings in QML files</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md43"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md34"></a> Each theme declares its available languages and translation files in <code>theme.json</code>. Settings labels are translated in JSON; QML text uses Qt translation catalogs.</p>
+<p>Default's catalog also contains shared text from Arena, <code>RhythmGameQml/StandardSelectOptions.qml</code>, and C++ sources such as the Backbeat integration. Those translations are available to all themes. Themes can use the shared sorting and replay labels or supply their own text in their own catalogs.</p>
+<p>The <a class="el" href="04-translations_8md.html">translation lesson</a> includes an installable example and commands for building its catalog.</p>
+<h1><a class="anchor" id="autotoc_md35"></a>
 Theme settings strings</h1>
-<p>Those are quite straightforward. If you take a look at <a href="https://github.com/Bobini1/RhythmGame/blob/master/share/RhythmGame/themes/Default/settings/k7.json">the json file</a> defining the settings for the k7 screen, you will notice that the name and description of each setting are defined in the file itself. Simply add new languages next to "en" and "pl" (English and Polish).</p>
-<p>Locale identifiers use a supported subset of BCP 47: an ISO 639 language code, an optional ISO 15924 script code, and an optional ISO 3166-1 territory code. For example, <code>fr-CA</code> is Canadian French, <code>zh-Hans</code> is Simplified Chinese, <code>zh-Hant-TW</code> is Traditional Chinese for Taiwan, and <code>zh-Hant-HK</code> is Traditional Chinese for Hong Kong. Hyphens are preferred. Existing identifiers with underscores, such as <code>fr_CA</code>, remain accepted and are normalized at load time.</p>
-<p>Script subtags matter when a language uses more than one writing system. The game first looks for the same language, script, and territory, then the same language and script, and finally a generic language entry. It does not select an explicitly incompatible script while a compatible generic entry exists.</p>
+<p>Settings files store translations directly in each setting's <code>name</code> and <code>description</code> objects. Choice labels and group labels use the same format. Add a language key beside the existing ones. See <a href="https://github.com/Bobini1/RhythmGame/blob/master/share/RhythmGame/themes/Default/settings/k7.json">Default's k7 settings</a> for a complete file.</p>
+<p>Locale identifiers use a supported subset of BCP 47: an ISO 639 language code, an optional ISO 15924 script code, and an optional ISO 3166-1 territory code. For example, <code>fr-CA</code> is Canadian French, <code>zh-Hans</code> is Simplified Chinese, <code>zh-Hant-TW</code> is Traditional Chinese for Taiwan, and <code>zh-Hant-HK</code> is Traditional Chinese for Hong Kong. Hyphens are preferred. Existing identifiers with underscores, such as <code>fr_CA</code>, also work. Manifest keys are normalized at load time.</p>
+<p>Script subtags matter when a language uses more than one writing system. The game first looks for an exact match, then the closest available entry in the same language, preferring a matching script and territory. It avoids entries for an incompatible script. If there is no match, it tries the system language and then English. Settings labels use the first available entry as a final fallback.</p>
 <p>For example, here is a property with an added Canadian French translation:</p>
 <div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;id&quot;: &quot;verticalGauge&quot;,</div>
@@ -99,36 +96,45 @@ Theme settings strings</h1>
 <div class="line">  &quot;type&quot;: &quot;boolean&quot;,</div>
 <div class="line">  &quot;default&quot;: false</div>
 <div class="line">}</div>
-</div><!-- fragment --><p>To make a language selectable in the game, the theme's <code>theme.json</code> file needs to declare it. This can look like this:</p>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md36"></a>
+Declare the available languages</h1>
+<p>Declare each supported language in the <code>translations</code> object in <code>theme.json</code>. These keys make the language selectable in the game. Paths are relative to the theme folder. For example:</p>
 <div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;translations&quot;: {</div>
-<div class="line">    &quot;en&quot;: &quot;translations/Default_en.qm&quot;,</div>
+<div class="line">    &quot;en&quot;: &quot;&quot;,</div>
 <div class="line">    &quot;pl&quot;: &quot;translations/Default_pl.qm&quot;,</div>
 <div class="line">    &quot;fr-CA&quot;: &quot;&quot;,</div>
 <div class="line">    &quot;zh-Hans&quot;: &quot;translations/Default_zh_Hans.qm&quot;,</div>
 <div class="line">    &quot;zh-Hant-TW&quot;: &quot;translations/Default_zh_Hant_TW.qm&quot;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md44"></a>
-Translating a theme</h1>
-<p>The qm file is a compiled Qt translation file. Those are used for translating strings in QML files, which is explained in the next section. Providing a qm file is optional, you can leave the value empty if your theme does not contain any translatable strings in QML files.</p>
-<h2><a class="anchor" id="autotoc_md45"></a>
-Strings in QML files</h2>
+</div><!-- fragment --><p>A <code>.qm</code> file is a compiled Qt translation catalog. Use an empty path when that language should display the original QML text. In the example, English uses the source text and Canadian French translates only the settings labels. An empty path does not try to load a catalog and is not an error.</p>
+<p>If you supply a path, include that <code>.qm</code> file with the theme. A missing file is logged and that language entry is skipped. Restart after changing the manifest or replacing translation files. Once the files are loaded, changing the profile's language updates the QML text and settings labels without restarting.</p>
+<p>Each theme chooses its catalog using the language matching described above. If there is no matching catalog or a string has no translation, Qt displays the source text.</p>
+<h1><a class="anchor" id="autotoc_md37"></a>
+Strings in QML files</h1>
 <p>To mark a string in a QML file as translatable, you need to wrap it in the <code>qsTr()</code> function. An in-depth explanation of how to use it can be found in the <a href="https://doc.qt.io/qt-6/i18n-source-translation.html#qml-use-qstr">Qt documentation</a>.</p>
 <p>For translating strings in QML files, you will need to use the Qt Linguist toolchain. There are three essential tools:</p>
 <ul>
-<li><code>lupdate</code>: Extracts translatable strings from QML files and creates a <code>.ts</code> file.</li>
+<li><code>lupdate</code>: Extracts translatable strings and creates or updates a <code>.ts</code> file.</li>
 <li><code>Linguist</code>: A GUI tool for translators to translate the strings in a <code>.ts</code> file.</li>
 <li><code>lrelease</code>: Compiles a <code>.ts</code> file into a <code>.qm</code> file that can be used by the game.</li>
 </ul>
-<p>This repository contains a CMake target called <code>update_translations</code> that will run <code>lupdate</code> for you for the default theme. Add your language to <code>qt_standard_project_setup</code> in <a href="CMakeLists.txt">CMakeLists.txt</a> to generate a <code>.ts</code> file for it. There is also a target called <code>release_translations</code> that will run <code>lrelease</code> (it also runs automatically when you build the game).</p>
-<p>But if you're just a translator who doesn't want to build the game or you're developing your own theme, you can also run the tools manually in the command line. You can get them by <a href="https://www.qt.io/download-qt-installer-oss">installing Qt</a>.</p>
+<p>Edit the <code>.ts</code> file in Qt Linguist, then compile it with <code>lrelease</code>. Keep the source <code>.ts</code> file for future edits and ship the compiled <code>.qm</code> file with the theme. Preserve placeholders such as <code>%1</code> and <code>%2</code> in translated text.</p>
+<p>You can work on these files without building the game. Install the tools with <a href="https://www.qt.io/download-qt-installer-oss">Qt</a>, then follow the commands in the <a class="el" href="04-translations_8md.html">translation lesson</a>.</p>
 <p>Here is what it should look like inside Qt Linguist:</p>
 <div class="image">
 <img src="linguist.png" alt=""/>
 <div class="caption">
 Linguist</div></div>
-     </div></div><!-- contents -->
+    <h1><a class="anchor" id="autotoc_md38"></a>
+Updating Default's translations</h1>
+<p>Default's <code>.ts</code> and <code>.qm</code> files live in <a href="https://github.com/Bobini1/RhythmGame/tree/master/share/RhythmGame/themes/Default/translations"><code>share/RhythmGame/themes/Default/translations/</code></a>. With a configured developer build, use these targets:</p>
+<div class="fragment"><div class="line">cmake --build build/dev-rel --config Release --target update_translations</div>
+<div class="line">cmake --build build/dev-rel --config Release --target release_translations</div>
+</div><!-- fragment --><p>Use your own build directory if it has a different name. <code>update_translations</code> runs <code>lupdate</code> on the QML and C++ sources selected by the build. It updates the catalog's source strings; translate those entries in Qt Linguist before running <code>release_translations</code>. The latter compiles the catalogs and also runs during normal game builds.</p>
+<p>To add a language to Default, add its Qt locale code to <code>I18N_TRANSLATED_LANGUAGES</code> in <a href="https://github.com/Bobini1/RhythmGame/blob/master/CMakeLists.txt">CMakeLists.txt</a>, reconfigure, and run <code>update_translations</code>. After translating and compiling the new catalog, add its language and <code>.qm</code> path to <a href="https://github.com/Bobini1/RhythmGame/blob/master/share/RhythmGame/themes/Default/theme.json">Default's manifest</a>. </p>
+</div></div><!-- contents -->
 </div><!-- PageDoc -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

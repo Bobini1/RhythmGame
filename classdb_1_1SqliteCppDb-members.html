@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -80,9 +80,12 @@ $(function() {
 <p>This is the complete list of members for <a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a>, including all inherited members.</p>
 <table class="directory">
   <tr class="even"><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html#a31c2f3f7bf2fded47b0732367d4ca55a">createStatement</a>(const std::string &amp;query) -&gt; Statement</td><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></td><td class="entry"></td></tr>
-  <tr class="odd"><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html#a4995b59a52608ec568d044b6e83b4925">execute</a>(const std::string &amp;query) -&gt; int64_t</td><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></td><td class="entry"></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html#a07372d90f97c8a9eadce34d02595550c">hasTable</a>(const std::string &amp;table) const -&gt; bool</td><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></td><td class="entry"></td></tr>
-  <tr class="odd"><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html#a8a6cd925b08f9594f45f0f12deee1346">SqliteCppDb</a>(const std::filesystem::path &amp;dbPath)</td><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></td><td class="entry"><span class="mlabel">explicit</span></td></tr>
+  <tr class="odd"><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html#ac45d7676757bc284575eb97744a0c2ae">Durability</a> enum name</td><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html#a9d7fdd2737e2a3d7a3cab9669da6ded5">execute</a>(const std::string &amp;query)</td><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></td><td class="entry"></td></tr>
+  <tr class="odd"><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html#a07372d90f97c8a9eadce34d02595550c">hasTable</a>(const std::string &amp;table) const -&gt; bool</td><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html#a708dd1fa4dc7ec3116f05cba4cace1f9">openReadOnly</a>(const std::filesystem::path &amp;dbPath, std::chrono::milliseconds busyTimeout=std::chrono::milliseconds{ 0 }) -&gt; SqliteCppDb</td><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></td><td class="entry"><span class="mlabel">static</span></td></tr>
+  <tr class="odd"><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html#a0361107da6fddd48f142ebb4d9243a82">SqliteCppDb</a>(const std::filesystem::path &amp;dbPath, std::chrono::milliseconds busyTimeout=std::chrono::milliseconds{ 0 }, Durability durability=Durability::Normal)</td><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></td><td class="entry"><span class="mlabel">explicit</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html#a4fa15ea9306b16276bb462ddd27ad74e">transaction</a>() -&gt; Transaction</td><td class="entry"><a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a></td><td class="entry"></td></tr>
 </table></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.18</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.4.0</span>
    </div>
   </td>
  </tr>
@@ -251,8 +251,10 @@ Functions</h2></td></tr>
 <tr class="separator:a91c6afd04f12affb107694b149a6a40b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14f459a3bb0d29c9a67694a6a7062903" id="r_a14f459a3bb0d29c9a67694a6a7062903"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a14f459a3bb0d29c9a67694a6a7062903">loadArchivedSoundData</a> (<a class="el" href="classresource__managers_1_1SongAssetStore.html">resource_managers::SongAssetStore</a> *assetStore, const std::filesystem::path &amp;chartDirectory, const std::unordered_map&lt; uint64_t, std::filesystem::path &gt; &amp;paths, const std::atomic_bool *cancellation) -&gt; <a class="el" href="namespacecharts.html#a3356effa7eb5b83f9b4ae6d7613e43d9">EncodedSounds</a></td></tr>
 <tr class="separator:a14f459a3bb0d29c9a67694a6a7062903"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7538b4a28f3a1a40238f6bbe6fdca69c" id="r_a7538b4a28f3a1a40238f6bbe6fdca69c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a7538b4a28f3a1a40238f6bbe6fdca69c">getActualPath</a> (std::unordered_map&lt; std::string, std::filesystem::path &gt; &amp;lowerCaseFilesMap, std::string filePath) -&gt; std::optional&lt; std::filesystem::path &gt;</td></tr>
-<tr class="separator:a7538b4a28f3a1a40238f6bbe6fdca69c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4b90ee52f5d83524da45e05a842bd31" id="r_af4b90ee52f5d83524da45e05a842bd31"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#af4b90ee52f5d83524da45e05a842bd31">soundPathKey</a> (const std::filesystem::path &amp;<a class="el" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>) -&gt; std::string</td></tr>
+<tr class="separator:af4b90ee52f5d83524da45e05a842bd31"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68b232bdb70e7a0e65dc2956c498d4a0" id="r_a68b232bdb70e7a0e65dc2956c498d4a0"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a68b232bdb70e7a0e65dc2956c498d4a0">getActualPath</a> (const std::unordered_map&lt; std::string, std::filesystem::path &gt; &amp;lowerCaseFilesMap, const std::filesystem::path &amp;filePath) -&gt; std::optional&lt; std::filesystem::path &gt;</td></tr>
+<tr class="separator:a68b232bdb70e7a0e65dc2956c498d4a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a055f9dbcbc667dcb0557a1aa307e60af" id="r_a055f9dbcbc667dcb0557a1aa307e60af"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a055f9dbcbc667dcb0557a1aa307e60af">createLowerCaseFilesMap</a> (std::filesystem::path dirToSearch) -&gt; std::unordered_map&lt; std::string, std::filesystem::path &gt;</td></tr>
 <tr class="separator:a055f9dbcbc667dcb0557a1aa307e60af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1f0604a7f2849b33d3e2ebc320f31e4e" id="r_a1f0604a7f2849b33d3e2ebc320f31e4e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecharts.html#a1f0604a7f2849b33d3e2ebc320f31e4e">loadEncodedBuffers</a> (<a class="el" href="classsounds_1_1AudioEngine.html">sounds::AudioEngine</a> *engine, const <a class="el" href="namespacecharts.html#a3356effa7eb5b83f9b4ae6d7613e43d9">EncodedSounds</a> &amp;encodedSounds, const std::atomic_bool *cancellation) -&gt; std::unordered_map&lt; <a class="el" href="namespacecharts.html#a17c12d9ec32aa42e5e15e9e6495c3b7a">EncodedSound</a>, std::shared_ptr&lt; const <a class="el" href="classsounds_1_1SoundBuffer.html">sounds::SoundBuffer</a> &gt; &gt;</td></tr>
@@ -508,8 +510,8 @@ template&lt;std::integral T&gt; </div>
 
 </div>
 </div>
-<a id="a7538b4a28f3a1a40238f6bbe6fdca69c" name="a7538b4a28f3a1a40238f6bbe6fdca69c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7538b4a28f3a1a40238f6bbe6fdca69c">&#9670;&#160;</a></span>getActualPath()</h2>
+<a id="a68b232bdb70e7a0e65dc2956c498d4a0" name="a68b232bdb70e7a0e65dc2956c498d4a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a68b232bdb70e7a0e65dc2956c498d4a0">&#9670;&#160;</a></span>getActualPath()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -517,13 +519,13 @@ template&lt;std::integral T&gt; </div>
         <tr>
           <td class="memname">auto charts::getActualPath </td>
           <td>(</td>
-          <td class="paramtype">std::unordered_map&lt; std::string, std::filesystem::path &gt; &amp;&#160;</td>
+          <td class="paramtype">const std::unordered_map&lt; std::string, std::filesystem::path &gt; &amp;&#160;</td>
           <td class="paramname"><em>lowerCaseFilesMap</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::string&#160;</td>
+          <td class="paramtype">const std::filesystem::path &amp;&#160;</td>
           <td class="paramname"><em>filePath</em>&#160;</td>
         </tr>
         <tr>
@@ -873,6 +875,25 @@ template&lt;std::integral T&gt; </div>
           <td></td>
           <td>)</td>
           <td></td><td> -&gt; <a class="el" href="structcharts_1_1ParsedBmsChart_1_1Tags.html">ParsedBmsChart::Tags</a>
+</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af4b90ee52f5d83524da45e05a842bd31" name="af4b90ee52f5d83524da45e05a842bd31"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af4b90ee52f5d83524da45e05a842bd31">&#9670;&#160;</a></span>soundPathKey()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto charts::soundPathKey </td>
+          <td>(</td>
+          <td class="paramtype">const std::filesystem::path &amp;&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td> -&gt; std::string
 </td>
         </tr>
       </table>
