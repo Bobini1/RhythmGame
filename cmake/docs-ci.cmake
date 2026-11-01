@@ -12,11 +12,14 @@ set(src "${PROJECT_SOURCE_DIR}")
 
 file(READ "${src}/CMakeLists.txt" content)
 
-string(FIND "${content}" "project(" index)
-if(index EQUAL "-1")
+# Match a command at the start of a line, not a mention in a comment.
+string(REGEX MATCH "(^|\n)[ \t]*project[ \t]*\\(" project_command "${content}")
+if(project_command STREQUAL "")
   message(FATAL_ERROR "Could not find \"project(\"")
 endif()
+string(FIND "${content}" "${project_command}" index)
 string(SUBSTRING "${content}" "${index}" -1 content)
+string(REGEX REPLACE "^[ \t\r\n]+" "" content "${content}")
 
 string(FIND "${content}" "\n)\n" index)
 if(index EQUAL "-1")

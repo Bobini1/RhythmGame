@@ -655,10 +655,19 @@ jobs:
 
       - name: Install documentation tools
         run: sudo apt-get update -q
-          && sudo apt-get install doxygen graphviz qt6-documentation-tools -q -y
+          && sudo apt-get install doxygen graphviz -q -y
+
+      # Ubuntu 24.04's QDoc 6.4 cannot parse the QML pragmas used by our components.
+      - name: Install QDoc
+        uses: jurplel/install-qt-action@v4.5.0
+        with:
+          version: '6.10.0'
+          archives: 'qtbase qtdeclarative qttools icu'
+          cache: true
 
       - name: Build docs
         run: cmake "-DPROJECT_SOURCE_DIR=$PWD" "-DPROJECT_BINARY_DIR=$PWD/build"
+          "-DQDOC_EXECUTABLE=$QT_ROOT_DIR/bin/qdoc"
           -P cmake/docs-ci.cmake
 
       - name: Deploy docs
