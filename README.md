@@ -101,6 +101,8 @@ RhythmGame's default theme contains all the necessary features to play BMS.
 RhythmGame scans your song library in the background,
 so you can start playing immediately!
 
+The game also supports loading songs from [Backbeat](https://backbeat.ac/). Give it a try!
+
 # Building and installing
 
 See the [DEV_ENGINE](DEV_ENGINE.md) document.
