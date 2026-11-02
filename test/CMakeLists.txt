@@ -126,6 +126,7 @@ if (WIN32)
     add_custom_command(TARGET RhythmGame_flow_test POST_BUILD
             COMMAND $<IF:$<CONFIG:Debug>,${TOOL_WINDEPLOYQT_DEBUG},${TOOL_WINDEPLOYQT}> --no-translations --no-compiler-runtime
                 --qmldir "${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default"
+                --qmldir "${CMAKE_SOURCE_DIR}/RhythmGameQml"
                 $<TARGET_FILE:RhythmGame_flow_test>
             VERBATIM)
 endif ()
