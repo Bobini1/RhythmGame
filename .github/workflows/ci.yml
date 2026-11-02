@@ -56,6 +56,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Install Backbeat Rust toolchain
+        run: rustup toolchain install 1.96.0 --profile minimal --no-self-update
+
       - name: Prepare vcpkg cache folders
         shell: pwsh
         run: |
@@ -168,6 +171,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Install Backbeat Rust toolchain
+        run: rustup toolchain install 1.96.0 --profile minimal --no-self-update
+
       - name: Prepare vcpkg cache folders
         shell: pwsh
         run: |
@@ -273,6 +279,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+
+      - name: Install Backbeat Rust toolchain
+        run: rustup toolchain install 1.96.0 --profile minimal --no-self-update
 
       - name: Prepare vcpkg cache folders
         shell: pwsh
@@ -463,6 +472,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+
+      - name: Install Backbeat Rust toolchain
+        run: rustup toolchain install 1.96.0 --profile minimal --no-self-update
 
       - name: Prepare vcpkg cache folders
         shell: pwsh

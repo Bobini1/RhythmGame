@@ -248,6 +248,16 @@ SDK or its integration code, configure with `-DRhythmGame_USE_BACKBEAT=OFF`.
 Other manifest features, such as `test` and `docs`, are preserved. Without
 vcpkg, an enabled build requires an installed `Backbeat::Backbeat` CMake target.
 
+Building the SDK from source requires [Rustup](https://rust-lang.github.io/rustup/)
+and the pinned Rust 1.96.0 toolchain. Install it before configuring the game:
+
+```sh
+rustup toolchain install 1.96.0 --profile minimal --no-self-update
+```
+
+The overlay uses that toolchain explicitly, so your default Rust version can
+stay unchanged. CI installs it before configuring each vcpkg build.
+
 When enabled, the game opens the user's normal Backbeat store, indexes new installed BMS and
 BMSON bundles, and exposes installed packs, tables, and courses in song select.
 The C++ catalog checks the store revision every five seconds, independently of
