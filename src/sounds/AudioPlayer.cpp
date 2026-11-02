@@ -161,13 +161,21 @@ AudioPlayer::loadResolvedSource(QString value)
     resolvedSource = value;
     sound = std::make_unique<ma_sound>();
     auto previousLength = length;
-    if (ma_sound_init_from_file_w(engine->getEngine(),
-                                  resolvedSource.toStdWString().c_str(),
-                                  MA_SOUND_FLAG_NO_PITCH |
-                                    MA_SOUND_FLAG_NO_SPATIALIZATION,
-                                  nullptr,
-                                  nullptr,
-                                  sound.get()) != MA_SUCCESS) {
+#if defined(_WIN32)
+    const auto filename = resolvedSource.toStdWString();
+    const auto initializeSound = ma_sound_init_from_file_w;
+#else
+    // Wide paths use a locale-dependent conversion on Unix.
+    const auto filename = resolvedSource.toStdString();
+    const auto initializeSound = ma_sound_init_from_file;
+#endif
+    if (initializeSound(engine->getEngine(),
+                        filename.c_str(),
+                        MA_SOUND_FLAG_NO_PITCH |
+                          MA_SOUND_FLAG_NO_SPATIALIZATION,
+                        nullptr,
+                        nullptr,
+                        sound.get()) != MA_SUCCESS) {
         spdlog::error("Failed to load sound: {}", value.toStdString());
         failLoadingSound(previousLength);
         return;
