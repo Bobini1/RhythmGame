@@ -232,6 +232,9 @@ QML lint</h3>
 <h2><a class="anchor" id="autotoc_md27"></a>
 Backbeat</h2>
 <p><code>RhythmGame_USE_BACKBEAT</code> defaults to <code>ON</code>. It selects the separate <code>backbeat</code> vcpkg manifest feature and links the GPL-3.0 Backbeat SDK. To build without the SDK or its integration code, configure with <code>-DRhythmGame_USE_BACKBEAT=OFF</code>. Other manifest features, such as <code>test</code> and <code>docs</code>, are preserved. Without vcpkg, an enabled build requires an installed <code>Backbeat::Backbeat</code> CMake target.</p>
+<p>Building the SDK from source requires <a href="https://rust-lang.github.io/rustup/">Rustup</a> and the pinned Rust 1.96.0 toolchain. Install it before configuring the game:</p>
+<div class="fragment"><div class="line">rustup toolchain install 1.96.0 --profile minimal --no-self-update</div>
+</div><!-- fragment --><p>The overlay uses that toolchain explicitly, so your default Rust version can stay unchanged. CI installs it before configuring each vcpkg build.</p>
 <p>When enabled, the game opens the user's normal Backbeat store, indexes new installed BMS and BMSON bundles, and exposes installed packs, tables, and courses in song select. The C++ catalog checks the store revision every five seconds, independently of the active screen or theme, and indexes changes asynchronously.</p>
 <p>Themes don't need to adapt to Backbeat in any special way. </p>
 </div></div><!-- contents -->
