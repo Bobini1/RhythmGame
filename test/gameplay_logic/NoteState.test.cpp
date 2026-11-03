@@ -6,6 +6,7 @@
 
 #include <initializer_list>
 #include <memory>
+#include <limits>
 #include <utility>
 
 namespace {
@@ -125,6 +126,36 @@ TEST_CASE("changing viewport spans immediately refilters the current position")
     CHECK(state.getBarLineFilter()->getBottomPosition() == 1.0);
     CHECK(state.getBarLineFilter()->getTopPosition() == 3.0);
     CHECK(state.getBarLineFilter()->rowCount({}) == 3);
+}
+
+TEST_CASE("SPEED viewport spans can reverse and collapse the playfield",
+          "[NoteState][SPEED]")
+{
+    auto state =
+      gameplay_logic::GameplayState{ { makeColumn({ 0, 1, 2, 3, 4 }) },
+                                     makeBarLines({ 0, 1, 2, 3, 4 }) };
+    state.setPosition(3);
+    state.setVisiblePositionSpans(-2, -1);
+    auto* notes = state.getColumnFilters().front();
+    auto* bars = state.getBarLineFilter();
+    CHECK(notes->getBottomPosition() == 1);
+    CHECK(notes->getTopPosition() == 3);
+    CHECK(notes->rowCount({}) == 3);
+    CHECK(bars->getBottomPosition() == 2);
+    CHECK(bars->getTopPosition() == 3);
+    CHECK(bars->rowCount({}) == 2);
+    state.setPosition(2);
+    CHECK(notes->getBottomPosition() == 0);
+    CHECK(notes->getTopPosition() == 2);
+
+    state.setVisiblePositionSpans(std::numeric_limits<double>::infinity(),
+                                  std::numeric_limits<double>::infinity());
+    CHECK(notes->rowCount({}) == 5);
+    CHECK(bars->rowCount({}) == 5);
+    state.setVisiblePositionSpans(1, 1);
+    CHECK(notes->getBottomPosition() == 2);
+    CHECK(notes->getTopPosition() == 3);
+    CHECK(notes->rowCount({}) == 2);
 }
 
 TEST_CASE("belowBottom follows the viewport through the proxy model")

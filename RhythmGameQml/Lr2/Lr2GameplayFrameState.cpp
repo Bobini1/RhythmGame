@@ -71,6 +71,11 @@ Lr2GameplayFrameState::positionAtRenderTime(int side) const
     if (!player) {
         return 0.0;
     }
+    if (player->hasSpeedChanges()) {
+        // QML placed notes using this frame's SPEED sample. Keep translation
+        // on that same sample instead of combining it with a later position.
+        return side == 2 ? m_position2 : m_position1;
+    }
     if (m_chart && m_chart->getStatus() == ChartRunner::Running) {
         return player->positionAt(m_chart->currentOffsetFromStart());
     }
@@ -159,6 +164,19 @@ Lr2GameplayFrameState::refresh(int frameSkinTime)
                    ? (useLiveSample ? lanePlayer2->positionAt(liveOffset)
                                     : lanePlayer2->getPosition())
                    : 0.0);
+    const auto speed1 =
+      lanePlayer1 ? (useLiveSample ? lanePlayer1->speedMultiplierAt(liveOffset)
+                                   : lanePlayer1->getSpeedMultiplier())
+                  : 1.0;
+    const auto speed2 =
+      lanePlayer2 ? (useLiveSample ? lanePlayer2->speedMultiplierAt(liveOffset)
+                                   : lanePlayer2->getSpeedMultiplier())
+                  : 1.0;
+    if (m_speedMultiplier1 != speed1 || m_speedMultiplier2 != speed2) {
+        m_speedMultiplier1 = speed1;
+        m_speedMultiplier2 = speed2;
+        emit speedMultipliersChanged();
+    }
     Player* rhythmPlayer = progressPlayer ? progressPlayer : m_player2.data();
     int rhythmTimer = -1;
     if (rhythmPlayer) {
@@ -197,6 +215,9 @@ Lr2GameplayFrameState::reset()
     setProgressPosition(0.0);
     setPosition1(0.0);
     setPosition2(0.0);
+    m_speedMultiplier1 = 1.0;
+    m_speedMultiplier2 = 1.0;
+    emit speedMultipliersChanged();
     setGaugeState1({});
     setGaugeState2({});
     setRhythmTimerSkinTime(-1);

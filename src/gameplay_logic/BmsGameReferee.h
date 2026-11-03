@@ -36,6 +36,7 @@ class BmsGameReferee
     std::vector<BgmType> bgms;
     std::span<BgmType> currentBgms;
     std::vector<charts::BmsNotesData::BpmChangeValues> bpmChanges;
+    std::vector<charts::BmsNotesData::SpeedChange> speedChanges;
     std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>> sounds;
     rules::HitRules hitRules;
     BmsLiveScore* score;
@@ -66,6 +67,7 @@ class BmsGameReferee
       const std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>>&
         bgmNotes,
       std::vector<charts::BmsNotesData::BpmChangeValues> bpmChanges,
+      std::vector<charts::BmsNotesData::SpeedChange> speedChanges,
       std::shared_ptr<sounds::Sound> mineHitSound,
       BmsLiveScore* score,
       std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>> sounds,
@@ -85,6 +87,10 @@ class BmsGameReferee
 
     auto getBpm(std::chrono::nanoseconds offsetFromStart) const
       -> charts::BmsNotesData::BpmChangeValues;
+
+    auto getSpeedMultiplier(std::chrono::nanoseconds offsetFromStart) const
+      -> double;
+    auto hasSpeedChanges() const -> bool { return !speedChanges.empty(); }
 
     /**
      *  @brief The position at which we are in the chart

@@ -202,9 +202,16 @@ class Player : public QObject
      */
     Q_PROPERTY(double bpm READ getBpm NOTIFY bpmChanged)
     /**
-     * @brief The current #SCROLL of the chart.
+     * @brief The current `#SCROLL` of the chart.
      */
     Q_PROPERTY(double scroll READ getScroll NOTIFY scrollChanged)
+    /**
+     * @brief Current `#SPEED` multiplier at the visual chart time, or 1.
+     * @details Multiply drawing distances from the judgement line by this
+     * value. Note positions, BPM, `#SCROLL` and hit timestamps are unchanged.
+     */
+    Q_PROPERTY(double speedMultiplier READ getSpeedMultiplier NOTIFY
+                 speedMultiplierChanged)
     /**
      * @brief The elapsed time since the start of the chart, in nanoseconds.
      */
@@ -228,6 +235,7 @@ class Player : public QObject
     std::chrono::nanoseconds chartLength;
     double bpm;
     double scroll = 1.0;
+    double speedMultiplier = 1.0;
 
     void setElapsed(int64_t newElapsed);
     void setPosition(BmsGameReferee::Position position);
@@ -269,6 +277,10 @@ class Player : public QObject
     auto getPosition() const -> double;
     auto getBeatPosition() const -> double;
     auto positionAt(std::chrono::nanoseconds offsetFromStart) const -> double;
+    auto speedMultiplierAt(std::chrono::nanoseconds offsetFromStart) const
+      -> double;
+    auto hasSpeedChanges() const -> bool;
+    auto getSpeedMultiplier() const -> double { return speedMultiplier; }
     auto beatPositionAt(std::chrono::nanoseconds offsetFromStart) const
       -> double;
     auto getElapsed() const -> int64_t;
@@ -285,6 +297,7 @@ class Player : public QObject
     void elapsedChanged(int64_t delta);
     void bpmChanged();
     void scrollChanged();
+    void speedMultiplierChanged();
     void statusChanged();
 };
 

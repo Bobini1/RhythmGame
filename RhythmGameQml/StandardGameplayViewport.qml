@@ -14,7 +14,9 @@ import RhythmGameQml
 
     Speed follows the profile's noteScreenTimeMillis and HiSpeedFix setting.
     Off uses 120 BPM. Main, Start, Min, Max and Avg use the corresponding chart
-    BPM. BPM and scroll changes within the chart still affect note movement.
+    BPM. BPM, scroll and SPEED changes within the chart affect note movement.
+    SPEED scales distances from the judgement line without changing note
+    positions. Do not multiply pixelsPerBeat by player.speedMultiplier again.
 
     A field with lane cover or lift should set \l visibleHeight to the distance
     from the lane cover to the judgement line. Hidden cover does not reduce
@@ -39,9 +41,10 @@ QtObject {
     property real visibleHeight: noteHeight
     /*! Height used to draw bar lines. Defaults to noteHeight. */
     property real barLineHeight: noteHeight
-    /*! Distance for one unit of notePosition or player.position. Zero for an empty field. */
+    /*! Signed distance for one unit of chart position, including SPEED.
+        Zero for an empty field or a zero SPEED multiplier. */
     readonly property real pixelsPerBeat: state.visibleSpan > 0
-        ? Math.max(0, visibleHeight) / state.visibleSpan
+        ? Math.max(0, visibleHeight) / state.visibleSpan * (player?.speedMultiplier ?? 1)
         : 0
 
     readonly property QtObject implementation: QtObject {
@@ -64,10 +67,10 @@ QtObject {
         // Seconds on screen multiplied by beats per second.
         readonly property real visibleSpan: root.chartData && vars
             ? (vars.noteScreenTimeMillis / 1000) * (bpm / 60) : 0
-        readonly property real noteSpan: root.pixelsPerBeat > 0
-            ? Math.max(0, root.noteHeight) / root.pixelsPerBeat : 0
-        readonly property real barLineSpan: root.pixelsPerBeat > 0
-            ? Math.max(0, root.barLineHeight) / root.pixelsPerBeat : 0
+        readonly property real noteSpan: visibleSpan > 0 && root.visibleHeight > 0 && root.noteHeight > 0
+            ? (root.pixelsPerBeat !== 0 ? root.noteHeight / root.pixelsPerBeat : Infinity) : 0
+        readonly property real barLineSpan: visibleSpan > 0 && root.visibleHeight > 0 && root.barLineHeight > 0
+            ? (root.pixelsPerBeat !== 0 ? root.barLineHeight / root.pixelsPerBeat : Infinity) : 0
         property bool ready: false
 
         function updateVisibleRange() {

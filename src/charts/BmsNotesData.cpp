@@ -3,6 +3,7 @@
 //
 
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 #include <set>
 #include <span>
@@ -1190,6 +1191,29 @@ BmsNotesData::fromBmson(const QJsonObject& bmson)
 
     return data;
 }
+auto
+BmsNotesData::speedMultiplierAt(std::span<const SpeedChange> changes,
+                                std::chrono::nanoseconds timestamp) -> double
+{
+    const auto next =
+      std::ranges::upper_bound(changes, timestamp, {}, &SpeedChange::timestamp);
+    const auto previous =
+      next == changes.begin() ? SpeedChange{ 0ns, 1.0 } : *std::prev(next);
+    if (next == changes.end()) {
+        return previous.multiplier;
+    }
+    if (next->timestamp <= previous.timestamp) {
+        return next->multiplier;
+    }
+    const auto progress = std::clamp(
+      std::chrono::duration<double>(timestamp - previous.timestamp).count() /
+        std::chrono::duration<double>(next->timestamp - previous.timestamp)
+          .count(),
+      0.0,
+      1.0);
+    return std::lerp(previous.multiplier, next->multiplier, progress);
+}
+
 void
 BmsNotesData::generateMeasures(
   double baseBpm,
@@ -1305,6 +1329,35 @@ BmsNotesData::generateMeasures(
             (1.0 - lastFraction) * defaultBeatsPerMeasure * meter * lastScroll
         };
         barLines.emplace_back(timestamp);
+        // Use the same timestamps as notes, including BPM, meter and STOPs.
+        // A keyframe coincident with a STOP belongs to the start of the STOP.
+        std::map<std::chrono::nanoseconds, double> measureSpeeds;
+        for (const auto& definitions : measure.speeds) {
+            for (size_t index = 0; index < definitions.size(); ++index) {
+                const auto id = definitions[index];
+                const auto definition = speeds.find(id);
+                if (id == 0 || definition == speeds.end() ||
+                    !std::isfinite(definition->second)) {
+                    continue;
+                }
+                const auto [time, fraction] =
+                  createNoteInfo(definitions,
+                                 bpmChangesInMeasure,
+                                 static_cast<int>(index),
+                                 meter);
+                measureSpeeds[time.timestamp] = definition->second;
+            }
+        }
+        for (const auto& [time, multiplier] : measureSpeeds) {
+            // Last definition wins at a shared timestamp. Equal values at
+            // different timestamps must remain: they delimit flat sections.
+            if (!speedChanges.empty() &&
+                speedChanges.back().timestamp == time) {
+                speedChanges.back().multiplier = multiplier;
+            } else {
+                speedChanges.push_back({ time, multiplier });
+            }
+        }
         for (auto i = 0; i < columnMapping.size(); i++) {
             calculateOffsetsForColumn(
               measure.p1VisibleNotes.at(columnMapping.at(i)),

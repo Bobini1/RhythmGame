@@ -148,6 +148,7 @@ makeReadyChartRunner() -> std::unique_ptr<gameplay_logic::ChartRunner>
           .timestamp = {},
         } },
         {},
+        {},
         score,
         std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>{},
         gameplay_logic::rules::HitRules{

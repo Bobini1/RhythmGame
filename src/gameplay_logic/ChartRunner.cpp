@@ -519,6 +519,12 @@ Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
         const auto bpmChange = referee->getBpm(offsetFromStart + visualOffset);
         setBpm(bpmChange.bpm);
         setScroll(bpmChange.scroll);
+        const auto newSpeed =
+          referee->getSpeedMultiplier(offsetFromStart + visualOffset);
+        if (speedMultiplier != newSpeed) {
+            speedMultiplier = newSpeed;
+            emit speedMultiplierChanged();
+        }
         auto position =
           referee->getPosition(bpmChange, offsetFromStart + visualOffset);
         setPosition(position.position);
@@ -573,6 +579,8 @@ void
 Player::setup()
 {
     referee = refereeFuture.takeResult();
+    speedMultiplier = speedMultiplierAt(std::chrono::nanoseconds::zero());
+    emit speedMultiplierChanged();
     setStatus(ChartRunner::Status::Ready);
 }
 auto
@@ -640,6 +648,26 @@ Player::positionInfoAt(const std::chrono::nanoseconds offsetFromStart) const
     const auto bpmChange = referee->getBpm(visualOffsetFromStart);
     return BmsGameReferee::getPosition(bpmChange, visualOffsetFromStart);
 }
+auto
+Player::speedMultiplierAt(const std::chrono::nanoseconds offsetFromStart) const
+  -> double
+{
+    if (!referee) {
+        return speedMultiplier;
+    }
+    const auto visualOffset =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::duration<double, std::milli>(
+          profile ? profile->getVars()->getGeneralVars()->getOffset() : 0.0));
+    return referee->getSpeedMultiplier(offsetFromStart + visualOffset);
+}
+
+auto
+Player::hasSpeedChanges() const -> bool
+{
+    return referee && referee->hasSpeedChanges();
+}
+
 auto
 Player::positionAt(const std::chrono::nanoseconds offsetFromStart) const
   -> double

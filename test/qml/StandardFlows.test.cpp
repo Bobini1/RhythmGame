@@ -28,6 +28,7 @@
 #include <QTest>
 #include <QThread>
 #include <string_view>
+#include <cmath>
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 
@@ -141,6 +142,10 @@ checkGameplayFlow(bool arenaManaged, const char* playMode = "solo")
           "#00108:01\n#00208:02\n#01011:01\n",
           root / "speed.bms",
           [](auto) { return 1; });
+        using namespace std::chrono_literals;
+        speedChart.notesData.speedChanges = { { 0ns, 1 },
+                                              { 2s, 0 },
+                                              { 4s, -1 } };
         auto* chart = speedChart.chartData.get();
         auto* currentPlayer = gameplay->players().front();
         auto* column = currentPlayer->getState()->getColumnFilters().front();
@@ -212,6 +217,30 @@ checkGameplayFlow(bool arenaManaged, const char* playMode = "solo")
         CHECK(viewport->property("pixelsPerBeat").toDouble() == 150);
         CHECK(nextColumn->getTopPosition() - nextColumn->getBottomPosition() ==
               2);
+        REQUIRE(QTest::qWaitFor([&] {
+            return nextPlayer->getStatus() ==
+                   gameplay_logic::ChartRunner::Ready;
+        }));
+        nextPlayer->update(1s, false);
+        CHECK(nextPlayer->getSpeedMultiplier() == 0.5);
+        CHECK(viewport->property("pixelsPerBeat").toDouble() == 75);
+        CHECK(nextColumn->getTopPosition() - nextColumn->getBottomPosition() ==
+              4);
+        nextPlayer->update(2s, false);
+        CHECK(nextPlayer->getSpeedMultiplier() == 0);
+        CHECK(viewport->property("pixelsPerBeat").toDouble() == 0);
+        CHECK(std::isinf(nextColumn->getBottomPosition()));
+        CHECK(std::isinf(nextColumn->getTopPosition()));
+        nextPlayer->update(4s, false);
+        CHECK(nextPlayer->getSpeedMultiplier() == -1);
+        CHECK(viewport->property("pixelsPerBeat").toDouble() == -150);
+        CHECK(nextColumn->getBottomPosition() ==
+              Catch::Approx(nextPlayer->getPosition() - 2));
+        CHECK(nextColumn->getTopPosition() ==
+              Catch::Approx(nextPlayer->getPosition()));
+        vars->setOffset(1000);
+        CHECK(nextPlayer->speedMultiplierAt(0s) == 0.5);
+        vars->setOffset(0);
         viewport.reset();
         vars->resetHiSpeedFix();
         vars->resetNoteScreenTimeMillis();

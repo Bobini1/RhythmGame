@@ -149,6 +149,7 @@ charts::ParsedBmsChart::mergeTags(Tags& first, Tags second) -> void
         for (auto& scroll : measure.scrolls) {
             firstMeasure.scrolls.push_back(std::move(scroll));
         }
+        appendMoved(firstMeasure.speeds, measure.speeds);
         if (measure.meter.has_value()) {
             firstMeasure.meter = measure.meter;
         }

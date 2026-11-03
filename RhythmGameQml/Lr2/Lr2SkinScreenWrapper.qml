@@ -2149,7 +2149,10 @@ Item {
         }
         let safeBpm = Math.max(1, bpm || 0);
         let hiSpeed = Math.max(0.01, (side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1) / 100);
-        return Math.round(root.gameplayGreenNumberVisibleRatio(side) * 144000 / hiSpeed / safeBpm);
+        const speed = mode === "current" ? Math.abs(root.gameplayPlayer(side)?.speedMultiplier ?? 1) : 1;
+        return speed > 0
+            ? Math.round(root.gameplayGreenNumberVisibleRatio(side) * 144000 / hiSpeed / safeBpm / speed)
+            : 0;
     }
 
     function firstDstStateY(dsts: var) : var {

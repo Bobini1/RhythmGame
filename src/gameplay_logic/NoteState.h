@@ -272,6 +272,10 @@ class GameplayState final : public QObject
     auto getBarLineFilter() const -> BarlineFilter*;
     Q_INVOKABLE int noteTypeAt(int column, int noteIndex) const;
     void setPosition(double value);
+    /** Signed distances from the judgement line to the far clipping edge.
+     * Negative spans show positions behind the current position. Infinite
+     * spans show the entire chart when `#SPEED` collapses it onto the line.
+     */
     Q_INVOKABLE void setVisiblePositionSpans(double noteSpan,
                                              double barLineSpan);
 };

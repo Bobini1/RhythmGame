@@ -20,6 +20,10 @@ class Lr2GameplayFrameState : public QObject
                  progressPositionChanged)
     Q_PROPERTY(qreal position1 READ position1 NOTIFY position1Changed)
     Q_PROPERTY(qreal position2 READ position2 NOTIFY position2Changed)
+    Q_PROPERTY(qreal speedMultiplier1 READ speedMultiplier1 NOTIFY
+                 speedMultipliersChanged)
+    Q_PROPERTY(qreal speedMultiplier2 READ speedMultiplier2 NOTIFY
+                 speedMultipliersChanged)
     Q_PROPERTY(qreal gaugeValue1 READ gaugeValue1 NOTIFY gaugeValue1Changed)
     Q_PROPERTY(qreal gaugeValue2 READ gaugeValue2 NOTIFY gaugeValue2Changed)
     Q_PROPERTY(QString activeGaugeName1 READ activeGaugeName1 NOTIFY
@@ -39,6 +43,8 @@ class Lr2GameplayFrameState : public QObject
     qreal position1() const;
     qreal position2() const;
     qreal positionAtRenderTime(int side) const;
+    qreal speedMultiplier1() const { return m_speedMultiplier1; }
+    qreal speedMultiplier2() const { return m_speedMultiplier2; }
     qreal gaugeValue1() const;
     qreal gaugeValue2() const;
     QString activeGaugeName1() const;
@@ -53,6 +59,7 @@ class Lr2GameplayFrameState : public QObject
     void progressPositionChanged();
     void position1Changed();
     void position2Changed();
+    void speedMultipliersChanged();
     void gaugeValue1Changed();
     void gaugeValue2Changed();
     void activeGaugeName1Changed();
@@ -94,6 +101,8 @@ class Lr2GameplayFrameState : public QObject
     qreal m_progressPosition = 0.0;
     qreal m_position1 = 0.0;
     qreal m_position2 = 0.0;
+    qreal m_speedMultiplier1 = 1.0;
+    qreal m_speedMultiplier2 = 1.0;
     qreal m_gaugeValue1 = 0.0;
     qreal m_gaugeValue2 = 0.0;
     QString m_activeGaugeName1;

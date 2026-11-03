@@ -18,6 +18,85 @@ auto randomGenerator = [](charts::ParsedBmsChart::RandomRange range) {
 };
 } // namespace
 
+TEST_CASE("SPEED interpolates time keyframes without altering chart timing",
+          "[BmsNotesData][SPEED]")
+{
+    using namespace std::chrono_literals;
+    using charts::BmsNotesData;
+    const auto read = [](std::string_view text) {
+        return BmsNotesData::fromParsedChart(
+          { charts::readBmsChart(text, randomGenerator) });
+    };
+    SECTION("implicit starting point and final hold")
+    {
+        const auto chart = read("#BPM 120\n#SPEED01 2\n#002SP:01\n");
+        REQUIRE(chart.speedChanges.size() == 1);
+        CHECK(chart.speedChanges[0].timestamp == 4s);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, -1s) == 1);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 0s) == 1);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 1s) == 1.25);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 4s) == 2);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 8s) == 2);
+        CHECK(BmsNotesData::speedMultiplierAt({}, 8s) == 1);
+    }
+    SECTION("repeated values delimit a hold before the ramp")
+    {
+        const auto chart = read("#SPEED01 1\n#SPEED02 2\n"
+                                "#000SP:01\n#001SP:01\n#003SP:02\n");
+        REQUIRE(chart.speedChanges.size() == 3);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 1s) == 1);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 2s) == 1);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 4s) == 1.5);
+    }
+    SECTION("last placement at a shared position wins before interpolation")
+    {
+        const auto chart = read("#SPEED01 2\n#SPEED02 3\n"
+                                "#001SP:01\n#001SP:02\n");
+        REQUIRE(chart.speedChanges.size() == 1);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 1s) == 2);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 2s) == 3);
+    }
+    SECTION("BPM meter SCROLL and STOP determine keyframe timestamps")
+    {
+        const std::string base =
+          "#BPM 120\n#BPM01 60\n#STOP01 48\n"
+          "#SCROLL01 2\n#00102:0.5\n#00108:01\n#00109:0001\n"
+          "#001SC:01\n#00111:00010001\n#00211:01\n";
+        const auto plain = read(base);
+        const auto chart = read(base + "#SPEED01 1\n#SPEED02 3\n"
+                                       "#000SP:01\n#001SP:0002\n#002SP:01\n");
+        REQUIRE(chart.speedChanges.size() == 3);
+        CHECK(chart.speedChanges[1].timestamp == 3s);
+        CHECK(chart.speedChanges[2].timestamp == 5s);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 1500ms) == 2);
+        // The ramp continues during the STOP from 3 to 4 seconds.
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 3500ms) ==
+              2.5);
+        REQUIRE(chart.notes[0].size() == plain.notes[0].size());
+        for (size_t i = 0; i < chart.notes[0].size(); ++i)
+            CHECK(chart.notes[0][i].time == plain.notes[0][i].time);
+        REQUIRE(chart.bpmChanges.size() == plain.bpmChanges.size());
+        for (size_t i = 0; i < chart.bpmChanges.size(); ++i) {
+            CHECK(chart.bpmChanges[i].timestamp ==
+                  plain.bpmChanges[i].timestamp);
+            CHECK(chart.bpmChanges[i].bpm == plain.bpmChanges[i].bpm);
+            CHECK(chart.bpmChanges[i].scroll == plain.bpmChanges[i].scroll);
+        }
+    }
+    SECTION(
+      "conditional placements survive merging and BASE62 stays case sensitive")
+    {
+        const auto chart =
+          read("#BASE 62\n#SPEEDaa -1\n#SPEEDAA 0\n"
+               "#RANDOM 2\n#IF 1\n#000SP:AA\n#ENDIF\n"
+               "#IF 2\n#000SP:aa\n#001SP:AA\n#ENDIF\n#ENDRANDOM\n");
+        REQUIRE(chart.speedChanges.size() == 2);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 0s) == -1);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 1s) == -0.5);
+        CHECK(BmsNotesData::speedMultiplierAt(chart.speedChanges, 2s) == 0);
+    }
+}
+
 TEST_CASE("An empty chart is created successfully", "[BmsNotesData]")
 {
     auto tags = charts::readBmsChart("", randomGenerator);

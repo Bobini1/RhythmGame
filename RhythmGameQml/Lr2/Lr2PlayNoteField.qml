@@ -363,6 +363,14 @@ Item {
         return laneVisibleTravelHeight(side, fallbackDst, false);
     }
 
+    function speedMultiplierFor(player: var) : real {
+        if (root.gameplayFrameState) {
+            return player === root.playerForLr2Index(0)
+                ? root.gameplayFrameState.speedMultiplier1 : root.gameplayFrameState.speedMultiplier2;
+        }
+        return player?.speedMultiplier ?? 1;
+    }
+
     function heightMultiplier(player: var, visibleHeight: var) : var {
         let vars = player && player.profile && player.profile.vars
             ? player.profile.vars.generalVars
@@ -374,10 +382,10 @@ Item {
         let baseSpeed = ((1 / (vars.noteScreenTimeMillis || 1)) || 0)
             * 60000 * visibleHeight / bpm;
         if (screenRoot && screenRoot.lr2SkinUsesBeatorajaSemantics) {
-            return Math.max(0.0001, baseSpeed);
+            return Math.max(0.0001, baseSpeed) * root.speedMultiplierFor(player);
         }
         let laneCoverMod = (vars.laneCoverOn ? 1 : 0) * (vars.laneCoverRatio || 0);
-        return Math.max(0.0001, baseSpeed * Math.max(0, Math.min(1 - laneCoverMod, 1)));
+        return Math.max(0.0001, baseSpeed * Math.max(0, Math.min(1 - laneCoverMod, 1))) * root.speedMultiplierFor(player);
     }
 
     function visualPosition(player: var, side: int) : real {
@@ -399,8 +407,10 @@ Item {
             }
             let side = sideForLr2Index(index);
             let multiplier = heightMultiplier(player, sideSpeedHeight(side, dst));
-            if (multiplier > 0) {
-                span = Math.max(span, laneVisibleTravelHeight(side, dst, false) / multiplier);
+            const height = laneVisibleTravelHeight(side, dst, false);
+            if (height > 0) {
+                const candidate = multiplier !== 0 ? height / multiplier : Infinity;
+                if (Math.abs(candidate) > Math.abs(span)) span = candidate;
             }
         }
         return span;
@@ -419,8 +429,10 @@ Item {
                 continue;
             }
             let multiplier = heightMultiplier(player, sideSpeedHeight(side, dst));
-            if (multiplier > 0) {
-                span = Math.max(span, laneVisibleTravelHeight(side, dst, false) / multiplier);
+            const height = laneVisibleTravelHeight(side, dst, false);
+            if (height > 0) {
+                const candidate = multiplier !== 0 ? height / multiplier : Infinity;
+                if (Math.abs(candidate) > Math.abs(span)) span = candidate;
             }
         }
         return span;
@@ -432,11 +444,7 @@ Item {
         }
         let noteSpan = noteVisiblePositionSpan(player);
         let barLineSpan = barLineVisiblePositionSpan(player);
-        if (noteSpan > 0) {
-            player.state.setVisiblePositionSpans(
-                noteSpan,
-                barLineSpan > 0 ? barLineSpan : noteSpan);
-        }
+        player.state.setVisiblePositionSpans(noteSpan, barLineSpan !== 0 ? barLineSpan : noteSpan);
     }
 
     function linePosition(display: var) : var {

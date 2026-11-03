@@ -5,6 +5,7 @@
 #include "NoteState.h"
 
 #include <cmath>
+#include <limits>
 
 namespace gameplay_logic {
 void
@@ -637,8 +638,7 @@ GameplayState::setPosition(double value)
 void
 GameplayState::setVisiblePositionSpans(double noteSpan, double barLineSpan)
 {
-    if (!std::isfinite(noteSpan) || noteSpan < 0.0 ||
-        !std::isfinite(barLineSpan) || barLineSpan < 0.0) {
+    if (std::isnan(noteSpan) || std::isnan(barLineSpan)) {
         return;
     }
     if (noteVisiblePositionSpan == noteSpan &&
@@ -655,10 +655,19 @@ GameplayState::updateVisibleRanges()
     if (!noteVisiblePositionSpan || !barLineVisiblePositionSpan) {
         return;
     }
+    const auto range = [this](double span) {
+        if (std::isinf(span)) {
+            return std::pair{ -std::numeric_limits<double>::infinity(),
+                              std::numeric_limits<double>::infinity() };
+        }
+        return std::pair{ std::min(position, position + span),
+                          std::max(position, position + span) };
+    };
+    const auto [noteBottom, noteTop] = range(*noteVisiblePositionSpan);
     for (auto* const filter : columnFilters) {
-        filter->setVisibleRange(position, position + *noteVisiblePositionSpan);
+        filter->setVisibleRange(noteBottom, noteTop);
     }
-    barLineFilter->setVisibleRange(position,
-                                   position + *barLineVisiblePositionSpan);
+    const auto [barBottom, barTop] = range(*barLineVisiblePositionSpan);
+    barLineFilter->setVisibleRange(barBottom, barTop);
 }
 } // namespace gameplay_logic

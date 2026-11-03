@@ -28,11 +28,13 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
              charts::BmsNotesData::columnNumber> notes,
   const std::vector<std::pair<charts::BmsNotesData::Time, uint64_t>>& bgmNotes,
   std::vector<charts::BmsNotesData::BpmChangeValues> bpmChanges,
+  std::vector<charts::BmsNotesData::SpeedChange> speedChanges,
   std::shared_ptr<sounds::Sound> mineHitSound,
   BmsLiveScore* score,
   std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>> sounds,
   rules::HitRules hitRules)
   : bpmChanges(std::move(bpmChanges))
+  , speedChanges(std::move(speedChanges))
   , sounds(std::move(sounds))
   , hitRules(std::move(hitRules))
   , score(score)
@@ -54,6 +56,14 @@ gameplay_logic::BmsGameReferee::BmsGameReferee(
     }
     currentBgms = bgms;
 }
+auto
+gameplay_logic::BmsGameReferee::getSpeedMultiplier(
+  std::chrono::nanoseconds offsetFromStart) const -> double
+{
+    return charts::BmsNotesData::speedMultiplierAt(speedChanges,
+                                                   offsetFromStart);
+}
+
 void
 gameplay_logic::BmsGameReferee::addNote(
   decltype(notes)::value_type& column,

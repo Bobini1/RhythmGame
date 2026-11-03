@@ -84,6 +84,17 @@ struct BmsNotesData
         Time timestamp;
     };
 
+    struct SpeedChange
+    {
+        std::chrono::nanoseconds timestamp;
+        double multiplier;
+    };
+
+    /// Interpolate `#SPEED` keyframes in chart time, independently of
+    /// `#SCROLL`.
+    static auto speedMultiplierAt(std::span<const SpeedChange> changes,
+                                  std::chrono::nanoseconds timestamp) -> double;
+
     static constexpr auto defaultBeatsPerMeasure = 4;
     static constexpr auto columnMapping =
       std::array{ 0, 1, 2, 3, 4, 7, 8, 5 }; // ignore "foot pedal"
@@ -95,6 +106,7 @@ struct BmsNotesData
     std::vector<std::pair<Time, uint64_t>> bgaLayer;
     std::vector<std::pair<Time, uint64_t>> bgaLayer2;
     std::vector<BpmChangeValues> bpmChanges;
+    std::vector<SpeedChange> speedChanges;
     std::vector<Time> barLines;
     static constexpr auto defaultBpm = 120.0;
     static constexpr auto defaultLnType = LnType::RDM;

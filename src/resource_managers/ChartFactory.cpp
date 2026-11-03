@@ -648,6 +648,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
            hitRules = std::move(player1.hitRules),
            score = components1.score.get(),
            bpmChanges = notesData.bpmChanges,
+           speedChanges = notesData.speedChanges,
            bgmNotes = std::move(notesData.bgmNotes)](
             std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
               sounds) mutable {
@@ -656,9 +657,9 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                   mineHitSound = sound->second;
               }
               return gameplay_logic::BmsGameReferee{
-                  std::move(rawNotes), bgmNotes, bpmChanges,
-                  mineHitSound,        score,    std::move(sounds),
-                  std::move(hitRules)
+                  std::move(rawNotes), bgmNotes,           bpmChanges,
+                  speedChanges,        mineHitSound,       score,
+                  std::move(sounds),   std::move(hitRules)
               };
           });
         auto chartLength = getLength(*components1.notes);
@@ -695,6 +696,7 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
              hitRules = std::move(player2->hitRules),
              score = player.score.get(),
              bpmChanges = notesData.bpmChanges,
+             speedChanges = notesData.speedChanges,
              bgmNotes = std::move(notesData.bgmNotes)](
               std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>
                 sounds) mutable {
@@ -703,9 +705,10 @@ ChartFactory::createChart(ChartDataFactory::ChartComponents chartComponents,
                     mineHitSound = sound->second;
                 }
                 return gameplay_logic::BmsGameReferee{
-                    std::move(rawNotes), {},    bpmChanges,
-                    mineHitSound,        score, std::move(sounds),
-                    std::move(hitRules)
+                    std::move(rawNotes), {},
+                    bpmChanges,          speedChanges,
+                    mineHitSound,        score,
+                    std::move(sounds),   std::move(hitRules)
                 };
             });
           auto chartLength = getLength(*player.notes);

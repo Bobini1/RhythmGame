@@ -17,7 +17,8 @@ Item {
     readonly property BmsNotes notes: player.notes
     readonly property var columnStates: player.state.columnStates
     readonly property var profileVars: profile.vars.themeVars[root.screen][root.themeName]
-    readonly property real greenNumber: Math.max(1, profile.vars.generalVars.noteScreenTimeMillis) * 3 / 5
+    readonly property real greenNumber: player.speedMultiplier !== 0
+        ? Math.max(1, profile.vars.generalVars.noteScreenTimeMillis) * 3 / 5 / Math.abs(player.speedMultiplier) : 0
     readonly property real laneCoverNumber: Math.max(0, Math.min(1, profile.vars.generalVars.laneCoverRatio)) * 1000
     readonly property real liftNumber: Math.max(0, Math.min(1, profile.vars.generalVars.liftRatio)) * 1000
 

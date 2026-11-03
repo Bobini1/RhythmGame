@@ -163,6 +163,7 @@ makeRunner(QList<gameplay_logic::rules::BmsGauge*> gauges,
           .timestamp = {},
         } },
         {},
+        {},
         score,
         std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>{},
         gameplay_logic::rules::HitRules{

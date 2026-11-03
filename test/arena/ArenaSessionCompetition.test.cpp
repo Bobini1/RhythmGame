@@ -151,6 +151,7 @@ makeReadyRunner(std::chrono::nanoseconds length = 1s) -> RunnerFixture
           .timestamp = {},
         } },
         {},
+        {},
         score,
         std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>{},
         gameplay_logic::rules::HitRules{
