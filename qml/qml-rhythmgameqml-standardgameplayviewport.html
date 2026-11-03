@@ -41,7 +41,7 @@
 <!-- $$$StandardGameplayViewport-description -->
 <h2 id="details">Detailed Description</h2>
 <p>Bind <a href="qml-rhythmgameqml-standardgameplayviewport.html#player-prop" translate="no">player</a> and <a href="qml-rhythmgameqml-standardgameplayviewport.html#chartData-prop" translate="no">chartData</a> to the current stage, and set <a href="qml-rhythmgameqml-standardgameplayviewport.html#noteHeight-prop" translate="no">noteHeight</a> to the distance from the top clipping edge to the judgement line. Use <a href="qml-rhythmgameqml-standardgameplayviewport.html#pixelsPerBeat-prop" translate="no">pixelsPerBeat</a> to place notes relative to player.position. The component updates the player's filtered note and bar-line models when the dimensions, profile settings or stage change.</p>
-<p>Speed follows the profile's noteScreenTimeMillis and HiSpeedFix setting. Off uses 120 BPM. Main, Start, Min, Max and Avg use the corresponding chart BPM. BPM and scroll changes within the chart still affect note movement.</p>
+<p>Speed follows the profile's noteScreenTimeMillis and HiSpeedFix setting. Off uses 120 BPM. Main, Start, Min, Max and Avg use the corresponding chart BPM. BPM, scroll and SPEED changes within the chart affect note movement. SPEED scales distances from the judgement line without changing note positions. Do not multiply <a href="qml-rhythmgameqml-standardgameplayviewport.html#pixelsPerBeat-prop" translate="no">pixelsPerBeat</a> by player.speedMultiplier again.</p>
 <p>A field with lane cover or lift should set <a href="qml-rhythmgameqml-standardgameplayviewport.html#visibleHeight-prop" translate="no">visibleHeight</a> to the distance from the lane cover to the judgement line. Hidden cover does not reduce this distance for speed calculation. <a href="qml-rhythmgameqml-standardgameplayviewport.html#barLineHeight-prop" translate="no">barLineHeight</a> can describe a separate clipped area for bar lines. All heights use the renderer's local coordinates. The component draws nothing and does not occupy layout space.</p>
 <p>It owns the calls to GameplayState::setVisiblePositionSpans() for the player. Fields sharing a player, such as two sides in double play, share the filtered models and must use the same visible position spans.</p>
 <!-- @@@StandardGameplayViewport -->
@@ -83,7 +83,7 @@
 <td class="tblQmlPropNode"><p>
 <span class="name">pixelsPerBeat</span> : <span class="type">real</span> <code class="details extra" translate="no">[read-only]</code></p></td></tr>
 </table></div></div>
-<div class="qmldoc"><p>Distance for one unit of notePosition or player.position. Zero for an empty field.</p>
+<div class="qmldoc"><p>Signed distance for one unit of chart position, including SPEED. Zero for an empty field or a zero SPEED multiplier.</p>
 </div></div><!-- @@@pixelsPerBeat -->
 <br/>
 <!-- $$$player -->

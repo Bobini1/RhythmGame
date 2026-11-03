@@ -95,6 +95,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">Note</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData_1_1SpeedChange.html">SpeedChange</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData_1_1Time.html">Time</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -119,6 +121,8 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a530cdfdacf2bff44d13410929e71ae95" id="r_a530cdfdacf2bff44d13410929e71ae95"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a530cdfdacf2bff44d13410929e71ae95">speedMultiplierAt</a> (std::span&lt; const <a class="el" href="structcharts_1_1BmsNotesData_1_1SpeedChange.html">SpeedChange</a> &gt; changes, std::chrono::nanoseconds <a class="el" href="ImportedScoreImporter_8cpp.html#a8a591d341723df9496cda98e225b25b4">timestamp</a>) -&gt; double</td></tr>
+<tr class="separator:a530cdfdacf2bff44d13410929e71ae95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9764cc84868c62ada5f3cce63a03ec48" id="r_a9764cc84868c62ada5f3cce63a03ec48"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a9764cc84868c62ada5f3cce63a03ec48">fromParsedChart</a> (const <a class="el" href="structcharts_1_1ParsedBmsChart.html">ParsedBmsChart</a> &amp;chart) -&gt; <a class="el" href="structcharts_1_1BmsNotesData.html">BmsNotesData</a></td></tr>
 <tr class="separator:a9764cc84868c62ada5f3cce63a03ec48"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a782281926489efb3b2aa3d95d010f235" id="r_a782281926489efb3b2aa3d95d010f235"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a782281926489efb3b2aa3d95d010f235">fromBmson</a> (const QJsonObject &amp;bmson) -&gt; <a class="el" href="structcharts_1_1BmsNotesData.html">BmsNotesData</a></td></tr>
@@ -140,6 +144,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a73d8d97de7360abd408148ef22d0c718"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2341e4cfede05f65a4f8e26277eae0ac" id="r_a2341e4cfede05f65a4f8e26277eae0ac"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1BpmChangeValues.html">BpmChangeValues</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#a2341e4cfede05f65a4f8e26277eae0ac">bpmChanges</a></td></tr>
 <tr class="separator:a2341e4cfede05f65a4f8e26277eae0ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad29a3b9f63c926bc46ba528cd393e93d" id="r_ad29a3b9f63c926bc46ba528cd393e93d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1SpeedChange.html">SpeedChange</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#ad29a3b9f63c926bc46ba528cd393e93d">speedChanges</a></td></tr>
+<tr class="separator:ad29a3b9f63c926bc46ba528cd393e93d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec6579fc69b39f641d52b0d6baefe0b5" id="r_aec6579fc69b39f641d52b0d6baefe0b5"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Time.html">Time</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#aec6579fc69b39f641d52b0d6baefe0b5">barLines</a></td></tr>
 <tr class="separator:aec6579fc69b39f641d52b0d6baefe0b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afda9cc5da34c48e682cdf0d6771cf04a" id="r_afda9cc5da34c48e682cdf0d6771cf04a"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1BmsonSliceInfo.html">BmsonSliceInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcharts_1_1BmsNotesData.html#afda9cc5da34c48e682cdf0d6771cf04a">bmsonSlices</a></td></tr>
@@ -286,6 +292,43 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a530cdfdacf2bff44d13410929e71ae95" name="a530cdfdacf2bff44d13410929e71ae95"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a530cdfdacf2bff44d13410929e71ae95">&#9670;&#160;</a></span>speedMultiplierAt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto charts::BmsNotesData::speedMultiplierAt </td>
+          <td>(</td>
+          <td class="paramtype">std::span&lt; const <a class="el" href="structcharts_1_1BmsNotesData_1_1SpeedChange.html">SpeedChange</a> &gt;&#160;</td>
+          <td class="paramname"><em>changes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::chrono::nanoseconds&#160;</td>
+          <td class="paramname"><em>timestamp</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; double</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Interpolate <code>#SPEED</code> keyframes in chart time, independently of <code>#SCROLL</code>. </p>
 
 </div>
 </div>
@@ -583,6 +626,20 @@ Static Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::array&lt;std::vector&lt;<a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">Note</a>&gt;, <a class="el" href="structcharts_1_1BmsNotesData.html#ae769bf1c0278f6b6e658f112e5f0e522">columnNumber</a>&gt; charts::BmsNotesData::notes</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad29a3b9f63c926bc46ba528cd393e93d" name="ad29a3b9f63c926bc46ba528cd393e93d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad29a3b9f63c926bc46ba528cd393e93d">&#9670;&#160;</a></span>speedChanges</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;<a class="el" href="structcharts_1_1BmsNotesData_1_1SpeedChange.html">SpeedChange</a>&gt; charts::BmsNotesData::speedChanges</td>
         </tr>
       </table>
 </div><div class="memdoc">

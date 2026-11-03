@@ -78,7 +78,7 @@ var searchData=
   ['totallate_75',['totalLate',['../classLr2SelectScoreStats.html#a6700196121afc329de5bd294119356b9',1,'Lr2SelectScoreStats']]],
   ['touchselection_76',['touchSelection',['../classLr2SelectNavigationController.html#a7ed3d39a3b98becc25686c38476fe1e7',1,'Lr2SelectNavigationController']]],
   ['trackstate_77',['trackState',['../classLr2SkinSliderGeometry.html#ab206594f4d5854e64787fdc1c2b9fc8e',1,'Lr2SkinSliderGeometry']]],
-  ['transaction_78',['transaction',['../classdb_1_1SqliteCppDb_1_1Transaction.html#a34212832da2bcf4d63f7e389ac69811e',1,'db::SqliteCppDb::Transaction::Transaction()'],['../classdb_1_1SqliteCppDb.html#a4fa15ea9306b16276bb462ddd27ad74e',1,'db::SqliteCppDb::transaction()']]],
+  ['transaction_78',['transaction',['../classdb_1_1SqliteCppDb.html#a4fa15ea9306b16276bb462ddd27ad74e',1,'db::SqliteCppDb::transaction()'],['../classdb_1_1SqliteCppDb_1_1Transaction.html#a34212832da2bcf4d63f7e389ac69811e',1,'db::SqliteCppDb::Transaction::Transaction()']]],
   ['transcolor_79',['transcolor',['../classLr2BlendSprite.html#af6ae2948dcc5cac631c7188fcc1c27ea',1,'Lr2BlendSprite::transColor()'],['../classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html#a2d0b7b7a5e3dc4830f4de0b55772736c',1,'gameplay_logic::lr2_skin::Lr2SkinModel::transColor()']]],
   ['transcolorchanged_80',['transColorChanged',['../classLr2BlendSprite.html#a18774077e66bdbb719d45f77a61086c6',1,'Lr2BlendSprite']]],
   ['translatedsliderstate_81',['translatedSliderState',['../namespacelr2skin_1_1runtime.html#a320b295dca59d1d562ee6ca341bd2d71',1,'lr2skin::runtime']]],

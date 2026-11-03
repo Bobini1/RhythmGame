@@ -125,7 +125,8 @@ ColumnLayout {
     Label {
         Layout.fillWidth: true
         text: qsTr("%1 ms · Green number %2").arg(Math.round(field.vars.noteScreenTimeMillis))
-            .arg(Math.round(field.vars.noteScreenTimeMillis * 0.6))
+            .arg(field.player.speedMultiplier !== 0
+                ? Math.round(field.vars.noteScreenTimeMillis * 0.6 / Math.abs(field.player.speedMultiplier)) : 0)
         elide: Text.ElideRight
     }
 
