@@ -273,6 +273,7 @@ jobs:
           strict_init_order=1:\
           detect_leaks=1"
           UBSAN_OPTIONS: print_stacktrace=1
+          LSAN_OPTIONS: suppressions=${{ github.workspace }}/test/lsan.supp
         run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &

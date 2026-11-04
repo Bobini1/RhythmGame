@@ -38,7 +38,10 @@
         "override"
       ]
     },
-    "miniaudio",
+    {
+      "name": "miniaudio",
+      "version>=": "0.11.26"
+    },
     {
       "name": "openimageio",
       "default-features": false

@@ -1,0 +1,6 @@
+# Qt 6.11.1's minimal font backend with Fontconfig 2.17.1 reports 320 bytes
+# from parsing font configuration after the GUI tests exit. Match only the
+# reported Fontconfig allocations, not Qt or application allocations.
+# Recheck these suppressions when updating Qt or Fontconfig.
+leak:FcPatternObjectInsertElt
+leak:FcPatternAppend
