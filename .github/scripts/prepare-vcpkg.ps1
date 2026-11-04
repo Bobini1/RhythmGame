@@ -1,5 +1,9 @@
 $ErrorActionPreference = 'Stop'
 
+if ($env:GITHUB_ACTIONS -ne 'true') {
+  throw 'This script replaces the disposable vcpkg checkout on a CI runner.'
+}
+
 $manifest = Get-Content "$PSScriptRoot/../../vcpkg.json" -Raw | ConvertFrom-Json
 $baseline = $manifest.'builtin-baseline'
 if ($baseline -notmatch '^[0-9a-f]{40}$') {
@@ -12,7 +16,8 @@ if (-not $env:VCPKG_ROOT) {
 # Hosted runners can have an older checkout than the manifest requires.
 git -C $env:VCPKG_ROOT fetch --no-tags origin $baseline
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-git -C $env:VCPKG_ROOT checkout --detach $baseline
+# Runner images can include changes outside their recorded Git revision.
+git -C $env:VCPKG_ROOT checkout --force --detach $baseline
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 if ($IsWindows) {
