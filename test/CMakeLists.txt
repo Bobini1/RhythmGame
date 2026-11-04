@@ -97,12 +97,14 @@ include(Catch)
 # them in an offscreen process, separate from the native tests' QCoreApplication.
 qt_add_executable(RhythmGame_flow_test
         qml/StandardFlows.test.cpp
+        qml/LegacyGameplay.test.cpp
         qml/GameplayPresentation.test.cpp
         qml/ArenaOverlay.test.cpp
         qml/StandardSelect.test.cpp
         qml/DefaultThemeLayout.test.cpp)
 target_link_libraries(RhythmGame_flow_test PRIVATE
         RhythmGame_lib RhythmGame_qml RhythmGame_qmlplugin
+        RhythmGame_lr2_qml RhythmGame_lr2_qmlplugin
         dds tga cim Catch2::Catch2 Qt6::Test)
 target_compile_definitions(RhythmGame_flow_test PRIVATE
         RHYTHMGAME_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
@@ -110,6 +112,7 @@ set_target_properties(RhythmGame_flow_test PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>")
 add_dependencies(RhythmGame_test RhythmGame_flow_test)
 add_test(NAME StandardGameplayFlowStartup COMMAND RhythmGame_flow_test "[StandardGameplayFlow]")
+add_test(NAME LegacyGameplay COMMAND RhythmGame_flow_test "[LegacyGameplay]")
 add_test(NAME DefaultThemeLayout COMMAND RhythmGame_flow_test "[DefaultTheme]")
 add_test(NAME ArenaOverlay COMMAND RhythmGame_flow_test "[ArenaOverlay]")
 add_test(NAME StandardSelect COMMAND RhythmGame_flow_test "[StandardSelect]")

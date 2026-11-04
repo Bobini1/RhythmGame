@@ -85,13 +85,14 @@ Loader {
     readonly property bool usesSpriteStateOverride: elementState.usesSpriteStateOverride
     readonly property bool usesSpriteForceHidden: elementState.usesSpriteForceHidden
     readonly property bool usesButtonFrameOverride: elementState.usesButtonFrameOverride
-    readonly property var elementActiveOptionsState: elemLoader.skinRuntime
+    // Model reset can create delegates before the runtime builds their state.
+    readonly property var elementActiveOptionsState: elemLoader.skinRuntime && elementDescriptorRevision >= 0
         ? elemLoader.skinRuntime.elementActiveOptionsState(elementIndex)
         : null
-    readonly property var elementTimerState: elemLoader.skinRuntime
+    readonly property var elementTimerState: elemLoader.skinRuntime && elementDescriptorRevision >= 0
         ? elemLoader.skinRuntime.elementTimerState(elementIndex)
         : null
-    readonly property var elementNumberState: elemLoader.skinRuntime
+    readonly property var elementNumberState: elemLoader.skinRuntime && elementDescriptorRevision >= 0
         ? elemLoader.skinRuntime.elementNumberState(elementIndex)
         : null
     readonly property int dstTimerFire: {
