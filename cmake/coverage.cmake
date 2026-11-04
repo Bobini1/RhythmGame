@@ -6,7 +6,9 @@ function(rhythmgame_enable_coverage target)
         return()
     endif ()
 
-    target_compile_options(${target} PRIVATE -Og -g --coverage -fkeep-static-functions)
+    # Tests call instrumented code from multiple threads.
+    target_compile_options(${target} PRIVATE
+            -Og -g --coverage -fprofile-update=atomic -fkeep-static-functions)
 
     get_target_property(target_type ${target} TYPE)
     if (target_type STREQUAL "EXECUTABLE"
