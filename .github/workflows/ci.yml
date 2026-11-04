@@ -155,12 +155,21 @@ jobs:
       - name: Process coverage info
         run: cmake --build build/coverage -t coverage
 
+      - name: Save coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: build/coverage/coverage.info
+          if-no-files-found: error
+
       - name: Submit to codecov.io
         uses: codecov/codecov-action@v7
         continue-on-error: true
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: build/coverage/coverage.info
+          disable_search: true
+          plugins: noop
 
   sanitize:
     needs: [ coverage, test ]

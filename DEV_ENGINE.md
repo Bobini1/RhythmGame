@@ -179,13 +179,20 @@ additional `-t <target>` flag:
 
 #### `coverage`
 
-Available if `ENABLE_COVERAGE` is enabled. This target processes the output of
-the previously run tests when built with coverage configuration. The commands
-this target runs can be found in the `COVERAGE_TRACE_COMMAND` and
-`COVERAGE_HTML_COMMAND` cache variables. The trace command produces an info
-file by default, which can be submitted to services with CI integration. The
-HTML command uses the trace command's output to generate an HTML document to
-`<binary-dir>/coverage_html` by default.
+Available if `ENABLE_COVERAGE` is enabled. Build and run the tests in that
+configuration, then build the `coverage` target to collect their counts in
+`<binary-dir>/coverage.info`. This requires LCOV and excludes files in the
+build directory, including generated code and vcpkg dependencies.
+
+Build `coverage-html` to collect the counts and also generate an HTML report
+at `<binary-dir>/coverage_html/index.html`. This additionally requires
+`genhtml`. CI saves the LCOV file as an artifact and uploads only that file
+to Codecov.
+
+The HTML step skips LCOV's comparison of function counts with line counts.
+GCC can count a capture's initialization on a lambda's closing brace even
+when the lambda is never called. Skipping that check keeps the lambda marked
+as uncovered. Collection errors and malformed report data still fail the build.
 
 #### `docs`
 
