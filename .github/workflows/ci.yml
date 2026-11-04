@@ -103,6 +103,7 @@ jobs:
       - name: Add NuGet sources
         shell: bash
         run: |
+          cert-sync --user /etc/ssl/certs/ca-certificates.crt
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
             -Source "${{ env.NUGET_FEED_URL }}" \
@@ -227,6 +228,7 @@ jobs:
       - name: Add NuGet sources
         shell: bash
         run: |
+          cert-sync --user /etc/ssl/certs/ca-certificates.crt
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
             -Source "${{ env.NUGET_FEED_URL }}" \
@@ -381,6 +383,7 @@ jobs:
         shell: bash
         if: matrix.os == 'ubuntu-latest'
         run: |
+          cert-sync --user /etc/ssl/certs/ca-certificates.crt
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
             -Source "${{ env.NUGET_FEED_URL }}" \
@@ -572,6 +575,7 @@ jobs:
         shell: bash
         if: matrix.os == 'ubuntu-latest'
         run: |
+          cert-sync --user /etc/ssl/certs/ca-certificates.crt
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
             -Source "${{ env.NUGET_FEED_URL }}" \
