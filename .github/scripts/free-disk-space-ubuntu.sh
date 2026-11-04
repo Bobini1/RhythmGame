@@ -7,6 +7,7 @@ sudo docker image prune -a -f >/dev/null 2>&1 || true
 sudo rm -rf \
   /usr/share/dotnet \
   /usr/local/lib/android \
+  /opt/hostedtoolcache \
   /opt/ghc \
   /usr/local/share/powershell \
   /usr/share/swift \

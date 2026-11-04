@@ -62,6 +62,18 @@
       }
     },
     {
+      "name": "vcpkg-ci-linux",
+      "hidden": true,
+      "inherits": [
+        "vcpkg-ci",
+        "vcpkg-linux-sharedqt"
+      ],
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-linux-sharedqt-release",
+        "VCPKG_HOST_TRIPLET": "x64-linux-sharedqt-release"
+      }
+    },
+    {
       "name": "vcpkg-win64-sharedqt",
       "hidden": true,
       "cacheVariables": {
@@ -161,8 +173,7 @@
       "inherits": [
         "coverage-linux",
         "dev-mode",
-        "vcpkg-ci",
-        "vcpkg-linux-sharedqt"
+        "vcpkg-ci-linux"
       ],
       "warnings": {
         "dev": false,
@@ -178,8 +189,7 @@
       "inherits": [
         "ci-linux",
         "dev-mode",
-        "vcpkg-ci",
-        "vcpkg-linux-sharedqt"
+        "vcpkg-ci-linux"
       ],
       "warnings": {
         "dev": false,
@@ -215,9 +225,8 @@
       "inherits": [
         "ci-build",
         "ci-linux",
-        "vcpkg-ci",
-        "dev-mode",
-        "vcpkg-linux-sharedqt"
+        "vcpkg-ci-linux",
+        "dev-mode"
       ],
       "warnings": {
         "dev": false,
