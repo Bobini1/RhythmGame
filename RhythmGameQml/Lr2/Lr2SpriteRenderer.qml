@@ -59,8 +59,18 @@ Item {
     readonly property bool sourceClipExceedsLoadedTexture:
         root.hasCroppedTextureSource
         && root.animationFrameState.sourceRegionExceedsTextureBounds
-    property bool shouldSampleInAtlasShader: false
-    property bool useFastImagePath: false
+    // Changing frames and HIDDEN crops stay in shader uniforms instead of reloading images.
+    // Out-of-bounds LR2 crops also use clamp-to-edge sampling, as in beatoraja.
+    readonly property bool shouldSampleInAtlasShader: root.hasFrameAnimation
+        || root.frameOverride >= 0 || root.isHiddenCover
+        || root.sourceClipExceedsLoadedTexture
+    readonly property bool useFastImagePath: root.hasDrawableTexture
+        && !root.preferAtlasImagePath
+        && root.hasCroppedTextureSource
+        && !root.shouldSampleInAtlasShader
+        && root.blendMode === 1
+        && !root.effectiveColorKeyEnabled
+        && !root.hasColorTint
     readonly property bool prewarmingBeforeTimer: root.prewarmBeforeTimer
         && root.timerFire < 0
     readonly property int prewarmSkinTime: root.dsts && root.dsts.length > 0
@@ -118,30 +128,7 @@ Item {
     }
     readonly property int blendMode: drawState.blendMode
     readonly property bool hasColorTint: drawState.hasColorTint
-    function refreshShouldSampleInAtlasShader() : void {
-        const next = root.hasFrameAnimation || root.sourceClipExceedsLoadedTexture;
-        if (root.shouldSampleInAtlasShader !== next) {
-            root.shouldSampleInAtlasShader = next;
-        }
-    }
-
-    // Animated sheets crop in the shader so rect changes stay in uniforms.
-    // Out-of-bounds LR2 crops also use the shader path: libGDX/beatoraja
-    // creates TextureRegions directly and relies on clamp-to-edge sampling.
     property alias tintColor: drawState.tintColor
-    function refreshUseFastImagePath() : void {
-        const next = root.hasDrawableTexture
-            && !root.preferAtlasImagePath
-            && root.hasCroppedTextureSource
-            && !root.shouldSampleInAtlasShader
-            && root.blendMode === 1
-            && !root.effectiveColorKeyEnabled
-            && !root.hasColorTint;
-        if (root.useFastImagePath !== next) {
-            root.useFastImagePath = next;
-        }
-    }
-
     readonly property bool usesScratchRotation: drawState.hasState
         && (drawState.op4 === 1 || drawState.op4 === 2)
     readonly property int effectiveCenter: drawState.hasState ? drawState.center : 0
@@ -266,33 +253,9 @@ Item {
     onShouldPlayVideoChanged: syncVideoPlayback()
     onResolvedSourceChanged: {
         videoReloadPending = false;
-        refreshShouldSampleInAtlasShader();
-        refreshUseFastImagePath();
         syncVideoPlayback();
     }
-    onSourceHasFrameAnimationChanged: {
-        refreshShouldSampleInAtlasShader();
-        refreshUseFastImagePath();
-    }
-    onSourceClipExceedsLoadedTextureChanged: refreshShouldSampleInAtlasShader()
-    onShouldSampleInAtlasShaderChanged: refreshUseFastImagePath()
-    onSrcDataChanged: {
-        refreshShouldSampleInAtlasShader();
-        refreshUseFastImagePath();
-    }
-    onHasCroppedTextureSourceChanged: {
-        refreshUseFastImagePath();
-    }
-    onHasDrawableTextureChanged: refreshUseFastImagePath()
-    onPreferAtlasImagePathChanged: refreshUseFastImagePath()
-    onBlendModeChanged: refreshUseFastImagePath()
-    onColorKeyEnabledChanged: refreshUseFastImagePath()
-    onHasColorTintChanged: refreshUseFastImagePath()
-    Component.onCompleted: {
-        refreshShouldSampleInAtlasShader();
-        refreshUseFastImagePath();
-        syncVideoPlayback();
-    }
+    Component.onCompleted: syncVideoPlayback()
     Component.onDestruction: {
         if (videoLoader.item && videoLoader.item.stopVideo) {
             videoLoader.item.stopVideo();
@@ -319,7 +282,7 @@ Item {
         frameOverride: root.frameOverride
         textureWidth: Math.max(0, atlasImage.implicitWidth)
         textureHeight: Math.max(0, atlasImage.implicitHeight)
-        sourceHeightRatio: root.hiddenVisibleRatio
+        sourceHeightRatio: root.isHiddenCover ? root.hiddenVisibleRatio : 1
     }
 
     Item {

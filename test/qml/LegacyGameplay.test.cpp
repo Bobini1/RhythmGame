@@ -28,15 +28,16 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 #include <QScopeGuard>
+#include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
 #include <cmath>
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQml_Lr2Plugin)
 
-TEST_CASE(
-  "Legacy gameplay controls follow hits and misses after loading the skin",
-  "[qml][LegacyGameplay]")
+namespace {
+void
+registerLegacySkinTypes()
 {
     static const auto registered = [] {
         qmlRegisterType<gameplay_logic::lr2_skin::Lr2SkinModel>(
@@ -46,6 +47,119 @@ TEST_CASE(
         return true;
     }();
     (void)registered;
+}
+}
+
+TEST_CASE("Legacy sprites keep image crops stable during hits",
+          "[qml][LegacyGameplay]")
+{
+    registerLegacySkinTypes();
+    QTemporaryDir directory;
+    QImage atlas(64, 16, QImage::Format_RGBA8888);
+    atlas.fill(Qt::white);
+    const auto imagePath = directory.filePath("atlas.png");
+    REQUIRE(atlas.save(imagePath));
+    QQmlEngine engine;
+    QQmlComponent component(&engine);
+    component.setData(R"(
+import QtQuick
+import RhythmGameQml.Lr2
+Lr2SpriteRenderer {
+    width: 64
+    height: 64
+    dsts: [{time: 0, x: 0, y: 0, w: 16, h: 16,
+            a: 255, r: 255, g: 255, b: 255, blend: 1, loop: -1, timer: 50},
+           {time: 250, x: 0, y: 0, w: 16, h: 16,
+            a: 255, r: 255, g: 255, b: 255, blend: 1}]
+    skinTime: 1000
+    timerFire: 1000
+    sourceTimerFire: 1000
+    // Runtime descriptors arrive after the sprite is created.
+    sourceHasFrameAnimation: false
+})",
+                      QUrl());
+    INFO(component.errorString().toStdString());
+    REQUIRE(component.isReady());
+    QVariantMap source{ { "source", imagePath },
+                        { "x", 0 },
+                        { "y", 0 },
+                        { "w", 64 },
+                        { "h", 16 },
+                        { "div_x", 4 },
+                        { "div_y", 1 },
+                        { "cycle", 250 } };
+    std::unique_ptr<QObject> sprite(
+      component.createWithInitialProperties({ { "srcData", source } }));
+    REQUIRE(sprite);
+    REQUIRE(sprite->property("useFastImagePath").toBool());
+    auto children = qobject_cast<QQuickItem*>(sprite.get())->childItems();
+    QQuickItem* croppedImage = nullptr;
+    for (qsizetype i = 0; i < children.size(); ++i) {
+        auto* child = children.at(i);
+        children.append(child->childItems());
+        if (child->property("sourceClipRect").toRectF() == QRectF(0, 0, 16, 16))
+            croppedImage = child;
+    }
+    REQUIRE(croppedImage);
+    QSignalSpy cropChanges(croppedImage, SIGNAL(sourceClipRectChanged()));
+    REQUIRE(cropChanges.isValid());
+    auto* frames = sprite->property("animationFrameState").value<QObject*>();
+    REQUIRE(frames);
+
+    SECTION("An ordinary sprite keeps its crop when its hit timer stops")
+    {
+        REQUIRE(sprite->setProperty("timerFire", -1));
+        CHECK_FALSE(sprite->property("hasRenderableState").toBool());
+        CHECK(croppedImage->property("sourceClipRect").toRectF() ==
+              QRectF(0, 0, 16, 16));
+        REQUIRE(sprite->setProperty("timerFire", 1000));
+        CHECK(sprite->property("hasRenderableState").toBool());
+        CHECK(cropChanges.count() == 0);
+    }
+    SECTION("Animation discovered after creation uses the loaded atlas")
+    {
+        REQUIRE(sprite->setProperty("sourceHasFrameAnimation", true));
+        REQUIRE_FALSE(sprite->property("useFastImagePath").toBool());
+        CHECK(croppedImage->property("source").toUrl().isEmpty());
+        cropChanges.clear();
+        REQUIRE(sprite->setProperty("skinTime", 1100));
+        CHECK(frames->property("frameIndex").toInt() == 1);
+        REQUIRE(sprite->setProperty("timerFire", -1));
+        REQUIRE(sprite->setProperty("timerFire", 1000));
+        CHECK(cropChanges.count() == 0);
+    }
+    SECTION("Manually selected frames use the loaded atlas")
+    {
+        REQUIRE(sprite->setProperty("frameOverride", 1));
+        CHECK(frames->property("frameIndex").toInt() == 1);
+        REQUIRE_FALSE(sprite->property("useFastImagePath").toBool());
+        cropChanges.clear();
+        REQUIRE(sprite->setProperty("frameOverride", 2));
+        CHECK(frames->property("frameIndex").toInt() == 2);
+        CHECK(cropChanges.count() == 0);
+    }
+    SECTION("HIDDEN crops the sampled region without changing the image crop")
+    {
+        source.insert("hiddenCover", true);
+        source.insert("hiddenDisappearLine", 8);
+        REQUIRE(sprite->setProperty("srcData", source));
+        REQUIRE_FALSE(sprite->property("useFastImagePath").toBool());
+        CHECK(frames->property("effectiveSourceClipRect").toRectF().height() ==
+              8);
+        cropChanges.clear();
+        source.insert("hiddenDisappearLine", 4);
+        REQUIRE(sprite->setProperty("srcData", source));
+        CHECK(frames->property("effectiveSourceClipRect").toRectF().height() ==
+              4);
+        CHECK(cropChanges.count() == 0);
+    }
+}
+
+TEST_CASE(
+  "Legacy gameplay controls follow hits and misses after loading the skin",
+  "[qml][LegacyGameplay]")
+{
+    registerLegacySkinTypes();
     const auto autoplay = GENERATE(false, true);
     CAPTURE(autoplay);
     QTemporaryDir directory;
