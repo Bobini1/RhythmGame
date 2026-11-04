@@ -96,6 +96,10 @@ jobs:
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/Bobini1/index.json' || '');
 
+      - name: Prepare vcpkg baseline
+        shell: pwsh
+        run: .github/scripts/prepare-vcpkg.ps1
+
       - name: Add NuGet sources
         shell: bash
         run: |
@@ -215,6 +219,10 @@ jobs:
             core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/Bobini1/index.json' || '');
+
+      - name: Prepare vcpkg baseline
+        shell: pwsh
+        run: .github/scripts/prepare-vcpkg.ps1
 
       - name: Add NuGet sources
         shell: bash
@@ -364,6 +372,10 @@ jobs:
             core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/Bobini1/index.json' || '');
+
+      - name: Prepare vcpkg baseline
+        shell: pwsh
+        run: .github/scripts/prepare-vcpkg.ps1
 
       - name: Add NuGet sources
         shell: bash
@@ -551,6 +563,10 @@ jobs:
             core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/Bobini1/index.json' || '');
+
+      - name: Prepare vcpkg baseline
+        shell: pwsh
+        run: .github/scripts/prepare-vcpkg.ps1
 
       - name: Add NuGet sources
         shell: bash
