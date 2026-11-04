@@ -1,13 +1,13 @@
 <map id="src/qml_components/ReplayImportOperation.cpp" name="src/qml_components/ReplayImportOperation.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="203,5,408,45"/>
-<area shape="rect" id="Node000002" href="$ReplayImportOperation_8h.html" title=" " alt="" coords="132,93,319,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="288,47,249,85,245,82,284,44"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="343,93,428,119"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="327,44,365,82,362,85,323,47"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,155,192"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="203,121,117,163,115,158,201,116"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="179,167,272,192"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="228,119,228,153,223,153,223,119"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="296,167,435,192"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="249,116,332,158,329,163,247,121"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="200,5,404,50"/>
+<area shape="rect" id="Node000002" href="$ReplayImportOperation_8h.html" title=" " alt="" coords="131,98,316,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="284,49,248,89,245,84,279,52"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="340,98,424,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="324,48,361,87,356,86,322,53"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,174,154,201"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="200,126,120,169,117,164,195,127"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="177,174,270,201"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="225,124,226,159,221,157,222,128"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="294,174,431,201"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="249,124,327,166,322,166,248,129"/>
 </map>

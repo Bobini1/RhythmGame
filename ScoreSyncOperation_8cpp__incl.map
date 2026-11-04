@@ -1,21 +1,21 @@
 <map id="src/qml_components/ScoreSyncOperation.cpp" name="src/qml_components/ScoreSyncOperation.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="353,5,537,45"/>
-<area shape="rect" id="Node000002" href="$ScoreSyncOperation_8h.html" title=" " alt="" coords="295,93,460,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="431,47,398,84,394,81,427,44"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="485,93,545,119"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="464,44,497,81,493,84,460,47"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,80,192"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="322,121,94,169,93,164,320,116"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="105,167,229,192"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="344,121,214,165,213,160,343,116"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="253,167,307,192"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="363,121,309,160,306,156,360,117"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="331,167,424,192"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="380,119,380,153,375,153,375,119"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="448,167,515,192"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="396,116,454,156,451,161,393,121"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="539,167,626,192"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="411,116,537,160,536,165,409,121"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="651,167,789,192"/>
-<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="433,116,652,161,651,166,432,121"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="349,5,532,50"/>
+<area shape="rect" id="Node000002" href="$ScoreSyncOperation_8h.html" title=" " alt="" coords="290,98,455,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="425,49,395,88,392,84,421,52"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="479,98,538,126"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="459,48,491,86,485,85,458,53"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,174,79,201"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="309,129,94,176,93,171,308,124"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="103,174,226,201"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="338,126,217,171,215,166,333,127"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="250,174,303,201"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="358,125,307,166,305,162,353,127"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="326,174,419,201"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="375,124,375,160,371,156,371,128"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="444,174,510,201"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="392,124,449,165,444,164,390,129"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="534,174,620,201"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="410,124,529,168,523,168,409,129"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="644,174,781,201"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="434,124,639,169,634,170,434,129"/>
 </map>

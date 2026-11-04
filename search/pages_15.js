@@ -1,8 +1,11 @@
 var searchData=
 [
-  ['read_20a_20profile_20and_20save_20a_20theme_20setting_0',['3. Read a profile and save a theme setting',['../theme_tutorial_rg.html',1,'theme_tutorial']]],
-  ['reference_1',['QML API Reference',['../qml_api.html',1,'']]],
-  ['results_20and_20course_20summaries_2',['8. Show chart results and course summaries',['../theme_tutorial_results.html',1,'theme_tutorial']]],
-  ['reusable_20components_3',['2. Use bindings and reusable components',['../theme_tutorial_qml.html',1,'theme_tutorial']]],
-  ['rhythmgame_4',['RhythmGame',['../index.html',1,'']]]
+  ['main_20menu_0',['1. Make a main menu',['../theme_tutorial_first_screen.html',1,'theme_tutorial']]],
+  ['make_20a_20main_20menu_1',['1. Make a main menu',['../theme_tutorial_first_screen.html',1,'theme_tutorial']]],
+  ['manager_2',['Dependency manager',['../md_DEV__ENGINE.html#autotoc_md17',1,'']]],
+  ['mark_20text_20in_20qml_3',['Mark text in QML',['../theme_tutorial_translations.html#autotoc_md56',1,'']]],
+  ['menu_4',['menu',['../theme_tutorial_first_screen.html',1,'1. Make a main menu'],['../theme_tutorial_rg.html#autotoc_md53',1,'Declare a setting for the menu'],['../theme_tutorial_first_screen.html#autotoc_md45',1,'Draw the menu']]],
+  ['mode_5',['mode',['../md_DEV__ENGINE.html#autotoc_md15',1,'Developer mode'],['../index.html#autotoc_md5',1,'Local battle mode']]],
+  ['mode_20targets_6',['Developer mode targets',['../md_DEV__ENGINE.html#autotoc_md19',1,'']]],
+  ['more_20detail_7',['Find more detail',['../theme_tutorial.html#autotoc_md98',1,'']]]
 ];

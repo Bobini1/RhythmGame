@@ -1,7 +1,7 @@
 <map id="src/resource_managers/SongAssetImageProvider.h" name="src/resource_managers/SongAssetImageProvider.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="96,5,296,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,208,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,48,132,86,128,82,173,44"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="233,93,338,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="219,44,264,82,260,86,216,48"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="95,5,294,50"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,208,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,49,133,89,130,85,169,51"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="232,98,336,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="219,48,261,87,256,87,217,53"/>
 </map>

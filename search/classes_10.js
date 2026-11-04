@@ -13,5 +13,6 @@ var searchData=
   ['qtarenaroundloader_10',['QtArenaRoundLoader',['../classarena_1_1QtArenaRoundLoader.html',1,'arena']]],
   ['qtarenascheduler_11',['QtArenaScheduler',['../classarena_1_1QtArenaScheduler.html',1,'arena']]],
   ['qtsink_12',['QtSink',['../classsupport_1_1QtSink.html',1,'support']]],
-  ['qtwebsocketarenatransport_13',['QtWebSocketArenaTransport',['../classarena_1_1QtWebSocketArenaTransport.html',1,'arena']]]
+  ['qtsink_3c_20std_3a_3amutex_20_3e_13',['QtSink&lt; std::mutex &gt;',['../classsupport_1_1QtSink.html',1,'support']]],
+  ['qtwebsocketarenatransport_14',['QtWebSocketArenaTransport',['../classarena_1_1QtWebSocketArenaTransport.html',1,'arena']]]
 ];

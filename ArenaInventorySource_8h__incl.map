@@ -1,9 +1,9 @@
 <map id="src/arena/ArenaInventorySource.h" name="src/arena/ArenaInventorySource.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="71,5,258,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,103,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,48,83,87,80,83,136,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="127,93,202,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,46,167,79,162,79,162,46"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="226,93,301,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="190,43,239,82,236,87,187,48"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="70,5,256,50"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,102,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,50,85,90,82,86,132,51"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="126,98,200,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="165,48,165,84,160,81,161,52"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="224,98,297,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="189,48,236,88,230,88,187,53"/>
 </map>

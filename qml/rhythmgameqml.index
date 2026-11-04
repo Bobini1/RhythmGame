@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QDOCINDEX>
-<INDEX url="" title="Reusable RhythmGame QML components" version="1.4.0" project="RhythmGameQml">
+<INDEX url="" title="Reusable RhythmGame QML components" version="1.4.1" project="RhythmGameQml">
     <namespace name="" status="active" access="public" module="rhythmgameqml">
         <page name="../classarena_1_1ArenaSession.html" href="../classarena_1_1ArenaSession.html" status="active" location="qml-api.qdoc" filepath="/home/runner/work/RhythmGame/RhythmGame/docs/qml-api.qdoc" lineno="46" documented="true" subtype="externalpage" title="Arena session" fulltitle="Arena session" subtitle=""/>
         <qmlclass name="CourseResultContext" qml-module-name="RhythmGameQml" fullname="RhythmGameQml.CourseResultContext" href="qml-rhythmgameqml-courseresultcontext.html" status="active" access="public" location="ScreenContexts.qdoc" filepath="/home/runner/work/RhythmGame/RhythmGame/RhythmGameQml/ScreenContexts.qdoc" lineno="198" documented="true" title="CourseResultContext" fulltitle="CourseResultContext" subtitle="" brief="Completed course summary supplied to the course-result screen">

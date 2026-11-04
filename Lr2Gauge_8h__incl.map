@@ -1,22 +1,22 @@
 <map id="src/gameplay_logic/rules/Lr2Gauge.h" name="src/gameplay_logic/rules/Lr2Gauge.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="141,5,289,45"/>
-<area shape="rect" id="Node000002" href="$BmsGauge_8h.html" title=" " alt="" coords="78,93,183,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,48,155,86,151,82,193,44"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="5,255,80,280"/>
-<area shape="poly" id="edge10_Node000001_Node000004" title=" " alt="" coords="141,47,101,66,67,95,48,130,40,170,38,208,41,241,36,241,33,209,34,169,43,128,63,92,98,62,139,42"/>
-<area shape="rect" id="Node000006" href="$TimingWindows_8h.html" title=" " alt="" coords="219,93,357,119"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="234,44,270,81,266,85,230,47"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="382,93,469,119"/>
-<area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="266,43,382,86,381,91,264,48"/>
-<area shape="rect" id="Node000003" href="$Judgement_8h.html" title=" " alt="" coords="183,174,393,199"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="155,116,254,166,252,170,152,121"/>
-<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="115,121,92,141,70,168,55,205,48,241,43,240,50,204,66,165,88,138,112,117"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="81,174,159,199"/>
-<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="132,119,126,161,121,160,126,118"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="253,202,92,253,90,248,252,197"/>
-<area shape="poly" id="edge9_Node000006_Node000003" title=" " alt="" coords="291,119,291,160,285,160,285,119"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="417,174,484,199"/>
-<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="313,116,416,166,414,171,311,121"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="509,167,675,207"/>
-<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="333,116,507,161,505,166,332,121"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="139,5,286,50"/>
+<area shape="rect" id="Node000002" href="$BmsGauge_8h.html" title=" " alt="" coords="76,98,181,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,52,155,89,151,85,192,48"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,266,79,294"/>
+<area shape="poly" id="edge10_Node000001_Node000004" title=" " alt="" coords="137,51,100,71,67,100,47,136,38,177,37,217,40,251,34,251,32,217,33,176,42,134,63,96,97,66,140,47"/>
+<area shape="rect" id="Node000006" href="$TimingWindows_8h.html" title=" " alt="" coords="217,98,355,126"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="232,48,267,86,261,86,232,53"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="379,98,465,126"/>
+<area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="268,48,377,91,372,93,268,53"/>
+<area shape="rect" id="Node000003" href="$Judgement_8h.html" title=" " alt="" coords="181,182,391,210"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="154,124,250,174,245,176,154,129"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="109,128,90,149,70,175,55,214,47,252,42,250,49,212,65,172,86,145,113,124"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="79,182,157,210"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="128,124,124,168,119,166,126,129"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="248,213,94,264,92,259,246,208"/>
+<area shape="poly" id="edge9_Node000006_Node000003" title=" " alt="" coords="288,124,288,168,284,165,284,128"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="415,182,480,210"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="312,124,411,174,406,175,311,129"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="505,174,670,218"/>
+<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="335,124,495,168,490,170,334,129"/>
 </map>

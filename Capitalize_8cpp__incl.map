@@ -1,11 +1,11 @@
 <map id="src/support/Capitalize.cpp" name="src/support/Capitalize.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="25,5,215,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,67,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,33,62,72,59,67,105,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="91,79,149,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="123,31,123,65,117,65,117,31"/>
-<area shape="rect" id="Node000004" href="$Capitalize_8h.html" title=" " alt="" coords="173,79,272,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="138,28,196,68,193,73,135,33"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="174,152,271,177"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="225,104,225,138,220,138,220,104"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="25,5,214,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,66,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,36,64,72,60,69,106,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="90,81,149,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="121,31,122,66,117,65,118,36"/>
+<area shape="rect" id="Node000004" href="$Capitalize_8h.html" title=" " alt="" coords="173,81,271,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="138,31,194,71,189,72,137,36"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="174,157,270,184"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="224,107,224,142,220,140,220,111"/>
 </map>

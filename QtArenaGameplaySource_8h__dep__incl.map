@@ -1,7 +1,7 @@
 <map id="src/arena/QtArenaGameplaySource.h" name="src/arena/QtArenaGameplaySource.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="95,5,301,45"/>
-<area shape="rect" id="Node000002" href="$QtArenaGameplaySource_8cpp.html" title=" " alt="" coords="5,93,212,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,57,130,95,127,91,166,53"/>
-<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="236,101,341,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="230,53,278,98,274,102,226,57"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="95,5,300,50"/>
+<area shape="rect" id="Node000002" href="$QtArenaGameplaySource_8cpp.html" title=" " alt="" coords="5,98,211,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,60,131,100,127,96,163,62"/>
+<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="234,106,339,134"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="230,59,276,106,271,106,228,64"/>
 </map>

@@ -1,23 +1,23 @@
 <map id="src/qml_components/Lr2NativeCursor.cpp" name="src/qml_components/Lr2NativeCursor.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="447,5,605,45"/>
-<area shape="rect" id="Node000002" href="$Lr2NativeCursor_8h.html" title=" " alt="" coords="137,93,275,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="450,48,267,93,265,87,449,43"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="299,93,374,119"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="482,48,378,90,376,85,480,43"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="399,93,525,119"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="513,47,482,84,478,81,508,44"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="549,93,631,119"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="544,44,574,81,570,84,539,47"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="655,93,776,119"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="572,43,676,85,674,90,570,48"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="801,93,851,119"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="604,43,788,91,787,96,603,48"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,79,192"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="181,121,82,164,80,159,179,116"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="103,167,202,192"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="199,121,172,157,167,154,195,117"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="226,167,295,192"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="217,117,246,154,241,157,213,121"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="319,167,386,192"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="231,116,318,158,315,163,228,121"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="443,5,600,50"/>
+<area shape="rect" id="Node000002" href="$Lr2NativeCursor_8h.html" title=" " alt="" coords="136,98,273,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="441,50,270,96,269,91,445,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="297,98,370,126"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="474,50,378,94,377,89,469,51"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="394,98,521,126"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="507,49,479,88,476,83,502,52"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="545,98,626,126"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="539,48,568,86,563,85,537,53"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="649,98,770,126"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="572,48,668,91,663,91,571,53"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="794,98,844,126"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="600,46,781,97,776,98,600,51"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,174,78,201"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="176,129,85,170,83,165,174,124"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="102,174,200,201"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="197,125,171,163,167,159,192,127"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="225,174,293,201"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="215,124,243,162,237,161,213,129"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="318,174,384,201"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="231,124,314,166,309,167,230,129"/>
 </map>

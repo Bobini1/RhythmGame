@@ -14,7 +14,7 @@ var searchData=
   ['chartloader_11',['ChartLoader',['../classqml__components_1_1ChartLoader.html',1,'qml_components']]],
   ['chartloaderforeign_12',['ChartLoaderForeign',['../structrhythm__game__qml_1_1ChartLoaderForeign.html',1,'rhythm_game_qml']]],
   ['chartplayconfig_13',['ChartPlayConfig',['../structresource__managers_1_1ChartPlayConfig.html',1,'resource_managers']]],
-  ['chartrunner_14',['ChartRunner',['../classgameplay__logic_1_1ChartRunner.html',1,'gameplay_logic']]],
+  ['chartrunner_14',['ChartRunner',['../classChartRunner.html',1,'ChartRunner'],['../classgameplay__logic_1_1ChartRunner.html',1,'gameplay_logic::ChartRunner']]],
   ['chartrunnerforeign_15',['ChartRunnerForeign',['../structrhythm__game__qml_1_1ChartRunnerForeign.html',1,'rhythm_game_qml']]],
   ['chartstartgate_16',['ChartStartGate',['../classgameplay__logic_1_1ChartStartGate.html',1,'gameplay_logic']]],
   ['chatmessage_17',['ChatMessage',['../structarena_1_1ChatMessage.html',1,'arena']]],
@@ -32,7 +32,7 @@ var searchData=
   ['courseplayerforeign_29',['CoursePlayerForeign',['../structrhythm__game__qml_1_1CoursePlayerForeign.html',1,'rhythm_game_qml']]],
   ['courseresultcontext_30',['CourseResultContext',['../classrhythm__game__qml_1_1CourseResultContext.html',1,'rhythm_game_qml']]],
   ['courseresultplayer_31',['CourseResultPlayer',['../classrhythm__game__qml_1_1CourseResultPlayer.html',1,'rhythm_game_qml']]],
-  ['courserunner_32',['CourseRunner',['../classgameplay__logic_1_1CourseRunner.html',1,'gameplay_logic']]],
+  ['courserunner_32',['CourseRunner',['../classCourseRunner.html',1,'CourseRunner'],['../classgameplay__logic_1_1CourseRunner.html',1,'gameplay_logic::CourseRunner']]],
   ['courserunnerforeign_33',['CourseRunnerForeign',['../structrhythm__game__qml_1_1CourseRunnerForeign.html',1,'rhythm_game_qml']]],
   ['customnotifyapp_34',['CustomNotifyApp',['../classinput_1_1CustomNotifyApp.html',1,'input']]]
 ];

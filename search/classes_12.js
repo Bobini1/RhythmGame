@@ -28,7 +28,7 @@ var searchData=
   ['shuffleresult_25',['ShuffleResult',['../structsupport_1_1ShuffleResult.html',1,'support']]],
   ['sinkcallback_26',['SinkCallback',['../structcharts_1_1TagsSink_1_1SinkCallback.html',1,'charts::TagsSink']]],
   ['slicedsoundbuffer_27',['SlicedSoundBuffer',['../classsounds_1_1SlicedSoundBuffer.html',1,'sounds']]],
-  ['snap_28',['snap',['../classgameplay__logic_1_1Snap.html',1,'gameplay_logic::Snap'],['../structcharts_1_1Snap.html',1,'charts::Snap']]],
+  ['snap_28',['Snap',['../structcharts_1_1Snap.html',1,'charts::Snap'],['../classgameplay__logic_1_1Snap.html',1,'gameplay_logic::Snap']]],
   ['snapforeign_29',['SnapForeign',['../structrhythm__game__qml_1_1SnapForeign.html',1,'rhythm_game_qml']]],
   ['songassetimageprovider_30',['SongAssetImageProvider',['../classresource__managers_1_1SongAssetImageProvider.html',1,'resource_managers']]],
   ['songassetstore_31',['SongAssetStore',['../classresource__managers_1_1SongAssetStore.html',1,'resource_managers']]],

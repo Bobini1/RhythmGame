@@ -1,21 +1,21 @@
 <map id="src/qml_components/QmlUtils.cpp" name="src/qml_components/QmlUtils.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="409,5,567,45"/>
-<area shape="rect" id="Node000002" href="$QmlUtils_8h.html" title=" " alt="" coords="303,93,393,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="456,48,382,89,380,84,453,43"/>
-<area shape="rect" id="Node000008" href="$FolderName_8h.html" title=" " alt="" coords="611,93,778,119"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="538,43,653,86,651,91,537,48"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,80,192"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="303,121,94,169,93,164,302,115"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="105,167,207,192"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="318,121,201,164,199,159,316,116"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="232,167,331,192"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="339,121,303,158,300,155,335,117"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="355,167,471,192"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="361,117,395,155,392,158,357,121"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="496,167,635,192"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="384,116,518,160,516,165,382,121"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="659,167,730,192"/>
-<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="697,119,697,153,692,153,692,119"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="755,167,805,192"/>
-<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="710,117,757,156,754,160,707,121"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="404,5,560,50"/>
+<area shape="rect" id="Node000002" href="$QmlUtils_8h.html" title=" " alt="" coords="298,98,388,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="448,50,380,92,378,87,443,52"/>
+<area shape="rect" id="Node000008" href="$FolderName_8h.html" title=" " alt="" coords="605,98,770,126"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="537,48,643,92,638,92,536,53"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,174,79,201"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="298,127,95,176,93,170,297,121"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="103,174,205,201"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="312,126,203,170,201,165,307,127"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="229,174,327,201"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="334,125,301,164,298,160,329,127"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="351,174,466,201"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="356,124,390,163,385,161,354,129"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="491,174,628,201"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="382,124,509,168,504,168,381,129"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="653,174,722,201"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="689,124,689,160,685,156,685,128"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="746,174,796,201"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="703,124,748,164,742,163,701,129"/>
 </map>

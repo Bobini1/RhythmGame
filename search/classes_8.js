@@ -5,7 +5,7 @@ var searchData=
   ['ifblock_2',['IfBlock',['../structcharts_1_1IfBlock.html',1,'charts']]],
   ['ifdata_3',['IfData',['../structcharts_1_1IfData.html',1,'charts']]],
   ['iflist_4',['IfList',['../structcharts_1_1IfList.html',1,'charts']]],
-  ['impl_5',['impl',['../classresource__managers_1_1BackbeatSource_1_1Impl.html',1,'resource_managers::BackbeatSource::Impl'],['../classresource__managers_1_1SongAssetStore_1_1Impl.html',1,'resource_managers::SongAssetStore::Impl']]],
+  ['impl_5',['Impl',['../classresource__managers_1_1BackbeatSource_1_1Impl.html',1,'resource_managers::BackbeatSource::Impl'],['../classresource__managers_1_1SongAssetStore_1_1Impl.html',1,'resource_managers::SongAssetStore::Impl']]],
   ['indexedbundle_6',['IndexedBundle',['../structresource__managers_1_1BackbeatSource_1_1IndexedBundle.html',1,'resource_managers::BackbeatSource']]],
   ['iniimageprovider_7',['IniImageProvider',['../classresource__managers_1_1IniImageProvider.html',1,'resource_managers']]],
   ['inputattached_8',['InputAttached',['../classqml__components_1_1InputAttached.html',1,'qml_components']]],

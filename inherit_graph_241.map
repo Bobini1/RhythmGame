@@ -1,3 +1,13 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classresource__managers_1_1BackbeatSource.html" title=" " alt="" coords="5,5,164,45"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,109,104,137"/>
+<area shape="rect" id="Node000001" href="$classLr2BarPositionedItem.html" title=" " alt="" coords="173,5,334,33"/>
+<area shape="poly" id="edge142_Node000000_Node000001" title=" " alt="" coords="78,97,111,69,150,43,184,32,180,35,153,48,114,73,82,100"/>
+<area shape="rect" id="Node000002" href="$classLr2BarTextItem.html" title=" " alt="" coords="194,57,314,85"/>
+<area shape="poly" id="edge143_Node000000_Node000002" title=" " alt="" coords="117,104,200,84,196,87,120,109"/>
+<area shape="rect" id="Node000003" href="$classLr2BitmapFontTexture.html" title=" " alt="" coords="172,109,336,137"/>
+<area shape="poly" id="edge144_Node000000_Node000003" title=" " alt="" coords="119,121,173,122,169,125,120,126"/>
+<area shape="rect" id="Node000004" href="$classLr2BlendSprite.html" title=" " alt="" coords="196,161,312,189"/>
+<area shape="poly" id="edge145_Node000000_Node000004" title=" " alt="" coords="118,137,200,159,196,162,119,142"/>
+<area shape="rect" id="Node000005" href="$classqml__components_1_1Lr2NativeCursor.html" title=" " alt="" coords="152,213,356,258"/>
+<area shape="poly" id="edge146_Node000000_Node000005" title=" " alt="" coords="82,145,115,173,153,198,179,212,174,212,150,203,112,177,81,150"/>
 </map>

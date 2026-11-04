@@ -1,17 +1,17 @@
 <map id="src/qml_components/OnlineScores.h" name="src/qml_components/OnlineScores.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="307,5,464,45"/>
-<area shape="rect" id="Node000002" href="$QmlForeignTypes_8h.html" title=" " alt="" coords="5,93,224,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="314,52,175,96,173,91,312,47"/>
-<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="185,181,290,207"/>
-<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="339,55,313,73,290,95,274,117,260,141,244,182,239,180,256,139,269,114,286,92,310,69,336,50"/>
-<area shape="rect" id="Node000004" href="$Rg_8h.html" title=" " alt="" coords="299,101,471,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="388,59,388,100,383,100,383,59"/>
-<area shape="rect" id="Node000006" href="$OnlineRankingModel_8cpp.html" title=" " alt="" coords="495,93,683,133"/>
-<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="444,48,546,91,544,96,442,53"/>
-<area shape="rect" id="Node000007" href="$OnlineScores_8cpp.html" title=" " alt="" coords="708,93,865,133"/>
-<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="478,44,708,93,707,98,477,49"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="157,139,221,179,218,183,154,143"/>
-<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="353,135,261,183,258,179,350,130"/>
-<area shape="rect" id="Node000005" href="$Rg_8cpp.html" title=" " alt="" coords="315,181,501,207"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="395,139,407,180,402,182,390,140"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="305,5,462,50"/>
+<area shape="rect" id="Node000002" href="$QmlForeignTypes_8h.html" title=" " alt="" coords="5,98,223,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="302,57,179,100,177,95,307,54"/>
+<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="184,191,289,218"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="333,57,309,79,288,100,272,123,259,148,242,192,238,188,254,146,267,120,284,96,306,75,329,60"/>
+<area shape="rect" id="Node000004" href="$Rg_8h.html" title=" " alt="" coords="298,106,469,134"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="385,64,386,107,381,105,382,68"/>
+<area shape="rect" id="Node000006" href="$OnlineRankingModel_8cpp.html" title=" " alt="" coords="494,98,681,143"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="446,54,541,97,536,98,446,59"/>
+<area shape="rect" id="Node000007" href="$OnlineScores_8cpp.html" title=" " alt="" coords="705,98,862,143"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="477,47,693,95,707,101,702,101,692,101,476,52"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="160,149,220,190,214,190,158,154"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="349,142,261,193,259,188,344,143"/>
+<area shape="rect" id="Node000005" href="$Rg_8cpp.html" title=" " alt="" coords="313,191,499,218"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="393,147,405,192,400,189,389,151"/>
 </map>

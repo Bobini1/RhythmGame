@@ -1,7 +1,7 @@
 <map id="src/qml_components/ThemeFamily.h" name="src/qml_components/ThemeFamily.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,163,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="14,93,74,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,47,59,82,54,80,72,44"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="99,93,149,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="96,44,114,80,109,82,91,47"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,162,50"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="15,98,74,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="75,49,60,85,55,82,71,52"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="98,98,149,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="95,48,113,84,108,84,93,53"/>
 </map>

@@ -1,13 +1,13 @@
 <map id="src/input/GamepadManager.h" name="src/input/GamepadManager.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="175,5,388,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,80,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="244,33,94,78,93,72,242,28"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="105,79,175,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="260,33,176,75,174,70,257,28"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="199,79,363,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="284,31,284,65,279,65,279,31"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="388,79,465,104"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="306,28,392,70,390,75,304,33"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="490,79,614,104"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="325,28,496,73,494,78,324,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="172,5,384,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,79,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,36,94,80,93,75,235,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="103,81,173,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="256,33,177,76,175,71,250,34"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="196,81,360,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="280,32,280,67,276,64,276,35"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="384,81,460,109"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="304,31,386,74,380,74,303,36"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="484,81,608,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="326,31,486,76,481,77,326,36"/>
 </map>

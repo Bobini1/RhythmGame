@@ -1,5 +1,5 @@
 <map id="arena::RoomSnapshot" name="arena::RoomSnapshot">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,93,171,119"/>
-<area shape="rect" id="Node000002" href="$structarena_1_1SelfSeat.html" title=" " alt="" coords="27,5,149,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,45,91,93,85,93,85,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,106,170,134"/>
+<area shape="rect" id="Node000002" href="$structarena_1_1SelfSeat.html" title=" " alt="" coords="27,5,148,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,47,90,106,85,105,85,50"/>
 </map>

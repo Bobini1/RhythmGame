@@ -1,3 +1,35 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classQFutureWatcher.html" title=" " alt="" coords="5,5,169,31"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,408,154,436"/>
+<area shape="rect" id="Node000001" href="$classLr2SelectBarModel.html" title=" " alt="" coords="248,5,392,33"/>
+<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="78,392,84,321,101,227,116,177,137,129,165,83,200,44,222,29,250,21,246,25,224,34,203,48,169,86,142,131,121,179,106,229,89,322,84,393"/>
+<area shape="rect" id="Node000002" href="$classLr2SelectDifficultyModel.html" title=" " alt="" coords="230,57,410,85"/>
+<area shape="poly" id="edge2_Node000000_Node000002" title=" " alt="" coords="80,392,89,330,108,250,124,208,144,167,169,129,200,96,231,79,228,84,203,100,173,132,148,169,129,210,113,251,94,331,85,393"/>
+<area shape="rect" id="Node000003" href="$classLr2SelectItemModel.html" title=" " alt="" coords="244,109,396,137"/>
+<area shape="poly" id="edge3_Node000000_Node000003" title=" " alt="" coords="82,392,94,339,116,273,150,205,173,175,200,148,220,135,246,127,242,131,223,140,203,152,177,178,154,208,120,275,99,341,88,393"/>
+<area shape="rect" id="Node000004" href="$classarena_1_1ArenaChatModel.html" title=" " alt="" coords="233,161,407,189"/>
+<area shape="poly" id="edge4_Node000000_Node000004" title=" " alt="" coords="86,393,100,349,123,297,156,244,177,220,200,200,234,184,231,188,203,204,181,224,161,247,128,299,105,351,91,394"/>
+<area shape="rect" id="Node000005" href="$classarena_1_1ArenaMemberListModel.html" title=" " alt="" coords="209,213,430,241"/>
+<area shape="poly" id="edge5_Node000000_Node000005" title=" " alt="" coords="91,393,108,359,132,321,163,283,200,252,228,239,224,244,203,256,167,287,137,324,113,362,96,394"/>
+<area shape="rect" id="Node000006" href="$classarena_1_1ArenaRoomListModel.html" title=" " alt="" coords="217,265,422,293"/>
+<area shape="poly" id="edge6_Node000000_Node000006" title=" " alt="" coords="98,394,142,347,170,323,200,303,233,292,229,296,203,308,173,328,146,351,103,397"/>
+<area shape="rect" id="Node000007" href="$classarena_1_1ArenaStandingsModel.html" title=" " alt="" coords="216,317,424,345"/>
+<area shape="poly" id="edge7_Node000000_Node000007" title=" " alt="" coords="113,398,155,375,201,354,240,344,236,347,203,359,157,379,117,401"/>
+<area shape="rect" id="Node000008" href="$classgameplay__logic_1_1BarLinesState.html" title="The state of the barlines in the chart." alt="" coords="226,369,414,414"/>
+<area shape="poly" id="edge8_Node000000_Node000008" title=" " alt="" coords="168,408,227,401,223,405,171,413"/>
+<area shape="rect" id="Node000009" href="$classgameplay__logic_1_1ColumnState.html" title="The state of a single column, including its notes and whether it is currently pressed." alt="" coords="212,437,428,465"/>
+<area shape="poly" id="edge9_Node000000_Node000009" title=" " alt="" coords="168,430,214,436,209,439,171,435"/>
+<area shape="rect" id="Node000010" href="$classgameplay__logic_1_1JudgementCounts.html" title=" " alt="" coords="219,489,421,534"/>
+<area shape="poly" id="edge10_Node000000_Node000010" title=" " alt="" coords="122,440,203,474,239,487,234,490,201,479,124,445"/>
+<area shape="rect" id="Node000011" href="$classgameplay__logic_1_1lr2__skin_1_1Lr2SkinModel.html" title=" " alt="" coords="244,558,396,603"/>
+<area shape="poly" id="edge11_Node000000_Node000011" title=" " alt="" coords="99,445,145,496,173,522,203,544,246,563,241,566,200,548,169,526,141,500,100,451"/>
+<area shape="rect" id="Node000012" href="$classqml__components_1_1OnlineRankingModel.html" title=" " alt="" coords="202,628,438,672"/>
+<area shape="poly" id="edge12_Node000000_Node000012" title=" " alt="" coords="91,448,110,486,133,531,165,575,203,613,223,626,218,628,200,617,161,579,129,534,105,489,91,453"/>
+<area shape="rect" id="Node000013" href="$classqml__components_1_1ReplayImportOperation.html" title="Tracks the progress of an asynchronous replay import." alt="" coords="205,697,434,742"/>
+<area shape="poly" id="edge13_Node000000_Node000013" title=" " alt="" coords="86,449,101,501,123,564,157,628,178,657,203,682,221,696,216,697,200,687,174,660,152,631,118,566,96,503,86,454"/>
+<area shape="rect" id="Node000014" href="$classqml__components_1_1RootSongFolders.html" title=" " alt="" coords="218,766,422,811"/>
+<area shape="poly" id="edge14_Node000000_Node000014" title=" " alt="" coords="83,449,94,513,114,595,129,637,149,679,173,718,203,752,221,766,215,766,200,756,169,721,144,682,124,639,109,596,89,514,83,454"/>
+<area shape="rect" id="Node000015" href="$classqml__components_1_1ScanningQueue.html" title=" " alt="" coords="220,836,420,880"/>
+<area shape="poly" id="edge15_Node000000_Node000015" title=" " alt="" coords="81,449,88,525,105,625,120,678,141,730,168,779,204,821,222,837,217,837,200,825,164,782,136,732,115,680,100,626,83,526,81,454"/>
+<area shape="rect" id="Node000016" href="$classresource__managers_1_1Tables.html" title="Manages the download and storage of tables from given URLs." alt="" coords="241,905,398,950"/>
+<area shape="poly" id="edge16_Node000000_Node000016" title=" " alt="" coords="85,448,102,549,127,681,143,748,161,808,182,857,204,891,221,904,243,916,238,916,218,909,200,894,177,860,156,810,138,749,122,682,97,550,84,453"/>
 </map>

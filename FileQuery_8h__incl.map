@@ -1,13 +1,13 @@
 <map id="src/qml_components/FileQuery.h" name="src/qml_components/FileQuery.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="141,5,298,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,60,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,48,74,90,72,85,174,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="85,93,159,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,48,149,87,145,82,194,43"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="184,93,255,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="222,46,222,79,217,79,217,46"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="279,93,373,119"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="247,43,300,83,297,87,244,48"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="397,93,447,119"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="269,43,384,87,382,92,267,48"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="138,5,295,50"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,60,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,53,75,95,73,90,167,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="84,98,157,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="194,49,149,90,146,85,189,51"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="182,98,251,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="218,48,219,84,214,81,215,52"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="276,98,368,126"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="245,48,296,88,290,88,243,53"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="393,98,443,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="270,48,381,94,376,95,269,53"/>
 </map>

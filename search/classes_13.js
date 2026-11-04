@@ -19,7 +19,7 @@ var searchData=
   ['themefamilyforeign_16',['ThemeFamilyForeign',['../structrhythm__game__qml_1_1ThemeFamilyForeign.html',1,'rhythm_game_qml']]],
   ['themes_17',['Themes',['../classqml__components_1_1Themes.html',1,'qml_components']]],
   ['themesforeign_18',['ThemesForeign',['../structrhythm__game__qml_1_1ThemesForeign.html',1,'rhythm_game_qml']]],
-  ['time_19',['time',['../structcharts_1_1BmsNotesData_1_1Time.html',1,'charts::BmsNotesData::Time'],['../classgameplay__logic_1_1Time.html',1,'gameplay_logic::Time']]],
+  ['time_19',['Time',['../structcharts_1_1BmsNotesData_1_1Time.html',1,'charts::BmsNotesData::Time'],['../classgameplay__logic_1_1Time.html',1,'gameplay_logic::Time']]],
   ['timeforeign_20',['TimeForeign',['../structrhythm__game__qml_1_1TimeForeign.html',1,'rhythm_game_qml']]],
   ['timeline_21',['Timeline',['../structsupport_1_1Timeline.html',1,'support']]],
   ['timelinelane_22',['TimelineLane',['../structsupport_1_1TimelineLane.html',1,'support']]],

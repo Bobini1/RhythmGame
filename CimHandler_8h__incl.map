@@ -1,7 +1,7 @@
 <map id="src/cimplugin/CimHandler.h" name="src/cimplugin/CimHandler.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="35,5,237,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,144,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,33,96,70,92,66,124,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="168,79,229,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="148,29,181,66,177,70,144,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="35,5,236,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,143,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,32,96,71,93,67,122,35"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="166,81,227,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="147,31,179,69,174,69,145,36"/>
 </map>
