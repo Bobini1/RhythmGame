@@ -24,6 +24,9 @@ env:
   VCPKG_DOWNLOADS: ${{ github.workspace }}/.vcpkg-cache/downloads
   VCPKG_BINARY_SOURCES: 'clear;files,${{ github.workspace }}/.vcpkg-cache/binary,readwrite;nugettimeout,300;nuget,https://nuget.pkg.github.com/Bobini1/index.json,readwrite'
   VCPKG_USE_NUGET_CACHE: 'true'
+  # Avoid freedesktop.org HTTP/2 failures with vcpkg's bundled libcurl.
+  # vcpkg shell-escapes these placeholders and verifies the expected SHA-512.
+  X_VCPKG_ASSET_SOURCES: 'x-script,curl --http1.1 --fail --location --retry 3 --output {dst} -- {url}'
   VCPKG_MAX_CONCURRENCY: '2'
   ANDROID_HOME: ''
   ANDROID_NDK_HOME: ''
