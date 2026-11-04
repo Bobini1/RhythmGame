@@ -3922,6 +3922,7 @@ Item {
         lane: var
     ) : var {
         let startsLongNote = action === hitEvent.Press
+            && noteRemoved
             && noteType === note.Type.LongNoteBegin;
         let endsLongNote = action === hitEvent.Release
             && noteType === note.Type.LongNoteEnd;

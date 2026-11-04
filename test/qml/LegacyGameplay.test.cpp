@@ -211,13 +211,15 @@ TEST_CASE(
                               "test");
     resource_managers::ChartFactory factory(&audio, &input, &assets);
     auto components = resource_managers::ChartDataFactory{}.loadChartData(
-      "#TITLE Legacy scoring\n#BPM 120\n#00011:0001\n#00118:01\n",
+      "#TITLE Legacy scoring\n#BPM 120\n#00011:0001\n#00118:01\n"
+      "#00251:01\n#00351:01\n"
+      "#00252:01\n#00352:01\n#00253:01\n#00353:01\n",
       root / "chart.bms",
       [](auto) { return 1; });
     resource_managers::ChartFactory::PlayerSpecificData player{
         .profile = profile,
         .gauges =
-          resource_managers::GaugeFactory{}.getStandardGauges(profile, 200, 2),
+          resource_managers::GaugeFactory{}.getStandardGauges(profile, 200, 5),
         .hitRules =
           gameplay_logic::rules::HitRules{
             support::timingWindowsFromHash(
@@ -269,7 +271,15 @@ TEST_CASE(
                "#SRC_NUMBER,2,0,0,0,100,10,10,1,0,0,107,0,4\n"
                "#DST_NUMBER,2,0,0,30,10,10,0,255,255,255,255,1,0,0,0\n"
                "#SRC_GROOVEGAUGE,0,0,0,0,40,10,4,1,0,0,1,0\n"
-               "#DST_GROOVEGAUGE,0,0,0,40,1,10,0,255,255,255,255,1,0,0,0\n");
+               "#DST_GROOVEGAUGE,0,0,0,40,1,10,0,255,255,255,255,1,0,0,0\n"
+               "#SRC_IMAGE,0,0,0,0,10,10,1,1,0,0\n"
+               "#DST_IMAGE,0,0,50,0,10,10,0,255,255,255,255,1,0,0,0,0,51\n"
+               "#SRC_IMAGE,1,0,0,0,10,10,1,1,0,0\n"
+               "#DST_IMAGE,1,0,60,0,10,10,0,255,255,255,255,1,0,0,0,0,71\n"
+               "#SRC_IMAGE,2,0,0,0,10,10,1,1,0,0\n"
+               "#DST_IMAGE,2,0,70,0,10,10,0,255,255,255,255,1,0,0,0,0,72\n"
+               "#SRC_IMAGE,3,0,0,0,10,10,1,1,0,0\n"
+               "#DST_IMAGE,3,0,80,0,10,10,0,255,255,255,255,1,0,0,0,0,73\n");
     skin.close();
     QImage atlas(100, 10, QImage::Format_RGBA8888);
     atlas.fill(Qt::white);
@@ -404,4 +414,130 @@ Item {
     CHECK(checkedGauge);
     CHECK(checkedGaugeNumber);
     CHECK(checkedRuntimeState);
+
+    QObject* hitBomb = nullptr;
+    QObject* longNoteBomb = nullptr;
+    QObject* earlyBadBomb = nullptr;
+    QObject* lateBadBomb = nullptr;
+    for (auto* child : children) {
+        const auto timer = child->property("dstTimer");
+        if (timer.isValid() && timer.toInt() == 51)
+            hitBomb = child;
+        if (timer.isValid() && timer.toInt() == 71)
+            longNoteBomb = child;
+        if (timer.isValid() && timer.toInt() == 72)
+            earlyBadBomb = child;
+        if (timer.isValid() && timer.toInt() == 73)
+            lateBadBomb = child;
+    }
+    REQUIRE(hitBomb);
+    REQUIRE(longNoteBomb);
+    REQUIRE(earlyBadBomb);
+    REQUIRE(lateBadBomb);
+    auto* column = chart->getPlayer1()->getState()->getColumnStates().at(0);
+    auto* earlyBadColumn =
+      chart->getPlayer1()->getState()->getColumnStates().at(1);
+    auto* lateBadColumn =
+      chart->getPlayer1()->getState()->getColumnStates().at(2);
+    const auto inputTime = [&](std::chrono::milliseconds offset) {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(
+                 std::chrono::steady_clock::now().time_since_epoch() -
+                 chart->currentOffsetFromStart() + offset)
+          .count();
+    };
+    // Timer notifications are batched until the next event-loop turn.
+    const auto timersCommitted = [&] {
+        return !currentScreen->property("gameplayTimerRevisionPending")
+                  .toBool();
+    };
+    CHECK_FALSE(column->isHoldingLongNote());
+    CHECK(longNoteBomb->property("dstTimerFire").toInt() < 0);
+    if (!autoplay) {
+        // An early press names the upcoming LN but does not hit its head.
+        const auto previousHitTimer = hitBomb->property("dstTimerFire").toInt();
+        const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::steady_clock::now().time_since_epoch())
+                           .count();
+        input.buttonPressed(input::BmsKey::Col11, now);
+        REQUIRE(QTest::qWaitFor([&] {
+            return score->judgementCount(static_cast<int>(
+                     gameplay_logic::Judgement::EmptyPoor)) == 1;
+        }));
+        REQUIRE(QTest::qWaitFor(timersCommitted));
+        CHECK_FALSE(column->isHoldingLongNote());
+        CHECK_FALSE(
+          column
+            ->data(column->index(1), gameplay_logic::ColumnState::NoteHitRole)
+            .toBool());
+        CHECK(hitBomb->property("dstTimerFire").toInt() == previousHitTimer);
+        CHECK(longNoteBomb->property("dstTimerFire").toInt() < 0);
+        input.buttonReleased(input::BmsKey::Col11, now + 1);
+        REQUIRE(QTest::qWaitFor([&] { return !column->isPressed(); }));
+        REQUIRE(QTest::qWaitFor(timersCommitted));
+        CHECK_FALSE(column->isHoldingLongNote());
+        CHECK(longNoteBomb->property("dstTimerFire").toInt() < 0);
+        CHECK(hitBomb->property("dstTimerFire").toInt() == previousHitTimer);
+
+        // Early BAD consumes both ends immediately, without a lasting hold.
+        input.buttonPressed(input::BmsKey::Col12,
+                            inputTime(std::chrono::milliseconds(3850)));
+        REQUIRE(QTest::qWaitFor([&] {
+            return score->judgementCount(
+                     static_cast<int>(gameplay_logic::Judgement::Bad)) == 1;
+        }));
+        REQUIRE(QTest::qWaitFor(timersCommitted));
+        CHECK_FALSE(earlyBadColumn->isHoldingLongNote());
+        CHECK_FALSE(earlyBadColumn
+                      ->data(earlyBadColumn->index(0),
+                             gameplay_logic::ColumnState::HeldLongNoteRole)
+                      .toBool());
+        CHECK(earlyBadBomb->property("dstTimerFire").toInt() < 0);
+        input.buttonReleased(input::BmsKey::Col12,
+                             inputTime(std::chrono::milliseconds(3851)));
+
+        REQUIRE(QTest::qWaitFor([&] {
+            return chart->currentOffsetFromStart() >=
+                   std::chrono::milliseconds(3950);
+        }));
+        input.buttonPressed(input::BmsKey::Col11,
+                            inputTime(std::chrono::seconds(4)));
+    }
+    REQUIRE(QTest::qWaitFor([&] { return column->isHoldingLongNote(); }));
+    REQUIRE(QTest::qWaitFor(
+      [&] { return longNoteBomb->property("dstTimerFire").toInt() >= 0; }));
+    if (!autoplay) {
+        // Late BAD cannot start the third LN. It is missed normally afterwards.
+        input.buttonPressed(input::BmsKey::Col13,
+                            inputTime(std::chrono::milliseconds(4150)));
+        REQUIRE(QTest::qWaitFor([&] { return lateBadColumn->isPressed(); }));
+        REQUIRE(QTest::qWaitFor(timersCommitted));
+        CHECK_FALSE(lateBadColumn->isHoldingLongNote());
+        CHECK(lateBadBomb->property("dstTimerFire").toInt() < 0);
+        CHECK(score->judgementCount(
+                static_cast<int>(gameplay_logic::Judgement::Bad)) == 1);
+        input.buttonReleased(input::BmsKey::Col13,
+                             inputTime(std::chrono::milliseconds(4151)));
+        const auto releaseTime =
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch())
+            .count();
+        input.buttonReleased(input::BmsKey::Col11, releaseTime);
+    }
+    REQUIRE(QTest::qWaitFor([&] { return !column->isHoldingLongNote(); }));
+    REQUIRE(QTest::qWaitFor(
+      [&] { return longNoteBomb->property("dstTimerFire").toInt() < 0; }));
+    CHECK_FALSE(
+      column
+        ->data(column->index(1), gameplay_logic::ColumnState::HeldLongNoteRole)
+        .toBool());
+    if (!autoplay) {
+        REQUIRE(QTest::qWaitFor([&] {
+            return score->judgementCount(
+                     static_cast<int>(gameplay_logic::Judgement::Poor)) == 2;
+        }));
+        CHECK(score->judgementCount(
+                static_cast<int>(gameplay_logic::Judgement::Bad)) == 2);
+        CHECK_FALSE(lateBadColumn->isHoldingLongNote());
+        CHECK(lateBadBomb->property("dstTimerFire").toInt() < 0);
+    }
 }
