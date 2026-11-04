@@ -8,6 +8,7 @@ set(RHYTHMGAME_INSTRUMENTED_TARGETS
         RhythmGame_lr2_qmlplugin_init
         RhythmGame_exe
         RhythmGame_test
+        RhythmGame_flow_test
         tga
         tga_init
         cim
