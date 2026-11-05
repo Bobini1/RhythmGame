@@ -1,7 +1,7 @@
 {
   "name": "rhythmgame",
   "version-semver": "0.1.0",
-  "builtin-baseline": "a0400024711b283056538ac19ced80b91a83c24c",
+  "builtin-baseline": "482b8b1756b306c5c3b6a6b6ebf4be3dd87158ec",
   "dependencies": [
     "boost-headers",
     "boost-icl",

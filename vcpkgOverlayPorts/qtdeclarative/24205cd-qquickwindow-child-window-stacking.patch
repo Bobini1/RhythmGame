@@ -26,20 +26,15 @@ scenes when item visibility or stacking changes.
 
 Fixes: QTBUG-134949
 Change-Id: Ib4b98ebac020b33ca2067f321046df68802d1792
+
+Rebased on Qt 6.11.3, which already includes <algorithm> and updates the
+window container destructor's signal and event filter cleanup.
 ---
 
 diff --git a/src/quick/items/qquickwindow.cpp b/src/quick/items/qquickwindow.cpp
 index a8bbb72..60b1086 100644
 --- a/src/quick/items/qquickwindow.cpp
 +++ b/src/quick/items/qquickwindow.cpp
-@@ -58,6 +58,7 @@
- 
- #include <rhi/qrhi.h>
- 
-+#include <algorithm>
- #include <utility>
- #include <mutex>
- 
 @@ -883,8 +884,10 @@
      Q_Q(QQuickWindow);
  
@@ -248,19 +243,14 @@ index 282abd4..bf364b5 100644
      if (lcWindowContainer().isDebugEnabled()) {
          auto *debugRectangle = new QQuickRectangle(this);
          debugRectangle->setColor(QColor(255, 0, 255, 20));
-@@ -136,9 +161,11 @@
- 
- QQuickWindowContainer::~QQuickWindowContainer()
- {
--    Q_D(const QQuickWindowContainer);
-+    Q_D(QQuickWindowContainer);
+@@ -139,5 +139,7 @@
+     Q_D(QQuickWindowContainer);
      qCDebug(lcWindowContainer) << "Destructing window container" << this;
  
 +    d->setParentWindow(nullptr);
 +
-     disconnect(this);
-     if (d->window) {
-         auto ownership = QJSEngine::objectOwnership(d->window);
+     disconnect(this, &QQuickItem::windowChanged,
+                this, &QQuickWindowContainer::parentWindowChanged);
 @@ -557,6 +584,7 @@
      qCDebug(lcWindowContainer) << this << "parent window changed to" << parentWindow;
  

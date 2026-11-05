@@ -1975,6 +1975,8 @@ TEST_CASE("Screen contexts match Arena gameplay and result lifetimes",
       contexts.createGameplay(unrelatedRunner.runner.get(), &fixture.session);
     REQUIRE(gameplay);
     REQUIRE(unrelated);
+    gameplay->setParent(&contexts);
+    unrelated->setParent(&contexts);
     CHECK(gameplay->isArena());
     CHECK_FALSE(gameplay->arenaActive());
     QObject::connect(gameplay,

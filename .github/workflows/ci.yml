@@ -24,6 +24,9 @@ env:
   VCPKG_DOWNLOADS: ${{ github.workspace }}/.vcpkg-cache/downloads
   VCPKG_BINARY_SOURCES: 'clear;files,${{ github.workspace }}/.vcpkg-cache/binary,readwrite;nugettimeout,300;nuget,https://nuget.pkg.github.com/Bobini1/index.json,readwrite'
   VCPKG_USE_NUGET_CACHE: 'true'
+  # Avoid freedesktop.org HTTP/2 failures with vcpkg's bundled libcurl.
+  # vcpkg shell-escapes these placeholders and verifies the expected SHA-512.
+  X_VCPKG_ASSET_SOURCES: 'x-script,curl --http1.1 --fail --location --retry 3 --output {dst} -- {url}'
   VCPKG_MAX_CONCURRENCY: '2'
   ANDROID_HOME: ''
   ANDROID_NDK_HOME: ''
@@ -96,9 +99,14 @@ jobs:
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/Bobini1/index.json' || '');
 
+      - name: Prepare vcpkg baseline
+        shell: pwsh
+        run: .github/scripts/prepare-vcpkg.ps1
+
       - name: Add NuGet sources
         shell: bash
         run: |
+          bash .github/scripts/prepare-mono-trust.sh
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
             -Source "${{ env.NUGET_FEED_URL }}" \
@@ -155,12 +163,21 @@ jobs:
       - name: Process coverage info
         run: cmake --build build/coverage -t coverage
 
+      - name: Save coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: build/coverage/coverage.info
+          if-no-files-found: error
+
       - name: Submit to codecov.io
         uses: codecov/codecov-action@v7
         continue-on-error: true
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: build/coverage/coverage.info
+          disable_search: true
+          plugins: noop
 
   sanitize:
     needs: [ coverage, test ]
@@ -207,9 +224,14 @@ jobs:
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/Bobini1/index.json' || '');
 
+      - name: Prepare vcpkg baseline
+        shell: pwsh
+        run: .github/scripts/prepare-vcpkg.ps1
+
       - name: Add NuGet sources
         shell: bash
         run: |
+          bash .github/scripts/prepare-mono-trust.sh
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
             -Source "${{ env.NUGET_FEED_URL }}" \
@@ -264,6 +286,7 @@ jobs:
           strict_init_order=1:\
           detect_leaks=1"
           UBSAN_OPTIONS: print_stacktrace=1
+          LSAN_OPTIONS: suppressions=${{ github.workspace }}/test/lsan.supp
         run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &
@@ -355,10 +378,15 @@ jobs:
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/Bobini1/index.json' || '');
 
+      - name: Prepare vcpkg baseline
+        shell: pwsh
+        run: .github/scripts/prepare-vcpkg.ps1
+
       - name: Add NuGet sources
         shell: bash
         if: matrix.os == 'ubuntu-latest'
         run: |
+          bash .github/scripts/prepare-mono-trust.sh
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
             -Source "${{ env.NUGET_FEED_URL }}" \
@@ -542,10 +570,15 @@ jobs:
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/Bobini1/index.json' || '');
 
+      - name: Prepare vcpkg baseline
+        shell: pwsh
+        run: .github/scripts/prepare-vcpkg.ps1
+
       - name: Add NuGet sources
         shell: bash
         if: matrix.os == 'ubuntu-latest'
         run: |
+          bash .github/scripts/prepare-mono-trust.sh
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             sources add \
             -Source "${{ env.NUGET_FEED_URL }}" \

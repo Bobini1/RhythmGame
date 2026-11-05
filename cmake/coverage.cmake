@@ -32,11 +32,19 @@ add_custom_target(
             -d "${PROJECT_BINARY_DIR}"
             --include "${PROJECT_SOURCE_DIR}/*"
             --exclude "${PROJECT_BINARY_DIR}/*"
+        BYPRODUCTS "${PROJECT_BINARY_DIR}/coverage.info"
+        COMMENT "Collecting coverage data"
+        VERBATIM
+)
+
+add_custom_target(
+        coverage-html
         # GCC can count capture initialization on a lambda's closing brace.
         # Comparing aggregate line hits with function hits rejects valid data.
         COMMAND genhtml --demangle-cpp --rc check_data_consistency=0
             --legend -f -q "${PROJECT_BINARY_DIR}/coverage.info"
             -p "${PROJECT_SOURCE_DIR}" -o "${PROJECT_BINARY_DIR}/coverage_html"
+        DEPENDS coverage
         COMMENT "Generating coverage report"
         VERBATIM
 )

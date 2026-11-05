@@ -178,9 +178,6 @@
       "warnings": {
         "dev": false,
         "uninitialized": false
-      },
-      "cacheVariables": {
-        "COVERAGE_HTML_COMMAND": ""
       }
     },
     {
