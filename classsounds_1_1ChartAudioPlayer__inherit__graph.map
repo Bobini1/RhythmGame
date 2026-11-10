@@ -1,5 +1,4 @@
 <map id="sounds::ChartAudioPlayer" name="sounds::ChartAudioPlayer">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,194,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="63,5,136,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,47,102,82,97,80,98,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,195,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="63,5,137,32"/>
 </map>

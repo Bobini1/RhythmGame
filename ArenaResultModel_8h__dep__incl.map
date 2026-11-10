@@ -1,24 +1,12 @@
 <map id="src/arena/ArenaResultModel.h" name="src/arena/ArenaResultModel.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="102,5,318,33"/>
-<area shape="rect" id="Node000002" href="$QmlForeignTypes_8h.html" title=" " alt="" coords="5,157,223,201"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,41,107,58,84,82,79,100,81,119,100,156,94,157,76,121,73,100,80,80,104,54,138,37"/>
-<area shape="rect" id="Node000004" href="$ArenaResultModel_8cpp.html" title=" " alt="" coords="94,81,326,109"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="211,46,213,81,207,80,209,51"/>
-<area shape="rect" id="Node000005" href="$ArenaSession_8h.html" title=" " alt="" coords="349,81,535,109"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="266,35,403,79,398,82,266,41"/>
-<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="162,249,266,277"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="153,209,201,249,195,249,151,214"/>
-<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="373,115,202,159,200,153,377,111"/>
-<area shape="poly" id="edge12_Node000005_Node000003" title=" " alt="" coords="368,115,328,134,288,159,265,181,247,206,221,251,218,247,242,203,261,177,284,155,326,129,373,113"/>
-<area shape="rect" id="Node000006" href="$Rg_8h.html" title=" " alt="" coords="298,165,469,193"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="426,120,394,167,391,163,422,123"/>
-<area shape="rect" id="Node000008" href="$ScreenContexts_8h.html" title=" " alt="" coords="492,165,749,193"/>
-<area shape="poly" id="edge9_Node000005_Node000008" title=" " alt="" coords="485,113,595,164,589,165,484,118"/>
-<area shape="rect" id="Node000010" href="$ArenaSession_8cpp.html" title=" " alt="" coords="772,165,973,193"/>
-<area shape="poly" id="edge11_Node000005_Node000010" title=" " alt="" coords="526,109,806,164,801,165,526,115"/>
-<area shape="poly" id="edge8_Node000006_Node000003" title=" " alt="" coords="345,200,242,251,240,246,340,200"/>
-<area shape="rect" id="Node000007" href="$Rg_8cpp.html" title=" " alt="" coords="290,249,476,277"/>
-<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="385,207,385,251,381,247,381,211"/>
-<area shape="rect" id="Node000009" href="$ScreenContexts_8cpp.html" title=" " alt="" coords="501,249,772,277"/>
-<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="628,206,636,251,632,248,624,210"/>
+<area shape="rect" id="node1" title=" " alt="" coords="166,5,383,32"/>
+<area shape="rect" id="node2" href="$ArenaResultModel_8cpp.html" title=" " alt="" coords="5,80,237,107"/>
+<area shape="rect" id="node3" href="$ArenaSession_8h.html" title=" " alt="" coords="461,80,648,107"/>
+<area shape="rect" id="node6" href="$QmlForeignTypes_8h.html" title=" " alt="" coords="100,155,319,196"/>
+<area shape="rect" id="node4" href="$ArenaSession_8cpp.html" title=" " alt="" coords="677,162,878,189"/>
+<area shape="rect" id="node5" href="$main_8cpp.html" title=" " alt="" coords="609,244,714,271"/>
+<area shape="rect" id="node7" href="$Rg_8h.html" title=" " alt="" coords="902,162,1074,189"/>
+<area shape="rect" id="node9" href="$ScreenContexts_8h.html" title=" " alt="" coords="343,162,601,189"/>
+<area shape="rect" id="node8" href="$Rg_8cpp.html" title=" " alt="" coords="895,244,1081,271"/>
+<area shape="rect" id="node10" href="$ScreenContexts_8cpp.html" title=" " alt="" coords="313,244,585,271"/>
 </map>

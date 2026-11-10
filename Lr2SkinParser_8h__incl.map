@@ -1,17 +1,10 @@
 <map id="src/gameplay_logic/lr2_skin/Lr2SkinParser.h" name="src/gameplay_logic/lr2_skin/Lr2SkinParser.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="218,5,398,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,75,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,53,90,98,89,93,236,48"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="99,98,176,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="265,50,179,93,177,88,260,51"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="200,98,254,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="289,49,252,89,249,85,284,51"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="278,98,338,126"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="310,48,310,84,306,81,306,52"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="362,98,456,126"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="336,48,384,88,379,87,334,53"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="480,98,581,126"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="368,48,484,92,478,92,367,53"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="604,98,681,126"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="398,48,592,97,587,97,398,53"/>
+<area shape="rect" id="node1" title=" " alt="" coords="221,5,401,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,95,76,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="100,95,179,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="203,95,257,121"/>
+<area shape="rect" id="node5" title=" " alt="" coords="281,95,341,121"/>
+<area shape="rect" id="node6" title=" " alt="" coords="365,95,460,121"/>
+<area shape="rect" id="node7" title=" " alt="" coords="485,95,586,121"/>
+<area shape="rect" id="node8" title=" " alt="" coords="610,95,687,121"/>
 </map>

@@ -1,18 +1,9 @@
 <map id="src/gameplay_logic/HitEvent.cpp" name="src/gameplay_logic/HitEvent.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="47,5,194,50"/>
-<area shape="rect" id="Node000002" href="$HitEvent_8h.html" title=" " alt="" coords="76,98,165,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,48,123,83,118,82,120,53"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="70,325,144,353"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="75,128,43,147,28,160,16,175,9,193,9,212,14,231,23,250,50,285,81,314,76,316,46,289,19,253,9,233,4,213,4,192,11,172,24,156,40,143,78,124"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="26,174,103,201"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="109,129,86,163,81,160,112,124"/>
-<area shape="rect" id="Node000005" href="$BmsPoints_8h.html" title=" " alt="" coords="127,174,229,201"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="131,124,161,161,156,162,130,129"/>
-<area shape="rect" id="Node000007" href="$BmsKeys_8h.html" title=" " alt="" coords="229,249,359,277"/>
-<area shape="poly" id="edge8_Node000002_Node000007" title=" " alt="" coords="159,124,202,143,242,172,267,202,285,236,280,235,263,205,239,176,199,148,159,129"/>
-<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="142,204,115,223,101,236,91,251,86,265,86,280,95,312,90,311,81,281,81,264,86,248,97,232,112,219,146,200"/>
-<area shape="rect" id="Node000006" href="$Judgement_8h.html" title=" " alt="" coords="101,249,204,277"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="175,200,164,236,160,233,172,204"/>
-<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="147,276,125,313,121,310,142,279"/>
-<area shape="poly" id="edge9_Node000007_Node000003" title=" " alt="" coords="263,277,155,322,153,317,258,278"/>
+<area shape="rect" id="node1" title=" " alt="" coords="48,5,196,47"/>
+<area shape="rect" id="node2" href="$HitEvent_8h.html" title=" " alt="" coords="76,95,167,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="70,319,144,345"/>
+<area shape="rect" id="node4" title=" " alt="" coords="25,169,104,196"/>
+<area shape="rect" id="node5" href="$BmsPoints_8h.html" title=" " alt="" coords="128,169,230,196"/>
+<area shape="rect" id="node7" href="$BmsKeys_8h.html" title=" " alt="" coords="228,244,359,271"/>
+<area shape="rect" id="node6" href="$Judgement_8h.html" title=" " alt="" coords="100,244,204,271"/>
 </map>

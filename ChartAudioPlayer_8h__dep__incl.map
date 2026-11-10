@@ -1,10 +1,6 @@
 <map id="src/sounds/ChartAudioPlayer.h" name="src/sounds/ChartAudioPlayer.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="152,5,370,33"/>
-<area shape="rect" id="Node000002" href="$QmlForeignTypes_8h.html" title=" " alt="" coords="5,81,223,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,43,154,83,152,78,226,39"/>
-<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="135,174,240,201"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="259,46,252,87,238,127,221,154,202,176,199,171,216,150,233,124,247,85,256,50"/>
-<area shape="rect" id="Node000004" href="$ChartAudioPlayer_8cpp.html" title=" " alt="" coords="299,90,532,117"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="300,38,393,89,388,89,299,43"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="144,135,178,173,173,173,142,140"/>
+<area shape="rect" id="node1" title=" " alt="" coords="33,5,252,32"/>
+<area shape="rect" id="node2" href="$main_8cpp.html" title=" " alt="" coords="138,169,243,196"/>
+<area shape="rect" id="node3" href="$ChartAudioPlayer_8cpp.html" title=" " alt="" coords="25,87,260,114"/>
+<area shape="rect" id="node4" href="$QmlForeignTypes_8h.html" title=" " alt="" coords="284,80,502,121"/>
 </map>

@@ -1,19 +1,10 @@
 <map id="src/support/FrameRateLimiter.h" name="src/support/FrameRateLimiter.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="320,5,545,33"/>
-<area shape="rect" id="Node000002" href="$ProgramSettings_8h.html" title=" " alt="" coords="244,81,400,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="405,41,353,83,350,78,401,44"/>
-<area shape="rect" id="Node000008" href="$FrameRateLimiter_8cpp.html" title=" " alt="" coords="424,90,665,117"/>
-<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="464,40,529,89,524,89,463,45"/>
-<area shape="rect" id="Node000003" href="$QmlForeignTypes_8h.html" title=" " alt="" coords="5,174,223,218"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="256,134,165,176,163,171,260,131"/>
-<area shape="rect" id="Node000004" href="$main_8cpp.html" title=" " alt="" coords="184,266,289,294"/>
-<area shape="poly" id="edge7_Node000002_Node000004" title=" " alt="" coords="305,138,288,175,245,268,241,264,284,172,301,141"/>
-<area shape="rect" id="Node000005" href="$Rg_8h.html" title=" " alt="" coords="298,182,469,210"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="346,136,377,182,372,181,344,141"/>
-<area shape="rect" id="Node000007" href="$ProgramSettings_8cpp.html" title=" " alt="" coords="492,174,653,218"/>
-<area shape="poly" id="edge8_Node000002_Node000007" title=" " alt="" coords="397,129,515,173,510,174,396,134"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="160,225,220,265,214,266,158,230"/>
-<area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="349,217,261,268,259,263,344,218"/>
-<area shape="rect" id="Node000006" href="$Rg_8cpp.html" title=" " alt="" coords="313,266,499,294"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="393,223,405,267,400,265,389,227"/>
+<area shape="rect" id="node1" title=" " alt="" coords="215,5,441,32"/>
+<area shape="rect" id="node2" href="$ProgramSettings_8h.html" title=" " alt="" coords="137,80,295,121"/>
+<area shape="rect" id="node8" href="$FrameRateLimiter_8cpp.html" title=" " alt="" coords="319,87,561,114"/>
+<area shape="rect" id="node3" href="$main_8cpp.html" title=" " alt="" coords="271,259,377,285"/>
+<area shape="rect" id="node4" href="$ProgramSettings_8cpp.html" title=" " alt="" coords="29,169,190,211"/>
+<area shape="rect" id="node5" href="$QmlForeignTypes_8h.html" title=" " alt="" coords="215,169,433,211"/>
+<area shape="rect" id="node6" href="$Rg_8h.html" title=" " alt="" coords="458,177,630,203"/>
+<area shape="rect" id="node7" href="$Rg_8cpp.html" title=" " alt="" coords="451,259,637,285"/>
 </map>

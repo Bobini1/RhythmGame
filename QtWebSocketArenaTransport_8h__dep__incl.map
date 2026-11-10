@@ -1,7 +1,5 @@
 <map id="src/arena/QtWebSocketArenaTransport.h" name="src/arena/QtWebSocketArenaTransport.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="96,5,305,50"/>
-<area shape="rect" id="Node000002" href="$QtWebSocketArenaTransport_8cpp.html" title=" " alt="" coords="5,98,215,143"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,60,133,100,130,96,166,62"/>
-<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="239,106,344,134"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="234,59,281,106,275,106,232,64"/>
+<area shape="rect" id="node1" title=" " alt="" coords="96,5,307,47"/>
+<area shape="rect" id="node2" href="$QtWebSocketArenaTransport_8cpp.html" title=" " alt="" coords="5,95,216,136"/>
+<area shape="rect" id="node3" href="$main_8cpp.html" title=" " alt="" coords="239,102,345,129"/>
 </map>

@@ -1,5 +1,4 @@
 <map id="arena::ArenaRoundLoadRequest" name="arena::ArenaRoundLoadRequest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,106,235,134"/>
-<area shape="rect" id="Node000002" href="$structarena_1_1ArenaRoundPlayConfig.html" title=" " alt="" coords="13,5,227,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,47,123,106,117,104,118,50"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,95,236,121"/>
+<area shape="rect" id="node2" href="$structarena_1_1ArenaRoundPlayConfig.html" title=" " alt="" coords="13,5,228,32"/>
 </map>

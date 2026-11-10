@@ -1,5 +1,4 @@
 <map id="support::PendingReply" name="support::PendingReply">
-<area shape="rect" id="Node000001" title="QML&#45;facing handle for one asynchronous result." alt="" coords="5,81,173,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="52,5,126,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,47,91,82,87,80,87,51"/>
+<area shape="rect" id="node1" title="QML&#45;facing handle for one asynchronous result." alt="" coords="5,80,173,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="52,5,127,32"/>
 </map>

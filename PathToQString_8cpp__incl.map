@@ -1,9 +1,6 @@
 <map id="src/support/PathToQString.cpp" name="src/support/PathToQString.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,220,33"/>
-<area shape="rect" id="Node000002" href="$PathToQString_8h.html" title=" " alt="" coords="51,81,174,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,31,115,66,110,65,111,36"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="26,157,95,184"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="106,108,80,146,76,142,101,111"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="120,157,209,184"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="123,107,149,144,144,144,121,112"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,220,32"/>
+<area shape="rect" id="node2" href="$PathToQString_8h.html" title=" " alt="" coords="51,80,175,107"/>
+<area shape="rect" id="node3" title=" " alt="" coords="25,155,96,181"/>
+<area shape="rect" id="node4" title=" " alt="" coords="121,155,211,181"/>
 </map>

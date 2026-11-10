@@ -1,5 +1,4 @@
 <map id="qml_components::TachiResolveHandle" name="qml_components::TachiResolveHandle">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,232,126"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="82,5,155,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,47,121,81,116,79,117,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,232,121"/>
+<area shape="rect" id="node2" title=" " alt="" coords="81,5,156,32"/>
 </map>

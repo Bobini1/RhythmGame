@@ -1,5 +1,4 @@
 <map id="Rg" name="Rg">
-<area shape="rect" id="Node000001" title="The main singleton class that provides access to various components of the application." alt="" coords="23,81,61,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,79,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="44,47,45,81,39,80,40,51"/>
+<area shape="rect" id="node1" title="The main singleton class that provides access to various components of the application." alt="" coords="23,80,62,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,5,80,32"/>
 </map>

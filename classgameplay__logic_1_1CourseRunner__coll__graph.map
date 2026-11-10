@@ -1,5 +1,4 @@
 <map id="gameplay_logic::CourseRunner" name="gameplay_logic::CourseRunner">
-<area shape="rect" id="Node000001" title="Like a ChartRunner, but for courses." alt="" coords="5,81,229,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="80,5,154,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,47,119,82,115,79,115,51"/>
+<area shape="rect" id="node1" title="Like a ChartRunner, but for courses." alt="" coords="5,80,229,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="80,5,155,32"/>
 </map>

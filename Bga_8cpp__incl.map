@@ -1,17 +1,10 @@
 <map id="src/qml_components/Bga.cpp" name="src/qml_components/Bga.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="289,5,445,50"/>
-<area shape="rect" id="Node000002" href="$Bga_8h.html" title=" " alt="" coords="272,98,331,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="352,49,323,88,320,84,347,52"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="354,98,510,126"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="385,48,415,86,410,85,383,53"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,174,102,201"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="273,124,113,171,111,166,271,119"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="125,174,238,201"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="283,126,217,168,214,163,277,127"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="261,174,342,201"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="303,124,304,160,299,156,300,128"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="366,174,475,201"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="323,124,389,166,384,165,322,129"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="498,174,585,201"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="331,119,487,168,481,169,331,125"/>
+<area shape="rect" id="node1" title=" " alt="" coords="291,5,449,47"/>
+<area shape="rect" id="node2" href="$Bga_8h.html" title=" " alt="" coords="275,95,334,121"/>
+<area shape="rect" id="node8" title=" " alt="" coords="359,95,515,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,169,103,196"/>
+<area shape="rect" id="node4" title=" " alt="" coords="127,169,240,196"/>
+<area shape="rect" id="node5" title=" " alt="" coords="264,169,345,196"/>
+<area shape="rect" id="node6" title=" " alt="" coords="369,169,480,196"/>
+<area shape="rect" id="node7" title=" " alt="" coords="504,169,591,196"/>
 </map>

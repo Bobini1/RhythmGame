@@ -1,7 +1,5 @@
 <map id="src/qml_components/BeatorajaReplayImporter.h" name="src/qml_components/BeatorajaReplayImporter.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="121,5,321,50"/>
-<area shape="rect" id="Node000002" href="$BeatorajaReplayImporter_8cpp.html" title=" " alt="" coords="5,98,221,143"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,59,140,100,137,95,182,61"/>
-<area shape="rect" id="Node000003" href="$Profile_8cpp.html" title=" " alt="" coords="244,98,416,143"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="259,57,307,98,302,97,258,62"/>
+<area shape="rect" id="node1" title=" " alt="" coords="122,5,323,47"/>
+<area shape="rect" id="node2" href="$BeatorajaReplayImporter_8cpp.html" title=" " alt="" coords="5,95,221,136"/>
+<area shape="rect" id="node3" href="$Profile_8cpp.html" title=" " alt="" coords="245,95,419,136"/>
 </map>

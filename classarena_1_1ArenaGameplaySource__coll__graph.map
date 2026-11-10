@@ -1,5 +1,4 @@
 <map id="arena::ArenaGameplaySource" name="arena::ArenaGameplaySource">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,221,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="76,5,150,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,47,115,82,111,79,111,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,221,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="76,5,151,32"/>
 </map>

@@ -1,7 +1,5 @@
 <map id="src/charts/Base62.h" name="src/charts/Base62.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="25,5,174,33"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,90,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,32,67,70,63,67,88,35"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="113,81,192,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="110,31,137,68,132,68,108,36"/>
+<area shape="rect" id="node1" title=" " alt="" coords="27,5,176,32"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,80,91,107"/>
+<area shape="rect" id="node3" title=" " alt="" coords="115,80,195,107"/>
 </map>

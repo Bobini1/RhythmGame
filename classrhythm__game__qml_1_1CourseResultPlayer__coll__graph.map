@@ -1,5 +1,4 @@
 <map id="rhythm_game_qml::CourseResultPlayer" name="rhythm_game_qml::CourseResultPlayer">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,244,126"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="88,5,161,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,47,127,81,122,79,123,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,244,121"/>
+<area shape="rect" id="node2" title=" " alt="" coords="87,5,162,32"/>
 </map>

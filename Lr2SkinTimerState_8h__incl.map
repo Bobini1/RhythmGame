@@ -1,25 +1,13 @@
 <map id="RhythmGameQml/Lr2/Lr2SkinTimerState.h" name="RhythmGameQml/Lr2/Lr2SkinTimerState.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="334,5,548,50"/>
-<area shape="rect" id="Node000002" href="$Lr2SkinClock_8h.html" title=" " alt="" coords="79,98,197,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="358,52,202,96,200,91,362,49"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,174,79,201"/>
-<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="331,37,257,48,179,60,112,77,87,88,69,100,59,113,52,127,45,159,40,158,47,126,54,110,66,96,85,83,111,72,178,55,256,42,336,35"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="196,174,384,201"/>
-<area shape="poly" id="edge11_Node000001_Node000005" title=" " alt="" coords="335,46,293,69,276,83,262,99,256,114,258,129,272,162,267,160,252,130,251,113,257,97,272,79,290,65,331,48"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="272,98,378,126"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="413,49,357,91,355,86,408,52"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="402,98,479,126"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="442,48,443,84,438,81,439,52"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="503,98,568,126"/>
-<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="466,48,511,88,506,87,465,53"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="592,98,644,126"/>
-<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="488,48,580,92,575,92,487,53"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="669,98,746,126"/>
-<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="512,48,656,94,651,94,511,53"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="770,98,826,126"/>
-<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="549,47,758,97,752,98,548,53"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="123,125,73,166,70,162,118,127"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="103,174,173,201"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="140,124,140,159,136,157,136,128"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="166,124,252,166,247,167,165,129"/>
+<area shape="rect" id="node1" title=" " alt="" coords="338,5,553,47"/>
+<area shape="rect" id="node2" href="$Lr2SkinClock_8h.html" title=" " alt="" coords="81,95,199,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,169,80,196"/>
+<area shape="rect" id="node5" title=" " alt="" coords="199,169,387,196"/>
+<area shape="rect" id="node6" title=" " alt="" coords="275,95,381,121"/>
+<area shape="rect" id="node7" title=" " alt="" coords="406,95,485,121"/>
+<area shape="rect" id="node8" title=" " alt="" coords="509,95,574,121"/>
+<area shape="rect" id="node9" title=" " alt="" coords="599,95,652,121"/>
+<area shape="rect" id="node10" title=" " alt="" coords="677,95,755,121"/>
+<area shape="rect" id="node11" title=" " alt="" coords="780,95,836,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="105,169,175,196"/>
 </map>

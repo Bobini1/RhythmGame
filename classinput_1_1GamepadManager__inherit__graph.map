@@ -1,5 +1,4 @@
 <map id="input::GamepadManager" name="input::GamepadManager">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,188,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="60,5,133,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,47,99,82,94,80,95,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,188,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="59,5,134,32"/>
 </map>

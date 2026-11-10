@@ -1,5 +1,4 @@
 <map id="Lr2BlendSprite" name="Lr2BlendSprite">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,122,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="14,5,113,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="65,47,66,81,61,80,62,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,123,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="15,5,113,32"/>
 </map>

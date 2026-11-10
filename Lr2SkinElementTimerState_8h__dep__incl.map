@@ -1,7 +1,5 @@
 <map id="RhythmGameQml/Lr2/Lr2SkinElementTimerState.h" name="RhythmGameQml/Lr2/Lr2SkinElementTimerState.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="124,5,338,50"/>
-<area shape="rect" id="Node000002" href="$Lr2SkinElementTimerState_8cpp.html" title=" " alt="" coords="5,98,220,143"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,59,142,100,139,95,188,60"/>
-<area shape="rect" id="Node000003" href="$Lr2SkinRuntime_8cpp.html" title=" " alt="" coords="244,98,458,143"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="273,57,325,98,320,97,271,62"/>
+<area shape="rect" id="node1" title=" " alt="" coords="124,5,339,47"/>
+<area shape="rect" id="node2" href="$Lr2SkinElementTimerState_8cpp.html" title=" " alt="" coords="5,95,220,136"/>
+<area shape="rect" id="node3" href="$Lr2SkinRuntime_8cpp.html" title=" " alt="" coords="244,95,459,136"/>
 </map>

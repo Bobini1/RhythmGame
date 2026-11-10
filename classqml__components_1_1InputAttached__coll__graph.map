@@ -1,8 +1,5 @@
 <map id="qml_components::InputAttached" name="qml_components::InputAttached">
-<area shape="rect" id="Node000001" title="The class that provides the Input attached property." alt="" coords="5,183,238,211"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="80,5,153,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,47,124,183,118,182,115,50"/>
-<area shape="rect" id="Node000003" href="$classinput_1_1InputTranslator.html" title=" " alt="" coords="138,82,297,110"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="147,40,202,81,197,82,146,45"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,121,136,184,133,180,192,122"/>
+<area shape="rect" id="node1" title="The class that provides the Input attached property." alt="" coords="5,171,239,197"/>
+<area shape="rect" id="node2" title=" " alt="" coords="79,5,154,32"/>
+<area shape="rect" id="node3" href="$classinput_1_1InputTranslator.html" title=" " alt="" coords="138,81,298,108"/>
 </map>

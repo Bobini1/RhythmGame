@@ -1,29 +1,12 @@
 <map id="RhythmGameQml/Lr2/Lr2SelectInfoTimerBridge.h" name="RhythmGameQml/Lr2/Lr2SelectInfoTimerBridge.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="438,5,664,50"/>
-<area shape="rect" id="Node000002" href="$Lr2SelectNavigationController_8h.html" title=" " alt="" coords="362,98,590,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="533,49,500,88,497,84,529,52"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="153,249,226,277"/>
-<area shape="poly" id="edge15_Node000001_Node000004" title=" " alt="" coords="434,48,377,67,315,92,257,128,232,150,210,175,197,204,191,235,187,232,192,202,206,172,228,146,254,124,313,88,375,62,439,46"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="258,249,446,277"/>
-<area shape="poly" id="edge17_Node000001_Node000005" title=" " alt="" coords="630,48,703,74,739,91,769,109,794,130,808,153,809,177,795,203,773,220,741,234,656,252,557,262,462,265,461,260,556,256,655,247,739,229,770,215,791,200,804,176,803,154,789,133,766,114,736,96,701,79,630,53"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="574,174,680,201"/>
-<area shape="poly" id="edge14_Node000001_Node000006" title=" " alt="" coords="570,48,604,97,616,128,624,160,619,157,611,130,599,99,568,53"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="704,174,781,201"/>
-<area shape="poly" id="edge16_Node000001_Node000007" title=" " alt="" coords="578,48,718,164,712,163,576,53"/>
-<area shape="rect" id="Node000009" href="$Lr2SkinClock_8h.html" title=" " alt="" coords="5,174,123,201"/>
-<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="435,41,270,65,195,81,143,100,107,129,81,162,77,159,104,125,140,96,193,76,269,60,439,38"/>
-<area shape="rect" id="Node000003" href="$Lr2SelectVisualState_8h.html" title=" " alt="" coords="248,174,416,201"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="453,125,372,169,370,164,448,127"/>
-<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="360,123,297,143,266,157,238,176,214,204,199,237,195,233,210,201,234,172,263,153,295,138,365,121"/>
-<area shape="poly" id="edge8_Node000002_Node000005" title=" " alt="" coords="489,124,503,141,514,160,519,182,513,203,487,229,454,246,452,241,484,225,508,200,514,182,509,162,499,143,487,129"/>
-<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="503,124,589,167,584,167,502,129"/>
-<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="524,124,692,171,687,172,523,129"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="440,174,498,201"/>
-<area shape="poly" id="edge9_Node000002_Node000008" title=" " alt="" coords="477,124,474,160,470,156,473,128"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="309,201,229,245,227,240,304,202"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="337,200,347,236,342,233,334,204"/>
-<area shape="poly" id="edge11_Node000009_Node000004" title=" " alt="" coords="87,199,157,240,152,243,86,204"/>
-<area shape="poly" id="edge13_Node000009_Node000005" title=" " alt="" coords="116,199,287,243,284,247,115,205"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="29,249,99,277"/>
-<area shape="poly" id="edge12_Node000009_Node000010" title=" " alt="" coords="66,200,67,234,61,233,62,204"/>
+<area shape="rect" id="node1" title=" " alt="" coords="439,5,666,47"/>
+<area shape="rect" id="node2" href="$Lr2SelectNavigationController_8h.html" title=" " alt="" coords="363,95,591,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="154,244,229,271"/>
+<area shape="rect" id="node5" title=" " alt="" coords="261,244,449,271"/>
+<area shape="rect" id="node6" title=" " alt="" coords="575,169,682,196"/>
+<area shape="rect" id="node7" title=" " alt="" coords="707,169,785,196"/>
+<area shape="rect" id="node9" href="$Lr2SkinClock_8h.html" title=" " alt="" coords="5,169,124,196"/>
+<area shape="rect" id="node3" href="$Lr2SelectVisualState_8h.html" title=" " alt="" coords="250,169,418,196"/>
+<area shape="rect" id="node8" title=" " alt="" coords="442,169,501,196"/>
+<area shape="rect" id="node10" title=" " alt="" coords="29,244,100,271"/>
 </map>

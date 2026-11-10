@@ -1,5 +1,4 @@
 <map id="Lr2GameplayJudgeState" name="Lr2GameplayJudgeState">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,184,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="58,5,131,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,47,97,82,92,80,93,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,184,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="57,5,132,32"/>
 </map>

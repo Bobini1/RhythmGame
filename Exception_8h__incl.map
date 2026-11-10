@@ -1,9 +1,6 @@
 <map id="src/support/Exception.h" name="src/support/Exception.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="57,5,231,33"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,91,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,33,79,74,76,69,124,34"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="115,81,173,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="146,32,146,66,142,64,142,36"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="197,81,256,109"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="160,31,203,71,198,71,158,36"/>
+<area shape="rect" id="node1" title=" " alt="" coords="59,5,233,32"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,80,92,107"/>
+<area shape="rect" id="node3" title=" " alt="" coords="117,80,175,107"/>
+<area shape="rect" id="node4" title=" " alt="" coords="200,80,260,107"/>
 </map>

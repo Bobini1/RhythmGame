@@ -1,24 +1,13 @@
 <map id="src/gameplay_logic/lr2_skin/Lr2SkinModel.h" name="src/gameplay_logic/lr2_skin/Lr2SkinModel.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="200,5,380,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,154,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,53,129,94,126,90,236,49"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="178,98,304,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="279,49,258,86,255,83,275,52"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="268,174,323,201"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="302,48,318,98,318,130,309,161,305,157,313,129,313,98,299,52"/>
-<area shape="rect" id="Node000005" href="$Lr2SkinParser_8h.html" title=" " alt="" coords="466,98,586,126"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="353,48,477,92,472,93,352,53"/>
-<area shape="poly" id="edge7_Node000005_Node000004" title=" " alt="" coords="487,126,338,175,337,170,482,127"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="346,174,416,201"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="503,126,421,169,419,164,498,127"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="440,174,517,201"/>
-<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="520,125,496,163,493,158,515,127"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="540,174,600,201"/>
-<area shape="poly" id="edge8_Node000005_Node000008" title=" " alt="" coords="535,124,557,161,552,159,533,129"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="624,174,719,201"/>
-<area shape="poly" id="edge9_Node000005_Node000009" title=" " alt="" coords="553,124,635,167,629,166,552,129"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="743,174,843,201"/>
-<area shape="poly" id="edge10_Node000005_Node000010" title=" " alt="" coords="574,124,734,169,728,169,573,129"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="867,174,943,201"/>
-<area shape="poly" id="edge11_Node000005_Node000011" title=" " alt="" coords="587,120,854,173,849,173,586,126"/>
+<area shape="rect" id="node1" title=" " alt="" coords="203,5,384,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,95,155,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="179,95,306,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="271,169,326,196"/>
+<area shape="rect" id="node5" href="$Lr2SkinParser_8h.html" title=" " alt="" coords="471,95,593,121"/>
+<area shape="rect" id="node6" title=" " alt="" coords="350,169,421,196"/>
+<area shape="rect" id="node7" title=" " alt="" coords="445,169,523,196"/>
+<area shape="rect" id="node8" title=" " alt="" coords="547,169,607,196"/>
+<area shape="rect" id="node9" title=" " alt="" coords="631,169,726,196"/>
+<area shape="rect" id="node10" title=" " alt="" coords="751,169,852,196"/>
+<area shape="rect" id="node11" title=" " alt="" coords="876,169,953,196"/>
 </map>

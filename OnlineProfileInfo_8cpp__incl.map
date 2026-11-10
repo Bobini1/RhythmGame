@@ -1,7 +1,5 @@
 <map id="src/qml_components/OnlineProfileInfo.cpp" name="src/qml_components/OnlineProfileInfo.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,166,50"/>
-<area shape="rect" id="Node000002" href="$OnlineProfileInfo_8h.html" title=" " alt="" coords="15,98,156,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="86,48,88,83,83,82,85,53"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="49,174,122,201"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="87,124,88,159,83,157,84,128"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,167,47"/>
+<area shape="rect" id="node2" href="$OnlineProfileInfo_8h.html" title=" " alt="" coords="15,95,157,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="49,169,123,196"/>
 </map>

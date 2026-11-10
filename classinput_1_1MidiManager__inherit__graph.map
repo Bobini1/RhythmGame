@@ -1,5 +1,4 @@
 <map id="input::MidiManager" name="input::MidiManager">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,153,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="42,5,116,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,47,82,81,76,80,77,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,153,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="42,5,117,32"/>
 </map>

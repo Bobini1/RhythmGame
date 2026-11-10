@@ -1,27 +1,15 @@
 <map id="src/sounds/SlicedSoundBuffer.cpp" name="src/sounds/SlicedSoundBuffer.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="358,5,597,33"/>
-<area shape="rect" id="Node000002" href="$SlicedSoundBuffer_8h.html" title=" " alt="" coords="332,81,482,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="467,32,432,72,428,68,463,35"/>
-<area shape="rect" id="Node000013" title=" " alt="" coords="506,81,590,109"/>
-<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="491,31,528,70,523,70,490,36"/>
-<area shape="rect" id="Node000003" href="$SoundBuffer_8h.html" title=" " alt="" coords="293,157,404,184"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="398,107,370,146,366,143,395,111"/>
-<area shape="rect" id="Node000012" title=" " alt="" coords="428,157,504,184"/>
-<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="418,107,448,145,443,144,417,112"/>
-<area shape="rect" id="Node000004" href="$AudioEngine_8h.html" title=" " alt="" coords="130,232,244,260"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="317,186,230,228,228,223,322,183"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="268,232,330,260"/>
-<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="341,183,318,221,314,217,338,187"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="354,232,444,260"/>
-<area shape="poly" id="edge9_Node000003_Node000010" title=" " alt="" coords="358,182,384,220,379,219,357,187"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="468,232,520,260"/>
-<area shape="poly" id="edge10_Node000003_Node000011" title=" " alt="" coords="375,182,457,225,452,225,374,188"/>
-<area shape="rect" id="Node000005" href="$MiniaudioBackend_8h.html" title=" " alt="" coords="40,308,192,336"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="176,259,141,299,137,295,172,262"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="217,308,301,336"/>
-<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="201,258,238,297,233,297,199,263"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="5,384,105,411"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="108,335,77,374,74,370,103,337"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="128,384,227,411"/>
-<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="128,334,160,372,155,372,126,339"/>
+<area shape="rect" id="node1" title=" " alt="" coords="363,5,601,32"/>
+<area shape="rect" id="node2" href="$SlicedSoundBuffer_8h.html" title=" " alt="" coords="336,80,487,107"/>
+<area shape="rect" id="node13" title=" " alt="" coords="511,80,597,107"/>
+<area shape="rect" id="node3" href="$SoundBuffer_8h.html" title=" " alt="" coords="297,155,409,181"/>
+<area shape="rect" id="node12" title=" " alt="" coords="433,155,510,181"/>
+<area shape="rect" id="node4" href="$AudioEngine_8h.html" title=" " alt="" coords="131,229,246,256"/>
+<area shape="rect" id="node9" title=" " alt="" coords="271,229,333,256"/>
+<area shape="rect" id="node10" title=" " alt="" coords="358,229,449,256"/>
+<area shape="rect" id="node11" title=" " alt="" coords="473,229,526,256"/>
+<area shape="rect" id="node5" href="$MiniaudioBackend_8h.html" title=" " alt="" coords="40,304,193,331"/>
+<area shape="rect" id="node8" title=" " alt="" coords="218,304,303,331"/>
+<area shape="rect" id="node6" title=" " alt="" coords="5,379,105,405"/>
+<area shape="rect" id="node7" title=" " alt="" coords="130,379,229,405"/>
 </map>

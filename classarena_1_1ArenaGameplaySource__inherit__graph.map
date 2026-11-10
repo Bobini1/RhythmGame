@@ -1,7 +1,5 @@
 <map id="arena::ArenaGameplaySource" name="arena::ArenaGameplaySource">
-<area shape="rect" id="Node000001" title=" " alt="" coords="13,81,228,109"/>
-<area shape="rect" id="Node000003" href="$classarena_1_1QtArenaGameplaySource.html" title=" " alt="" coords="5,157,236,184"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="122,123,123,157,118,155,119,126"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="84,5,157,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,46,123,81,118,80,119,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="13,80,229,107"/>
+<area shape="rect" id="node3" href="$classarena_1_1QtArenaGameplaySource.html" title=" " alt="" coords="5,155,236,181"/>
+<area shape="rect" id="node2" title=" " alt="" coords="83,5,158,32"/>
 </map>

@@ -1,9 +1,6 @@
 <map id="gameplay_logic::Player" name="gameplay_logic::Player">
-<area shape="rect" id="Node000001" title="A player of a chart." alt="" coords="131,81,304,109"/>
-<area shape="rect" id="Node000003" href="$classgameplay__logic_1_1AutoPlayer.html" title="A player that plays automatically, hitting all notes perfectly." alt="" coords="5,157,209,184"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="188,117,128,159,125,154,183,118"/>
-<area shape="rect" id="Node000004" href="$classgameplay__logic_1_1RePlayer.html" title="A player that replays a recorded score." alt="" coords="233,157,424,184"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="251,115,311,156,306,156,249,120"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="181,5,254,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,47,220,82,215,79,216,51"/>
+<area shape="rect" id="node1" title="A player of a chart." alt="" coords="131,80,305,107"/>
+<area shape="rect" id="node3" href="$classgameplay__logic_1_1AutoPlayer.html" title="A player that plays automatically, hitting all notes perfectly." alt="" coords="5,155,209,181"/>
+<area shape="rect" id="node4" href="$classgameplay__logic_1_1RePlayer.html" title="A player that replays a recorded score." alt="" coords="233,155,424,181"/>
+<area shape="rect" id="node2" title=" " alt="" coords="181,5,255,32"/>
 </map>

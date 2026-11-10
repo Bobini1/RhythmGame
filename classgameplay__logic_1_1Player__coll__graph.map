@@ -1,5 +1,4 @@
 <map id="gameplay_logic::Player" name="gameplay_logic::Player">
-<area shape="rect" id="Node000001" title="A player of a chart." alt="" coords="5,81,179,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="55,5,129,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,47,94,82,90,80,90,51"/>
+<area shape="rect" id="node1" title="A player of a chart." alt="" coords="5,80,180,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="55,5,130,32"/>
 </map>

@@ -1,7 +1,5 @@
 <map id="src/support/TupleSize.h" name="src/support/TupleSize.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="78,5,248,33"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,183,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,32,118,72,115,67,149,35"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="207,81,261,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="177,31,214,70,208,70,175,36"/>
+<area shape="rect" id="node1" title=" " alt="" coords="80,5,251,32"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,80,184,107"/>
+<area shape="rect" id="node3" title=" " alt="" coords="209,80,263,107"/>
 </map>

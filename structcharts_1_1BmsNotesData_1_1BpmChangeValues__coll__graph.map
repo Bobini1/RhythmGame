@@ -1,5 +1,4 @@
 <map id="charts::BmsNotesData::BpmChangeValues" name="charts::BmsNotesData::BpmChangeValues">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,123,173,168"/>
-<area shape="rect" id="Node000002" href="$structcharts_1_1BmsNotesData_1_1Time.html" title=" " alt="" coords="5,5,173,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,64,92,123,86,122,87,68"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,109,173,151"/>
+<area shape="rect" id="node2" href="$structcharts_1_1BmsNotesData_1_1Time.html" title=" " alt="" coords="5,5,173,47"/>
 </map>

@@ -1,13 +1,8 @@
 <map id="RhythmGameQml/Lr2/Lr2BlendSprite.h" name="RhythmGameQml/Lr2/Lr2BlendSprite.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="134,5,358,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,71,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,53,86,94,84,89,190,48"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="95,98,173,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="219,50,165,91,163,86,214,51"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="197,98,295,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="248,48,248,84,244,81,244,52"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="320,98,388,126"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="275,48,327,88,322,88,274,53"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="412,98,600,126"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="315,48,453,93,447,93,315,53"/>
+<area shape="rect" id="node1" title=" " alt="" coords="137,5,361,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,95,72,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="97,95,175,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="200,95,299,121"/>
+<area shape="rect" id="node5" title=" " alt="" coords="323,95,392,121"/>
+<area shape="rect" id="node6" title=" " alt="" coords="417,95,605,121"/>
 </map>

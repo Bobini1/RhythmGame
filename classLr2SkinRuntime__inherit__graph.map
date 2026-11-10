@@ -1,5 +1,4 @@
 <map id="Lr2SkinRuntime" name="Lr2SkinRuntime">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,130,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="31,5,104,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="69,47,70,81,65,80,66,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,131,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="31,5,105,32"/>
 </map>

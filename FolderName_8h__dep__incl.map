@@ -1,9 +1,6 @@
 <map id="src/support/FolderName.h" name="src/support/FolderName.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="240,5,429,33"/>
-<area shape="rect" id="Node000002" href="$Lr2SelectItemModel_8cpp.html" title=" " alt="" coords="5,81,232,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="288,38,177,83,175,78,283,40"/>
-<area shape="rect" id="Node000003" href="$QmlUtils_8cpp.html" title=" " alt="" coords="256,81,413,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="336,47,337,82,332,79,333,51"/>
-<area shape="rect" id="Node000004" href="$ChartFolderModel_8cpp.html" title=" " alt="" coords="436,81,609,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="379,37,475,80,470,80,378,42"/>
+<area shape="rect" id="node1" title=" " alt="" coords="179,5,368,32"/>
+<area shape="rect" id="node2" href="$QmlUtils_8cpp.html" title=" " alt="" coords="5,80,163,121"/>
+<area shape="rect" id="node3" href="$ChartFolderModel_8cpp.html" title=" " alt="" coords="187,80,360,121"/>
+<area shape="rect" id="node4" href="$Lr2SelectItemModel_8cpp.html" title=" " alt="" coords="384,80,611,121"/>
 </map>

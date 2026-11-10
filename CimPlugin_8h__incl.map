@@ -1,5 +1,4 @@
 <map id="src/cimplugin/CimPlugin.h" name="src/cimplugin/CimPlugin.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,196,33"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="37,81,164,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,32,103,66,98,64,99,36"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,196,32"/>
+<area shape="rect" id="node2" title=" " alt="" coords="37,80,164,107"/>
 </map>

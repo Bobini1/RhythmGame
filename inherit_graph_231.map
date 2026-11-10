@@ -1,3 +1,114 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classqml__components_1_1OnlineProfileInfo.html" title=" " alt="" coords="5,5,255,33"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,13,187,39"/>
+<area shape="rect" id="node2" href="$classqml__components_1_1RootSongFolder.html" title=" " alt="" coords="260,5,464,47"/>
+<area shape="rect" id="node3" title=" " alt="" coords="59,2626,133,2653"/>
+<area shape="rect" id="node4" href="$classFontResolver.html" title=" " alt="" coords="309,71,415,98"/>
+<area shape="rect" id="node5" href="$classLr2AnimationFrameState.html" title=" " alt="" coords="270,122,454,149"/>
+<area shape="rect" id="node6" href="$classLr2BarBaseStateResolver.html" title=" " alt="" coords="269,173,455,199"/>
+<area shape="rect" id="node7" href="$classLr2BarInterpolatedState.html" title=" " alt="" coords="273,223,451,250"/>
+<area shape="rect" id="node8" href="$classLr2BarPositionMap.html" title=" " alt="" coords="290,274,434,301"/>
+<area shape="rect" id="node9" href="$classLr2ChartDataSnapshot.html" title=" " alt="" coords="278,325,446,351"/>
+<area shape="rect" id="node10" href="$classLr2GameplayFrameState.html" title=" " alt="" coords="270,375,454,402"/>
+<area shape="rect" id="node11" href="$classLr2GameplayJudgeState.html" title=" " alt="" coords="273,426,451,453"/>
+<area shape="rect" id="node12" href="$classLr2ResolvedText.html" title=" " alt="" coords="297,477,427,503"/>
+<area shape="rect" id="node13" href="$classLr2ResolvedTextRegistry.html" title=" " alt="" coords="271,527,453,554"/>
+<area shape="rect" id="node14" href="$classLr2SelectBarCell.html" title=" " alt="" coords="297,578,427,605"/>
+<area shape="rect" id="node15" href="$classLr2SelectDetailState.html" title=" " alt="" coords="285,629,439,655"/>
+<area shape="rect" id="node16" href="$classLr2SelectInfoTimerBridge.html" title=" " alt="" coords="269,679,455,706"/>
+<area shape="rect" id="node17" href="$classLr2SelectKeyNavigationFilter.html" title=" " alt="" coords="257,730,467,757"/>
+<area shape="rect" id="node18" href="$classLr2SelectNavigationController.html" title=" " alt="" coords="253,781,471,807"/>
+<area shape="rect" id="node19" href="$classLr2SelectScoreCounts.html" title=" " alt="" coords="281,831,443,858"/>
+<area shape="rect" id="node20" href="$classLr2SelectScoreStats.html" title=" " alt="" coords="287,882,437,909"/>
+<area shape="rect" id="node21" href="$classLr2SelectScoreSummary.html" title=" " alt="" coords="271,933,453,959"/>
+<area shape="rect" id="node22" href="$classLr2SelectUpdateController.html" title=" " alt="" coords="265,983,459,1010"/>
+<area shape="rect" id="node23" href="$classLr2SelectVisualState.html" title=" " alt="" coords="284,1034,440,1061"/>
+<area shape="rect" id="node24" href="$classLr2SkinClock.html" title=" " alt="" coords="309,1085,415,1111"/>
+<area shape="rect" id="node25" href="$classLr2SkinElementActiveOptionsState.html" title=" " alt="" coords="255,1136,469,1177"/>
+<area shape="rect" id="node26" href="$classLr2SkinElementNumberState.html" title=" " alt="" coords="257,1202,467,1229"/>
+<area shape="rect" id="node27" href="$classLr2SkinElementTimerState.html" title=" " alt="" coords="264,1253,460,1279"/>
+<area shape="rect" id="node28" href="$classLr2SkinFrameDriver.html" title=" " alt="" coords="287,1303,437,1330"/>
+<area shape="rect" id="node29" href="$classLr2SkinOptionRules.html" title=" " alt="" coords="287,1354,437,1381"/>
+<area shape="rect" id="node30" href="$classLr2SkinRuntime.html" title=" " alt="" coords="299,1405,425,1431"/>
+<area shape="rect" id="node31" href="$classLr2SkinSliderGeometry.html" title=" " alt="" coords="276,1455,448,1482"/>
+<area shape="rect" id="node32" href="$classLr2SkinTimerState.html" title=" " alt="" coords="291,1506,433,1533"/>
+<area shape="rect" id="node33" href="$classLr2TimelineFrameState.html" title=" " alt="" coords="275,1557,449,1583"/>
+<area shape="rect" id="node34" href="$classLr2TimelineState.html" title=" " alt="" coords="295,1607,429,1634"/>
+<area shape="rect" id="node35" href="$classRg.html" title="The main singleton class that provides access to various components of the application." alt="" coords="343,1658,381,1685"/>
+<area shape="rect" id="node36" href="$classarena_1_1ArenaAvailabilityIndex.html" title=" " alt="" coords="273,1709,451,1751"/>
+<area shape="rect" id="node37" href="$classarena_1_1ArenaGameplaySource.html" title=" " alt="" coords="254,1775,470,1802"/>
+<area shape="rect" id="node39" href="$classarena_1_1ArenaIdentityProvider.html" title=" " alt="" coords="257,1826,467,1853"/>
+<area shape="rect" id="node41" href="$classarena_1_1ArenaInventorySource.html" title=" " alt="" coords="257,1877,467,1903"/>
+<area shape="rect" id="node43" href="$classarena_1_1ArenaOpponentTarget.html" title=" " alt="" coords="258,1927,466,1954"/>
+<area shape="rect" id="node44" href="$classarena_1_1ArenaResultModel.html" title=" " alt="" coords="269,1978,455,2005"/>
+<area shape="rect" id="node45" href="$classarena_1_1ArenaRoundLoader.html" title=" " alt="" coords="267,2029,457,2055"/>
+<area shape="rect" id="node47" href="$classarena_1_1ArenaScheduler.html" title=" " alt="" coords="277,2079,447,2106"/>
+<area shape="rect" id="node49" href="$classarena_1_1ArenaSession.html" title=" " alt="" coords="285,2130,439,2157"/>
+<area shape="rect" id="node50" href="$classarena_1_1ArenaTransport.html" title=" " alt="" coords="279,2181,445,2207"/>
+<area shape="rect" id="node52" href="$classgameplay__logic_1_1BmsGaugeHistory.html" title="The history of all gauges used in a BMS score." alt="" coords="260,2232,464,2273"/>
+<area shape="rect" id="node53" href="$classgameplay__logic_1_1BmsLiveScore.html" title="The score that gets updated during gameplay." alt="" coords="249,2298,475,2325"/>
+<area shape="rect" id="node54" href="$classgameplay__logic_1_1BmsNotes.html" title=" " alt="" coords="262,2349,462,2375"/>
+<area shape="rect" id="node55" href="$classgameplay__logic_1_1BmsReplayData.html" title=" " alt="" coords="243,2399,481,2426"/>
+<area shape="rect" id="node56" href="$classgameplay__logic_1_1BmsResult.html" title="The aggregated info about a score." alt="" coords="261,2450,463,2477"/>
+<area shape="rect" id="node57" href="$classgameplay__logic_1_1BmsResultCourse.html" title=" " alt="" coords="261,2501,463,2543"/>
+<area shape="rect" id="node58" href="$classgameplay__logic_1_1BmsScore.html" title="The result of playing a chart." alt="" coords="263,2567,461,2594"/>
+<area shape="rect" id="node59" href="$classgameplay__logic_1_1BmsScoreCourse.html" title="The result of playing a course." alt="" coords="263,2619,461,2660"/>
+<area shape="rect" id="node60" href="$classgameplay__logic_1_1ChartData.html" title="Metadata and basic stats of a chart." alt="" coords="263,2685,461,2711"/>
+<area shape="rect" id="node61" href="$classgameplay__logic_1_1ChartRunner.html" title="The main class responsible for running a chart during gameplay." alt="" coords="255,2735,469,2762"/>
+<area shape="rect" id="node62" href="$classgameplay__logic_1_1CoursePlayer.html" title="Contains course&#45;related data for a player." alt="" coords="253,2786,471,2813"/>
+<area shape="rect" id="node63" href="$classgameplay__logic_1_1CourseRunner.html" title="Like a ChartRunner, but for courses." alt="" coords="250,2837,474,2863"/>
+<area shape="rect" id="node64" href="$classgameplay__logic_1_1GameplayState.html" title="The state of gameplay columns and barlines." alt="" coords="262,2888,462,2929"/>
+<area shape="rect" id="node65" href="$classgameplay__logic_1_1Player.html" title="A player of a chart." alt="" coords="275,2954,449,2981"/>
+<area shape="rect" id="node68" href="$classgameplay__logic_1_1rules_1_1BmsGauge.html" title=" " alt="" coords="279,3005,445,3047"/>
+<area shape="rect" id="node70" href="$classinput_1_1AnalogAxisConfig.html" title=" " alt="" coords="273,3071,451,3098"/>
+<area shape="rect" id="node71" href="$classinput_1_1GamepadManager.html" title=" " alt="" coords="271,3122,453,3149"/>
+<area shape="rect" id="node72" href="$classinput_1_1InputTranslator.html" title=" " alt="" coords="282,3173,442,3199"/>
+<area shape="rect" id="node73" href="$classinput_1_1MidiManager.html" title=" " alt="" coords="288,3223,436,3250"/>
+<area shape="rect" id="node74" href="$classqml__components_1_1BattleProfiles.html" title="The profiles used in battle mode." alt="" coords="247,3274,477,3301"/>
+<area shape="rect" id="node75" href="$classqml__components_1_1Bga.html" title="A single BGA layer." alt="" coords="279,3325,445,3351"/>
+<area shape="rect" id="node76" href="$classqml__components_1_1BgaContainer.html" title=" " alt="" coords="247,3375,477,3402"/>
+<area shape="rect" id="node77" href="$classqml__components_1_1ChartLoader.html" title="Loads charts and courses with the given parameters." alt="" coords="251,3426,473,3453"/>
+<area shape="rect" id="node78" href="$classqml__components_1_1FileQuery.html" title=" " alt="" coords="260,3477,464,3503"/>
+<area shape="rect" id="node79" href="$classqml__components_1_1InputAttached.html" title="The class that provides the Input attached property." alt="" coords="245,3527,479,3554"/>
+<area shape="rect" id="node80" href="$classqml__components_1_1Logger.html" title="Lets you access the entire log history of this session." alt="" coords="269,3578,455,3605"/>
+<area shape="rect" id="node81" href="$classqml__components_1_1OnlineScores.html" title=" " alt="" coords="249,3629,475,3655"/>
+<area shape="rect" id="node82" href="$classqml__components_1_1ProfileList.html" title="The list of local profiles." alt="" coords="259,3679,465,3706"/>
+<area shape="rect" id="node83" href="$classqml__components_1_1ProgramSettings.html" title=" " alt="" coords="237,3730,487,3757"/>
+<area shape="rect" id="node84" href="$classqml__components_1_1QmlUtilsAttached.html" title="Provides utility functions for QML as an attached property." alt="" coords="263,3781,461,3823"/>
+<area shape="rect" id="node85" href="$classqml__components_1_1RootSongFoldersConfig.html" title=" " alt="" coords="260,3847,464,3888"/>
+<area shape="rect" id="node86" href="$classqml__components_1_1ScoreDb.html" title="Provides cached results and asynchronous full scores for one profile." alt="" coords="264,3913,460,3939"/>
+<area shape="rect" id="node87" href="$classqml__components_1_1ScoreReplayer.html" title=" " alt="" coords="244,3963,480,3990"/>
+<area shape="rect" id="node88" href="$classqml__components_1_1ScoreSyncOperation.html" title=" " alt="" coords="257,4015,467,4056"/>
+<area shape="rect" id="node89" href="$classqml__components_1_1SongDirectoryFilePathFetcher.html" title=" " alt="" coords="245,4080,479,4121"/>
+<area shape="rect" id="node90" href="$classqml__components_1_1SongFolderFactory.html" title=" " alt="" coords="255,4145,469,4187"/>
+<area shape="rect" id="node91" href="$classqml__components_1_1TachiResolveHandle.html" title=" " alt="" coords="249,4211,475,4252"/>
+<area shape="rect" id="node92" href="$classqml__components_1_1Themes.html" title=" " alt="" coords="265,4277,459,4303"/>
+<area shape="rect" id="node93" href="$classresource__managers_1_1ArenaTicketOperation.html" title=" " alt="" coords="281,4328,443,4369"/>
+<area shape="rect" id="node94" href="$classresource__managers_1_1BackbeatCatalog.html" title=" " alt="" coords="283,4393,441,4435"/>
+<area shape="rect" id="node95" href="$classresource__managers_1_1ChartFactory.html" title=" " alt="" coords="283,4459,441,4500"/>
+<area shape="rect" id="node96" href="$classresource__managers_1_1ChartFolderModel.html" title=" " alt="" coords="283,4524,441,4565"/>
+<area shape="rect" id="node97" href="$classresource__managers_1_1GeneralVars.html" title="The general variables for the game that all screens and the engine should know about and respect...." alt="" coords="283,4589,441,4631"/>
+<area shape="rect" id="node98" href="$classresource__managers_1_1Languages.html" title="Manages the available languages and the selected language." alt="" coords="283,4655,441,4696"/>
+<area shape="rect" id="node99" href="$classresource__managers_1_1Profile.html" title=" " alt="" coords="283,4720,441,4761"/>
+<area shape="rect" id="node100" href="$classresource__managers_1_1SongAssetStore.html" title=" " alt="" coords="283,4785,441,4827"/>
+<area shape="rect" id="node101" href="$classresource__managers_1_1SoundTask.html" title=" " alt="" coords="283,4851,441,4892"/>
+<area shape="rect" id="node102" href="$classresource__managers_1_1Vars.html" title=" " alt="" coords="269,4917,455,4943"/>
+<area shape="rect" id="node103" href="$classrhythm__game__qml_1_1CourseResultContext.html" title=" " alt="" coords="243,4968,481,5009"/>
+<area shape="rect" id="node104" href="$classrhythm__game__qml_1_1CourseResultPlayer.html" title=" " alt="" coords="243,5033,481,5075"/>
+<area shape="rect" id="node105" href="$classrhythm__game__qml_1_1GameplayContext.html" title=" " alt="" coords="252,5099,472,5140"/>
+<area shape="rect" id="node106" href="$classrhythm__game__qml_1_1ResultContext.html" title=" " alt="" coords="239,5165,485,5191"/>
+<area shape="rect" id="node107" href="$classrhythm__game__qml_1_1ResultPlayer.html" title=" " alt="" coords="245,5215,479,5242"/>
+<area shape="rect" id="node108" href="$classrhythm__game__qml_1_1ScreenContexts.html" title=" " alt="" coords="235,5266,489,5293"/>
+<area shape="rect" id="node109" href="$classsounds_1_1AudioEngine.html" title=" " alt="" coords="283,5317,441,5343"/>
+<area shape="rect" id="node110" href="$classsounds_1_1AudioPlayer.html" title=" " alt="" coords="285,5367,439,5394"/>
+<area shape="rect" id="node111" href="$classsounds_1_1ChartAudioPlayer.html" title=" " alt="" coords="267,5418,457,5445"/>
+<area shape="rect" id="node112" href="$classsupport_1_1PendingReply.html" title="QML&#45;facing handle for one asynchronous result." alt="" coords="278,5469,446,5495"/>
+<area shape="rect" id="node38" href="$classarena_1_1QtArenaGameplaySource.html" title=" " alt="" coords="547,1767,778,1794"/>
+<area shape="rect" id="node40" href="$classarena_1_1ProfileArenaIdentityProvider.html" title=" " alt="" coords="565,1819,761,1860"/>
+<area shape="rect" id="node42" href="$classarena_1_1SqliteArenaInventorySource.html" title=" " alt="" coords="561,1884,765,1925"/>
+<area shape="rect" id="node46" href="$classarena_1_1QtArenaRoundLoader.html" title=" " alt="" coords="560,2029,765,2055"/>
+<area shape="rect" id="node48" href="$classarena_1_1QtArenaScheduler.html" title=" " alt="" coords="571,2079,755,2106"/>
+<area shape="rect" id="node51" href="$classarena_1_1QtWebSocketArenaTransport.html" title=" " alt="" coords="537,2181,788,2207"/>
+<area shape="rect" id="node66" href="$classgameplay__logic_1_1AutoPlayer.html" title="A player that plays automatically, hitting all notes perfectly." alt="" coords="561,2903,765,2930"/>
+<area shape="rect" id="node67" href="$classgameplay__logic_1_1RePlayer.html" title="A player that replays a recorded score." alt="" coords="567,2954,758,2981"/>
+<area shape="rect" id="node69" href="$classgameplay__logic_1_1rules_1_1Lr2Gauge.html" title=" " alt="" coords="580,3005,745,3047"/>
 </map>

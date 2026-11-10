@@ -1,11 +1,6 @@
 <map id="sounds::AudioPlayer" name="sounds::AudioPlayer">
-<area shape="rect" id="Node000001" title=" " alt="" coords="26,200,179,228"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="66,5,139,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="54,43,33,60,14,84,8,104,14,126,28,148,45,168,83,198,78,201,41,172,23,151,9,128,3,104,10,81,29,57,57,38"/>
-<area shape="rect" id="Node000003" href="$classsounds_1_1AudioEngine.html" title=" " alt="" coords="24,91,181,118"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="104,46,105,91,100,90,102,51"/>
-<area shape="rect" id="Node000004" href="$classresource__managers_1_1SongAssetStore.html" title=" " alt="" coords="205,82,363,127"/>
-<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="145,37,239,81,234,83,145,43"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="105,133,105,200,100,199,100,136"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="237,136,126,202,124,197,232,134"/>
+<area shape="rect" id="node1" title=" " alt="" coords="25,185,180,212"/>
+<area shape="rect" id="node2" title=" " alt="" coords="65,5,140,32"/>
+<area shape="rect" id="node3" href="$classsounds_1_1AudioEngine.html" title=" " alt="" coords="24,89,181,115"/>
+<area shape="rect" id="node4" href="$classresource__managers_1_1SongAssetStore.html" title=" " alt="" coords="206,81,364,123"/>
 </map>

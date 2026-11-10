@@ -1,7 +1,5 @@
 <map id="src/sounds/MultiSound.h" name="src/sounds/MultiSound.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="106,5,285,33"/>
-<area shape="rect" id="Node000002" href="$loadBmsSounds_8cpp.html" title=" " alt="" coords="5,81,178,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,42,121,83,118,78,164,44"/>
-<area shape="rect" id="Node000003" href="$MultiSound_8cpp.html" title=" " alt="" coords="202,90,397,117"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="225,41,285,89,280,89,223,46"/>
+<area shape="rect" id="node1" title=" " alt="" coords="106,5,286,32"/>
+<area shape="rect" id="node2" href="$loadBmsSounds_8cpp.html" title=" " alt="" coords="5,80,179,121"/>
+<area shape="rect" id="node3" href="$MultiSound_8cpp.html" title=" " alt="" coords="203,87,397,114"/>
 </map>

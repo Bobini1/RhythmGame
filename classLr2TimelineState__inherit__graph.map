@@ -1,5 +1,4 @@
 <map id="Lr2TimelineState" name="Lr2TimelineState">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,138,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="35,5,108,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,47,74,81,69,80,70,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,139,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="35,5,109,32"/>
 </map>

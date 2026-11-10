@@ -1,5 +1,4 @@
 <map id="Lr2BarTextItem" name="Lr2BarTextItem">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,126,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="16,5,115,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="67,47,68,81,63,80,64,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,127,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="17,5,115,32"/>
 </map>

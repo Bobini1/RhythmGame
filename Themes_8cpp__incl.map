@@ -1,15 +1,9 @@
 <map id="src/qml_components/Themes.cpp" name="src/qml_components/Themes.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="112,5,268,50"/>
-<area shape="rect" id="Node000002" href="$Themes_8h.html" title=" " alt="" coords="99,98,184,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,48,159,86,155,83,176,53"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="208,98,267,126"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="203,48,225,84,220,84,202,53"/>
-<area shape="rect" id="Node000003" href="$ThemeFamily_8h.html" title=" " alt="" coords="14,174,133,201"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="128,128,98,164,94,160,131,124"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="157,174,262,201"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="154,124,190,162,185,162,153,129"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="5,249,65,277"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="69,200,51,237,47,234,65,204"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="88,249,139,277"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="82,200,102,236,97,236,80,204"/>
+<area shape="rect" id="node1" title=" " alt="" coords="113,5,270,47"/>
+<area shape="rect" id="node2" href="$Themes_8h.html" title=" " alt="" coords="100,95,187,121"/>
+<area shape="rect" id="node7" title=" " alt="" coords="211,95,271,121"/>
+<area shape="rect" id="node3" href="$ThemeFamily_8h.html" title=" " alt="" coords="15,169,135,196"/>
+<area shape="rect" id="node6" title=" " alt="" coords="159,169,266,196"/>
+<area shape="rect" id="node4" title=" " alt="" coords="5,244,65,271"/>
+<area shape="rect" id="node5" title=" " alt="" coords="90,244,141,271"/>
 </map>

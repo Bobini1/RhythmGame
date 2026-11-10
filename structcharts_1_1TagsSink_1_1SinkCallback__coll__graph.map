@@ -1,5 +1,4 @@
 <map id="charts::TagsSink::SinkCallback" name="charts::TagsSink::SinkCallback">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,123,224,151"/>
-<area shape="rect" id="Node000002" href="$structcharts_1_1ParsedBmsChart_1_1Tags.html" title="Tags that a BMS chart can have." alt="" coords="26,5,203,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,64,117,124,112,122,112,67"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,109,224,136"/>
+<area shape="rect" id="node2" href="$structcharts_1_1ParsedBmsChart_1_1Tags.html" title="Tags that a BMS chart can have." alt="" coords="26,5,203,47"/>
 </map>

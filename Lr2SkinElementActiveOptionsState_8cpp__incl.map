@@ -1,13 +1,8 @@
 <map id="RhythmGameQml/Lr2/Lr2SkinElementActiveOptionsState.cpp" name="RhythmGameQml/Lr2/Lr2SkinElementActiveOptionsState.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="59,5,286,50"/>
-<area shape="rect" id="Node000002" href="$Lr2SkinElementActiveOptionsState_8h.html" title=" " alt="" coords="66,98,280,143"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,48,175,84,170,82,171,53"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,191,79,218"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="141,143,77,184,74,180,135,144"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="102,191,155,218"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="163,142,145,178,141,175,159,145"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="179,191,257,218"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="186,141,206,178,201,176,183,145"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="280,191,468,218"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="227,141,330,184,325,185,226,146"/>
+<area shape="rect" id="node1" title=" " alt="" coords="62,5,290,47"/>
+<area shape="rect" id="node2" href="$Lr2SkinElementActiveOptionsState_8h.html" title=" " alt="" coords="69,95,283,136"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,184,80,211"/>
+<area shape="rect" id="node4" title=" " alt="" coords="104,184,157,211"/>
+<area shape="rect" id="node5" title=" " alt="" coords="182,184,261,211"/>
+<area shape="rect" id="node6" title=" " alt="" coords="285,184,473,211"/>
 </map>

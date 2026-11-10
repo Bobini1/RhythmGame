@@ -1,5 +1,4 @@
 <map id="src/gameplay_logic/TimePoint.h" name="src/gameplay_logic/TimePoint.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,153,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="46,98,112,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,48,82,83,76,82,77,52"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,153,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="46,95,113,121"/>
 </map>

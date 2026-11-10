@@ -1,5 +1,4 @@
 <map id="sounds::NormalSoundBuffer" name="sounds::NormalSoundBuffer">
-<area shape="rect" id="Node000001" title="A buffer that can be used to create sounds. Wraps an buffer." alt="" coords="5,81,208,109"/>
-<area shape="rect" id="Node000002" href="$classsounds_1_1SoundBuffer.html" title="A buffer that can be used to create sounds. Wraps an buffer." alt="" coords="29,5,184,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,47,109,82,104,79,105,51"/>
+<area shape="rect" id="node1" title="A buffer that can be used to create sounds. Wraps an buffer." alt="" coords="5,80,208,107"/>
+<area shape="rect" id="node2" href="$classsounds_1_1SoundBuffer.html" title="A buffer that can be used to create sounds. Wraps an buffer." alt="" coords="29,5,184,32"/>
 </map>

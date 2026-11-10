@@ -1,17 +1,10 @@
 <map id="src/qml_components/ScoreSyncOperation.h" name="src/qml_components/ScoreSyncOperation.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="288,5,457,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,79,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="289,52,94,100,93,95,288,47"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="103,98,226,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="320,50,213,94,211,89,315,51"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="250,98,303,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="350,49,305,90,302,85,345,51"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="326,98,419,126"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="375,48,375,84,371,81,371,52"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="444,98,510,126"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="401,48,451,89,446,88,399,53"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="534,98,620,126"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="427,48,532,92,527,92,426,53"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="644,98,781,126"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="457,47,646,94,641,94,457,52"/>
+<area shape="rect" id="node1" title=" " alt="" coords="293,5,462,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,95,80,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="105,95,229,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="253,95,307,121"/>
+<area shape="rect" id="node5" title=" " alt="" coords="331,95,424,121"/>
+<area shape="rect" id="node6" title=" " alt="" coords="448,95,515,121"/>
+<area shape="rect" id="node7" title=" " alt="" coords="539,95,626,121"/>
+<area shape="rect" id="node8" title=" " alt="" coords="651,95,789,121"/>
 </map>

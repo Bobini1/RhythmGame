@@ -1,5 +1,4 @@
 <map id="qml_components::Bga" name="qml_components::Bga">
-<area shape="rect" id="Node000001" title="A single BGA layer." alt="" coords="5,81,172,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="52,5,125,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,47,91,82,86,80,87,51"/>
+<area shape="rect" id="node1" title="A single BGA layer." alt="" coords="5,80,172,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="51,5,126,32"/>
 </map>

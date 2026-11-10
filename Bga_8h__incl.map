@@ -1,13 +1,8 @@
 <map id="src/qml_components/Bga.h" name="src/qml_components/Bga.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="223,5,380,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,102,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,53,108,95,107,90,235,48"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="125,98,238,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="273,50,214,91,212,87,267,51"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="261,98,342,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="303,48,304,84,299,81,300,52"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="366,98,475,126"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="333,48,391,89,386,89,332,53"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="498,98,585,126"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="366,48,491,92,486,93,365,53"/>
+<area shape="rect" id="node1" title=" " alt="" coords="226,5,383,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,95,103,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="127,95,240,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="264,95,345,121"/>
+<area shape="rect" id="node5" title=" " alt="" coords="369,95,480,121"/>
+<area shape="rect" id="node6" title=" " alt="" coords="504,95,591,121"/>
 </map>

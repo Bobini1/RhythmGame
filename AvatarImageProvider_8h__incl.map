@@ -1,7 +1,5 @@
 <map id="src/resource_managers/AvatarImageProvider.h" name="src/resource_managers/AvatarImageProvider.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="75,5,248,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,169,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,49,111,88,108,84,140,52"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="193,98,282,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="183,48,218,87,213,86,181,53"/>
+<area shape="rect" id="node1" title=" " alt="" coords="76,5,251,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,95,169,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="194,95,285,121"/>
 </map>

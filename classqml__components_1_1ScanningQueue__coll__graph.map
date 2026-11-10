@@ -1,5 +1,4 @@
 <map id="qml_components::ScanningQueue" name="qml_components::ScanningQueue">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,206,126"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="31,5,180,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,47,108,81,103,79,104,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,207,121"/>
+<area shape="rect" id="node2" title=" " alt="" coords="31,5,181,32"/>
 </map>

@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structrhythm__game__qml_1_1VarsForeign.html" title=" " alt="" coords="5,5,234,33"/>
+<area shape="rect" id="node1" href="$classsounds_1_1Sound.html" title="A sound that can be played." alt="" coords="5,31,121,57"/>
+<area shape="rect" id="node2" href="$classsounds_1_1MultiSound.html" title="A sound that plays multiple underlying sounds simultaneously." alt="" coords="177,5,326,32"/>
+<area shape="rect" id="node3" href="$classsounds_1_1NormalSound.html" title=" " alt="" coords="169,56,333,83"/>
 </map>

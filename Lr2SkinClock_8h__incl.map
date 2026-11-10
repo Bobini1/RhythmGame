@@ -1,9 +1,6 @@
 <map id="RhythmGameQml/Lr2/Lr2SkinClock.h" name="RhythmGameQml/Lr2/Lr2SkinClock.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="31,5,245,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,79,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,49,71,90,67,85,110,51"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="103,98,173,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="140,48,140,84,136,81,136,52"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="196,98,384,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="179,48,255,90,250,91,178,53"/>
+<area shape="rect" id="node1" title=" " alt="" coords="33,5,247,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,95,80,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="105,95,175,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="199,95,387,121"/>
 </map>

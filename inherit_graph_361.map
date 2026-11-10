@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structsounds_1_1AudioEngine_1_1DeviceId.html" title=" " alt="" coords="5,5,162,50"/>
+<area shape="rect" id="node1" href="$classsounds_1_1SoundBuffer.html" title="A buffer that can be used to create sounds. Wraps an buffer." alt="" coords="5,31,160,57"/>
+<area shape="rect" id="node2" href="$classsounds_1_1NormalSoundBuffer.html" title="A buffer that can be used to create sounds. Wraps an buffer." alt="" coords="208,5,411,32"/>
+<area shape="rect" id="node3" href="$classsounds_1_1SlicedSoundBuffer.html" title="A view into a subsection of an existing SoundBuffer." alt="" coords="212,56,407,83"/>
 </map>

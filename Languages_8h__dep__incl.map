@@ -1,17 +1,9 @@
 <map id="src/resource_managers/Languages.h" name="src/resource_managers/Languages.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="297,5,470,50"/>
-<area shape="rect" id="Node000002" href="$QmlForeignTypes_8h.html" title=" " alt="" coords="5,98,223,143"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="302,57,179,100,177,95,307,54"/>
-<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="184,191,289,218"/>
-<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="333,57,309,79,288,100,272,123,259,148,242,192,238,188,254,146,267,120,284,96,306,75,329,60"/>
-<area shape="rect" id="Node000004" href="$Rg_8h.html" title=" " alt="" coords="298,106,469,134"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="385,64,386,107,381,105,382,68"/>
-<area shape="rect" id="Node000006" href="$Languages_8cpp.html" title=" " alt="" coords="493,98,666,143"/>
-<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="445,54,535,97,530,98,444,60"/>
-<area shape="rect" id="Node000007" href="$ScanThemes_8cpp.html" title=" " alt="" coords="689,98,862,143"/>
-<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="485,50,691,99,686,100,485,55"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="160,149,220,190,214,190,158,154"/>
-<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="349,142,261,193,259,188,344,143"/>
-<area shape="rect" id="Node000005" href="$Rg_8cpp.html" title=" " alt="" coords="313,191,499,218"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="393,147,405,192,400,189,389,151"/>
+<area shape="rect" id="node1" title=" " alt="" coords="229,5,403,47"/>
+<area shape="rect" id="node2" href="$main_8cpp.html" title=" " alt="" coords="483,184,589,211"/>
+<area shape="rect" id="node3" href="$Languages_8cpp.html" title=" " alt="" coords="32,95,205,136"/>
+<area shape="rect" id="node4" href="$ScanThemes_8cpp.html" title=" " alt="" coords="229,95,403,136"/>
+<area shape="rect" id="node5" href="$QmlForeignTypes_8h.html" title=" " alt="" coords="427,95,645,136"/>
+<area shape="rect" id="node6" href="$Rg_8h.html" title=" " alt="" coords="670,102,842,129"/>
+<area shape="rect" id="node7" href="$Rg_8cpp.html" title=" " alt="" coords="663,184,849,211"/>
 </map>

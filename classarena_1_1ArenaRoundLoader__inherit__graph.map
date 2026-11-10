@@ -1,7 +1,5 @@
 <map id="arena::ArenaRoundLoader" name="arena::ArenaRoundLoader">
-<area shape="rect" id="Node000001" title=" " alt="" coords="13,81,202,109"/>
-<area shape="rect" id="Node000003" href="$classarena_1_1QtArenaRoundLoader.html" title=" " alt="" coords="5,157,210,184"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="109,123,110,157,105,155,106,126"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="71,5,144,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,46,110,81,105,80,106,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="13,80,203,107"/>
+<area shape="rect" id="node3" href="$classarena_1_1QtArenaRoundLoader.html" title=" " alt="" coords="5,155,211,181"/>
+<area shape="rect" id="node2" title=" " alt="" coords="71,5,145,32"/>
 </map>

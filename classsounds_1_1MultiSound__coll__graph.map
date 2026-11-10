@@ -1,5 +1,4 @@
 <map id="sounds::MultiSound" name="sounds::MultiSound">
-<area shape="rect" id="Node000001" title="A sound that plays multiple underlying sounds simultaneously." alt="" coords="5,81,154,109"/>
-<area shape="rect" id="Node000002" href="$classsounds_1_1Sound.html" title="A sound that can be played." alt="" coords="22,5,137,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,47,82,81,77,80,78,51"/>
+<area shape="rect" id="node1" title="A sound that plays multiple underlying sounds simultaneously." alt="" coords="5,80,155,107"/>
+<area shape="rect" id="node2" href="$classsounds_1_1Sound.html" title="A sound that can be played." alt="" coords="22,5,138,32"/>
 </map>

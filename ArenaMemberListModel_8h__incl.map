@@ -1,21 +1,12 @@
 <map id="src/arena/ArenaMemberListModel.h" name="src/arena/ArenaMemberListModel.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="302,5,503,50"/>
-<area shape="rect" id="Node000002" href="$ArenaTypes_8h.html" title=" " alt="" coords="272,98,381,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="385,49,351,89,348,84,380,52"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="404,98,553,126"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="423,48,459,87,454,86,422,53"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,174,75,201"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="274,129,90,175,89,170,273,124"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="99,174,192,201"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="297,126,192,170,191,165,292,127"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="216,174,266,201"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="314,125,269,166,267,161,309,127"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="290,174,363,201"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="329,124,329,160,325,156,325,128"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="387,174,461,201"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="345,124,398,165,392,164,343,129"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="484,174,558,201"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="362,124,475,168,470,168,361,129"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="582,174,650,201"/>
-<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="381,124,570,172,565,173,381,129"/>
+<area shape="rect" id="node1" title=" " alt="" coords="305,5,507,47"/>
+<area shape="rect" id="node2" href="$ArenaTypes_8h.html" title=" " alt="" coords="275,95,385,121"/>
+<area shape="rect" id="node10" title=" " alt="" coords="409,95,558,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,169,76,196"/>
+<area shape="rect" id="node4" title=" " alt="" coords="101,169,194,196"/>
+<area shape="rect" id="node5" title=" " alt="" coords="218,169,269,196"/>
+<area shape="rect" id="node6" title=" " alt="" coords="293,169,367,196"/>
+<area shape="rect" id="node7" title=" " alt="" coords="391,169,466,196"/>
+<area shape="rect" id="node8" title=" " alt="" coords="490,169,565,196"/>
+<area shape="rect" id="node9" title=" " alt="" coords="589,169,657,196"/>
 </map>

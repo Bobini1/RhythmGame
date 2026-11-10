@@ -1,26 +1,13 @@
 <map id="src/gameplay_logic/rules/Lr2Gauge.cpp" name="src/gameplay_logic/rules/Lr2Gauge.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="188,5,338,50"/>
-<area shape="rect" id="Node000002" href="$Lr2Gauge_8h.html" title=" " alt="" coords="165,98,260,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,48,231,86,227,83,248,53"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="284,98,344,126"/>
-<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="277,48,301,85,295,85,276,53"/>
-<area shape="rect" id="Node000003" href="$BmsGauge_8h.html" title=" " alt="" coords="76,174,181,201"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="196,128,157,165,153,161,199,124"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="5,342,79,370"/>
-<area shape="poly" id="edge11_Node000002_Node000005" title=" " alt="" coords="163,123,113,142,88,156,67,175,55,192,46,211,37,252,36,292,39,327,34,326,31,292,32,251,41,209,50,190,63,172,85,152,111,137,166,119"/>
-<area shape="rect" id="Node000007" href="$TimingWindows_8h.html" title=" " alt="" coords="217,174,355,201"/>
-<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="226,124,265,162,260,163,225,129"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="379,174,465,201"/>
-<area shape="poly" id="edge12_Node000002_Node000010" title=" " alt="" coords="250,124,373,167,368,169,250,129"/>
-<area shape="rect" id="Node000004" href="$Judgement_8h.html" title=" " alt="" coords="181,258,391,286"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="154,199,250,249,245,251,154,205"/>
-<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="109,204,90,224,70,251,55,289,47,327,42,326,49,288,65,248,86,221,113,200"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="79,258,157,286"/>
-<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="128,200,124,243,119,241,126,204"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="248,289,94,340,92,335,246,284"/>
-<area shape="poly" id="edge10_Node000007_Node000004" title=" " alt="" coords="288,200,288,244,284,241,284,204"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="415,258,480,286"/>
-<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="312,199,411,250,406,251,311,205"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="505,249,670,294"/>
-<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="335,199,495,244,490,246,334,205"/>
+<area shape="rect" id="node1" title=" " alt="" coords="190,5,341,47"/>
+<area shape="rect" id="node2" href="$Lr2Gauge_8h.html" title=" " alt="" coords="167,95,263,121"/>
+<area shape="rect" id="node11" title=" " alt="" coords="287,95,347,121"/>
+<area shape="rect" id="node3" href="$BmsGauge_8h.html" title=" " alt="" coords="78,169,183,196"/>
+<area shape="rect" id="node5" title=" " alt="" coords="5,333,80,360"/>
+<area shape="rect" id="node7" href="$TimingWindows_8h.html" title=" " alt="" coords="219,169,357,196"/>
+<area shape="rect" id="node10" title=" " alt="" coords="382,169,469,196"/>
+<area shape="rect" id="node4" href="$Judgement_8h.html" title=" " alt="" coords="183,251,393,278"/>
+<area shape="rect" id="node6" title=" " alt="" coords="81,251,159,278"/>
+<area shape="rect" id="node8" title=" " alt="" coords="417,251,484,278"/>
+<area shape="rect" id="node9" title=" " alt="" coords="509,244,675,285"/>
 </map>

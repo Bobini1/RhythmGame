@@ -1,5 +1,4 @@
 <map id="arena::ArenaMemberListModel" name="arena::ArenaMemberListModel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,227,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="42,5,190,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,47,118,82,114,79,114,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,228,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="42,5,191,32"/>
 </map>

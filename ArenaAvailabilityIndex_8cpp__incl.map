@@ -1,31 +1,16 @@
 <map id="src/arena/ArenaAvailabilityIndex.cpp" name="src/arena/ArenaAvailabilityIndex.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="550,5,746,50"/>
-<area shape="rect" id="Node000002" href="$ArenaAvailabilityIndex_8h.html" title=" " alt="" coords="267,98,448,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="569,52,419,96,418,91,574,50"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="471,98,556,126"/>
-<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="615,50,549,92,547,87,610,52"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="579,98,634,126"/>
-<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="639,49,622,86,619,82,635,52"/>
-<area shape="rect" id="Node000012" title=" " alt="" coords="658,98,724,126"/>
-<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="660,48,679,85,674,83,658,53"/>
-<area shape="rect" id="Node000013" title=" " alt="" coords="747,98,821,126"/>
-<area shape="poly" id="edge14_Node000001_Node000013" title=" " alt="" coords="685,48,752,90,747,90,684,53"/>
-<area shape="rect" id="Node000014" title=" " alt="" coords="845,98,904,126"/>
-<area shape="poly" id="edge15_Node000001_Node000014" title=" " alt="" coords="709,48,834,95,828,95,708,53"/>
-<area shape="rect" id="Node000003" href="$ArenaBinaryProtocol_8h.html" title=" " alt="" coords="154,174,321,201"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="338,125,273,168,270,163,334,127"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="5,249,102,277"/>
-<area shape="poly" id="edge7_Node000002_Node000004" title=" " alt="" coords="273,127,209,147,144,176,105,206,74,239,71,235,102,202,141,171,208,142,278,125"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="369,249,442,277"/>
-<area shape="poly" id="edge10_Node000002_Node000006" title=" " alt="" coords="363,124,387,201,398,236,393,233,382,202,360,128"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="396,174,469,201"/>
-<area shape="poly" id="edge8_Node000002_Node000008" title=" " alt="" coords="372,124,411,163,405,162,370,129"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="494,174,595,201"/>
-<area shape="poly" id="edge9_Node000002_Node000009" title=" " alt="" coords="391,124,500,167,494,168,391,129"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="206,204,101,246,99,241,203,200"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="125,249,254,277"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="231,201,208,238,205,234,227,203"/>
-<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="268,199,365,243,359,243,267,204"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="277,249,344,277"/>
-<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="252,199,290,239,284,238,250,204"/>
+<area shape="rect" id="node1" title=" " alt="" coords="557,5,754,47"/>
+<area shape="rect" id="node2" href="$ArenaAvailabilityIndex_8h.html" title=" " alt="" coords="270,95,451,121"/>
+<area shape="rect" id="node10" title=" " alt="" coords="475,95,561,121"/>
+<area shape="rect" id="node11" title=" " alt="" coords="585,95,641,121"/>
+<area shape="rect" id="node12" title=" " alt="" coords="665,95,731,121"/>
+<area shape="rect" id="node13" title=" " alt="" coords="755,95,830,121"/>
+<area shape="rect" id="node14" title=" " alt="" coords="855,95,915,121"/>
+<area shape="rect" id="node3" href="$ArenaBinaryProtocol_8h.html" title=" " alt="" coords="156,169,323,196"/>
+<area shape="rect" id="node4" title=" " alt="" coords="5,244,103,271"/>
+<area shape="rect" id="node6" title=" " alt="" coords="373,244,447,271"/>
+<area shape="rect" id="node8" title=" " alt="" coords="398,169,473,196"/>
+<area shape="rect" id="node9" title=" " alt="" coords="497,169,600,196"/>
+<area shape="rect" id="node5" title=" " alt="" coords="127,244,256,271"/>
+<area shape="rect" id="node7" title=" " alt="" coords="280,244,348,271"/>
 </map>

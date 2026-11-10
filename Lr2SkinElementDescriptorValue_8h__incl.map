@@ -1,9 +1,6 @@
 <map id="RhythmGameQml/Lr2/Lr2SkinElementDescriptorValue.h" name="RhythmGameQml/Lr2/Lr2SkinElementDescriptorValue.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="56,5,270,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,100,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,50,84,91,81,86,132,51"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="124,98,202,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="165,48,166,84,161,81,161,52"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="227,98,414,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="206,48,284,90,279,91,204,53"/>
+<area shape="rect" id="node1" title=" " alt="" coords="56,5,271,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,95,100,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="124,95,203,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="227,95,415,121"/>
 </map>

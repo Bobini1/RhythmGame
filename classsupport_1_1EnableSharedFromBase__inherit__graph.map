@@ -1,5 +1,4 @@
 <map id="support::EnableSharedFromBase&lt; Base &gt;" name="support::EnableSharedFromBase&lt; Base &gt;">
-<area shape="rect" id="Node000001" title="A helper class for creating a shared pointer to self." alt="" coords="5,98,206,143"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="29,5,182,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,64,108,99,103,97,104,68"/>
+<area shape="rect" id="node1" title="A helper class for creating a shared pointer to self." alt="" coords="5,95,207,136"/>
+<area shape="rect" id="node2" title=" " alt="" coords="29,5,183,47"/>
 </map>

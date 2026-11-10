@@ -1,15 +1,8 @@
 <map id="src/qml_components/Themes.h" name="src/qml_components/Themes.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="244,5,400,50"/>
-<area shape="rect" id="Node000002" href="$QmlForeignTypes_8h.html" title=" " alt="" coords="5,98,223,143"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="256,58,165,100,163,95,260,55"/>
-<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="184,191,289,218"/>
-<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="305,62,288,99,245,192,241,188,284,97,301,66"/>
-<area shape="rect" id="Node000004" href="$Rg_8h.html" title=" " alt="" coords="298,106,469,134"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="346,60,377,106,372,105,344,65"/>
-<area shape="rect" id="Node000006" href="$Themes_8cpp.html" title=" " alt="" coords="493,98,650,143"/>
-<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="396,53,514,97,509,98,396,58"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="160,149,220,190,214,190,158,154"/>
-<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="349,142,261,193,259,188,344,143"/>
-<area shape="rect" id="Node000005" href="$Rg_8cpp.html" title=" " alt="" coords="313,191,499,218"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="393,147,405,192,400,189,389,151"/>
+<area shape="rect" id="node1" title=" " alt="" coords="133,5,290,47"/>
+<area shape="rect" id="node2" href="$main_8cpp.html" title=" " alt="" coords="266,184,371,211"/>
+<area shape="rect" id="node3" href="$Themes_8cpp.html" title=" " alt="" coords="28,95,185,136"/>
+<area shape="rect" id="node4" href="$QmlForeignTypes_8h.html" title=" " alt="" coords="209,95,428,136"/>
+<area shape="rect" id="node5" href="$Rg_8h.html" title=" " alt="" coords="452,102,624,129"/>
+<area shape="rect" id="node6" href="$Rg_8cpp.html" title=" " alt="" coords="445,184,632,211"/>
 </map>

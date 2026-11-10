@@ -1,15 +1,9 @@
 <map id="src/resource_managers/Tables.h" name="src/resource_managers/Tables.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="289,5,462,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,154,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="298,53,142,96,141,91,296,48"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="178,98,229,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="332,50,244,94,242,89,327,51"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="252,98,376,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="362,49,335,88,332,83,357,52"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="400,98,477,126"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="393,48,421,86,416,85,391,53"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="501,98,612,126"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="424,48,517,91,511,91,423,53"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="636,98,723,126"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="457,48,624,95,619,95,456,53"/>
+<area shape="rect" id="node1" title=" " alt="" coords="292,5,465,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,95,155,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="179,95,229,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="254,95,378,121"/>
+<area shape="rect" id="node5" title=" " alt="" coords="402,95,481,121"/>
+<area shape="rect" id="node6" title=" " alt="" coords="505,95,617,121"/>
+<area shape="rect" id="node7" title=" " alt="" coords="642,95,729,121"/>
 </map>

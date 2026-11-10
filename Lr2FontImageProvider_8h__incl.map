@@ -1,9 +1,6 @@
 <map id="src/resource_managers/Lr2FontImageProvider.h" name="src/resource_managers/Lr2FontImageProvider.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="93,5,272,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,78,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,51,78,92,76,88,143,50"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="101,98,264,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,48,185,84,181,81,181,52"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="288,98,355,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="220,48,289,90,283,90,219,53"/>
+<area shape="rect" id="node1" title=" " alt="" coords="95,5,275,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,95,79,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="103,95,267,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="291,95,358,121"/>
 </map>

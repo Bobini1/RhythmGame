@@ -1,7 +1,5 @@
 <map id="src/ddsplugin/DdsHandler.h" name="src/ddsplugin/DdsHandler.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="36,5,234,33"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,143,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,32,96,71,93,67,122,35"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="166,81,227,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="147,31,179,69,174,69,145,36"/>
+<area shape="rect" id="node1" title=" " alt="" coords="37,5,235,32"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,80,144,107"/>
+<area shape="rect" id="node3" title=" " alt="" coords="168,80,229,107"/>
 </map>

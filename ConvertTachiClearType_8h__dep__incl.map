@@ -1,9 +1,6 @@
 <map id="src/support/ConvertTachiClearType.h" name="src/support/ConvertTachiClearType.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="204,5,386,50"/>
-<area shape="rect" id="Node000002" href="$OnlineRankingModel_8cpp.html" title=" " alt="" coords="5,98,193,143"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,56,147,100,145,95,232,58"/>
-<area shape="rect" id="Node000003" href="$OnlineScores_8cpp.html" title=" " alt="" coords="217,98,373,143"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="297,64,297,99,293,96,293,68"/>
-<area shape="rect" id="Node000004" href="$ConvertTachiClearType_8cpp.html" title=" " alt="" coords="398,98,579,143"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="356,54,445,97,439,97,354,60"/>
+<area shape="rect" id="node1" title=" " alt="" coords="205,5,388,47"/>
+<area shape="rect" id="node2" href="$OnlineRankingModel_8cpp.html" title=" " alt="" coords="5,95,193,136"/>
+<area shape="rect" id="node3" href="$OnlineScores_8cpp.html" title=" " alt="" coords="218,95,375,136"/>
+<area shape="rect" id="node4" href="$ConvertTachiClearType_8cpp.html" title=" " alt="" coords="400,95,583,136"/>
 </map>

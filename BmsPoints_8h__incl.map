@@ -1,8 +1,5 @@
 <map id="src/gameplay_logic/BmsPoints.h" name="src/gameplay_logic/BmsPoints.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,153,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="42,174,116,201"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="72,48,64,86,63,125,71,160,66,159,58,126,59,85,70,53"/>
-<area shape="rect" id="Node000003" href="$Judgement_8h.html" title=" " alt="" coords="73,98,176,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="92,48,112,84,107,84,90,53"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="118,125,97,162,93,159,114,128"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,153,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="42,169,117,196"/>
+<area shape="rect" id="node3" href="$Judgement_8h.html" title=" " alt="" coords="73,95,177,121"/>
 </map>

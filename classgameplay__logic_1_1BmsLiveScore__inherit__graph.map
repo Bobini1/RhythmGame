@@ -1,5 +1,4 @@
 <map id="gameplay_logic::BmsLiveScore" name="gameplay_logic::BmsLiveScore">
-<area shape="rect" id="Node000001" title="The score that gets updated during gameplay." alt="" coords="5,81,230,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="81,5,154,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,47,120,82,115,79,116,51"/>
+<area shape="rect" id="node1" title="The score that gets updated during gameplay." alt="" coords="5,80,231,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="81,5,155,32"/>
 </map>

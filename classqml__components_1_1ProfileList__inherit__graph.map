@@ -1,5 +1,4 @@
 <map id="qml_components::ProfileList" name="qml_components::ProfileList">
-<area shape="rect" id="Node000001" title="The list of local profiles." alt="" coords="5,81,211,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="71,5,145,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,47,110,82,106,79,106,51"/>
+<area shape="rect" id="node1" title="The list of local profiles." alt="" coords="5,80,212,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="71,5,146,32"/>
 </map>

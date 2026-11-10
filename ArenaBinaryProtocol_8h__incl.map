@@ -1,11 +1,7 @@
 <map id="src/arena/ArenaBinaryProtocol.h" name="src/arena/ArenaBinaryProtocol.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="137,5,367,33"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,102,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="218,36,104,78,102,73,216,31"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="125,81,254,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="243,32,212,71,209,67,239,35"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="278,81,352,109"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="264,31,297,70,291,69,262,36"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="376,81,443,109"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="281,31,371,74,365,74,280,36"/>
+<area shape="rect" id="node1" title=" " alt="" coords="139,5,369,32"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,80,103,107"/>
+<area shape="rect" id="node3" title=" " alt="" coords="127,80,256,107"/>
+<area shape="rect" id="node4" title=" " alt="" coords="281,80,355,107"/>
+<area shape="rect" id="node5" title=" " alt="" coords="380,80,448,107"/>
 </map>

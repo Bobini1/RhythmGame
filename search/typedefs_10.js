@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['u16_0',['u16',['../namespacedxa.html#a3abb46c5eacf1152b9fba2898e3750fd',1,'dxa']]],
-  ['u32_1',['u32',['../namespacedxa.html#af01a8daf9b4e17d267a56d97258449f7',1,'dxa']]],
-  ['u64_2',['u64',['../namespacedxa.html#a990cae1544716d18807c693774efcc7a',1,'dxa']]],
-  ['u8_3',['u8',['../namespacedxa.html#af0d21f4285a5e96f426f0986bd30e810',1,'dxa']]]
+  ['u16_9173',['u16',['../namespacedxa.html#ab30765c63c58691e098910b39d63375e',1,'dxa']]],
+  ['u32_9174',['u32',['../namespacedxa.html#a2bd395d710914da545ce92749ac78984',1,'dxa']]],
+  ['u64_9175',['u64',['../namespacedxa.html#a8dbe348f0b0d4dc1bdcbceaee11bd5e1',1,'dxa']]],
+  ['u8_9176',['u8',['../namespacedxa.html#a955973fdd8e7abf02bf5f7ac872877d5',1,'dxa']]]
 ];

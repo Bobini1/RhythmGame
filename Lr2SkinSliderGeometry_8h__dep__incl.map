@@ -1,5 +1,4 @@
 <map id="RhythmGameQml/Lr2/Lr2SkinSliderGeometry.h" name="RhythmGameQml/Lr2/Lr2SkinSliderGeometry.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,220,50"/>
-<area shape="rect" id="Node000002" href="$Lr2SkinSliderGeometry_8cpp.html" title=" " alt="" coords="5,98,220,143"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,64,115,99,110,97,111,68"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,220,47"/>
+<area shape="rect" id="node2" href="$Lr2SkinSliderGeometry_8cpp.html" title=" " alt="" coords="5,95,220,136"/>
 </map>

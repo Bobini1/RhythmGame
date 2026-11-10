@@ -1,5 +1,4 @@
 <map id="resource_managers::BackbeatCatalog" name="resource_managers::BackbeatCatalog">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,163,126"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="47,5,121,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="86,47,87,81,81,80,82,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,164,121"/>
+<area shape="rect" id="node2" title=" " alt="" coords="47,5,122,32"/>
 </map>

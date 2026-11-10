@@ -1,27 +1,13 @@
 <map id="RhythmGameQml/Lr2/Lr2ResolvedText.h" name="RhythmGameQml/Lr2/Lr2ResolvedText.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="412,5,658,50"/>
-<area shape="rect" id="Node000002" href="$Lr2ResolvedTextRegistry_8h.html" title=" " alt="" coords="280,98,473,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="496,50,416,93,414,88,491,52"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="5,174,79,201"/>
-<area shape="poly" id="edge11_Node000001_Node000006" title=" " alt="" coords="438,52,269,101,171,136,87,170,85,165,169,131,268,95,443,50"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="450,174,527,201"/>
-<area shape="poly" id="edge12_Node000001_Node000007" title=" " alt="" coords="531,49,499,160,495,157,527,52"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="551,174,621,201"/>
-<area shape="poly" id="edge13_Node000001_Node000009" title=" " alt="" coords="544,48,580,160,575,158,540,52"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="644,174,832,201"/>
-<area shape="poly" id="edge14_Node000001_Node000010" title=" " alt="" coords="556,48,594,85,638,124,702,166,697,165,635,128,590,89,554,53"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="649,98,755,126"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="580,48,664,91,659,91,579,53"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="103,174,168,201"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="336,127,183,174,182,169,331,126"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="192,174,271,201"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="353,126,272,169,270,164,348,127"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="295,174,349,201"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="369,125,342,163,339,159,365,127"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="312,129,95,176,93,171,311,124"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="397,124,459,165,454,165,396,129"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="373,174,426,201"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="382,124,393,160,388,157,379,128"/>
-<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="415,124,539,169,534,169,414,129"/>
-<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="442,124,661,170,656,170,441,129"/>
+<area shape="rect" id="node1" title=" " alt="" coords="419,5,666,47"/>
+<area shape="rect" id="node2" href="$Lr2ResolvedTextRegistry_8h.html" title=" " alt="" coords="286,95,479,121"/>
+<area shape="rect" id="node6" title=" " alt="" coords="5,169,80,196"/>
+<area shape="rect" id="node7" title=" " alt="" coords="457,169,535,196"/>
+<area shape="rect" id="node9" title=" " alt="" coords="559,169,630,196"/>
+<area shape="rect" id="node10" title=" " alt="" coords="654,169,842,196"/>
+<area shape="rect" id="node11" title=" " alt="" coords="656,95,763,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="105,169,170,196"/>
+<area shape="rect" id="node4" title=" " alt="" coords="195,169,275,196"/>
+<area shape="rect" id="node5" title=" " alt="" coords="299,169,354,196"/>
+<area shape="rect" id="node8" title=" " alt="" coords="379,169,432,196"/>
 </map>

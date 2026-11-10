@@ -1,23 +1,13 @@
 <map id="src/qml_components/Lr2NativeCursor.cpp" name="src/qml_components/Lr2NativeCursor.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="443,5,600,50"/>
-<area shape="rect" id="Node000002" href="$Lr2NativeCursor_8h.html" title=" " alt="" coords="136,98,273,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="441,50,270,96,269,91,445,48"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="297,98,370,126"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="474,50,378,94,377,89,469,51"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="394,98,521,126"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="507,49,479,88,476,83,502,52"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="545,98,626,126"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="539,48,568,86,563,85,537,53"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="649,98,770,126"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="572,48,668,91,663,91,571,53"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="794,98,844,126"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="600,46,781,97,776,98,600,51"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,174,78,201"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="176,129,85,170,83,165,174,124"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="102,174,200,201"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="197,125,171,163,167,159,192,127"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="225,174,293,201"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="215,124,243,162,237,161,213,129"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="318,174,384,201"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="231,124,314,166,309,167,230,129"/>
+<area shape="rect" id="node1" title=" " alt="" coords="447,5,605,47"/>
+<area shape="rect" id="node2" href="$Lr2NativeCursor_8h.html" title=" " alt="" coords="137,95,275,121"/>
+<area shape="rect" id="node7" title=" " alt="" coords="299,95,374,121"/>
+<area shape="rect" id="node8" title=" " alt="" coords="399,95,525,121"/>
+<area shape="rect" id="node9" title=" " alt="" coords="549,95,631,121"/>
+<area shape="rect" id="node10" title=" " alt="" coords="655,95,776,121"/>
+<area shape="rect" id="node11" title=" " alt="" coords="801,95,851,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,169,79,196"/>
+<area shape="rect" id="node4" title=" " alt="" coords="103,169,202,196"/>
+<area shape="rect" id="node5" title=" " alt="" coords="226,169,295,196"/>
+<area shape="rect" id="node6" title=" " alt="" coords="319,169,386,196"/>
 </map>

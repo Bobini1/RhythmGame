@@ -1,7 +1,5 @@
 <map id="arena::RoundLoadingStarted" name="arena::RoundLoadingStarted">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,207,211,234"/>
-<area shape="rect" id="Node000002" href="$structarena_1_1FrozenRound.html" title=" " alt="" coords="33,106,183,134"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,148,111,207,105,205,106,151"/>
-<area shape="rect" id="Node000003" href="$structarena_1_1SelectionSnapshot.html" title=" " alt="" coords="15,5,201,33"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="109,46,111,106,105,105,107,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,184,212,211"/>
+<area shape="rect" id="node2" href="$structarena_1_1FrozenRound.html" title=" " alt="" coords="33,95,184,121"/>
+<area shape="rect" id="node3" href="$structarena_1_1SelectionSnapshot.html" title=" " alt="" coords="15,5,202,32"/>
 </map>

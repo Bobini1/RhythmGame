@@ -1,15 +1,9 @@
 <map id="src/resource_managers/IniImageProvider.cpp" name="src/resource_managers/IniImageProvider.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="160,5,332,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,90,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,53,94,94,92,89,195,48"/>
-<area shape="rect" id="Node000003" href="$IniImageProvider_8h.html" title=" " alt="" coords="113,98,256,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="232,49,206,87,202,83,228,52"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="280,98,335,126"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="263,48,291,86,286,85,261,53"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="359,98,482,126"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="293,48,382,91,377,92,292,53"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="34,174,197,201"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="175,125,140,164,137,160,170,127"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="221,174,284,201"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="198,124,233,162,228,162,196,129"/>
+<area shape="rect" id="node1" title=" " alt="" coords="161,5,335,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,95,91,121"/>
+<area shape="rect" id="node3" href="$IniImageProvider_8h.html" title=" " alt="" coords="115,95,259,121"/>
+<area shape="rect" id="node6" title=" " alt="" coords="283,95,338,121"/>
+<area shape="rect" id="node7" title=" " alt="" coords="362,95,486,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="35,169,199,196"/>
+<area shape="rect" id="node5" title=" " alt="" coords="224,169,288,196"/>
 </map>

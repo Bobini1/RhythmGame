@@ -1,20 +1,11 @@
 <map id="src/resource_managers/DxaImageProvider.h" name="src/resource_managers/DxaImageProvider.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="218,5,391,50"/>
-<area shape="rect" id="Node000002" href="$dxa_8h.html" title=" " alt="" coords="88,98,198,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="260,52,184,93,182,88,264,49"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,174,95,201"/>
-<area shape="poly" id="edge7_Node000001_Node000003" title=" " alt="" coords="216,37,182,46,145,58,109,76,79,100,69,113,62,128,54,159,49,157,57,126,64,110,75,96,106,71,143,53,181,41,220,34"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="223,98,386,126"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="306,48,307,84,302,81,303,53"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="410,98,474,126"/>
-<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="342,48,410,90,404,90,341,53"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="498,98,621,126"/>
-<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="373,48,507,92,502,93,372,53"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="129,125,80,166,77,162,124,127"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="118,174,168,201"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="145,124,146,159,141,157,142,128"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="193,174,270,201"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="160,124,207,164,202,164,158,129"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="294,174,352,201"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="176,124,282,168,277,169,175,129"/>
+<area shape="rect" id="node1" title=" " alt="" coords="220,5,393,47"/>
+<area shape="rect" id="node2" href="$dxa_8h.html" title=" " alt="" coords="90,95,201,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,169,96,196"/>
+<area shape="rect" id="node7" title=" " alt="" coords="225,95,389,121"/>
+<area shape="rect" id="node8" title=" " alt="" coords="413,95,477,121"/>
+<area shape="rect" id="node9" title=" " alt="" coords="502,95,626,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="120,169,171,196"/>
+<area shape="rect" id="node5" title=" " alt="" coords="195,169,272,196"/>
+<area shape="rect" id="node6" title=" " alt="" coords="296,169,355,196"/>
 </map>

@@ -1,5 +1,4 @@
 <map id="TgaPlugin" name="TgaPlugin">
-<area shape="rect" id="Node000001" title=" " alt="" coords="26,81,111,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,132,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,47,71,81,66,80,67,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="25,80,112,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,5,132,32"/>
 </map>

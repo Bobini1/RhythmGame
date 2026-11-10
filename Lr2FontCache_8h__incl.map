@@ -1,17 +1,10 @@
 <map id="src/resource_managers/Lr2FontCache.h" name="src/resource_managers/Lr2FontCache.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="213,5,385,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,70,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,53,86,98,84,93,229,48"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="93,98,166,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="257,50,171,93,169,88,251,51"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="190,98,245,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="280,49,243,89,240,85,275,51"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="269,98,329,126"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="301,48,301,84,297,81,297,52"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="354,98,423,126"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="323,48,365,88,360,87,321,53"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="447,98,524,126"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="349,48,444,91,439,91,348,53"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="547,98,610,126"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="374,48,535,97,530,97,373,53"/>
+<area shape="rect" id="node1" title=" " alt="" coords="215,5,389,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,95,71,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="95,95,168,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="192,95,247,121"/>
+<area shape="rect" id="node5" title=" " alt="" coords="271,95,333,121"/>
+<area shape="rect" id="node6" title=" " alt="" coords="357,95,428,121"/>
+<area shape="rect" id="node7" title=" " alt="" coords="453,95,530,121"/>
+<area shape="rect" id="node8" title=" " alt="" coords="554,95,618,121"/>
 </map>

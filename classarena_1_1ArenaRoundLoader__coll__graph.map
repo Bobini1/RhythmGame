@@ -1,5 +1,4 @@
 <map id="arena::ArenaRoundLoader" name="arena::ArenaRoundLoader">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,195,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="63,5,137,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,47,102,82,98,80,98,51"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,196,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="63,5,138,32"/>
 </map>

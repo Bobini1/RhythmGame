@@ -1,7 +1,5 @@
 <map id="src/support/QStringToPath.h" name="src/support/QStringToPath.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,205,33"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="8,81,98,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,32,73,70,69,67,93,35"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="122,81,192,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="115,31,142,68,136,68,113,36"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,205,32"/>
+<area shape="rect" id="node2" title=" " alt="" coords="8,80,99,107"/>
+<area shape="rect" id="node3" title=" " alt="" coords="123,80,194,107"/>
 </map>

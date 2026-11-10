@@ -1,5 +1,4 @@
 <map id="qml_components::ScoreDb" name="qml_components::ScoreDb">
-<area shape="rect" id="Node000001" title="Provides cached results and asynchronous full scores for one profile." alt="" coords="5,81,201,109"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="66,5,140,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,47,105,82,101,80,101,51"/>
+<area shape="rect" id="node1" title="Provides cached results and asynchronous full scores for one profile." alt="" coords="5,80,201,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="66,5,141,32"/>
 </map>

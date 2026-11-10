@@ -1,27 +1,11 @@
 <map id="RhythmGameQml/Lr2/Lr2SkinFrameDriver.h" name="RhythmGameQml/Lr2/Lr2SkinFrameDriver.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="219,5,433,50"/>
-<area shape="rect" id="Node000002" href="$Lr2GameplayFrameState_8h.html" title=" " alt="" coords="408,98,604,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="374,48,466,91,461,91,373,53"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="103,174,176,201"/>
-<area shape="poly" id="edge14_Node000001_Node000003" title=" " alt="" coords="216,40,156,50,96,62,45,79,27,89,15,100,9,111,9,121,15,131,24,140,54,157,90,171,85,174,52,162,21,144,10,134,4,122,4,110,11,96,24,84,43,74,94,57,155,45,221,37"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="571,174,649,201"/>
-<area shape="poly" id="edge15_Node000001_Node000004" title=" " alt="" coords="433,38,490,47,544,60,589,76,617,96,625,111,628,128,622,161,618,157,622,128,620,113,613,100,586,81,542,65,489,53,434,43"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="216,174,404,201"/>
-<area shape="poly" id="edge16_Node000001_Node000006" title=" " alt="" coords="297,49,274,73,258,99,255,115,260,132,283,164,278,162,255,134,250,116,253,97,270,70,292,52"/>
-<area shape="rect" id="Node000007" href="$Lr2SelectVisualState_8h.html" title=" " alt="" coords="25,98,192,126"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="266,52,159,95,157,90,270,49"/>
-<area shape="rect" id="Node000008" href="$Lr2SkinClock_8h.html" title=" " alt="" coords="267,98,385,126"/>
-<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="328,48,328,84,324,81,324,53"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="678,98,784,126"/>
-<area shape="poly" id="edge13_Node000001_Node000009" title=" " alt="" coords="434,48,666,96,660,98,433,53"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="441,129,191,178,190,173,439,124"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="525,124,582,165,577,164,524,129"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="449,174,518,201"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="504,125,494,161,490,157,500,128"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="474,126,360,171,358,165,468,127"/>
-<area shape="poly" id="edge7_Node000007_Node000003" title=" " alt="" coords="116,124,131,160,125,159,113,128"/>
-<area shape="poly" id="edge8_Node000007_Node000006" title=" " alt="" coords="145,124,262,167,258,169,144,129"/>
-<area shape="poly" id="edge10_Node000008_Node000003" title=" " alt="" coords="295,126,187,170,185,165,290,127"/>
-<area shape="poly" id="edge11_Node000008_Node000005" title=" " alt="" coords="355,124,444,167,439,167,354,129"/>
-<area shape="poly" id="edge12_Node000008_Node000006" title=" " alt="" coords="325,125,318,160,314,157,321,128"/>
+<area shape="rect" id="node1" title=" " alt="" coords="220,5,435,47"/>
+<area shape="rect" id="node2" href="$Lr2GameplayFrameState_8h.html" title=" " alt="" coords="411,95,607,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="102,169,177,196"/>
+<area shape="rect" id="node4" title=" " alt="" coords="575,169,653,196"/>
+<area shape="rect" id="node6" title=" " alt="" coords="217,169,405,196"/>
+<area shape="rect" id="node7" href="$Lr2SelectVisualState_8h.html" title=" " alt="" coords="25,95,193,121"/>
+<area shape="rect" id="node8" href="$Lr2SkinClock_8h.html" title=" " alt="" coords="268,95,387,121"/>
+<area shape="rect" id="node9" title=" " alt="" coords="682,95,789,121"/>
+<area shape="rect" id="node5" title=" " alt="" coords="451,169,521,196"/>
 </map>

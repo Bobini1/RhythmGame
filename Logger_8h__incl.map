@@ -1,9 +1,6 @@
 <map id="src/qml_components/Logger.h" name="src/qml_components/Logger.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="94,5,251,50"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,79,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,50,77,92,74,87,135,51"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="103,98,242,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,48,175,84,170,81,171,52"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="267,98,454,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="223,48,319,91,314,92,222,53"/>
+<area shape="rect" id="node1" title=" " alt="" coords="96,5,253,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,95,80,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="105,95,245,121"/>
+<area shape="rect" id="node4" title=" " alt="" coords="269,95,457,121"/>
 </map>

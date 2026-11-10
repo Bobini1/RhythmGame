@@ -1,5 +1,4 @@
 <map id="RhythmGameQml/Lr2/Lr2BlendSprite.h" name="RhythmGameQml/Lr2/Lr2BlendSprite.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,229,50"/>
-<area shape="rect" id="Node000002" href="$Lr2BlendSprite_8cpp.html" title=" " alt="" coords="5,98,229,143"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,64,119,99,115,97,115,68"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,229,47"/>
+<area shape="rect" id="node2" href="$Lr2BlendSprite_8cpp.html" title=" " alt="" coords="5,95,229,136"/>
 </map>

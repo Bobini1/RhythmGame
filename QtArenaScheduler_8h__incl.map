@@ -1,17 +1,10 @@
 <map id="src/arena/QtArenaScheduler.h" name="src/arena/QtArenaScheduler.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="242,5,455,33"/>
-<area shape="rect" id="Node000002" href="$ArenaScheduler_8h.html" title=" " alt="" coords="72,81,206,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="309,35,192,78,190,73,313,32"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="231,81,352,109"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="341,32,312,71,309,67,336,35"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="375,81,440,109"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="360,31,390,69,385,68,358,36"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="463,81,541,109"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="376,31,464,74,458,74,376,36"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,157,79,184"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="124,108,73,150,69,145,119,110"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="103,157,176,184"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="141,107,142,142,137,140,138,111"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="200,157,286,184"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="159,107,215,147,210,148,157,112"/>
+<area shape="rect" id="node1" title=" " alt="" coords="245,5,459,32"/>
+<area shape="rect" id="node2" href="$ArenaScheduler_8h.html" title=" " alt="" coords="74,80,209,107"/>
+<area shape="rect" id="node6" title=" " alt="" coords="233,80,354,107"/>
+<area shape="rect" id="node7" title=" " alt="" coords="378,80,443,107"/>
+<area shape="rect" id="node8" title=" " alt="" coords="467,80,546,107"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,155,80,181"/>
+<area shape="rect" id="node4" title=" " alt="" coords="104,155,179,181"/>
+<area shape="rect" id="node5" title=" " alt="" coords="203,155,290,181"/>
 </map>
