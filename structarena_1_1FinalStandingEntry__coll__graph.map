@@ -1,4 +1,5 @@
 <map id="arena::FinalStandingEntry" name="arena::FinalStandingEntry">
-<area shape="rect" id="node1" title=" " alt="" coords="5,95,195,121"/>
-<area shape="rect" id="node2" href="$structarena_1_1PublicIdentity.html" title=" " alt="" coords="22,5,178,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,93,195,119"/>
+<area shape="rect" id="Node000002" href="$structarena_1_1PublicIdentity.html" title=" " alt="" coords="22,5,178,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,45,103,93,97,93,97,45"/>
 </map>

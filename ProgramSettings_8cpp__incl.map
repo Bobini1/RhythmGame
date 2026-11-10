@@ -1,17 +1,32 @@
 <map id="src/qml_components/ProgramSettings.cpp" name="src/qml_components/ProgramSettings.cpp">
-<area shape="rect" id="node1" title=" " alt="" coords="562,5,723,47"/>
-<area shape="rect" id="node2" href="$ProgramSettings_8h.html" title=" " alt="" coords="218,95,361,121"/>
-<area shape="rect" id="node10" title=" " alt="" coords="385,95,471,121"/>
-<area shape="rect" id="node11" title=" " alt="" coords="495,95,555,121"/>
-<area shape="rect" id="node12" title=" " alt="" coords="579,95,706,121"/>
-<area shape="rect" id="node13" title=" " alt="" coords="730,95,825,121"/>
-<area shape="rect" id="node14" title=" " alt="" coords="849,95,922,121"/>
-<area shape="rect" id="node15" title=" " alt="" coords="946,95,1067,121"/>
-<area shape="rect" id="node3" title=" " alt="" coords="5,169,72,196"/>
-<area shape="rect" id="node4" title=" " alt="" coords="360,244,427,271"/>
-<area shape="rect" id="node5" title=" " alt="" coords="147,169,213,196"/>
-<area shape="rect" id="node6" title=" " alt="" coords="238,169,341,196"/>
-<area shape="rect" id="node7" title=" " alt="" coords="365,169,443,196"/>
-<area shape="rect" id="node8" title=" " alt="" coords="468,169,553,196"/>
-<area shape="rect" id="node9" href="$FrameRateLimiter_8h.html" title=" " alt="" coords="577,169,780,196"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="562,5,723,45"/>
+<area shape="rect" id="Node000002" href="$ProgramSettings_8h.html" title=" " alt="" coords="218,93,361,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="562,47,355,93,354,88,561,42"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="385,93,471,119"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="592,48,473,91,471,86,590,43"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="495,93,555,119"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="616,48,555,88,552,84,613,43"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="579,93,706,119"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="645,46,645,79,640,79,640,46"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="730,93,825,119"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="676,43,747,84,744,89,674,48"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="849,93,922,119"/>
+<area shape="poly" id="edge14_Node000001_Node000014" title=" " alt="" coords="702,43,838,86,836,92,700,48"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="946,93,1067,119"/>
+<area shape="poly" id="edge15_Node000001_Node000015" title=" " alt="" coords="724,41,941,88,940,93,723,47"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,72,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="250,121,86,167,84,162,248,116"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="360,240,427,265"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="225,121,184,133,149,148,137,157,131,167,130,178,137,190,150,201,170,211,225,227,289,238,346,245,346,250,288,243,224,232,168,216,147,206,133,194,125,179,126,166,133,154,146,144,182,128,223,116"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="147,167,213,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="273,121,211,161,208,157,270,116"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="238,167,341,192"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="292,119,292,153,287,153,287,119"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="365,167,443,192"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="309,116,375,157,372,162,306,121"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="468,167,553,192"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="326,116,463,160,461,165,324,121"/>
+<area shape="rect" id="Node000009" href="$FrameRateLimiter_8h.html" title=" " alt="" coords="577,167,780,192"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="352,116,603,162,602,167,351,121"/>
+<area shape="poly" id="edge9_Node000009_Node000004" title=" " alt="" coords="633,195,441,242,439,237,632,189"/>
 </map>

@@ -1,12 +1,25 @@
 <map id="src/qml_components/ScoreReplayer.cpp" name="src/qml_components/ScoreReplayer.cpp">
-<area shape="rect" id="node1" title=" " alt="" coords="347,5,505,47"/>
-<area shape="rect" id="node2" href="$ScoreReplayer_8h.html" title=" " alt="" coords="363,95,489,121"/>
-<area shape="rect" id="node3" href="$HitEvent_8h.html" title=" " alt="" coords="82,169,279,196"/>
-<area shape="rect" id="node4" title=" " alt="" coords="91,393,166,420"/>
-<area shape="rect" id="node9" title=" " alt="" coords="410,169,549,196"/>
-<area shape="rect" id="node10" title=" " alt="" coords="573,169,639,196"/>
-<area shape="rect" id="node5" title=" " alt="" coords="27,244,105,271"/>
-<area shape="rect" id="node6" href="$BmsPoints_8h.html" title=" " alt="" coords="129,244,232,271"/>
-<area shape="rect" id="node8" href="$BmsKeys_8h.html" title=" " alt="" coords="205,319,335,345"/>
-<area shape="rect" id="node7" href="$Judgement_8h.html" title=" " alt="" coords="77,319,181,345"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="347,5,504,45"/>
+<area shape="rect" id="Node000002" href="$ScoreReplayer_8h.html" title=" " alt="" coords="362,93,489,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="428,46,428,79,423,79,423,46"/>
+<area shape="rect" id="Node000003" href="$HitEvent_8h.html" title=" " alt="" coords="82,167,279,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="387,121,234,165,232,160,386,116"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="91,387,166,412"/>
+<area shape="poly" id="edge13_Node000002_Node000004" title=" " alt="" coords="422,120,400,168,389,218,386,260,378,300,367,320,349,341,310,368,266,386,221,396,180,400,179,395,220,391,264,381,308,364,345,337,362,317,373,298,381,259,383,217,395,166,417,118"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="410,167,548,192"/>
+<area shape="poly" id="edge11_Node000002_Node000009" title=" " alt="" coords="437,117,465,154,460,157,432,121"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="573,167,638,192"/>
+<area shape="poly" id="edge12_Node000002_Node000010" title=" " alt="" coords="456,116,565,159,563,164,454,121"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="92,194,50,212,32,225,17,241,9,260,9,278,16,297,28,316,62,350,99,377,96,381,59,354,24,319,11,300,4,279,4,259,13,239,29,221,48,207,90,190"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="26,240,105,265"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="163,194,97,235,95,230,161,190"/>
+<area shape="rect" id="Node000006" href="$BmsPoints_8h.html" title=" " alt="" coords="129,240,232,265"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="183,192,183,226,178,226,178,192"/>
+<area shape="rect" id="Node000008" href="$BmsKeys_8h.html" title=" " alt="" coords="204,313,335,339"/>
+<area shape="poly" id="edge9_Node000003_Node000008" title=" " alt="" coords="199,190,224,211,247,239,261,269,269,299,263,300,256,271,242,241,220,215,196,194"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="134,268,96,286,80,299,67,315,63,331,69,347,82,363,99,377,95,381,79,367,65,350,58,331,62,312,76,295,94,281,132,263"/>
+<area shape="rect" id="Node000007" href="$Judgement_8h.html" title=" " alt="" coords="76,313,180,339"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="174,267,147,304,143,301,170,264"/>
+<area shape="poly" id="edge8_Node000007_Node000004" title=" " alt="" coords="131,339,131,373,126,373,126,339"/>
+<area shape="poly" id="edge10_Node000008_Node000004" title=" " alt="" coords="248,341,165,383,162,378,246,336"/>
 </map>

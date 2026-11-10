@@ -1,6 +1,9 @@
 <map id="resource_managers::ChartFactory::PlayerSpecificData" name="resource_managers::ChartFactory::PlayerSpecificData">
-<area shape="rect" id="node1" title=" " alt="" coords="129,185,363,227"/>
-<area shape="rect" id="node2" href="$classgameplay__logic_1_1BmsScore.html" title="The result of playing a chart." alt="" coords="5,89,204,115"/>
-<area shape="rect" id="node3" title=" " alt="" coords="67,5,142,32"/>
-<area shape="rect" id="node4" href="$classgameplay__logic_1_1rules_1_1HitRules.html" title="The class that determines which notes get hit or missed." alt="" coords="227,81,393,123"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="15,183,249,223"/>
+<area shape="rect" id="Node000002" href="$classgameplay__logic_1_1rules_1_1HitRules.html" title="The class that determines which notes get hit or missed." alt="" coords="5,80,171,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,131,126,182,121,184,99,134"/>
+<area shape="rect" id="Node000003" href="$classgameplay__logic_1_1BmsScore.html" title="The result of playing a chart." alt="" coords="195,87,394,113"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="266,122,164,185,161,180,263,118"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="257,5,332,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="297,44,297,87,292,87,292,44"/>
 </map>
