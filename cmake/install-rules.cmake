@@ -31,6 +31,27 @@ if (WIN32 OR NOT USE_SYSTEM_LIBRARIES)
     endif ()
     install(SCRIPT ${deploy_script} COMPONENT RhythmGame_Runtime)
 
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        # QtKeychain loads libsecret with QLibrary, so it may not appear in
+        # DT_NEEDED. Deploy it and its GLib libraries from the build prefix.
+        set(keychain_runtime_targets)
+        foreach (library secret-1 glib-2.0 gobject-2.0 gio-2.0 gmodule-2.0)
+            find_library(RhythmGame_${library}_LIBRARY NAMES lib${library}.so.0 REQUIRED)
+            file(REAL_PATH "${RhythmGame_${library}_LIBRARY}" library_real_path)
+            add_library(RhythmGame_${library} SHARED IMPORTED)
+            set_target_properties(RhythmGame_${library} PROPERTIES
+                    IMPORTED_LOCATION "${library_real_path}"
+                    IMPORTED_SONAME "lib${library}.so.0")
+            list(APPEND keychain_runtime_targets RhythmGame_${library})
+        endforeach ()
+        install(IMPORTED_RUNTIME_ARTIFACTS ${keychain_runtime_targets}
+                RUNTIME_DEPENDENCY_SET KeychainRuntimeDeps
+                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT RhythmGame_Runtime)
+        install(RUNTIME_DEPENDENCY_SET KeychainRuntimeDeps
+                POST_EXCLUDE_REGEXES "^/lib/" "^/lib64/" "^/usr/lib/" "^/usr/lib64/"
+                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT RhythmGame_Runtime)
+    endif ()
+
     if (NOT WIN32)
         install(PROGRAMS RhythmGame.sh DESTINATION ${CMAKE_INSTALL_BINDIR} PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
     endif ()

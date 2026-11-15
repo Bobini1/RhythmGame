@@ -673,6 +673,16 @@ jobs:
         working-directory: build
         run: cpack -B artifacts --config CPackConfig.cmake
 
+      - name: Check Linux keychain dependencies
+        if: matrix.os == 'ubuntu-24.04'
+        shell: bash
+        run: |
+          packages=(build/artifacts/*.tar.gz)
+          test "${#packages[@]}" -eq 1
+          package_dir=$(mktemp -d "$RUNNER_TEMP/rhythmgame-package.XXXXXX")
+          tar -xzf "${packages[0]}" -C "$package_dir" --strip-components=1
+          python3 .github/scripts/check-linux-keychain.py "$package_dir"
+
       - name: Remove CPack folders
         working-directory: build
         shell: bash

@@ -11,3 +11,9 @@ endif ()
 if (PORT MATCHES "ffmpeg")
     set(VCPKG_LIBRARY_LINKAGE dynamic)
 endif ()
+
+# QtKeychain loads libsecret at runtime. Keep its GLib/GObject/GIO dependencies
+# shared so a static GLib copy cannot interpose on the loaded library's symbols.
+if (PORT STREQUAL "glib" OR PORT STREQUAL "libsecret")
+    set(VCPKG_LIBRARY_LINKAGE dynamic)
+endif ()
