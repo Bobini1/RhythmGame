@@ -29,14 +29,6 @@ if(TARGET zstd::libzstd_shared)
 else()
     set(zstd_link_kind static:-bundle)
 endif()
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    find_package(OpenSSL REQUIRED COMPONENTS SSL Crypto)
-    if(OPENSSL_CRYPTO_LIBRARY MATCHES "\\.a$")
-        set(openssl_linkage OPENSSL_STATIC=1)
-    else()
-        set(openssl_linkage OPENSSL_DYNAMIC=1)
-    endif()
-endif()
 configure_file(cargo-config.toml.in cargo-config.toml @ONLY)
 
 string(ASCII 31 rust_flag_separator)
@@ -56,7 +48,6 @@ set(backbeat_header "${CMAKE_CURRENT_BINARY_DIR}/backbeat.h")
 
 add_custom_target(backbeat ALL
     COMMAND "${CMAKE_COMMAND}" -E env
-        --unset=OPENSSL_DIR --unset=OPENSSL_LIB_DIR --unset=OPENSSL_INCLUDE_DIR
         --modify "PATH=path_list_prepend:${BACKBEAT_INSTALLED_DIR}/bin"
         --modify "PATH=path_list_prepend:${native_prefix}/bin"
         --modify "LD_LIBRARY_PATH=path_list_prepend:${native_library_dir}"
@@ -71,7 +62,6 @@ add_custom_target(backbeat ALL
         "PKG_CONFIG=${PKG_CONFIG_EXECUTABLE}"
         "PKG_CONFIG_PATH=${native_library_dir}/pkgconfig"
         "PKG_CONFIG_LIBDIR=${native_library_dir}/pkgconfig"
-        ${openssl_linkage}
         "BKB_LIBCOMMIT_HASH=${BACKBEAT_REVISION}"
         "BKB_HEADER_PATH=${backbeat_header}"
         "${RUSTUP}" run 1.96.0 cargo rustc --locked

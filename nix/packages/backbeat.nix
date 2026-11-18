@@ -4,28 +4,27 @@
   rustPlatform,
   fetchFromGitHub,
   pkg-config,
-  openssl,
   sqlite,
   zstd,
 }:
 rustPlatform.buildRustPackage rec {
   pname = "backbeat";
-  version = "1.0.0";
+  version = "1.0.1";
 
   # Keep the SDK revision in sync with vcpkgOverlayPorts/backbeat/portfile.cmake.
   src = fetchFromGitHub {
     owner = "zkldi";
     repo = "backbeat";
-    rev = "5df6f7630e099e8693b6427c27d6c3e98576b8e0";
-    hash = "sha256-/9l6SHjNEAAd/s0AIi9XdbcxrsozxbNkutZHFqdnpJs=";
+    rev = "0639355a1e72f083aa4d8ef6cdfd3631c6a72e8b";
+    hash = "sha256-BdaEchC/ctIF+sEYQISDe15WKPMc9HjvGrYkRAt1i/E=";
   };
 
-  cargoHash = "sha256-CrMFFor4Oa4A+2B2wCmwLP7L+Z5ObVfQR1tlVbHAr5U=";
+  cargoHash = "sha256-f3EmKr982nHYnWF810QrlqP31sVOX+oVQ2Agws/82eE=";
   cargoBuildFlags = ["--package" "backbeat_c_sdk" "--lib"];
   cargoTestFlags = ["--package" "backbeat_c_sdk" "--lib"];
 
   nativeBuildInputs = [pkg-config rustPlatform.bindgenHook];
-  propagatedBuildInputs = [openssl sqlite zstd];
+  propagatedBuildInputs = [sqlite zstd];
 
   env = {
     BKB_LIBCOMMIT_HASH = src.rev;
@@ -33,7 +32,6 @@ rustPlatform.buildRustPackage rec {
     SQLITE3_INCLUDE_DIR = "${lib.getDev sqlite}/include";
     SQLITE3_DYNAMIC = "1";
     ZSTD_SYS_USE_PKG_CONFIG = "1";
-    OPENSSL_NO_VENDOR = "1";
   };
 
   postPatch = ''

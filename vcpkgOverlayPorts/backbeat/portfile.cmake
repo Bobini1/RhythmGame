@@ -1,11 +1,11 @@
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
-set(backbeat_revision 5df6f7630e099e8693b6427c27d6c3e98576b8e0)
+set(backbeat_revision 0639355a1e72f083aa4d8ef6cdfd3631c6a72e8b)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO zkldi/backbeat
     REF "${backbeat_revision}"
-    SHA512 f775c0a68082f9f60e6294e0b991b0bdc461c11220a6c528fcd937682368330db8003236e9cabbdbc509dbca5d6863bd61db9c3d6e98c26de57dd2e60d8af7fc
+    SHA512 5a8597b2fe9ac1609b1c99c26670225e8dcba7a4c9d1717d1dfaac055a41c556e98dc4c450e27e1641503a645caac65e2613bcfe51462458c69fb1de46a59670
     PATCHES cargo-native-dependencies.patch
 )
 
