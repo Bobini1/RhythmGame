@@ -188,6 +188,27 @@ TEST_CASE("LR2 skin parser ignores image slots in skipped branches",
     CHECK(source.source.contains(QStringLiteral("notes.png")));
 }
 
+TEST_CASE("LR2 skin parser reserves slots for legacy image placeholders",
+          "[lr2][skin]")
+{
+    QTemporaryDir tempDir;
+    const auto path = tempSkinPath(tempDir);
+
+    writeSkinFile(path,
+                  QStringLiteral("#IMAGE,base.png\n"
+                                 "#imagedummy,ignored.png\n"
+                                 "#IMAGE,notes.png\n"
+                                 "#SRC_NOTE,0,1,0,0,60,30,1,1,0,0,0,0,0\n"
+                                 "#SRC_NOTE,1,2,0,0,60,30,1,1,0,0,0,0,0\n"));
+
+    const auto skin = Lr2SkinParser::parseData(support::pathToQString(path));
+
+    REQUIRE(skin.noteSources.size() == 2);
+    CHECK(skin.noteSources[0].value<Lr2SrcImage>().source.isEmpty());
+    CHECK(
+      skin.noteSources[1].value<Lr2SrcImage>().source.endsWith("notes.png"));
+}
+
 TEST_CASE("LR2 skin parser records select detail option gates", "[lr2][skin]")
 {
     QTemporaryDir tempDir;

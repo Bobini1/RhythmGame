@@ -1937,6 +1937,10 @@ processCommand(const QStringList& tokens,
         if (tokens.size() > 2 && !tokens[2].trimmed().isEmpty()) {
             state.imageSets.append(parseImageSource(tokens, state));
         }
+    } else if (command.startsWith("#IMAGE")) {
+        // Legacy LR2 treated suffixed commands such as #IMAGEdummy as empty
+        // slots.
+        setImageSource(state, {});
     } else if (command == "#FONT") {
         FontDefinition font;
         if (tokens.size() > 1 && !tokens[1].trimmed().isEmpty()) {
