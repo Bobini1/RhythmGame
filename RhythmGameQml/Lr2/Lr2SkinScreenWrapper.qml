@@ -2562,7 +2562,6 @@ Item {
     function hitDeviationMillis(hit: var) : var { return resultState.hitDeviationMillis(hit); }
     function cloneJudgeTimingCounts(counts: var) : var { return resultState.cloneJudgeTimingCounts(counts); }
     function gameplayJudgeValueForId(num: var) : var { return gameplayJudgeState.judgeValueForId(num); }
-    function recordGameplayJudgeTiming(scoreSide: var, judgement: var, deviationNanos: var, lane: var) : void { gameplayJudgeState.record(scoreSide, judgement, deviationNanos, lane); }
     function gameplayJudgeTimingNumber(num: var, side: var) : var { return gameplayJudgeState.timingNumber(num, side); }
     function gameplayJudgeTimingMean(side: var) : real { return gameplayJudgeState.timingMean(side); }
     function gameplayJudgeTimingStdDev(side: var) : real { return gameplayJudgeState.timingStdDev(side); }
@@ -3821,10 +3820,10 @@ Item {
         root.gameplayJudgeCombo1 = 0;
         root.gameplayJudgeCombo2 = 0;
         root.gameplayNumberDirtyMaskPending = 0;
+        gameplayJudgeState.reset();
         root.refreshGameplayNumbers(
             root.gameplayNumberJudge1Dependency | root.gameplayNumberJudge2Dependency);
         root.resetGameplayGraphHits();
-        gameplayJudgeState.reset();
         root.gameplayLastMissSkinTime1 = -1;
         root.gameplayLastMissSkinTime2 = -1;
         root.gameplayFullComboSkinTime1 = -1;
@@ -4077,7 +4076,7 @@ Item {
             noteType,
             judgement,
             lane);
-        root.recordGameplayJudgeTiming(scoreSide, judgement, deviationNanos, lane);
+        gameplayJudgeState.record(scoreSide, displaySide, judgement, deviationNanos, lane);
 
         let currentGauge = root.lr2TimerGaugeValue(root.gameplayGaugeValue(score));
         let currentGaugeName = scoreSide2

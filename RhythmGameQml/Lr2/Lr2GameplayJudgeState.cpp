@@ -15,13 +15,13 @@ Lr2GameplayJudgeState::Lr2GameplayJudgeState(QObject* parent)
 int
 Lr2GameplayJudgeState::lastJudgeTiming1() const
 {
-    return m_sides[0].lastJudgeTiming;
+    return m_lastJudgeTimingByDisplaySide[0];
 }
 
 int
 Lr2GameplayJudgeState::lastJudgeTiming2() const
 {
-    return m_sides[1].lastJudgeTiming;
+    return m_lastJudgeTimingByDisplaySide[1];
 }
 
 int
@@ -38,6 +38,7 @@ Lr2GameplayJudgeState::judgeNowValue2() const
 
 void
 Lr2GameplayJudgeState::record(int scoreSide,
+                              int displaySide,
                               int judgement,
                               qint64 deviationNanos,
                               int lane)
@@ -56,7 +57,7 @@ Lr2GameplayJudgeState::record(int scoreSide,
     const int timing = static_cast<int>(std::floor(timingValue + 0.5));
     if (judgement >= static_cast<int>(Judgement::Bad) &&
         judgement <= static_cast<int>(Judgement::Perfect)) {
-        setLastJudgeTiming(side, timing);
+        setLastJudgeTiming(sideIndex(displaySide), timing);
         ++state.timingCount;
         state.timingSum += timing;
         state.timingSumSquares += static_cast<qint64>(timing) * timing;
@@ -73,11 +74,13 @@ void
 Lr2GameplayJudgeState::reset()
 {
     const auto previous = m_sides;
+    const auto previousTiming = m_lastJudgeTimingByDisplaySide;
     m_sides = {};
-    if (previous[0].lastJudgeTiming != 0) {
+    m_lastJudgeTimingByDisplaySide = {};
+    if (previousTiming[0] != 0) {
         emit lastJudgeTiming1Changed();
     }
-    if (previous[1].lastJudgeTiming != 0) {
+    if (previousTiming[1] != 0) {
         emit lastJudgeTiming2Changed();
     }
     if (previous[0].judgeNowValue != 0) {
@@ -241,10 +244,10 @@ Lr2GameplayJudgeState::timingCount(std::size_t side,
 void
 Lr2GameplayJudgeState::setLastJudgeTiming(std::size_t side, int value)
 {
-    if (m_sides[side].lastJudgeTiming == value) {
+    if (m_lastJudgeTimingByDisplaySide[side] == value) {
         return;
     }
-    m_sides[side].lastJudgeTiming = value;
+    m_lastJudgeTimingByDisplaySide[side] = value;
     if (side == 0) {
         emit lastJudgeTiming1Changed();
     } else {

@@ -28,6 +28,7 @@ class Lr2GameplayJudgeState : public QObject
     int judgeNowValue2() const;
 
     Q_INVOKABLE void record(int scoreSide,
+                            int displaySide,
                             int judgement,
                             qint64 deviationNanos,
                             int lane);
@@ -54,7 +55,6 @@ class Lr2GameplayJudgeState : public QObject
         qint64 timingSum = 0;
         qint64 timingSumSquares = 0;
         int timingCount = 0;
-        int lastJudgeTiming = 0;
         int judgeNowValue = 0;
     };
 
@@ -67,4 +67,5 @@ class Lr2GameplayJudgeState : public QObject
     void setJudgeNowValue(std::size_t side, int value);
 
     std::array<SideState, 2> m_sides;
+    std::array<int, 2> m_lastJudgeTimingByDisplaySide{};
 };

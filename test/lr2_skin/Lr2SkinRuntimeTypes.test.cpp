@@ -54,16 +54,19 @@ TEST_CASE("LR2 gameplay judge state records primitive hit data",
 {
     Lr2GameplayJudgeState state;
 
-    state.record(1, 5, -1'400'000, 0);
-    state.record(1, 4, 2'600'000, 10);
-    state.record(2, 3, -3'600'000, 11);
+    state.record(1, 1, 5, -1'400'000, 0);
+    state.record(1, 2, 4, 2'600'000, 10);
+    CHECK(state.lastJudgeTiming1() == 1);
+    CHECK(state.lastJudgeTiming2() == -3);
+
+    state.record(2, 2, 3, -3'600'000, 11);
 
     CHECK(state.timingNumber(410, 1) == 1);
     CHECK(state.timingNumber(413, 1) == 1);
     CHECK(state.timingNumber(414, 2) == 1);
     CHECK(state.timingNumber(423, 1) == 1);
     CHECK(state.timingNumber(424, 1) == 1);
-    CHECK(state.lastJudgeTiming1() == -3);
+    CHECK(state.lastJudgeTiming1() == 1);
     CHECK(state.lastJudgeTiming2() == 4);
     CHECK(state.judgeNowValue1() == 2);
     CHECK(state.judgeNowValue2() == 3);
@@ -77,6 +80,7 @@ TEST_CASE("LR2 gameplay judge state records primitive hit data",
 
     CHECK(state.timingNumber(410, 1) == 0);
     CHECK(state.lastJudgeTiming1() == 0);
+    CHECK(state.lastJudgeTiming2() == 0);
     CHECK(state.judgeNowValue2() == 0);
     CHECK(state.judgeValueForId(1611) == 0);
 }
