@@ -980,6 +980,9 @@ QtObject {
             root.addOption(options, host.gameplayLaneCoverOption(side));
         }
         root.appendGameplayLaneCoverOptions(options, side);
+        if (side === 2 ? host.gameplayLaneCoverVisible2 : host.gameplayLaneCoverVisible1) {
+            root.addOption(options, side === 2 ? 275 : 274);
+        }
 
         let currentRankFirst = side === 2 ? 210 : 200;
         if (root.runtimeOptionRangeUsed(usedOptions, currentRankFirst, currentRankFirst + 7)) {

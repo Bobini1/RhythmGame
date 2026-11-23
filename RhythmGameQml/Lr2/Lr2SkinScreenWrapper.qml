@@ -2022,6 +2022,26 @@ Item {
         return lane;
     }
 
+    function gameplayLaneCoverVisible(side: int) : bool {
+        const vars = root.generalVarsForSide(side);
+        return !!root.gameplayLanePlayer(side) && !!vars && vars.laneCoverOn;
+    }
+
+    readonly property bool gameplayLaneCoverVisible1: root.gameplayScreenActive
+        && root.gameplayLaneCoverVisible(1)
+    readonly property bool gameplayLaneCoverVisible2: root.gameplayScreenActive
+        && root.gameplayLaneCoverVisible(2)
+    onGameplayLaneCoverVisible1Changed: {
+        if (root.skinUsesRuntimeOption(274)) {
+            Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
+        }
+    }
+    onGameplayLaneCoverVisible2Changed: {
+        if (root.skinUsesRuntimeOption(275)) {
+            Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
+        }
+    }
+
     function liftNumber(side: var) : var {
         let vars = root.generalVarsForSide(side);
         return root.lr2SkinUsesBeatorajaSemantics && vars && vars.liftOn
@@ -4814,6 +4834,9 @@ Item {
                 vars && vars.laneCoverOn ? 1 : 0,
                 vars && vars.liftOn ? 1 : 0,
                 vars && vars.hiddenOn ? 1 : 0);
+        }
+        if (root.skinUsesRuntimeOption(side === 2 ? 275 : 274)) {
+            parts.push(side === 2 ? root.gameplayLaneCoverVisible2 : root.gameplayLaneCoverVisible1);
         }
         if (root.skinUsesRuntimeOptionRange(side === 2 ? 210 : 200, side === 2 ? 217 : 207)) {
             parts.push(root.gameplayRankOption(score, side === 2 ? 210 : 200, true));

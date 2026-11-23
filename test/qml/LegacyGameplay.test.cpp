@@ -262,24 +262,31 @@ TEST_CASE(
     });
     QFile skin(directory.filePath("play.lr2skin"));
     REQUIRE(skin.open(QIODevice::WriteOnly));
-    skin.write("#INFORMATION,0,Test,Test\n#LOADEND,1\n#PLAYSTART,1\n"
-               "#IMAGE,atlas.png\n"
-               "#SRC_NUMBER,0,0,0,0,100,10,10,1,0,0,101,0,4\n"
-               "#DST_NUMBER,0,0,0,0,10,10,0,255,255,255,255,1,0,0,0\n"
-               "#SRC_NUMBER,1,0,0,0,100,10,10,1,0,0,105,0,4\n"
-               "#DST_NUMBER,1,0,0,20,10,10,0,255,255,255,255,1,0,0,0\n"
-               "#SRC_NUMBER,2,0,0,0,100,10,10,1,0,0,107,0,4\n"
-               "#DST_NUMBER,2,0,0,30,10,10,0,255,255,255,255,1,0,0,0\n"
-               "#SRC_GROOVEGAUGE,0,0,0,0,40,10,4,1,0,0,1,0\n"
-               "#DST_GROOVEGAUGE,0,0,0,40,1,10,0,255,255,255,255,1,0,0,0\n"
-               "#SRC_IMAGE,0,0,0,0,10,10,1,1,0,0\n"
-               "#DST_IMAGE,0,0,50,0,10,10,0,255,255,255,255,1,0,0,0,0,51\n"
-               "#SRC_IMAGE,1,0,0,0,10,10,1,1,0,0\n"
-               "#DST_IMAGE,1,0,60,0,10,10,0,255,255,255,255,1,0,0,0,0,71\n"
-               "#SRC_IMAGE,2,0,0,0,10,10,1,1,0,0\n"
-               "#DST_IMAGE,2,0,70,0,10,10,0,255,255,255,255,1,0,0,0,0,72\n"
-               "#SRC_IMAGE,3,0,0,0,10,10,1,1,0,0\n"
-               "#DST_IMAGE,3,0,80,0,10,10,0,255,255,255,255,1,0,0,0,0,73\n");
+    skin.write(
+      "#INFORMATION,0,Test,Test\n#LOADEND,1\n#PLAYSTART,1\n"
+      "#IMAGE,atlas.png\n"
+      "#SRC_NUMBER,0,0,0,0,100,10,10,1,0,0,101,0,4\n"
+      "#DST_NUMBER,0,0,0,0,10,10,0,255,255,255,255,1,0,0,0\n"
+      "#SRC_NUMBER,1,0,0,0,100,10,10,1,0,0,105,0,4\n"
+      "#DST_NUMBER,1,0,0,20,10,10,0,255,255,255,255,1,0,0,0\n"
+      "#SRC_NUMBER,2,0,0,0,100,10,10,1,0,0,107,0,4\n"
+      "#DST_NUMBER,2,0,0,30,10,10,0,255,255,255,255,1,0,0,0\n"
+      "#SRC_NUMBER,3,0,0,0,100,10,10,1,0,0,421,0,3\n"
+      "#DST_NUMBER,3,0,0,50,10,10,0,255,255,255,255,1,0,0,0\n"
+      "#SRC_NUMBER,4,0,0,0,100,10,10,1,0,0,422,0,3\n"
+      "#DST_NUMBER,4,0,0,60,10,10,0,255,255,255,255,1,0,0,0\n"
+      "#SRC_GROOVEGAUGE,0,0,0,0,40,10,4,1,0,0,1,0\n"
+      "#DST_GROOVEGAUGE,0,0,0,40,1,10,0,255,255,255,255,1,0,0,0\n"
+      "#SRC_IMAGE,0,0,0,0,10,10,1,1,0,0\n"
+      "#DST_IMAGE,0,0,50,0,10,10,0,255,255,255,255,1,0,0,0,0,51\n"
+      "#SRC_IMAGE,1,0,0,0,10,10,1,1,0,0\n"
+      "#DST_IMAGE,1,0,60,0,10,10,0,255,255,255,255,1,0,0,0,0,71\n"
+      "#SRC_IMAGE,2,0,0,0,10,10,1,1,0,0\n"
+      "#DST_IMAGE,2,0,70,0,10,10,0,255,255,255,255,1,0,0,0,0,72\n"
+      "#SRC_IMAGE,3,0,0,0,10,10,1,1,0,0\n"
+      "#DST_IMAGE,3,0,80,0,10,10,0,255,255,255,255,1,0,0,0,0,73\n"
+      "#SRC_IMAGE,4,0,0,0,10,10,1,1,0,0\n"
+      "#DST_IMAGE,4,0,90,0,10,10,0,255,255,255,255,1,0,0,0,0,0,274,275\n");
     skin.close();
     QImage atlas(100, 10, QImage::Format_RGBA8888);
     atlas.fill(Qt::white);
@@ -369,6 +376,19 @@ Item {
             gameplay_logic::Judgement::Poor)) == (autoplay ? 0 : 1));
     auto* currentScreen = host->property("currentScreen").value<QObject*>();
     REQUIRE(currentScreen);
+    const auto laneCoverOptions = [currentScreen] {
+        return currentScreen->property("runtimeActiveOptions")
+          .value<QList<int>>();
+    };
+    auto* generalVars = profile->getVars()->getGeneralVars();
+    generalVars->setLaneCoverOn(true);
+    REQUIRE(QTest::qWaitFor([&] { return laneCoverOptions().contains(274); }));
+    CHECK_FALSE(laneCoverOptions().contains(275));
+    generalVars->setLaneCoverOn(false);
+    REQUIRE(QTest::qWaitFor([&] { return !laneCoverOptions().contains(274); }));
+
+    generalVars->setLiftRatio(0.37);
+    generalVars->setLiftOn(true);
     auto children = qobject_cast<QQuickItem*>(currentScreen)->childItems();
     for (qsizetype i = 0; i < children.size(); ++i) {
         children.append(children.at(i)->childItems());
@@ -378,6 +398,8 @@ Item {
     auto checkedGauge = false;
     auto checkedGaugeNumber = false;
     auto checkedRuntimeState = false;
+    bool checkedGaugeDecimals = false;
+    bool checkedTotalJudgments = false;
     const auto gauge = currentScreen->property("gameplayFrameStateRef")
                          .value<QObject*>()
                          ->property("gaugeValue1")
@@ -403,6 +425,15 @@ Item {
             checkedGaugeNumber = true;
             CHECK(child->property("value").toDouble() == std::floor(gauge));
         }
+        if (numberId.toInt() == 421) {
+            checkedGaugeDecimals = true;
+            CHECK(child->property("value").toInt() ==
+                  static_cast<int>(std::floor(gauge * 100)) % 100);
+        }
+        if (numberId.toInt() == 422) {
+            checkedTotalJudgments = true;
+            CHECK(child->property("value").toInt() == 2);
+        }
         const auto gaugeValue = child->property("gaugeValue");
         if (gaugeValue.isValid()) {
             checkedGauge = true;
@@ -413,6 +444,8 @@ Item {
     CHECK(checkedCombo);
     CHECK(checkedGauge);
     CHECK(checkedGaugeNumber);
+    CHECK(checkedGaugeDecimals);
+    CHECK(checkedTotalJudgments);
     CHECK(checkedRuntimeState);
 
     QObject* hitBomb = nullptr;
