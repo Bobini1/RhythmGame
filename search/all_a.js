@@ -213,7 +213,7 @@ var searchData=
   ['arenascheduler_2eh_210',['ArenaScheduler.h',['../ArenaScheduler_8h.html',1,'']]],
   ['arenaselectionbuildfailure_211',['ArenaSelectionBuildFailure',['../namespacearena.html#a9019fca8c1e64cbdd3aef3150e1c93aa',1,'arena']]],
   ['arenaselectionbuildresult_212',['ArenaSelectionBuildResult',['../namespacearena.html#a0fb162166e8628140d77f1342f2e57b3',1,'arena']]],
-  ['arenasession_213',['arenasession',['../classrhythm__game__qml_1_1GameplayContext.html#a89447ee71dd5e44c686bef87add3b8f0',1,'rhythm_game_qml::GameplayContext::arenaSession()'],['../classarena_1_1ArenaSession.html',1,'arena::ArenaSession'],['../classRg.html#a0bc551d826fd1098d7d509e7ad0d6bbe',1,'Rg::arenaSession'],['../classarena_1_1ArenaSession.html#ab8755bef86b9cfed8d6329e68d8aec3c',1,'arena::ArenaSession::ArenaSession()']]],
+  ['arenasession_213',['arenasession',['../classarena_1_1ArenaSession.html#ab8755bef86b9cfed8d6329e68d8aec3c',1,'arena::ArenaSession::ArenaSession()'],['../classarena_1_1ArenaSession.html',1,'arena::ArenaSession'],['../classrhythm__game__qml_1_1GameplayContext.html#a89447ee71dd5e44c686bef87add3b8f0',1,'rhythm_game_qml::GameplayContext::arenaSession()'],['../classRg.html#a0bc551d826fd1098d7d509e7ad0d6bbe',1,'Rg::arenaSession']]],
   ['arenasession_2ecpp_214',['ArenaSession.cpp',['../ArenaSession_8cpp.html',1,'']]],
   ['arenasession_2eh_215',['ArenaSession.h',['../ArenaSession_8h.html',1,'']]],
   ['arenasessionforeign_216',['ArenaSessionForeign',['../structrhythm__game__qml_1_1ArenaSessionForeign.html',1,'rhythm_game_qml']]],
